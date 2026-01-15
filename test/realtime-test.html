@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PalaPoint Realtime Test</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #1a1a2e;
+      color: white;
+    }
+    .score {
+      font-size: 200px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .team {
+      font-size: 48px;
+      opacity: 0.7;
+    }
+    .status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+    .status.connected { background: #22c55e; }
+    .status.disconnected { background: #ef4444; }
+    .status.connecting { background: #f59e0b; }
+    .last-update {
+      font-size: 14px;
+      opacity: 0.5;
+      margin-top: 40px;
+    }
+    .scores-container {
+      display: flex;
+      gap: 100px;
+      align-items: center;
+    }
+    .team-score {
+      text-align: center;
+    }
+    .vs {
+      font-size: 48px;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+  <div class="status connecting" id="status">Connecting...</div>
+  
+  <div class="scores-container">
+    <div class="team-score">
+      <div class="team">Team A</div>
+      <div class="score" id="score-a">0</div>
+    </div>
+    <div class="vs">vs</div>
+    <div class="team-score">
+      <div class="team">Team B</div>
+      <div class="score" id="score-b">0</div>
+    </div>
+  </div>
+  
+  <div class="last-update" id="last-update">Waiting for updates...</div>
+
+  <script>
+    // REPLACE THESE WITH YOUR VALUES
+    const SUPABASE_URL = 'https://heapuqojxnuejpveplvx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlYXB1cW9qeG51ZWpwdmVwbHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMDYyMzEsImV4cCI6MjA4Mzc4MjIzMX0.5tiu0upPCX3rFhZpH-8_quMD7phm1VsrwNLczjEKurk'; // Get from Supabase dashboard
+    const COURT_ID = 'c0000000-0000-0000-0000-000000000001'; // Test court from schema
+
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const statusEl = document.getElementById('status');
+    const scoreAEl = document.getElementById('score-a');
+    const scoreBEl = document.getElementById('score-b');
+    const lastUpdateEl = document.getElementById('last-update');
+
+    function updateStatus(state) {
+      statusEl.className = 'status ' + state;
+      statusEl.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+    }
+
+    function updateScore(match) {
+      if (match) {
+        scoreAEl.textContent = match.team_a_games || 0;
+        scoreBEl.textContent = match.team_b_games || 0;
+        lastUpdateEl.textContent = 'Last update: ' + new Date().toLocaleTimeString();
+      }
+    }
+
+    async function loadCurrentMatch() {
+      const { data, error } = await db
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', COURT_ID)
+        .in('status', ['setup', 'in_progress'])
+        .single();
+
+      if (data) {
+        updateScore(data);
+      }
+    }
+
+    // Subscribe to realtime changes
+    const channel = db
+      .channel('live-match-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'live_matches',
+          filter: `court_id=eq.${COURT_ID}`
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          updateScore(payload.new);
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          updateStatus('connected');
+          loadCurrentMatch();
+        } else if (status === 'CLOSED') {
+          updateStatus('disconnected');
+        } else {
+          updateStatus('connecting');
+        }
+      });
+
+    // Initial load
+    loadCurrentMatch();
+  </script>
+</body>
+</html>
