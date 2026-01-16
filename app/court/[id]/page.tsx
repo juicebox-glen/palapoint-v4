@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase, getCourtBySlug } from '@/lib/supabase'
+import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface MatchState {
   id: string
@@ -36,26 +37,33 @@ interface MatchState {
 export default function CourtPage() {
   const params = useParams()
   const courtIdentifier = params.id as string
+  const [court, setCourt] = useState<Court | null>(null)
   const [courtId, setCourtId] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [setupUrl, setSetupUrl] = useState<string>('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSetupUrl(`${window.location.origin}/setup/${courtIdentifier}`)
+    }
+  }, [courtIdentifier])
 
   useEffect(() => {
     if (!courtIdentifier) return
 
-    let channel: ReturnType<typeof supabase.channel> | null = null
-
     // Resolve court ID from slug or UUID
     async function resolveCourt() {
       try {
-        const court = await getCourtBySlug(courtIdentifier)
-        if (!court) {
+        const courtData = await getCourtBySlug(courtIdentifier)
+        if (!courtData) {
           setError('Court not found')
           setLoading(false)
           return
         }
-        setCourtId(court.id)
+        setCourt(courtData)
+        setCourtId(courtData.id)
       } catch (err) {
         console.error('Error resolving court:', err)
         setError('Failed to load court')
@@ -179,19 +187,95 @@ export default function CourtPage() {
   }
 
   if (!match) {
+    // Idle state - show court info and instructions
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#000',
-        color: '#fff',
-        fontSize: '3rem',
-        textAlign: 'center',
-        padding: '2rem'
-      }}>
-        No active match
+      <div className="court-idle">
+        <div className="court-idle-content">
+          {court && (
+            <h1 className="court-idle-name">{court.name}</h1>
+          )}
+          
+          <div className="court-idle-instructions">
+            <div className="court-idle-main-text">Hold button to start</div>
+            <div className="court-idle-sub-text">Quick Play: 1 set, Golden Point</div>
+          </div>
+
+          {setupUrl && (
+            <div className="court-idle-qr">
+              <QRCodeSVG
+                value={setupUrl}
+                size={200}
+                level="M"
+                includeMargin={true}
+                fgColor="#ffffff"
+                bgColor="#000000"
+              />
+              <div className="court-idle-qr-label">Scan for custom game</div>
+            </div>
+          )}
+        </div>
+
+        <style jsx>{`
+          .court-idle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #000;
+            color: #fff;
+            padding: 2rem;
+          }
+          .court-idle-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+            text-align: center;
+            max-width: 600px;
+          }
+          .court-idle-name {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+            opacity: 0.9;
+          }
+          .court-idle-instructions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+          .court-idle-main-text {
+            font-size: 3rem;
+            font-weight: bold;
+            line-height: 1.2;
+          }
+          .court-idle-sub-text {
+            font-size: 1.5rem;
+            opacity: 0.7;
+          }
+          .court-idle-qr {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+          }
+          .court-idle-qr-label {
+            font-size: 1.2rem;
+            opacity: 0.8;
+          }
+          @media (max-width: 768px) {
+            .court-idle-name {
+              font-size: 2rem;
+            }
+            .court-idle-main-text {
+              font-size: 2.5rem;
+            }
+            .court-idle-sub-text {
+              font-size: 1.2rem;
+            }
+          }
+        `}</style>
       </div>
     )
   }
