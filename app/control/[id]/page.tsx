@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, getCourtBySlug, validateControlPin } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 
 interface MatchState {
@@ -37,7 +37,12 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://heapuqojxn
 
 export default function ControlPanelPage() {
   const params = useParams()
-  const courtId = params.id as string
+  const courtIdentifier = params.id as string
+  const [courtId, setCourtId] = useState<string | null>(null)
+  const [pinAuthenticated, setPinAuthenticated] = useState(false)
+  const [pinLoading, setPinLoading] = useState(true)
+  const [pin, setPin] = useState('')
+  const [pinError, setPinError] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -52,8 +57,76 @@ export default function ControlPanelPage() {
   const [teamBPlayer1, setTeamBPlayer1] = useState('')
   const [teamBPlayer2, setTeamBPlayer2] = useState('')
 
+  // Resolve court ID from slug or UUID
   useEffect(() => {
-    if (!courtId) return
+    if (!courtIdentifier) return
+
+    async function resolveCourt() {
+      try {
+        const court = await getCourtBySlug(courtIdentifier)
+        if (!court) {
+          setError('Court not found')
+          setPinLoading(false)
+          setLoading(false)
+          return
+        }
+        setCourtId(court.id)
+
+        // Check if PIN is already authenticated in sessionStorage
+        const storedPin = sessionStorage.getItem(`control_pin_${court.id}`)
+        if (storedPin) {
+          // Verify PIN is still valid
+          const isValid = await validateControlPin(court.id, storedPin)
+          if (isValid) {
+            setPinAuthenticated(true)
+            setPinLoading(false)
+          } else {
+            // PIN expired or invalid, clear it
+            sessionStorage.removeItem(`control_pin_${court.id}`)
+            setPinLoading(false)
+          }
+        } else {
+          setPinLoading(false)
+        }
+      } catch (err) {
+        console.error('Error resolving court:', err)
+        setError('Failed to load court')
+        setPinLoading(false)
+        setLoading(false)
+      }
+    }
+
+    resolveCourt()
+  }, [courtIdentifier])
+
+  // Handle PIN submission
+  async function handlePinSubmit() {
+    if (!courtId || pin.length !== 4) return
+
+    setPinError(null)
+    setPinLoading(true)
+
+    try {
+      const isValid = await validateControlPin(courtId, pin)
+      if (isValid) {
+        // Store PIN in sessionStorage
+        sessionStorage.setItem(`control_pin_${courtId}`, pin)
+        setPinAuthenticated(true)
+        setPinLoading(false)
+      } else {
+        setPinError('Incorrect PIN')
+        setPinLoading(false)
+        setPin('')
+      }
+    } catch (err) {
+      console.error('Error validating PIN:', err)
+      setPinError('Failed to validate PIN')
+      setPinLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!courtId || !pinAuthenticated) return
 
     let channel: ReturnType<typeof supabase.channel> | null = null
 
@@ -125,7 +198,7 @@ export default function ControlPanelPage() {
         supabase.removeChannel(channel)
       }
     }
-  }, [courtId])
+  }, [courtId, pinAuthenticated])
 
   async function createMatch() {
     if (!courtId) return
@@ -274,6 +347,135 @@ export default function ControlPanelPage() {
       setError('Failed to end match')
       setActionLoading(null)
     }
+  }
+
+  // PIN entry screen
+  if (pinLoading || !pinAuthenticated) {
+    return (
+      <div className="control-panel">
+        <div className="control-pin-container">
+          <h1 className="control-pin-title">Control Panel</h1>
+          <p className="control-pin-subtitle">Enter 4-digit PIN</p>
+          
+          {pinError && <div className="control-pin-error">{pinError}</div>}
+          
+          <div className="control-pin-input-container">
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              className="control-pin-input"
+              value={pin}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                setPin(value)
+                setPinError(null)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && pin.length === 4) {
+                  handlePinSubmit()
+                }
+              }}
+              placeholder="0000"
+              autoFocus
+              disabled={pinLoading}
+            />
+          </div>
+          
+          <button
+            className="control-button control-button-primary"
+            onClick={handlePinSubmit}
+            disabled={pin.length !== 4 || pinLoading}
+          >
+            {pinLoading ? 'Verifying...' : 'Submit'}
+          </button>
+        </div>
+
+        <style jsx>{`
+          .control-panel {
+            min-height: 100vh;
+            background: #1a1a2e;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+          }
+          .control-pin-container {
+            max-width: 400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+          }
+          .control-pin-title {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+          }
+          .control-pin-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            text-align: center;
+          }
+          .control-pin-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            width: 100%;
+          }
+          .control-pin-input-container {
+            width: 100%;
+          }
+          .control-pin-input {
+            width: 100%;
+            padding: 1.5rem;
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-weight: bold;
+          }
+          .control-pin-input:focus {
+            outline: none;
+            border-color: #22c55e;
+          }
+          .control-pin-input:disabled {
+            opacity: 0.5;
+          }
+          .control-button {
+            min-height: 48px;
+            padding: 0.75rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+          }
+          .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+          .control-button-primary {
+            background: #22c55e;
+            color: #fff;
+          }
+          .control-button-primary:not(:disabled):active {
+            background: #16a34a;
+            transform: scale(0.98);
+          }
+        `}</style>
+      </div>
+    )
   }
 
   if (loading) {

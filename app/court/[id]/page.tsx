@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, getCourtBySlug } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 
 interface MatchState {
@@ -35,10 +35,36 @@ interface MatchState {
 
 export default function CourtPage() {
   const params = useParams()
-  const courtId = params.id as string
+  const courtIdentifier = params.id as string
+  const [courtId, setCourtId] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!courtIdentifier) return
+
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    // Resolve court ID from slug or UUID
+    async function resolveCourt() {
+      try {
+        const court = await getCourtBySlug(courtIdentifier)
+        if (!court) {
+          setError('Court not found')
+          setLoading(false)
+          return
+        }
+        setCourtId(court.id)
+      } catch (err) {
+        console.error('Error resolving court:', err)
+        setError('Failed to load court')
+        setLoading(false)
+      }
+    }
+
+    resolveCourt()
+  }, [courtIdentifier])
 
   useEffect(() => {
     if (!courtId) return
