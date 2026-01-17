@@ -191,8 +191,8 @@ export default function SetupPage() {
         return
       }
 
-      // Redirect to court display
-      router.push(`/court/${courtIdentifier}`)
+      // Redirect to playing page
+      router.push(`/playing/${courtIdentifier}`)
     } catch (err) {
       console.error('Error creating match:', err)
       setError('Failed to create match')
@@ -256,7 +256,7 @@ export default function SetupPage() {
 
           <div className="setup-match-info">
             <div className="setup-match-time">
-              {formatTimeAgo(activeMatch.started_at)}
+              {formatTimeAgo(activeMatch.started_at ?? null)}
             </div>
             
             <div className="setup-match-score">
