@@ -152,7 +152,6 @@ export default function PlayingPage() {
         },
         (payload) => {
           console.log('Realtime update:', payload)
-          console.log('Match status:', payload.new?.status)
 
           if (payload.eventType === 'DELETE') {
             setMatch(null)
@@ -161,7 +160,6 @@ export default function PlayingPage() {
 
           const updatedMatch = payload.new as MatchState
           console.log('Updated match status:', updatedMatch.status)
-          console.log('Match data:', updatedMatch)
 
           // Always update match state, even if completed or abandoned
           // This ensures we keep the match data when it transitions to completed/abandoned
@@ -678,7 +676,6 @@ export default function PlayingPage() {
   }
 
   // State 2: Match Completed or Abandoned
-  console.log('Current match status:', match?.status)
   if (match && (match.status === 'completed' || match.status === 'abandoned')) {
     const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2)
     const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2)
