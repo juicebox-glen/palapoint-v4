@@ -4,36 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
+import type { MatchState, GameMode } from '@/lib/types/match'
 
-interface MatchState {
-  id: string
-  court_id: string
-  version: number
-  game_mode: string
-  sets_to_win: number
-  tiebreak_at: number
-  status: string
-  current_set: number
-  is_tiebreak: boolean
-  team_a_points: number
-  team_b_points: number
-  team_a_games: number
-  team_b_games: number
-  set_scores: Array<{ team_a: number; team_b: number }>
-  tiebreak_scores?: { team_a: number; team_b: number }
-  tiebreak_starting_server?: string
-  deuce_count: number
-  serving_team: 'a' | 'b' | null
-  team_a_player_1?: string | null
-  team_a_player_2?: string | null
-  team_b_player_1?: string | null
-  team_b_player_2?: string | null
-  winner: 'a' | 'b' | null
-  started_at?: string | null
-  completed_at?: string | null
-}
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://heapuqojxnuejpveplvx.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 function formatTimeAgo(dateString: string | null): string {
   if (!dateString) return 'Unknown'
@@ -69,7 +42,7 @@ export default function SetupPage() {
   const [showSetupForm, setShowSetupForm] = useState(false)
 
   // Form state
-  const [gameMode, setGameMode] = useState<'golden_point' | 'silver_point' | 'traditional'>('golden_point')
+  const [gameMode, setGameMode] = useState<GameMode>('golden_point')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
 
@@ -126,7 +99,10 @@ export default function SetupPage() {
             }
             
             if (savedGameMode) {
-              setGameMode(savedGameMode as any)
+              const value = savedGameMode as GameMode
+              if (['golden_point', 'silver_point', 'traditional'].includes(value)) {
+                setGameMode(value)
+              }
             }
             
             if (savedSets) {

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
+import type { GameMode } from '@/lib/types/match'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://heapuqojxnuejpveplvx.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 interface TeamAssignments {
   teamA: (string | null)[]
@@ -25,7 +26,7 @@ export default function TeamsPage() {
   const [editingPlayer, setEditingPlayer] = useState<{ team: 'a' | 'b'; index: number } | null>(null)
 
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
-  const [gameMode, setGameMode] = useState<'golden_point' | 'silver_point' | 'traditional'>('golden_point')
+  const [gameMode, setGameMode] = useState<GameMode>('golden_point')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [teams, setTeams] = useState<TeamAssignments | null>(null)
 
@@ -66,7 +67,10 @@ export default function TeamsPage() {
           }
 
           if (savedGameMode) {
-            setGameMode(savedGameMode as any)
+            const value = savedGameMode as GameMode
+            if (['golden_point', 'silver_point', 'traditional'].includes(value)) {
+              setGameMode(value)
+            }
           }
 
           if (savedSets) {

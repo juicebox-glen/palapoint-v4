@@ -5,34 +5,7 @@ import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import { QRCodeSVG } from 'qrcode.react'
-
-interface MatchState {
-  id: string
-  court_id: string
-  version: number
-  game_mode: string
-  sets_to_win: number
-  tiebreak_at: number
-  status: string
-  current_set: number
-  is_tiebreak: boolean
-  team_a_points: number
-  team_b_points: number
-  team_a_games: number
-  team_b_games: number
-  set_scores: Array<{ team_a: number; team_b: number }>
-  tiebreak_scores?: { team_a: number; team_b: number }
-  tiebreak_starting_server?: string
-  deuce_count: number
-  serving_team: 'a' | 'b' | null
-  team_a_player_1?: string | null
-  team_a_player_2?: string | null
-  team_b_player_1?: string | null
-  team_b_player_2?: string | null
-  winner: 'a' | 'b' | null
-  started_at?: string | null
-  completed_at?: string | null
-}
+import type { MatchState } from '@/lib/types/match'
 
 export default function CourtPage() {
   const params = useParams()
@@ -119,8 +92,6 @@ export default function CourtPage() {
           filter: `court_id=eq.${courtId}`,
         },
         (payload) => {
-          console.log('Realtime update:', payload)
-          
           if (payload.eventType === 'DELETE') {
             setMatch(null)
             return
@@ -137,14 +108,7 @@ export default function CourtPage() {
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Subscription status:', status)
-        if (status === 'SUBSCRIBED') {
-          console.log('Subscribed to court updates')
-        } else if (status === 'CLOSED') {
-          console.log('Subscription closed')
-        }
-      })
+      .subscribe()
 
     // Cleanup
     return () => {

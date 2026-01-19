@@ -1,23 +1,6 @@
 'use client'
 
-interface MatchState {
-  id: string
-  court_id: string
-  team_a_points: number
-  team_b_points: number
-  team_a_games: number
-  team_b_games: number
-  set_scores: Array<{ team_a: number; team_b: number }>
-  is_tiebreak: boolean
-  tiebreak_scores?: { team_a: number; team_b: number }
-  serving_team: 'a' | 'b' | null
-  team_a_player_1?: string | null
-  team_a_player_2?: string | null
-  team_b_player_1?: string | null
-  team_b_player_2?: string | null
-  game_mode?: string
-  current_set?: number
-}
+import type { MatchState } from '@/lib/types/match'
 
 interface ScoreDisplayProps {
   match: MatchState

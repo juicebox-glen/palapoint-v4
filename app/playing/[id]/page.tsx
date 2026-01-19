@@ -4,36 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
+import type { MatchState } from '@/lib/types/match'
 
-interface MatchState {
-  id: string
-  court_id: string
-  version: number
-  game_mode: string
-  sets_to_win: number
-  tiebreak_at: number
-  status: string
-  current_set: number
-  is_tiebreak: boolean
-  team_a_points: number
-  team_b_points: number
-  team_a_games: number
-  team_b_games: number
-  set_scores: Array<{ team_a: number; team_b: number }>
-  tiebreak_scores?: { team_a: number; team_b: number }
-  tiebreak_starting_server?: string
-  deuce_count: number
-  serving_team: 'a' | 'b' | null
-  team_a_player_1?: string | null
-  team_a_player_2?: string | null
-  team_b_player_1?: string | null
-  team_b_player_2?: string | null
-  winner: 'a' | 'b' | null
-  started_at?: string | null
-  completed_at?: string | null
-}
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://heapuqojxnuejpveplvx.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 function buildTeamName(player1: string | null | undefined, player2: string | null | undefined): string {
   const names: string[] = []
@@ -151,15 +124,12 @@ export default function PlayingPage() {
           filter: `court_id=eq.${courtId}`,
         },
         (payload) => {
-          console.log('Realtime update:', payload)
-
           if (payload.eventType === 'DELETE') {
             setMatch(null)
             return
           }
 
           const updatedMatch = payload.new as MatchState
-          console.log('Updated match status:', updatedMatch.status)
 
           // Always update match state, even if completed or abandoned
           // This ensures we keep the match data when it transitions to completed/abandoned
@@ -167,7 +137,6 @@ export default function PlayingPage() {
 
           // If match just completed or abandoned, store settings for rematch
           if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
-            console.log('Match ended, storing settings for rematch')
             setPreviousSettings((prev) => {
               // Only set if not already set
               if (prev) return prev
@@ -183,9 +152,7 @@ export default function PlayingPage() {
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Subscription status:', status)
-      })
+      .subscribe()
 
     return () => {
       if (channel) {
