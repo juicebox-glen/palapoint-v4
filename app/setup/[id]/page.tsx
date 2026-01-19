@@ -71,10 +71,7 @@ export default function SetupPage() {
   // Form state
   const [gameMode, setGameMode] = useState<'golden_point' | 'silver_point' | 'traditional'>('golden_point')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
-  const [teamAPlayer1, setTeamAPlayer1] = useState('')
-  const [teamAPlayer2, setTeamAPlayer2] = useState('')
-  const [teamBPlayer1, setTeamBPlayer1] = useState('')
-  const [teamBPlayer2, setTeamBPlayer2] = useState('')
+  const [players, setPlayers] = useState<string[]>(['', '', '', ''])
 
   // Load court and check for active match
   useEffect(() => {
@@ -110,6 +107,32 @@ export default function SetupPage() {
           setActiveMatch(data.match)
         } else {
           setShowSetupForm(true)
+          
+          // Load saved data from sessionStorage if returning from teams page
+          if (typeof window !== 'undefined') {
+            const savedPlayers = sessionStorage.getItem(`setup_players_${courtData.id}`)
+            const savedGameMode = sessionStorage.getItem(`setup_game_mode_${courtData.id}`)
+            const savedSets = sessionStorage.getItem(`setup_sets_${courtData.id}`)
+            
+            if (savedPlayers) {
+              try {
+                const parsed = JSON.parse(savedPlayers)
+                if (Array.isArray(parsed) && parsed.length === 4) {
+                  setPlayers(parsed)
+                }
+              } catch (e) {
+                // Ignore parse errors
+              }
+            }
+            
+            if (savedGameMode) {
+              setGameMode(savedGameMode as any)
+            }
+            
+            if (savedSets) {
+              setSetsToWin(Number(savedSets) as 1 | 2)
+            }
+          }
         }
       } catch (err) {
         console.error('Error loading data:', err)
@@ -159,7 +182,30 @@ export default function SetupPage() {
     }
   }
 
-  async function handleStartMatch() {
+  // Handle player name changes
+  function handlePlayerChange(index: number, value: string) {
+    const newPlayers = [...players]
+    newPlayers[index] = value
+    setPlayers(newPlayers)
+  }
+
+  // Handle Next button - navigate to teams page
+  function handleNext() {
+    if (!courtId) return
+
+    // Save to sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
+      sessionStorage.setItem(`setup_game_mode_${courtId}`, gameMode)
+      sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
+    }
+
+    // Navigate to teams page
+    router.push(`/teams/${courtIdentifier}`)
+  }
+
+  // Handle Start Game (no players)
+  async function handleStartGameNoPlayers() {
     if (!courtId) return
 
     setActionLoading('create')
@@ -176,10 +222,6 @@ export default function SetupPage() {
           court_id: courtId,
           game_mode: gameMode,
           sets_to_win: setsToWin,
-          team_a_player_1: teamAPlayer1 || undefined,
-          team_a_player_2: teamAPlayer2 || undefined,
-          team_b_player_1: teamBPlayer1 || undefined,
-          team_b_player_2: teamBPlayer2 || undefined,
         }),
       })
 
@@ -345,6 +387,10 @@ export default function SetupPage() {
             background: #16a34a;
             transform: scale(0.98);
           }
+          .setup-button-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
           .setup-button-secondary {
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
@@ -418,53 +464,48 @@ export default function SetupPage() {
 
           {/* Player Names */}
           <div className="setup-section">
-            <label className="setup-label">Player Names (optional)</label>
-            
-            <div className="setup-team-group">
-              <div className="setup-team-label">Team A</div>
-              <input
-                type="text"
-                className="setup-input"
-                placeholder="Player 1 (optional)"
-                value={teamAPlayer1}
-                onChange={(e) => setTeamAPlayer1(e.target.value)}
-              />
-              <input
-                type="text"
-                className="setup-input"
-                placeholder="Player 2 (optional)"
-                value={teamAPlayer2}
-                onChange={(e) => setTeamAPlayer2(e.target.value)}
-              />
-            </div>
-
-            <div className="setup-team-group">
-              <div className="setup-team-label">Team B</div>
-              <input
-                type="text"
-                className="setup-input"
-                placeholder="Player 1 (optional)"
-                value={teamBPlayer1}
-                onChange={(e) => setTeamBPlayer1(e.target.value)}
-              />
-              <input
-                type="text"
-                className="setup-input"
-                placeholder="Player 2 (optional)"
-                value={teamBPlayer2}
-                onChange={(e) => setTeamBPlayer2(e.target.value)}
-              />
+            <label className="setup-label">Players (optional)</label>
+            <div className="setup-players-list">
+              {players.map((player, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  className="setup-input"
+                  placeholder="Player name"
+                  value={player}
+                  onChange={(e) => handlePlayerChange(index, e.target.value)}
+                />
+              ))}
             </div>
           </div>
 
-          {/* Start Match Button */}
-          <button
-            className="setup-button setup-button-primary setup-button-start"
-            onClick={handleStartMatch}
-            disabled={!!actionLoading}
-          >
-            {actionLoading === 'create' ? 'Starting...' : 'Start Match'}
-          </button>
+          {/* Dynamic CTA */}
+          {(() => {
+            const hasAnyNames = players.some((p) => p.trim() !== '')
+            
+            if (!hasAnyNames) {
+              // No names - show "Start Game"
+              return (
+                <button
+                  className="setup-button setup-button-primary setup-button-start"
+                  onClick={handleStartGameNoPlayers}
+                  disabled={!!actionLoading}
+                >
+                  {actionLoading === 'create' ? 'Starting...' : 'Start Game'}
+                </button>
+              )
+            } else {
+              // Has names - show "Next"
+              return (
+                <button
+                  className="setup-button setup-button-primary setup-button-start"
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
+              )
+            }
+          })()}
         </div>
       </div>
 
@@ -497,11 +538,15 @@ export default function SetupPage() {
           flex-direction: column;
           gap: 2rem;
         }
-        .setup-section {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
+          .setup-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: opacity 0.3s;
+          }
+          .setup-section.disabled {
+            opacity: 0.6;
+          }
         .setup-label {
           font-size: 1.2rem;
           font-weight: 600;
@@ -512,23 +557,27 @@ export default function SetupPage() {
           flex-direction: column;
           gap: 0.75rem;
         }
-        .setup-mode-button {
-          padding: 1rem;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 0.5rem;
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-align: left;
-        }
-        .setup-mode-button.active {
-          border-color: #22c55e;
-          background: rgba(34, 197, 94, 0.2);
-        }
-        .setup-mode-button:active {
-          transform: scale(0.98);
-        }
+          .setup-mode-button {
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+          }
+          .setup-mode-button.active {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
+          }
+          .setup-mode-button:not(:disabled):active {
+            transform: scale(0.98);
+          }
+          .setup-mode-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
         .setup-mode-name {
           font-size: 1.1rem;
           font-weight: 600;
@@ -538,43 +587,143 @@ export default function SetupPage() {
           font-size: 0.9rem;
           opacity: 0.7;
         }
-        .setup-sets-button {
-          min-height: 48px;
-          padding: 0.75rem 1.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 0.5rem;
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .setup-sets-button.active {
-          border-color: #22c55e;
-          background: rgba(34, 197, 94, 0.2);
-        }
-        .setup-sets-button:active {
-          transform: scale(0.98);
-        }
-        .setup-team-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          padding: 1rem;
-          background: rgba(59, 130, 246, 0.1);
-          border-radius: 0.5rem;
-          border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-        .setup-team-group:last-of-type {
-          background: rgba(239, 68, 68, 0.1);
-          border-color: rgba(239, 68, 68, 0.3);
-        }
-        .setup-team-label {
-          font-size: 1rem;
-          font-weight: 600;
-          opacity: 0.9;
-        }
+          .setup-sets-button {
+            min-height: 48px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .setup-sets-button.active {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
+          }
+          .setup-sets-button:not(:disabled):active {
+            transform: scale(0.98);
+          }
+          .setup-sets-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+          .setup-players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+          .setup-teams-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          }
+          .setup-back-link {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+          }
+          .setup-back-link:active {
+            opacity: 0.8;
+          }
+          .setup-teams-swap {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 0.3s ease-in;
+          }
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          .setup-swap-teams {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+          .setup-swap-team {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 0.5rem;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+          }
+          .setup-swap-team:last-of-type {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+          }
+          .setup-swap-team-label {
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0.9;
+          }
+          .setup-swap-vs {
+            text-align: center;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            margin: -0.5rem 0;
+          }
+          .setup-swap-player-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .setup-swap-player-wrapper.selected {
+            border-radius: 0.5rem;
+            padding: 2px;
+            background: rgba(34, 197, 94, 0.3);
+          }
+          .setup-swap-input {
+            min-height: 48px;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.2s;
+            width: 100%;
+          }
+          .setup-swap-input:focus {
+            outline: none;
+            border-color: #22c55e;
+          }
+          .setup-swap-player-wrapper.selected .setup-swap-input {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
+          }
+          .setup-swap-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+          }
+          .setup-swap-hint {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            padding: 0.5rem;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 0.5rem;
+          }
+          .setup-edit-note {
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+          }
         .setup-input {
           min-height: 48px;
           padding: 0.75rem;
