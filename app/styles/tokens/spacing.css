@@ -1,0 +1,16 @@
+:root {
+  /* UI Spacing (rem-based for mobile/interactive) */
+  --ui-space-xs: 0.25rem;
+  --ui-space-sm: 0.5rem;
+  --ui-space-md: 0.75rem;
+  --ui-space-lg: 1rem;
+  --ui-space-xl: 1.5rem;
+  --ui-space-2xl: 2rem;
+  --ui-space-3xl: 3rem;
+  
+  /* Display Spacing (vw-based for fixed screens) */
+  --display-space-sm: 1vw;
+  --display-space-md: 2vw;
+  --display-space-lg: 4vw;
+  --display-space-xl: 6vw;
+}

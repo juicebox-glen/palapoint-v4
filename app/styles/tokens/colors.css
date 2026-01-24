@@ -1,0 +1,37 @@
+:root {
+  /* Brand colors (overridable per venue) */
+  --brand-primary: #03a97c;
+  --brand-secondary: #BB86FC;
+  
+  /* Semantic colors derived from brand */
+  --color-team-a: var(--brand-primary);
+  --color-team-b: var(--brand-secondary);
+  
+  /* Background colors */
+  --color-bg-primary: #121212;
+  --color-bg-secondary: #1E1E1F;
+  --color-bg-tertiary: #2A2A2A;
+  
+  /* Text colors */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #B3B3B3;
+  --color-text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* Utility colors */
+  --color-success: #22c55e;
+  --color-success-dark: #16a34a;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-warning: #f59e0b;
+  
+  /* Overlays */
+  --color-overlay-light: rgba(255, 255, 255, 0.1);
+  --color-overlay-medium: rgba(255, 255, 255, 0.2);
+  --color-overlay-dark: rgba(0, 0, 0, 0.7);
+  
+  /* Team backgrounds (with opacity) */
+  --color-team-a-bg: rgba(3, 169, 124, 0.1);
+  --color-team-a-border: rgba(3, 169, 124, 0.3);
+  --color-team-b-bg: rgba(187, 134, 252, 0.1);
+  --color-team-b-border: rgba(187, 134, 252, 0.3);
+}

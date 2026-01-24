@@ -1,19 +1,42 @@
+@import './styles/tokens/index.css';
+@import './styles/court-display.css';
+
+/* Reset and base styles */
 * {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-family);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility classes */
+.container-sm {
+  max-width: var(--container-sm);
+  margin: 0 auto;
+}
+
+.container-md {
+  max-width: var(--container-md);
+  margin: 0 auto;
+}
+
+.container-lg {
+  max-width: var(--container-lg);
+  margin: 0 auto;
+}
+
+.container-xl {
+  max-width: var(--container-xl);
+  margin: 0 auto;
 }

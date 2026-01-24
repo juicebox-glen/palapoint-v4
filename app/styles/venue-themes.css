@@ -1,0 +1,25 @@
+/* Default theme (already in :root) */
+
+/* Padel4All theme */
+.venue-padel4all {
+  --brand-primary: #0066CC;
+  --brand-secondary: #FF6600;
+  --color-team-a: var(--brand-primary);
+  --color-team-b: var(--brand-secondary);
+  --color-team-a-bg: rgba(0, 102, 204, 0.1);
+  --color-team-a-border: rgba(0, 102, 204, 0.3);
+  --color-team-b-bg: rgba(255, 102, 0, 0.1);
+  --color-team-b-border: rgba(255, 102, 0, 0.3);
+}
+
+/* SquareOne theme */
+.venue-squareone {
+  --brand-primary: #E91E63;
+  --brand-secondary: #00BCD4;
+  --color-team-a: var(--brand-primary);
+  --color-team-b: var(--brand-secondary);
+  --color-team-a-bg: rgba(233, 30, 99, 0.1);
+  --color-team-a-border: rgba(233, 30, 99, 0.3);
+  --color-team-b-bg: rgba(0, 188, 212, 0.1);
+  --color-team-b-border: rgba(0, 188, 212, 0.3);
+}

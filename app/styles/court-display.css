@@ -1,0 +1,370 @@
+/* ================================================
+   COURT DISPLAY STYLES (vw-based for fixed screens)
+   ================================================ */
+
+/* Screen wrapper */
+.screen-wrapper {
+  position: absolute;
+  inset: 0;
+  padding: 0.5vw;
+  box-sizing: border-box;
+  background-color: var(--color-bg-primary);
+}
+
+.screen-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 50/50 horizontal split layout */
+.layout-split-50-horizontal {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+}
+
+.layout-split-50-horizontal .tile {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Team sides - backgrounds fixed by SIDE not team */
+.tile.team-1-dark {
+  background-color: #121212;
+}
+
+.tile.team-2-dark {
+  background-color: #1E1E1F;
+}
+
+.game-team-side {
+  flex-direction: column;
+}
+
+/* Team name */
+.game-team-name {
+  position: absolute;
+  top: 6vw;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 3.7vw;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-family: var(--font-family);
+}
+
+/* Score display container */
+.game-score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Main point score */
+.game-score {
+  font-size: 26vw;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+}
+
+/* Advantage score (smaller) */
+.game-score-adv {
+  font-size: 18vw;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+}
+
+/* Games score (centered at bottom) */
+.game-games-center {
+  position: absolute;
+  bottom: 5vw;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  font-size: 7.4vw;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  z-index: 20;
+}
+
+/* Set indicators (dots) */
+.game-set-indicators {
+  position: absolute;
+  bottom: 7vw;
+  display: flex;
+  gap: 1.5vw;
+  justify-content: center;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.game-set-dot {
+  width: 3vw;
+  height: 3vw;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.game-set-dot-won-team-a {
+  background-color: var(--color-team-a);
+}
+
+.game-set-dot-won-team-b {
+  background-color: var(--color-team-b);
+}
+
+.game-set-dot-not-won {
+  background-color: transparent;
+  border: 0.4vw solid var(--color-text-primary);
+  opacity: 0.7;
+  box-sizing: border-box;
+}
+
+/* Serving border */
+.screen-border-serving-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  border-top: 1vw solid;
+  border-left: 1vw solid;
+  border-bottom: 1vw solid;
+  border-right: none;
+  pointer-events: none;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.screen-border-serving-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  border-top: 1vw solid;
+  border-right: 1vw solid;
+  border-bottom: 1vw solid;
+  border-left: none;
+  pointer-events: none;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+/* Tiebreak indicator */
+.tiebreak-indicator {
+  position: absolute;
+  top: 2vw;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #FFA500;
+  color: #000;
+  padding: 0.8vw 2.5vw;
+  border-radius: 0.6vw;
+  font-size: 2vw;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 0.3vw 0.6vw rgba(0,0,0,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* Point situation overlay */
+.point-situation-overlay {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+}
+
+.point-situation-badge {
+  font-size: 2.2vw;
+  font-weight: 500;
+  color: #BDF33F;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 1vw rgba(189, 243, 63, 0.3);
+  line-height: 1.3;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ================================================
+   IDLE STATE (No match)
+   ================================================ */
+
+.court-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 3vw;
+  background-color: var(--color-bg-primary);
+}
+
+.court-idle-name {
+  font-size: 2.5vw;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.court-idle-main-text {
+  font-size: 3vw;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.court-idle-subtitle {
+  font-size: 1.5vw;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.court-idle-qr {
+  padding: 1vw;
+  background: white;
+  border-radius: 0.5vw;
+}
+
+.court-idle-qr-label {
+  font-size: 1.2vw;
+  color: var(--color-text-secondary);
+  margin-top: 1vw;
+  text-align: center;
+}
+
+/* ================================================
+   SIDE SWAP OVERLAY
+   ================================================ */
+
+.side-swap-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-primary);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.side-swap-icon-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50vw;
+  height: 50vw;
+  background-image: url('/images/swap.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: rotate 3s linear infinite;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.side-swap-circles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.side-swap-circle {
+  position: absolute;
+  width: 7vw;
+  height: 7vw;
+  border-radius: 50%;
+}
+
+.side-swap-circle-top-left {
+  top: 10%;
+  left: 20%;
+  animation: swapLeftToRight 2s ease-in-out forwards;
+}
+
+.side-swap-circle-top-right {
+  top: 10%;
+  right: 20%;
+  animation: swapRightToLeft 2s ease-in-out forwards;
+}
+
+.side-swap-circle-bottom-left {
+  bottom: 10%;
+  left: 20%;
+  animation: swapLeftToRight 2s ease-in-out forwards;
+}
+
+.side-swap-circle-bottom-right {
+  bottom: 10%;
+  right: 20%;
+  animation: swapRightToLeft 2s ease-in-out forwards;
+}
+
+@keyframes swapLeftToRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(60vw); }
+}
+
+@keyframes swapRightToLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-60vw); }
+}
+
+.side-swap-text-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-bg-primary);
+  padding: 4vw;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in;
+  z-index: 10;
+}
+
+.side-swap-title {
+  font-size: 6vw;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(2vw);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0);
+  }
+}
