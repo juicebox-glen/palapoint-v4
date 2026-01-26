@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import type { MatchState } from '@/lib/types/match'
+import { getPointSituation } from '@/lib/utils/point-situation'
 
 export default function LivePage() {
   const params = useParams()
@@ -160,5 +161,30 @@ export default function LivePage() {
     )
   }
 
-  return <ScoreDisplay match={match} variant="spectator" />
+  const pointSituation = getPointSituation(match)
+
+  return (
+    <div>
+      <ScoreDisplay match={match} variant="spectator" />
+      {pointSituation && (
+        <div className="point-situation-badge-live">
+          {pointSituation.type}
+        </div>
+      )}
+      <style jsx>{`
+        .point-situation-badge-live {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #BDF33F;
+          text-align: center;
+          padding: 0.5rem 1rem;
+          background: rgba(0, 0, 0, 0.6);
+          border-radius: 0.5rem;
+          margin-top: 1rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+      `}</style>
+    </div>
+  )
 }

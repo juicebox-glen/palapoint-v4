@@ -6,6 +6,9 @@ import { createClient } from '@supabase/supabase-js'
 import { QRCodeSVG } from 'qrcode.react'
 import { MatchState } from '@/lib/types/match'
 import SideSwapOverlay from '@/components/SideSwapOverlay'
+import SetWinOverlay from '@/components/SetWinOverlay'
+import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
+import { getPointSituation } from '@/lib/utils/point-situation'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -27,6 +30,9 @@ function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean)
 // Calculate if sides should be swapped
 // Sides swap after every odd-numbered total game (1, 3, 5, 7...) and every 6 points in tiebreak
 function calculateSidesSwapped(match: MatchState): boolean {
+  // If side swap is disabled, never swap
+  if (match.side_swap_enabled === false) return false
+  
   // Count total games from set_scores
   const setScores = match.set_scores || []
   let totalGames = 0
@@ -93,8 +99,17 @@ export default function CourtDisplay() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSideSwap, setShowSideSwap] = useState(false)
+  const [showSetWin, setShowSetWin] = useState(false)
+  const [showServerAnnouncement, setShowServerAnnouncement] = useState(false)
+  const [setWinData, setSetWinData] = useState<{
+    winningTeam: 'a' | 'b'
+    setNumber: number
+    score: { teamA: number; teamB: number }
+  } | null>(null)
   const prevTotalGamesRef = useRef(0)
   const prevTiebreakPointsRef = useRef(0)
+  const prevSetsRef = useRef<number>(0)
+  const announcementShownRef = useRef<string | null>(null)
 
   // Load court and match data
   useEffect(() => {
@@ -158,9 +173,33 @@ export default function CourtDisplay() {
     }
   }, [court?.id])
 
+  // Server announcement for new matches
+  useEffect(() => {
+    if (!match) {
+      announcementShownRef.current = null
+      setShowServerAnnouncement(false)
+      return
+    }
+    
+    // Only show for matches we haven't announced yet
+    // and only if match just started (no points/games scored)
+    const isNewMatch = match.id !== announcementShownRef.current
+    const hasNoScore = match.team_a_points === 0 && 
+                       match.team_b_points === 0 && 
+                       match.team_a_games === 0 && 
+                       match.team_b_games === 0 &&
+                       (match.set_scores || []).length === 0
+    
+    if (isNewMatch && hasNoScore) {
+      announcementShownRef.current = match.id
+      setShowServerAnnouncement(true)
+    }
+  }, [match])
+
   // Side swap detection
   useEffect(() => {
-    if (!match || showSideSwap) return
+    // Don't show swap if disabled
+    if (!match || showSideSwap || match.side_swap_enabled === false) return
 
     const setScores = match.set_scores || []
     
@@ -198,6 +237,45 @@ export default function CourtDisplay() {
     setShowSideSwap(false)
   }
 
+  const handleServerAnnouncementComplete = () => {
+    setShowServerAnnouncement(false)
+  }
+
+  // Set win detection
+  useEffect(() => {
+    if (!match || showSetWin) return
+    
+    const setScores = match.set_scores || []
+    const totalSetsCompleted = setScores.length
+    
+    // Check if a new set was completed
+    if (totalSetsCompleted > prevSetsRef.current && totalSetsCompleted > 0) {
+      // Get the most recently completed set
+      const lastSet = setScores[totalSetsCompleted - 1]
+      const winningTeam = lastSet.team_a > lastSet.team_b ? 'a' : 'b'
+      
+      // Only show if match is not finished (if match finished, show match win instead)
+      if (match.status !== 'completed' && match.status !== 'abandoned') {
+        setSetWinData({
+          winningTeam,
+          setNumber: totalSetsCompleted,
+          score: {
+            teamA: lastSet.team_a,
+            teamB: lastSet.team_b
+          }
+        })
+        setShowSetWin(true)
+      }
+    }
+    
+    prevSetsRef.current = totalSetsCompleted
+  }, [match, showSetWin])
+
+  const handleSetWinComplete = () => {
+    setShowSetWin(false)
+    setSetWinData(null)
+  }
+
   if (loading) {
     return (
       <div className="court-idle">
@@ -229,6 +307,52 @@ export default function CourtDisplay() {
           <QRCodeSVG value={setupUrl} size={150} />
         </div>
         <div className="court-idle-qr-label">Scan for custom game</div>
+      </div>
+    )
+  }
+
+  // Show server announcement for new match
+  if (showServerAnnouncement && match) {
+    const teamAName = match.team_a_player_1 || match.team_a_player_2
+      ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
+      : undefined
+    const teamBName = match.team_b_player_1 || match.team_b_player_2
+      ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
+      : undefined
+
+    const servingTeam = match.serving_team as 'a' | 'b'
+
+    return (
+      <div className="screen-wrapper">
+        <ServerAnnouncementOverlay
+          servingTeam={servingTeam}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          onComplete={handleServerAnnouncementComplete}
+        />
+      </div>
+    )
+  }
+
+  // Show set win overlay
+  if (showSetWin && setWinData && match) {
+    const teamAName = match.team_a_player_1 || match.team_a_player_2
+      ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
+      : undefined
+    const teamBName = match.team_b_player_1 || match.team_b_player_2
+      ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
+      : undefined
+
+    return (
+      <div className="screen-wrapper">
+        <SetWinOverlay
+          winningTeam={setWinData.winningTeam}
+          setNumber={setWinData.setNumber}
+          score={setWinData.score}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          onComplete={handleSetWinComplete}
+        />
       </div>
     )
   }
@@ -333,9 +457,8 @@ export default function CourtDisplay() {
   const setsToWin = match.sets_to_win || 1
   const setDotsCount = setsToWin === 1 ? 1 : 2
 
-  // Point situation (SET POINT, MATCH POINT)
-  let pointSituation: string | null = null
-  // TODO: Add logic to detect set point / match point situations
+  // Get point situation
+  const pointSituation = getPointSituation(match)
 
   return (
     <div className="screen-wrapper">
@@ -408,10 +531,8 @@ export default function CourtDisplay() {
         {/* Point situation badge */}
         {pointSituation && (
           <div className="point-situation-overlay">
-            <div className="point-situation-badge">
-              {(pointSituation as string).split('\n').map((line, i) => (
-                <div key={i}>{line}</div>
-              ))}
+            <div className={`point-situation-badge ${pointSituation.team === 'a' ? 'team-a' : 'team-b'}`}>
+              {pointSituation.type}
             </div>
           </div>
         )}

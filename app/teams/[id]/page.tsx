@@ -77,6 +77,9 @@ export default function TeamsPage() {
             setSetsToWin(Number(savedSets) as 1 | 2)
           }
 
+          const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtData.id}`)
+          const sideSwapEnabled = savedSideSwap ? JSON.parse(savedSideSwap) : true
+
           // If teams already exist, use them; otherwise assign randomly
           if (savedTeams) {
             try {
@@ -163,6 +166,12 @@ export default function TeamsPage() {
     setActionLoading(true)
     setError(null)
 
+    // Read side swap setting from sessionStorage
+    const savedSideSwap = typeof window !== 'undefined' 
+      ? sessionStorage.getItem(`setup_side_swap_${courtId}`)
+      : null
+    const sideSwapEnabled = savedSideSwap ? JSON.parse(savedSideSwap) : true
+
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
@@ -174,6 +183,7 @@ export default function TeamsPage() {
           court_id: courtId,
           game_mode: gameMode,
           sets_to_win: setsToWin,
+          side_swap_enabled: sideSwapEnabled,
           team_a_player_1: teams.teamA[0] || undefined,
           team_a_player_2: teams.teamA[1] || undefined,
           team_b_player_1: teams.teamB[0] || undefined,

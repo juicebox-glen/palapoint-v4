@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug, validateControlPin } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import type { MatchState, GameMode } from '@/lib/types/match'
+import { getPointSituation } from '@/lib/utils/point-situation'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -25,6 +26,7 @@ export default function ControlPanelPage() {
   // Form state for creating match
   const [gameMode, setGameMode] = useState<GameMode>('golden_point')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
+  const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [teamAPlayer1, setTeamAPlayer1] = useState('')
   const [teamAPlayer2, setTeamAPlayer2] = useState('')
   const [teamBPlayer1, setTeamBPlayer1] = useState('')
@@ -186,6 +188,7 @@ export default function ControlPanelPage() {
           court_id: courtId,
           game_mode: gameMode,
           sets_to_win: setsToWin,
+          side_swap_enabled: sideSwapEnabled,
           team_a_player_1: teamAPlayer1 || undefined,
           team_a_player_2: teamAPlayer2 || undefined,
           team_b_player_1: teamBPlayer1 || undefined,
@@ -531,6 +534,26 @@ export default function ControlPanelPage() {
             </div>
 
             <div className="control-form-group">
+              <label className="control-label">Side Swap</label>
+              <div className="control-toggle-group">
+                <button
+                  type="button"
+                  className={`control-toggle-btn ${sideSwapEnabled ? 'active' : ''}`}
+                  onClick={() => setSideSwapEnabled(true)}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={`control-toggle-btn ${!sideSwapEnabled ? 'active' : ''}`}
+                  onClick={() => setSideSwapEnabled(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            <div className="control-form-group">
               <label className="control-label">Team A Player 1 (optional)</label>
               <input
                 type="text"
@@ -637,6 +660,29 @@ export default function ControlPanelPage() {
             outline: none;
             border-color: #22c55e;
           }
+          .control-toggle-group {
+            display: flex;
+            gap: 0.5rem;
+          }
+          .control-toggle-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          .control-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          .control-toggle-btn.active {
+            background: #22c55e;
+            border-color: #22c55e;
+          }
           .control-button {
             min-height: 48px;
             padding: 0.75rem 1.5rem;
@@ -673,6 +719,11 @@ export default function ControlPanelPage() {
         {/* Score Display */}
         <div className="control-score-section">
           <ScoreDisplay match={match} variant="spectator" />
+          {getPointSituation(match) && (
+            <div className="point-situation-badge-control">
+              {getPointSituation(match)?.type}
+            </div>
+          )}
         </div>
 
         {/* Score Buttons */}
@@ -758,6 +809,18 @@ export default function ControlPanelPage() {
         }
         .control-score-section {
           margin-bottom: 2rem;
+        }
+        .point-situation-badge-control {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #BDF33F;
+          text-align: center;
+          padding: 0.5rem 1rem;
+          background: rgba(0, 0, 0, 0.6);
+          border-radius: 0.5rem;
+          margin: 0.5rem 0;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
         .control-score-buttons {
           display: grid;

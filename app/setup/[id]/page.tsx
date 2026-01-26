@@ -45,6 +45,7 @@ export default function SetupPage() {
   const [gameMode, setGameMode] = useState<GameMode>('golden_point')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
+  const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
 
   // Load court and check for active match
   useEffect(() => {
@@ -107,6 +108,11 @@ export default function SetupPage() {
             
             if (savedSets) {
               setSetsToWin(Number(savedSets) as 1 | 2)
+            }
+            
+            const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtData.id}`)
+            if (savedSideSwap) {
+              setSideSwapEnabled(JSON.parse(savedSideSwap))
             }
           }
         }
@@ -174,6 +180,7 @@ export default function SetupPage() {
       sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
       sessionStorage.setItem(`setup_game_mode_${courtId}`, gameMode)
       sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
+      sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
     }
 
     // Navigate to teams page
@@ -198,6 +205,7 @@ export default function SetupPage() {
           court_id: courtId,
           game_mode: gameMode,
           sets_to_win: setsToWin,
+          side_swap_enabled: sideSwapEnabled,
         }),
       })
 
@@ -438,6 +446,28 @@ export default function SetupPage() {
             </div>
           </div>
 
+          {/* Side Swap Option */}
+          <div className="setup-section">
+            <label className="setup-label">Side Swap</label>
+            <div className="setup-toggle-group">
+              <button
+                type="button"
+                className={`setup-toggle-btn ${sideSwapEnabled ? 'active' : ''}`}
+                onClick={() => setSideSwapEnabled(true)}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                className={`setup-toggle-btn ${!sideSwapEnabled ? 'active' : ''}`}
+                onClick={() => setSideSwapEnabled(false)}
+              >
+                No
+              </button>
+            </div>
+            <span className="setup-hint">Swap sides after odd games</span>
+          </div>
+
           {/* Player Names */}
           <div className="setup-section">
             <label className="setup-label">Players (optional)</label>
@@ -585,6 +615,35 @@ export default function SetupPage() {
           .setup-sets-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+          }
+          .setup-toggle-group {
+            display: flex;
+            gap: 0.5rem;
+          }
+          .setup-toggle-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          .setup-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          .setup-toggle-btn.active {
+            background: #22c55e;
+            border-color: #22c55e;
+          }
+          .setup-hint {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.5rem;
+            display: block;
           }
           .setup-players-list {
             display: flex;

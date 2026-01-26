@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import type { MatchState } from '@/lib/types/match'
+import { getPointSituation } from '@/lib/utils/point-situation'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -657,6 +658,11 @@ export default function PlayingPage() {
 
           <div className="playing-completed-score">
             <ScoreDisplay match={match} variant="spectator" />
+            {getPointSituation(match) && (
+              <div className="point-situation-badge-playing">
+                {getPointSituation(match)?.type}
+              </div>
+            )}
           </div>
 
           <div className="playing-winner">
@@ -719,6 +725,18 @@ export default function PlayingPage() {
           }
           .playing-completed-score {
             margin-bottom: 2rem;
+          }
+          .point-situation-badge-playing {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #BDF33F;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
           }
           .playing-winner {
             text-align: center;
@@ -814,6 +832,11 @@ export default function PlayingPage() {
 
         <div className="playing-score">
           <ScoreDisplay match={match} variant="spectator" />
+          {getPointSituation(match) && (
+            <div className="point-situation-badge-playing">
+              {getPointSituation(match)?.type}
+            </div>
+          )}
         </div>
 
         <div className="playing-end-link">
@@ -889,6 +912,18 @@ export default function PlayingPage() {
         }
         .playing-score {
           margin-bottom: 2rem;
+        }
+        .point-situation-badge-playing {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #BDF33F;
+          text-align: center;
+          padding: 0.5rem 1rem;
+          background: rgba(0, 0, 0, 0.6);
+          border-radius: 0.5rem;
+          margin: 1rem 0;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
         .playing-end-link {
           text-align: center;

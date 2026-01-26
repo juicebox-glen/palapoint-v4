@@ -35,4 +35,5 @@ export interface MatchState {
   winner: Team | null
   started_at?: string | null
   completed_at?: string | null
+  side_swap_enabled?: boolean
 }

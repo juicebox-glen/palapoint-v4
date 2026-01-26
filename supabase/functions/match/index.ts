@@ -24,6 +24,7 @@ interface CreateRequest {
   team_b_player_1?: string;
   team_b_player_2?: string;
   serving_team?: 'a' | 'b';
+  side_swap_enabled?: boolean;
 }
 
 interface EndRequest {
@@ -74,6 +75,7 @@ function matchStateToDbRow(state: MatchState): Record<string, any> {
     completed_at: state.completed_at || null,
     tiebreak_scores: state.tiebreak_scores || null,
     tiebreak_starting_server: state.tiebreak_starting_server || null,
+    side_swap_enabled: state.side_swap_enabled ?? true,
   };
 }
 
@@ -107,6 +109,7 @@ function dbRowToMatchState(row: any): MatchState {
     winner: row.winner || null,
     started_at: row.started_at || null,
     completed_at: row.completed_at || null,
+    side_swap_enabled: row.side_swap_enabled ?? true,
   };
 }
 
@@ -216,6 +219,9 @@ Deno.serve(async (req) => {
 
         // Convert to database format
         const dbRow = matchStateToDbRow(matchState);
+        
+        // Add side_swap_enabled from request
+        dbRow.side_swap_enabled = createReq.side_swap_enabled ?? true;
 
         // Insert into live_matches
         const { data: createdMatch, error: insertError } = await supabase
