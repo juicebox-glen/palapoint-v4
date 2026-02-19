@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
 import ScoreDisplay from '@/components/ScoreDisplay'
+import MatchSetupForm from '@/components/MatchSetupForm'
 import type { MatchState, GameMode } from '@/lib/types/match'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -42,10 +43,11 @@ export default function SetupPage() {
   const [showSetupForm, setShowSetupForm] = useState(false)
 
   // Form state
-  const [gameMode, setGameMode] = useState<GameMode>('golden_point')
+  const [gameMode, setGameMode] = useState<GameMode>('traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
+  const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
 
   // Load court and check for active match
   useEffect(() => {
@@ -114,6 +116,10 @@ export default function SetupPage() {
             if (savedSideSwap) {
               setSideSwapEnabled(JSON.parse(savedSideSwap))
             }
+            const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtData.id}`)
+            if (savedTiebreak !== null) {
+              setEndGameInTiebreak(JSON.parse(savedTiebreak))
+            }
           }
         }
       } catch (err) {
@@ -171,42 +177,49 @@ export default function SetupPage() {
     setPlayers(newPlayers)
   }
 
-  // Handle Next button - navigate to teams page
-  function handleNext() {
-    if (!courtId) return
-
-    // Save to sessionStorage
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
-      sessionStorage.setItem(`setup_game_mode_${courtId}`, gameMode)
-      sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
-      sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
+  // Randomize: shuffle the four player names and reassign to slots
+  function handleRandomize() {
+    const copy = [...players]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]]
     }
-
-    // Navigate to teams page
-    router.push(`/teams/${courtIdentifier}`)
+    setPlayers(copy)
   }
 
-  // Handle Start Game (no players)
-  async function handleStartGameNoPlayers() {
+  // Handle Start Game - create match and go to playing
+  async function handleStartGame() {
     if (!courtId) return
 
     setActionLoading('create')
     setError(null)
 
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
+      sessionStorage.setItem(`setup_game_mode_${courtId}`, gameMode)
+      sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
+      sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
+      sessionStorage.setItem(`setup_tiebreak_${courtId}`, JSON.stringify(endGameInTiebreak))
+    }
+
     try {
+      const body: Record<string, unknown> = {
+        action: 'create',
+        court_id: courtId,
+        game_mode: gameMode,
+        sets_to_win: setsToWin,
+        side_swap_enabled: sideSwapEnabled,
+        tiebreak_at: endGameInTiebreak ? 6 : 6,
+      }
+      if (players[0]?.trim()) body.team_a_player_1 = players[0].trim()
+      if (players[1]?.trim()) body.team_a_player_2 = players[1].trim()
+      if (players[2]?.trim()) body.team_b_player_1 = players[2].trim()
+      if (players[3]?.trim()) body.team_b_player_2 = players[3].trim()
+
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'create',
-          court_id: courtId,
-          game_mode: gameMode,
-          sets_to_win: setsToWin,
-          side_swap_enabled: sideSwapEnabled,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       })
 
       const data = await response.json()
@@ -217,7 +230,14 @@ export default function SetupPage() {
         return
       }
 
-      // Redirect to playing page
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`setup_players_${courtId}`)
+        sessionStorage.removeItem(`setup_game_mode_${courtId}`)
+        sessionStorage.removeItem(`setup_sets_${courtId}`)
+        sessionStorage.removeItem(`setup_side_swap_${courtId}`)
+        sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
+      }
+
       router.push(`/playing/${courtIdentifier}`)
     } catch (err) {
       console.error('Error creating match:', err)
@@ -388,429 +408,25 @@ export default function SetupPage() {
     )
   }
 
-  // State 2: Setup form
+  // State 2: Setup form (same design as staff setup)
   return (
-    <div className="setup-page">
-      <div className="setup-container">
-        <h1 className="setup-title">
-          {court ? `${court.name} Setup` : 'Match Setup'}
-        </h1>
-
-        {error && <div className="setup-error-message">{error}</div>}
-
-        <div className="setup-form">
-          {/* Game Mode Selector */}
-          <div className="setup-section">
-            <label className="setup-label">Game Mode</label>
-            <div className="setup-button-group">
-              <button
-                className={`setup-mode-button ${gameMode === 'golden_point' ? 'active' : ''}`}
-                onClick={() => setGameMode('golden_point')}
-              >
-                <div className="setup-mode-name">Golden Point</div>
-                <div className="setup-mode-desc">Deuce = sudden death</div>
-              </button>
-              <button
-                className={`setup-mode-button ${gameMode === 'silver_point' ? 'active' : ''}`}
-                onClick={() => setGameMode('silver_point')}
-              >
-                <div className="setup-mode-name">Silver Point</div>
-                <div className="setup-mode-desc">One advantage, then sudden death</div>
-              </button>
-              <button
-                className={`setup-mode-button ${gameMode === 'traditional' ? 'active' : ''}`}
-                onClick={() => setGameMode('traditional')}
-              >
-                <div className="setup-mode-name">Traditional</div>
-                <div className="setup-mode-desc">Full advantage rules</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Sets Selector */}
-          <div className="setup-section">
-            <label className="setup-label">Sets</label>
-            <div className="setup-button-group">
-              <button
-                className={`setup-sets-button ${setsToWin === 1 ? 'active' : ''}`}
-                onClick={() => setSetsToWin(1)}
-              >
-                1 Set
-              </button>
-              <button
-                className={`setup-sets-button ${setsToWin === 2 ? 'active' : ''}`}
-                onClick={() => setSetsToWin(2)}
-              >
-                Best of 3
-              </button>
-            </div>
-          </div>
-
-          {/* Side Swap Option */}
-          <div className="setup-section">
-            <label className="setup-label">Side Swap</label>
-            <div className="setup-toggle-group">
-              <button
-                type="button"
-                className={`setup-toggle-btn ${sideSwapEnabled ? 'active' : ''}`}
-                onClick={() => setSideSwapEnabled(true)}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                className={`setup-toggle-btn ${!sideSwapEnabled ? 'active' : ''}`}
-                onClick={() => setSideSwapEnabled(false)}
-              >
-                No
-              </button>
-            </div>
-            <span className="setup-hint">Swap sides after odd games</span>
-          </div>
-
-          {/* Player Names */}
-          <div className="setup-section">
-            <label className="setup-label">Players (optional)</label>
-            <div className="setup-players-list">
-              {players.map((player, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  className="setup-input"
-                  placeholder="Player name"
-                  value={player}
-                  onChange={(e) => handlePlayerChange(index, e.target.value)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Dynamic CTA */}
-          {(() => {
-            const hasAnyNames = players.some((p) => p.trim() !== '')
-            
-            if (!hasAnyNames) {
-              // No names - show "Start Game"
-              return (
-                <button
-                  className="setup-button setup-button-primary setup-button-start"
-                  onClick={handleStartGameNoPlayers}
-                  disabled={!!actionLoading}
-                >
-                  {actionLoading === 'create' ? 'Starting...' : 'Start Game'}
-                </button>
-              )
-            } else {
-              // Has names - show "Next"
-              return (
-                <button
-                  className="setup-button setup-button-primary setup-button-start"
-                  onClick={handleNext}
-                >
-                  Next
-                </button>
-              )
-            }
-          })()}
-        </div>
-      </div>
-
-      <style jsx>{`
-        .setup-page {
-          min-height: 100vh;
-          background: #1a1a2e;
-          color: #fff;
-          padding: 2rem 1rem;
-        }
-        .setup-container {
-          max-width: 600px;
-          margin: 0 auto;
-        }
-        .setup-title {
-          font-size: 2rem;
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-        .setup-error-message {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1.5rem;
-          text-align: center;
-        }
-        .setup-form {
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-        }
-          .setup-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            transition: opacity 0.3s;
-          }
-          .setup-section.disabled {
-            opacity: 0.6;
-          }
-        .setup-label {
-          font-size: 1.2rem;
-          font-weight: 600;
-          opacity: 0.9;
-        }
-        .setup-button-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-          .setup-mode-button {
-            padding: 1rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-          }
-          .setup-mode-button.active {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.2);
-          }
-          .setup-mode-button:not(:disabled):active {
-            transform: scale(0.98);
-          }
-          .setup-mode-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        .setup-mode-name {
-          font-size: 1.1rem;
-          font-weight: 600;
-          margin-bottom: 0.25rem;
-        }
-        .setup-mode-desc {
-          font-size: 0.9rem;
-          opacity: 0.7;
-        }
-          .setup-sets-button {
-            min-height: 48px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .setup-sets-button.active {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.2);
-          }
-          .setup-sets-button:not(:disabled):active {
-            transform: scale(0.98);
-          }
-          .setup-sets-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-          .setup-toggle-group {
-            display: flex;
-            gap: 0.5rem;
-          }
-          .setup-toggle-btn {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-          .setup-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-          }
-          .setup-toggle-btn.active {
-            background: #22c55e;
-            border-color: #22c55e;
-          }
-          .setup-hint {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 0.5rem;
-            display: block;
-          }
-          .setup-players-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-          }
-          .setup-teams-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-          }
-          .setup-back-link {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: underline;
-            font-size: 0.9rem;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-          }
-          .setup-back-link:active {
-            opacity: 0.8;
-          }
-          .setup-teams-swap {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            animation: fadeIn 0.3s ease-in;
-          }
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          .setup-swap-teams {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-          }
-          .setup-swap-team {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: rgba(59, 130, 246, 0.1);
-            border-radius: 0.5rem;
-            border: 2px solid rgba(59, 130, 246, 0.3);
-          }
-          .setup-swap-team:last-of-type {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-          }
-          .setup-swap-team-label {
-            font-size: 1rem;
-            font-weight: 600;
-            opacity: 0.9;
-          }
-          .setup-swap-vs {
-            text-align: center;
-            font-size: 1.5rem;
-            opacity: 0.5;
-            margin: -0.5rem 0;
-          }
-          .setup-swap-player-wrapper {
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .setup-swap-player-wrapper.selected {
-            border-radius: 0.5rem;
-            padding: 2px;
-            background: rgba(34, 197, 94, 0.3);
-          }
-          .setup-swap-input {
-            min-height: 48px;
-            padding: 0.75rem;
-            font-size: 1.1rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transition: all 0.2s;
-            width: 100%;
-          }
-          .setup-swap-input:focus {
-            outline: none;
-            border-color: #22c55e;
-          }
-          .setup-swap-player-wrapper.selected .setup-swap-input {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.2);
-          }
-          .setup-swap-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-          }
-          .setup-swap-hint {
-            text-align: center;
-            font-size: 0.9rem;
-            opacity: 0.7;
-            padding: 0.5rem;
-            background: rgba(34, 197, 94, 0.1);
-            border-radius: 0.5rem;
-          }
-          .setup-edit-note {
-            text-align: center;
-            font-size: 0.85rem;
-            opacity: 0.6;
-            margin-top: 0.5rem;
-          }
-        .setup-input {
-          min-height: 48px;
-          padding: 0.75rem;
-          font-size: 1rem;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 0.5rem;
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-        }
-        .setup-input:focus {
-          outline: none;
-          border-color: #22c55e;
-        }
-        .setup-input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-        .setup-button {
-          min-height: 48px;
-          padding: 0.75rem 1.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border: none;
-          border-radius: 0.5rem;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .setup-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .setup-button-primary {
-          background: #22c55e;
-          color: #fff;
-        }
-        .setup-button-primary:not(:disabled):active {
-          background: #16a34a;
-          transform: scale(0.98);
-        }
-        .setup-button-start {
-          width: 100%;
-          font-size: 1.25rem;
-          margin-top: 1rem;
-        }
-        @media (max-width: 640px) {
-          .setup-title {
-            font-size: 1.75rem;
-          }
-          .setup-button-group {
-            gap: 0.5rem;
-          }
-        }
-      `}</style>
-    </div>
+    <MatchSetupForm
+      gameMode={gameMode}
+      setGameMode={setGameMode}
+      setsToWin={setsToWin}
+      setSetsToWin={setSetsToWin}
+      players={players}
+      onPlayerChange={handlePlayerChange}
+      onRandomize={handleRandomize}
+      sideSwapEnabled={sideSwapEnabled}
+      setSideSwapEnabled={setSideSwapEnabled}
+      endGameInTiebreak={endGameInTiebreak}
+      setEndGameInTiebreak={setEndGameInTiebreak}
+      onSubmit={handleStartGame}
+      submitLoading={actionLoading === 'create'}
+      submitLabel="START GAME"
+      error={error}
+      showHeader
+    />
   )
 }

@@ -48,7 +48,7 @@ export default function SideSwapOverlay({
   const teamBStartsOnLeft = !sidesSwapped // If swapped now, B was on right before
 
   return (
-    <div className="side-swap-overlay">
+    <div className="side-swap-overlay court-background">
       {/* Spinning swap icon */}
       <div className="side-swap-icon-bg" />
 

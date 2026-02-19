@@ -42,7 +42,7 @@ export default function SetWinOverlay({
     : 'var(--color-team-b)'
 
   return (
-    <div className="set-win-overlay">
+    <div className="set-win-overlay court-background">
       <div className="set-win-border" style={{ borderColor }} />
       
       <div className="set-win-content">

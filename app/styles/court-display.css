@@ -441,6 +441,32 @@
 }
 
 /* ================================================
+   COURT BACKGROUND FOR OVERLAYS
+   ================================================ */
+
+/* Court background for overlays */
+.court-background {
+  background-image: url('/images/court.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Dark overlay for better text readability */
+.court-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(18, 18, 18, 0.7);
+  z-index: 0;
+}
+
+.court-background > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ================================================
    SERVER ANNOUNCEMENT OVERLAY
    ================================================ */
 

@@ -100,7 +100,7 @@ export default function ServerAnnouncementOverlay({
     : (teamBName || 'TEAM B')
 
   return (
-    <div className="server-announcement-overlay">
+    <div className="server-announcement-overlay court-background">
       {/* Phase 1: Selecting Server */}
       {phase === 1 && (
         <>
