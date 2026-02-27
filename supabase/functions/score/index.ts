@@ -319,6 +319,15 @@ Deno.serve(async (req) => {
         // but we should log it for debugging
       }
 
+      // Update session activity if match is linked to a session
+      if (match.session_id) {
+        await supabase
+          .from('sessions')
+          .update({ last_activity: new Date().toISOString() })
+          .eq('id', match.session_id)
+          .eq('status', 'active');
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -465,6 +474,15 @@ Deno.serve(async (req) => {
     }
 
     const updatedMatch = updatedMatches[0];
+
+    // Update session activity if match is linked to a session
+    if (match.session_id) {
+      await supabase
+        .from('sessions')
+        .update({ last_activity: new Date().toISOString() })
+        .eq('id', match.session_id)
+        .eq('status', 'active');
+    }
 
     // Insert into score_events
     const eventType = team === 'a' ? 'point_a' : 'point_b';

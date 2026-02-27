@@ -16,6 +16,7 @@ const corsHeaders = {
 interface CreateRequest {
   action: 'create';
   court_id: string;
+  session_id?: string;  // optional session link
   game_mode?: 'traditional' | 'golden_point' | 'silver_point';
   sets_to_win?: 1 | 2;
   tiebreak_at?: 6 | 7;
@@ -76,6 +77,7 @@ function matchStateToDbRow(state: MatchState): Record<string, any> {
     tiebreak_scores: state.tiebreak_scores || null,
     tiebreak_starting_server: state.tiebreak_starting_server || null,
     side_swap_enabled: state.side_swap_enabled ?? true,
+    session_id: state.session_id || null,
   };
 }
 
@@ -110,6 +112,7 @@ function dbRowToMatchState(row: any): MatchState {
     started_at: row.started_at || null,
     completed_at: row.completed_at || null,
     side_swap_enabled: row.side_swap_enabled ?? true,
+    session_id: row.session_id || null,
   };
 }
 
@@ -222,6 +225,18 @@ Deno.serve(async (req) => {
         
         // Add side_swap_enabled from request
         dbRow.side_swap_enabled = createReq.side_swap_enabled ?? true;
+
+        // Add session_id from request
+        dbRow.session_id = createReq.session_id || null;
+
+        // If session_id provided, update session's last_activity
+        if (createReq.session_id) {
+          await supabase
+            .from('sessions')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', createReq.session_id)
+            .eq('status', 'active');
+        }
 
         // Insert into live_matches
         const { data: createdMatch, error: insertError } = await supabase

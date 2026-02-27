@@ -63,6 +63,9 @@ export interface MatchState {
   // Timestamps
   started_at?: string | null;
   completed_at?: string | null;
+
+  // Session link (optional)
+  session_id?: string | null;
 }
 
 // ============================================================
