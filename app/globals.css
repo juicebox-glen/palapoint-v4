@@ -1,6 +1,7 @@
 @import './styles/fonts.css';
 @import './styles/tokens/index.css';
 @import './styles/court-display.css';
+@import './styles/playing.css';
 
 /* Reset and base styles */
 * {

@@ -172,7 +172,7 @@ export default function TeamsPage() {
       : null
     const sideSwapEnabled = savedSideSwap ? JSON.parse(savedSideSwap) : true
     const sessionId = typeof window !== 'undefined'
-      ? sessionStorage.getItem(`setup_session_id_${courtId}`)
+      ? sessionStorage.getItem(`setup_session_id_${courtIdentifier}`)
       : null
 
     try {
@@ -203,13 +203,13 @@ export default function TeamsPage() {
         return
       }
 
-      // Clear sessionStorage
+      // Clear setup form data but KEEP the session ID (needed by playing page)
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem(`setup_players_${courtId}`)
         sessionStorage.removeItem(`setup_game_mode_${courtId}`)
         sessionStorage.removeItem(`setup_sets_${courtId}`)
         sessionStorage.removeItem(`setup_teams_${courtId}`)
-        sessionStorage.removeItem(`setup_session_id_${courtId}`)
+        // NOTE: Do NOT remove session_id - it's needed by the playing page
       }
 
       // Redirect to playing page

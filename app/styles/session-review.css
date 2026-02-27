@@ -1,0 +1,122 @@
+/* Session Review Page */
+.review-container {
+  min-height: 100vh;
+  background: var(--color-bg-primary, #121212);
+  color: var(--color-text-primary, #fff);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.review-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.review-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.review-meta {
+  color: var(--color-text-secondary, #B3B3B3);
+  font-size: 0.9rem;
+}
+
+.review-games {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.review-no-games {
+  text-align: center;
+  color: var(--color-text-secondary, #B3B3B3);
+}
+
+.review-game-card {
+  background: var(--color-bg-secondary, #1E1E1F);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.review-game-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.review-game-number {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #B3B3B3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.review-game-duration {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #B3B3B3);
+}
+
+.review-game-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.review-game-winner {
+  font-weight: 600;
+}
+
+.review-game-score {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.review-summary {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 2rem;
+}
+
+.review-stat {
+  text-align: center;
+}
+
+.review-stat-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.review-stat-label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #B3B3B3);
+}
+
+.review-done-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--color-team-a, #03a97c);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.review-done-btn:hover {
+  opacity: 0.9;
+}

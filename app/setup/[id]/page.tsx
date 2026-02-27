@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
-import { checkSession, createSession, takeoverSession } from '@/lib/api/session'
+import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
@@ -75,23 +75,56 @@ export default function SetupPage() {
         setCourt(courtData)
         setCourtId(courtData.id)
 
-        // Check for existing session
-        try {
-          const sessionResult = await checkSession(courtData.id)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Setup: courtData.id (UUID):', courtData?.id)
+          console.log('Setup: courtIdentifier (slug):', courtIdentifier)
+          console.log('Setup: sessionStorage key:', `setup_session_id_${courtIdentifier}`)
+        }
 
-          if (sessionResult.has_active_session && sessionResult.session) {
-            setActiveSession(sessionResult.session)
-            setShowProtectionPrompt(true)
-          } else {
-            // No active session - create one
-            const createResult = await createSession(courtData.id)
-            if (createResult.success && createResult.session) {
-              setCurrentSessionId(createResult.session.id)
+        // Check for existing session when page loads
+        try {
+          const storageKey = `setup_session_id_${courtIdentifier}`
+
+          // Check if we already have a session stored for this court (by slug from URL)
+          const existingSessionId =
+            typeof window !== 'undefined'
+              ? sessionStorage.getItem(storageKey)
+              : null
+
+          let hasValidStoredSession = false
+          if (existingSessionId) {
+            const validation = await validateSession(existingSessionId)
+            if (validation.valid) {
+              setCurrentSessionId(existingSessionId)
+              hasValidStoredSession = true
+              if (process.env.NODE_ENV === 'development') {
+                console.log('Setup: currentSessionId (from storage):', existingSessionId)
+              }
+            } else {
               if (typeof window !== 'undefined') {
-                sessionStorage.setItem(
-                  `setup_session_id_${courtData.id}`,
-                  createResult.session.id
-                )
+                sessionStorage.removeItem(storageKey)
+              }
+            }
+          }
+
+          // If we don't have a valid stored session, check for active session on court
+          if (!hasValidStoredSession) {
+            const result = await checkSession(courtData.id)
+
+            if (result.has_active_session && result.session) {
+              setActiveSession(result.session)
+              setShowProtectionPrompt(true)
+            } else {
+              // No active session - create one
+              const createResult = await createSession(courtData.id)
+              if (createResult.success && createResult.session) {
+                setCurrentSessionId(createResult.session.id)
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem(storageKey, createResult.session.id)
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('Setup: currentSessionId (created):', createResult.session.id)
+                  }
+                }
               }
             }
           }
@@ -188,7 +221,10 @@ export default function SetupPage() {
         setActiveMatch(null)
         setShowSetupForm(true)
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem(`setup_session_id_${courtId}`, result.session.id)
+          sessionStorage.setItem(
+            `setup_session_id_${courtIdentifier}`,
+            result.session.id
+          )
         }
       } else {
         setError(result.error || 'Failed to take over')
@@ -268,7 +304,10 @@ export default function SetupPage() {
       sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
       sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
       sessionStorage.setItem(`setup_tiebreak_${courtId}`, JSON.stringify(endGameInTiebreak))
-      sessionStorage.setItem(`setup_session_id_${courtId}`, currentSessionId || '')
+      sessionStorage.setItem(
+        `setup_session_id_${courtIdentifier}`,
+        currentSessionId || ''
+      )
     }
 
     try {
@@ -301,12 +340,13 @@ export default function SetupPage() {
       }
 
       if (typeof window !== 'undefined') {
+        // Clear setup form data but KEEP the session ID
         sessionStorage.removeItem(`setup_players_${courtId}`)
         sessionStorage.removeItem(`setup_game_mode_${courtId}`)
         sessionStorage.removeItem(`setup_sets_${courtId}`)
         sessionStorage.removeItem(`setup_side_swap_${courtId}`)
         sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
-        sessionStorage.removeItem(`setup_session_id_${courtId}`)
+        // NOTE: Do NOT remove session_id - it's needed by the playing page
       }
 
       router.push(`/playing/${courtIdentifier}`)
