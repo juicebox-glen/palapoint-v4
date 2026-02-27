@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug, validateControlPin } from '@/lib/supabase'
-import ScoreDisplay from '@/components/ScoreDisplay'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, GameMode } from '@/lib/types/match'
+import { formatPointDisplay, buildTeamName, formatGameDuration } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import '@/app/styles/setup-form.css'
+import '@/app/styles/control-panel.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -21,6 +22,7 @@ export default function ControlPanelPage() {
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
+  const [completedMatch, setCompletedMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -123,7 +125,27 @@ export default function ControlPanelPage() {
           return
         }
 
-        setMatch(data)
+        if (data) {
+          setMatch(data)
+          setCompletedMatch(null)
+        } else {
+          setMatch(null)
+          // If no active match, check for recently completed (within 2 min) to show summary
+          const { data: recent } = await supabase
+            .from('live_matches')
+            .select('*')
+            .eq('court_id', courtId)
+            .in('status', ['completed', 'abandoned'])
+            .order('completed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (recent?.completed_at) {
+            const completedAt = new Date(recent.completed_at).getTime()
+            if (Date.now() - completedAt < 120_000) {
+              setCompletedMatch(recent as MatchState)
+            }
+          }
+        }
         setLoading(false)
       } catch (err) {
         console.error('Unexpected error:', err)
@@ -134,7 +156,7 @@ export default function ControlPanelPage() {
 
     loadMatch()
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes (clone payload so React sees a new reference)
     channel = supabase
       .channel(`control-${courtId}`)
       .on(
@@ -145,27 +167,44 @@ export default function ControlPanelPage() {
           table: 'live_matches',
           filter: `court_id=eq.${courtId}`,
         },
-        (payload) => {
+        (payload: { eventType: string; new?: MatchState; data?: { new?: MatchState } }) => {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
             return
           }
-
-          const updatedMatch = payload.new as MatchState
-          
-          // Only update if match is still active
+          const raw = payload.new ?? (payload as { data?: { new?: MatchState } }).data?.new
+          if (!raw) return
+          const updatedMatch = { ...raw } as MatchState
           if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
             setMatch(updatedMatch)
-          } else {
-            // Match completed or abandoned
+            setCompletedMatch(null)
+          } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
             setMatch(null)
+            setCompletedMatch(updatedMatch)
           }
         }
       )
       .subscribe()
 
-    // Cleanup
+    // Refetch when tab becomes visible (fallback if realtime misses an event)
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        supabase
+          .from('live_matches')
+          .select('*')
+          .eq('court_id', courtId)
+          .in('status', ['setup', 'in_progress'])
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data) setMatch({ ...data } as MatchState)
+            else setMatch(null)
+          })
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
       if (channel) {
         supabase.removeChannel(channel)
       }
@@ -328,13 +367,73 @@ export default function ControlPanelPage() {
         return
       }
 
-      // Match will be updated via real-time subscription (will become null)
+      // Match will be updated via real-time subscription (will show summary)
       setActionLoading(null)
     } catch (err) {
       console.error('Error ending match:', err)
       setError('Failed to end match')
       setActionLoading(null)
     }
+  }
+
+  async function handlePlayAgain() {
+    if (!courtId || !completedMatch) return
+
+    setActionLoading('play_again')
+    setError(null)
+
+    try {
+      const body: Record<string, unknown> = {
+        action: 'create',
+        court_id: courtId,
+        game_mode: completedMatch.game_mode,
+        sets_to_win: completedMatch.sets_to_win ?? 1,
+        side_swap_enabled: completedMatch.side_swap_enabled ?? true,
+        tiebreak_at: completedMatch.tiebreak_at ?? 6,
+      }
+      if (completedMatch.team_a_player_1) body.team_a_player_1 = completedMatch.team_a_player_1
+      if (completedMatch.team_a_player_2) body.team_a_player_2 = completedMatch.team_a_player_2
+      if (completedMatch.team_b_player_1) body.team_b_player_1 = completedMatch.team_b_player_1
+      if (completedMatch.team_b_player_2) body.team_b_player_2 = completedMatch.team_b_player_2
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        setError(data.error || 'Failed to start match')
+        setActionLoading(null)
+        return
+      }
+
+      setCompletedMatch(null)
+      setActionLoading(null)
+    } catch (err) {
+      console.error('Error starting match:', err)
+      setError('Failed to start match')
+      setActionLoading(null)
+    }
+  }
+
+  function handleNewGame() {
+    if (!completedMatch) return
+
+    setPlayers([
+      completedMatch.team_a_player_1 ?? '',
+      completedMatch.team_a_player_2 ?? '',
+      completedMatch.team_b_player_1 ?? '',
+      completedMatch.team_b_player_2 ?? '',
+    ])
+    setGameMode(completedMatch.game_mode ?? 'traditional')
+    setSetsToWin((completedMatch.sets_to_win ?? 1) as 1 | 2)
+    setSideSwapEnabled(completedMatch.side_swap_enabled ?? true)
+    setEndGameInTiebreak((completedMatch.tiebreak_at ?? 6) === 6)
+    setCompletedMatch(null)
+    setError(null)
   }
 
   // PIN entry screen (same design language as setup)
@@ -381,20 +480,6 @@ export default function ControlPanelPage() {
     return (
       <div className="control-panel">
         <div className="control-loading">Loading...</div>
-        <style jsx>{`
-          .control-panel {
-            min-height: 100vh;
-            background: #1a1a2e;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-          }
-          .control-loading {
-            font-size: 1.5rem;
-          }
-        `}</style>
       </div>
     )
   }
@@ -403,21 +488,99 @@ export default function ControlPanelPage() {
     return (
       <div className="control-panel">
         <div className="control-error">{error}</div>
-        <style jsx>{`
-          .control-panel {
-            min-height: 100vh;
-            background: #1a1a2e;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-          }
-          .control-error {
-            font-size: 1.5rem;
-            color: #ef4444;
-          }
-        `}</style>
+      </div>
+    )
+  }
+
+  // Match complete — show summary screen
+  if (completedMatch) {
+    const teamAName = buildTeamName(
+      completedMatch.team_a_player_1,
+      completedMatch.team_a_player_2,
+      'Team A'
+    )
+    const teamBName = buildTeamName(
+      completedMatch.team_b_player_1,
+      completedMatch.team_b_player_2,
+      'Team B'
+    )
+    const winnerName =
+      completedMatch.winner === 'a'
+        ? teamAName
+        : completedMatch.winner === 'b'
+          ? teamBName
+          : null
+    const isAbandoned = completedMatch.status === 'abandoned'
+    const setsWonA = (completedMatch.set_scores ?? []).filter((s) => s.team_a > s.team_b).length
+    const setsWonB = (completedMatch.set_scores ?? []).filter((s) => s.team_b > s.team_a).length
+    const gameScores = (completedMatch.set_scores ?? [])
+      .map((s) => `${s.team_a}-${s.team_b}`)
+      .join(', ')
+    const finalDuration = formatGameDuration(
+      completedMatch.started_at ?? null,
+      completedMatch.completed_at ?? null
+    )
+
+    return (
+      <div className="control-panel">
+        <div className="control-container">
+          <SetupScreenHeader
+            rightContent={
+              <>
+                <span className="control-summary-time">{finalDuration}</span>
+                <span className="control-live">
+                  <span className="control-live-dot" aria-hidden />
+                  LIVE
+                </span>
+              </>
+            }
+          />
+
+          {error && <div className="control-error-message">{error}</div>}
+
+          <div className="control-summary">
+            <h2 className="control-summary-title">
+              {isAbandoned ? 'MATCH ENDED' : 'MATCH COMPLETE'}
+            </h2>
+            {winnerName && (
+              <>
+                <p className="control-summary-winner">{winnerName}</p>
+                <p className="control-summary-win-label">WIN</p>
+              </>
+            )}
+            <div className="control-summary-sets">{setsWonA} – {setsWonB}</div>
+            {gameScores && (
+              <div className="control-summary-games">({gameScores})</div>
+            )}
+          </div>
+
+          <div className="control-summary-actions">
+            <div className="control-summary-action">
+              <button
+                className="control-button control-button-primary"
+                onClick={handlePlayAgain}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'play_again' ? 'Starting...' : 'PLAY AGAIN'}
+              </button>
+              <span className="control-summary-action-hint">
+                Same settings, same players · Random server · Straight to game
+              </span>
+            </div>
+            <div className="control-summary-action">
+              <button
+                className="control-button"
+                onClick={handleNewGame}
+                disabled={!!actionLoading}
+              >
+                NEW GAME
+              </button>
+              <span className="control-summary-action-hint">
+                Return to setup · Last settings + names pre-filled
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -446,55 +609,129 @@ export default function ControlPanelPage() {
     )
   }
 
-  // Active match - show score and controls
+  // Active match — header (LIVE + game mode), scoreboard card, + Point buttons, UNDO / END MATCH
+  const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
+  const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+  const pointsA = formatPointDisplay(
+    match.team_a_points,
+    match.team_b_points,
+    match.is_tiebreak,
+    match.is_tiebreak ? match.tiebreak_scores?.team_a : undefined
+  )
+  const pointsB = formatPointDisplay(
+    match.team_b_points,
+    match.team_a_points,
+    match.is_tiebreak,
+    match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
+  )
+  const matchSetsToWin = match.sets_to_win ?? 1
+  const setsWonA = (match.set_scores ?? []).filter((s) => s.team_a > s.team_b).length
+  const setsWonB = (match.set_scores ?? []).filter((s) => s.team_b > s.team_a).length
+  const gameModeLabel =
+    match.game_mode === 'traditional'
+      ? 'Standard'
+      : match.game_mode === 'golden_point'
+        ? 'Golden Point'
+        : 'Silver Point'
+  const pointSituation = getPointSituation(match)
+
   return (
     <div className="control-panel">
       <div className="control-container">
+        <SetupScreenHeader />
+        {/* Header: LIVE (pulse) + Game mode */}
+        <header className="control-header">
+          <span className="control-live">
+            <span className="control-live-dot" aria-hidden />
+            LIVE
+          </span>
+          <span className="control-game-mode">{gameModeLabel}</span>
+        </header>
+
         {error && <div className="control-error-message">{error}</div>}
 
-        {/* Score Display */}
-        <div className="control-score-section">
-          <ScoreDisplay match={match} variant="spectator" />
-          {getPointSituation(match) && (
-            <div className="point-situation-badge-control">
-              {getPointSituation(match)?.type}
+        {/* Scoreboard card — design: horizontal server line above serving team, points, set dots, games in line */}
+        <div className="control-scoreboard">
+          <div className="control-scoreboard-cols">
+            <div className="control-scoreboard-col">
+              {match.serving_team === 'a' && (
+                <div className="control-server-bar control-server-bar-a" aria-hidden />
+              )}
+              <div className="control-scoreboard-name">{teamAName}</div>
+              <div className="control-scoreboard-point">{pointsA}</div>
             </div>
+            <div className="control-scoreboard-col">
+              {match.serving_team === 'b' && (
+                <div className="control-server-bar control-server-bar-b" aria-hidden />
+              )}
+              <div className="control-scoreboard-name">{teamBName}</div>
+              <div className="control-scoreboard-point">{pointsB}</div>
+            </div>
+          </div>
+          <div className="control-scoreboard-sets-row">
+            <div className="control-scoreboard-sets">
+              {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`control-scoreboard-set-dot team-a ${i < setsWonA ? 'won' : ''}`}
+                  aria-hidden
+                />
+              ))}
+            </div>
+            <div className="control-scoreboard-games">
+              {match.team_a_games} – {match.team_b_games}
+            </div>
+            <div className="control-scoreboard-sets">
+              {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`control-scoreboard-set-dot team-b ${i < setsWonB ? 'won' : ''}`}
+                  aria-hidden
+                />
+              ))}
+            </div>
+          </div>
+          {match.is_tiebreak && (
+            <div className="control-scoreboard-tiebreak">Tiebreak</div>
+          )}
+          {pointSituation && (
+            <div className="control-point-badge">{pointSituation.type}</div>
           )}
         </div>
 
-        {/* Score Buttons */}
+        {/* + Point buttons (team colors, thumb zone) */}
         <div className="control-score-buttons">
           <button
             className={`control-score-button control-score-button-a ${actionLoading === 'score-a' ? 'loading' : ''}`}
             onClick={() => scorePoint('a')}
             disabled={!!actionLoading}
           >
-            {actionLoading === 'score-a' ? '...' : '+ Team A'}
+            {actionLoading === 'score-a' ? '...' : `+ ${teamAName}`}
           </button>
           <button
             className={`control-score-button control-score-button-b ${actionLoading === 'score-b' ? 'loading' : ''}`}
             onClick={() => scorePoint('b')}
             disabled={!!actionLoading}
           >
-            {actionLoading === 'score-b' ? '...' : '+ Team B'}
+            {actionLoading === 'score-b' ? '...' : `+ ${teamBName}`}
           </button>
         </div>
 
-        {/* Control Buttons */}
+        {/* UNDO / END MATCH */}
         <div className="control-actions">
           <button
-            className="control-button control-button-secondary"
+            className="control-button"
             onClick={undoLastPoint}
             disabled={!!actionLoading}
           >
-            {actionLoading === 'undo' ? 'Undoing...' : 'Undo'}
+            {actionLoading === 'undo' ? 'Undoing...' : 'UNDO'}
           </button>
           <button
             className="control-button control-button-danger"
             onClick={() => setShowEndConfirm(true)}
             disabled={!!actionLoading}
           >
-            End Match
+            END MATCH
           </button>
         </div>
       </div>
@@ -506,10 +743,7 @@ export default function ControlPanelPage() {
             <h2 className="control-modal-title">End Match?</h2>
             <p className="control-modal-text">Are you sure you want to end this match?</p>
             <div className="control-modal-buttons">
-              <button
-                className="control-button control-button-secondary"
-                onClick={() => setShowEndConfirm(false)}
-              >
+              <button className="control-button" onClick={() => setShowEndConfirm(false)}>
                 Cancel
               </button>
               <button
@@ -523,154 +757,6 @@ export default function ControlPanelPage() {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .control-panel {
-          min-height: 100vh;
-          background: #1a1a2e;
-          color: #fff;
-          padding: 1rem;
-        }
-        .control-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-        .control-error-message {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1.5rem;
-          text-align: center;
-        }
-        .control-score-section {
-          margin-bottom: 2rem;
-        }
-        .point-situation-badge-control {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #BDF33F;
-          text-align: center;
-          padding: 0.5rem 1rem;
-          background: rgba(0, 0, 0, 0.6);
-          border-radius: 0.5rem;
-          margin: 0.5rem 0;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-        }
-        .control-score-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-        .control-score-button {
-          min-height: 80px;
-          font-size: 1.5rem;
-          font-weight: bold;
-          border: none;
-          border-radius: 0.75rem;
-          cursor: pointer;
-          transition: all 0.2s;
-          color: #fff;
-        }
-        .control-score-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .control-score-button-a {
-          background: #3b82f6;
-        }
-        .control-score-button-a:not(:disabled):active {
-          background: #2563eb;
-          transform: scale(0.98);
-        }
-        .control-score-button-b {
-          background: #ef4444;
-        }
-        .control-score-button-b:not(:disabled):active {
-          background: #dc2626;
-          transform: scale(0.98);
-        }
-        .control-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-        .control-button {
-          min-height: 48px;
-          padding: 0.75rem 1.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border: none;
-          border-radius: 0.5rem;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .control-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        .control-button-secondary {
-          background: rgba(255, 255, 255, 0.2);
-          color: #fff;
-        }
-        .control-button-secondary:not(:disabled):active {
-          background: rgba(255, 255, 255, 0.3);
-          transform: scale(0.98);
-        }
-        .control-button-danger {
-          background: #ef4444;
-          color: #fff;
-        }
-        .control-button-danger:not(:disabled):active {
-          background: #dc2626;
-          transform: scale(0.98);
-        }
-        .control-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          z-index: 1000;
-        }
-        .control-modal {
-          background: #1a1a2e;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 1rem;
-          padding: 2rem;
-          max-width: 400px;
-          width: 100%;
-        }
-        .control-modal-title {
-          font-size: 1.5rem;
-          margin-bottom: 1rem;
-        }
-        .control-modal-text {
-          margin-bottom: 1.5rem;
-          opacity: 0.9;
-        }
-        .control-modal-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-        @media (max-width: 640px) {
-          .control-score-buttons {
-            gap: 0.75rem;
-          }
-          .control-score-button {
-            min-height: 70px;
-            font-size: 1.25rem;
-          }
-        }
-      `}</style>
     </div>
   )
 }

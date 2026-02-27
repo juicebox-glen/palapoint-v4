@@ -1,6 +1,19 @@
 /* ================================================
    COURT DISPLAY STYLES (vw-based for fixed screens)
+   Adapted from V3 reference - matches V3 visual design exactly
    ================================================ */
+
+/* V3 compatibility: team-1/team-2 map to team-a/team-b */
+:root {
+  --color-team-1: var(--color-team-a);
+  --color-team-2: var(--color-team-b);
+  --color-accent: #BDF33F;
+  --color-ball: #D0FF14;
+  --color-ball-border: #B8E000;
+  --font-size-large-title: 6vw;
+  --padding-text-overlay: 4vw;
+  --duration-medium: 0.6s;
+}
 
 /* Screen wrapper */
 .screen-wrapper {
@@ -16,6 +29,36 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+/* Court background for overlays (screen-bordered) */
+.screen-bordered {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/court.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.screen-border {
+  position: absolute;
+  inset: 0;
+  border: 0.8vw solid;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.content-centered {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 10;
 }
 
 /* 50/50 horizontal split layout */
@@ -34,7 +77,7 @@
   position: relative;
 }
 
-/* Team sides - backgrounds fixed by SIDE not team */
+/* Team sides - backgrounds fixed by SIDE not team (V3: team-1-dark, team-2-dark) */
 .tile.team-1-dark {
   background-color: #121212;
 }
@@ -45,6 +88,14 @@
 
 .game-team-side {
   flex-direction: column;
+}
+
+/* Game scoreboard: court background (V3 game-scoreboard-screen) */
+.game-scoreboard-screen {
+  background-image: url('/images/court.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* Team name */
@@ -197,17 +248,27 @@
 }
 
 .point-situation-badge {
-  font-size: 2.5vw;
-  font-weight: 600;
-  color: #BDF33F;
-  letter-spacing: 0.15em;
-  text-shadow: 0 0 1vw rgba(189, 243, 63, 0.5);
+  font-size: 2.2vw;
+  font-weight: 500;
+  color: var(--color-accent);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 1vw rgba(189, 243, 63, 0.3);
   line-height: 1.3;
   text-align: center;
   text-transform: uppercase;
   padding: 0.8vw 2vw;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 0.5vw;
+}
+
+/* Score flash animation (V3 game-score-animate) */
+.game-score-animate {
+  animation: scoreFlash var(--duration-medium) ease-out;
+}
+
+@keyframes scoreFlash {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 /* Optional: color by team */
@@ -297,6 +358,15 @@
   z-index: 2;
 }
 
+.set-win-text-overlay {
+  background-color: var(--color-bg-primary);
+  padding: var(--padding-text-overlay);
+  text-align: center;
+  display: inline-block;
+  z-index: 20;
+  animation: fadeInUp 0.5s ease-in-out;
+}
+
 .set-win-title {
   font-size: 4.5vw;
   font-weight: 600;
@@ -304,14 +374,14 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.2;
-  margin-bottom: 2vw;
+  margin: 0 0 1vw 0;
 }
 
 .set-win-score {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2vw;
+  gap: 1vw;
 }
 
 .set-win-score-value {
@@ -344,9 +414,9 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
   width: 50vw;
   height: 50vw;
+  transform: translate(-50%, -50%);
   background-image: url('/images/swap.svg');
   background-size: contain;
   background-repeat: no-repeat;
@@ -365,6 +435,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
 }
 
 .side-swap-circle {
@@ -372,30 +443,58 @@
   width: 7vw;
   height: 7vw;
   border-radius: 50%;
+  z-index: 2;
+  animation: swapSlide 2s ease-in-out forwards;
 }
 
+/* V3 position classes: serving (top), receiving (bottom) */
+.side-swap-left-top {
+  top: 10%;
+  left: 20%;
+  animation-name: swapLeftToRight;
+}
+
+.side-swap-left-bottom {
+  bottom: 10%;
+  left: 20%;
+  animation-name: swapLeftToRight;
+}
+
+.side-swap-right-top {
+  top: 10%;
+  right: 20%;
+  animation-name: swapRightToLeft;
+}
+
+.side-swap-right-bottom {
+  bottom: 10%;
+  right: 20%;
+  animation-name: swapRightToLeft;
+}
+
+/* Legacy V4 class names (same positions) */
 .side-swap-circle-top-left {
   top: 10%;
   left: 20%;
-  animation: swapLeftToRight 2s ease-in-out forwards;
+  animation-name: swapLeftToRight;
 }
 
 .side-swap-circle-top-right {
   top: 10%;
   right: 20%;
-  animation: swapRightToLeft 2s ease-in-out forwards;
+  animation-name: swapRightToLeft;
 }
 
 .side-swap-circle-bottom-left {
   bottom: 10%;
   left: 20%;
-  animation: swapLeftToRight 2s ease-in-out forwards;
+  animation-name: swapLeftToRight;
 }
 
 .side-swap-circle-bottom-right {
   bottom: 10%;
   right: 20%;
-  animation: swapRightToLeft 2s ease-in-out forwards;
+  animation-name: swapRightToLeft;
 }
 
 @keyframes swapLeftToRight {
@@ -414,19 +513,21 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: var(--color-bg-primary);
-  padding: 4vw;
+  padding: var(--padding-text-overlay);
   text-align: center;
+  display: inline-block;
   animation: fadeIn 0.5s ease-in;
   z-index: 10;
 }
 
 .side-swap-title {
-  font-size: 6vw;
+  font-size: var(--font-size-large-title);
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.2;
+  margin: 0;
 }
 
 @keyframes fadeIn {
@@ -438,6 +539,11 @@
     opacity: 1;
     transform: translate(-50%, -50%) translateY(0);
   }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(2vw); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ================================================
@@ -481,19 +587,28 @@
   overflow: hidden;
 }
 
-.server-announcement-content {
+.server-announcement-content,
+.server-announcement-text-overlay {
   text-align: center;
   z-index: 10;
   background-color: var(--color-bg-primary);
-  padding: 4vw;
+  padding: var(--padding-text-overlay);
+  display: inline-block;
+  animation: fadeInUp 0.5s ease-in-out;
 }
 
 .server-announcement-title {
-  font-size: 6vw;
+  font-size: var(--font-size-large-title);
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.server-announcement-title-selecting {
+  font-size: var(--font-size-large-title);
   line-height: 1.2;
 }
 
@@ -506,32 +621,96 @@
   50% { opacity: 0.5; }
 }
 
-/* Bouncing ball (phase 1) */
-.server-announcement-ball {
+/* Player positions container (V3 server-announcement-player-positions) */
+.server-announcement-player-positions {
   position: absolute;
-  width: 3vw;
-  height: 3vw;
-  background-color: #D0FF14;
-  border: 0.3vw solid #B8E000;
-  border-radius: 50%;
-  box-shadow: 0 0 2vw rgba(208, 255, 20, 0.6);
-  z-index: 5;
+  inset: 0;
+  z-index: 20;
   pointer-events: none;
 }
 
-/* Static ball (phase 2) */
+.server-announcement-player-circle {
+  position: absolute;
+  width: 6.8vw;
+  height: 6.8vw;
+  border-radius: 50%;
+  animation: fadeIn 0.7s ease-in-out;
+}
+
+/* Team A (left side) positions - V3 exact positions */
+.server-announcement-player-team-a-top {
+  left: 34%;
+  top: 12%;
+}
+
+.server-announcement-player-team-a-bottom {
+  left: 16%;
+  top: 71%;
+}
+
+/* Team B (right side) positions */
+.server-announcement-player-team-b-top {
+  right: 16%;
+  top: 29%;
+}
+
+.server-announcement-player-team-b-bottom {
+  right: 34%;
+  bottom: 12%;
+}
+
+/* Bouncing ball (phase 1) - V3 server-announcement-bouncing-ball */
+.server-announcement-bouncing-ball {
+  position: absolute;
+  width: 3vw;
+  height: 3vw;
+  background-color: var(--color-ball);
+  border: 2px solid var(--color-ball-border);
+  border-radius: 50%;
+  box-shadow: 0 0 0.5vw rgba(208, 255, 20, 0.4);
+  z-index: 20;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  will-change: left, top;
+  backface-visibility: hidden;
+}
+
+/* Tennis ball (phase 2) - V3 server-announcement-ball with team position */
+.server-announcement-ball {
+  position: absolute;
+  width: 2.5vw;
+  height: 2.5vw;
+  background-color: var(--color-ball);
+  border: 2px solid var(--color-ball-border);
+  border-radius: 50%;
+  box-shadow: 0 0 1vw rgba(208, 255, 20, 0.6);
+  z-index: 20;
+  animation: fadeInBall 0.9s ease-in-out;
+}
+
+.server-announcement-ball-team-a {
+  left: calc(20% + 4.2vw);
+  top: calc(65% + 3vw);
+}
+
+.server-announcement-ball-team-b {
+  right: calc(20% + 4.2vw);
+  bottom: calc(65% + 3vw);
+}
+
+/* Static ball (phase 2) - legacy for V4 ServerAnnouncementOverlay */
 .server-announcement-ball-static {
   position: absolute;
   width: 3vw;
   height: 3vw;
-  background-color: #D0FF14;
-  border: 0.3vw solid #B8E000;
+  background-color: var(--color-ball);
+  border: 0.3vw solid var(--color-ball-border);
   border-radius: 50%;
   box-shadow: 0 0 2vw rgba(208, 255, 20, 0.6);
   z-index: 5;
 }
 
-/* Player position circles */
+/* Player position circles - legacy for V4 */
 .server-announcement-positions {
   position: absolute;
   inset: 0;
@@ -585,4 +764,87 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ================================================
+   MATCH WIN OVERLAY (V3-style)
+   ================================================ */
+
+.match-win-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  overflow: hidden;
+}
+
+.match-win-text-overlay {
+  background-color: var(--color-bg-primary);
+  padding: var(--padding-text-overlay);
+  text-align: center;
+  display: inline-block;
+  z-index: 20;
+  animation: fadeInUp 0.5s ease-in-out;
+}
+
+.match-win-title {
+  font-size: 4.5vw;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-sm, 1rem);
+}
+
+.match-win-sets {
+  display: flex;
+  gap: var(--spacing-lg, 2rem);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.match-win-set-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  font-size: 13vw;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.match-win-set-score.three-sets {
+  font-size: 10vw;
+}
+
+.match-win-score-value {
+  flex: 0 0 auto;
+}
+
+.match-win-score-dash {
+  flex: 0 0 auto;
+}
+
+.match-win-footer {
+  position: absolute;
+  bottom: var(--spacing-xl, 2rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.match-win-instruction {
+  font-size: var(--font-size-large, 1.25rem);
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-align: center;
 }

@@ -1,0 +1,484 @@
+/* ============================================================
+   Staff In-Game Controller — Mobile-first, thumb-friendly
+   ============================================================ */
+
+.control-panel {
+  --cp-bg: hsl(220 20% 6%);
+  --cp-card: hsl(220 15% 12%);
+  --cp-text: hsl(0 0% 98%);
+  --cp-muted: hsl(220 10% 55%);
+  --cp-border: hsl(220 15% 20%);
+  --team-a: hsl(228 94% 60%);
+  /* For SetupScreenHeader compatibility */
+  --background: var(--cp-bg);
+  --foreground: var(--cp-text);
+  --primary: var(--team-a);
+  --secondary: var(--cp-card);
+  --border: var(--cp-border);
+  --team-a-glow: hsl(228 94% 60% / 0.35);
+  --team-b: hsl(180 55% 45%);
+  --team-b-glow: hsl(180 55% 45% / 0.35);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  padding: 1rem;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.control-container {
+  max-width: 28rem;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----- Header: LIVE (pulse) + Game mode ----- */
+.control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-shrink: 0;
+}
+
+.control-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--cp-text);
+}
+
+.control-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--team-a);
+  box-shadow: 0 0 10px var(--team-a-glow);
+  animation: control-pulse 2s ease-in-out infinite;
+}
+
+@keyframes control-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.control-game-mode {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--cp-muted);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+/* ----- Scoreboard card (design: horizontal server bar above serving team, points, set dots, games in line) ----- */
+.control-scoreboard {
+  position: relative;
+  height: fit-content;
+  background: linear-gradient(135deg, hsl(220 15% 14% / 0.9), hsl(220 15% 10% / 0.8));
+  border: 1px solid var(--cp-border);
+  border-radius: 1rem;
+  padding: 0;
+  padding-bottom: 60px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.25);
+  overflow: hidden;
+}
+
+/* Two columns: each team block with optional server bar at top */
+.control-scoreboard-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.5rem;
+  row-gap: 0;
+  margin-bottom: 0.5rem;
+}
+
+.control-scoreboard-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.25rem;
+}
+.control-scoreboard-col .control-scoreboard-name {
+  margin-bottom: 0.35rem;
+}
+.control-scoreboard-col .control-scoreboard-point {
+  margin-bottom: 0;
+}
+
+/* Server indicator: horizontal line at top of serving team's column (spans that column only) */
+.control-server-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+.control-server-bar-a {
+  background: var(--team-a);
+  box-shadow: 0 0 12px var(--team-a-glow);
+}
+.control-server-bar-b {
+  background: var(--team-b);
+  box-shadow: 0 0 12px var(--team-b-glow);
+}
+
+.control-scoreboard-name {
+  margin-top: 30px;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--cp-muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  width: 100%;
+}
+
+.control-scoreboard-point {
+  font-size: 140px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--cp-text);
+  text-align: center;
+  width: 100%;
+}
+
+/* Row 3: set dots | games | set dots — grid so dots align under each column and are centred */
+.control-scoreboard-sets-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  border-top-width: 0;
+}
+
+.control-scoreboard-sets {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding-left: 31px;
+}
+
+.control-scoreboard-sets-row .control-scoreboard-games {
+  text-align: center;
+}
+
+.control-scoreboard-set-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--cp-muted);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.control-scoreboard-set-dot.won.team-a {
+  background: var(--team-a);
+  border-color: var(--team-a);
+}
+
+.control-scoreboard-set-dot.won.team-b {
+  background: var(--team-b);
+  border-color: var(--team-b);
+}
+
+.control-scoreboard-games {
+  font-size: 35px;
+  font-weight: 700;
+  color: var(--cp-text);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.control-scoreboard-tiebreak {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--cp-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Player view: no score buttons below, reduce scoreboard padding */
+.control-panel--player .control-scoreboard {
+  padding-bottom: 1rem;
+}
+
+/* Point situation badge (set point / match point) */
+.control-point-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: hsl(84 70% 60%);
+  text-align: center;
+  padding: 0.35rem 0.6rem;
+  background: hsl(84 40% 25% / 0.5);
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+/* ----- Error message ----- */
+.control-error-message {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ----- Primary + Point buttons (thumb zone) ----- */
+.control-score-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: auto;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+}
+
+.control-score-button {
+  min-height: 56px;
+  padding: 1rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.control-score-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.control-score-button-a {
+  background: var(--team-a);
+  box-shadow: 0 4px 20px var(--team-a-glow);
+}
+
+.control-score-button-a:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.control-score-button-b {
+  background: var(--team-b);
+  box-shadow: 0 4px 20px var(--team-b-glow);
+}
+
+.control-score-button-b:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* ----- Secondary: UNDO / END MATCH ----- */
+.control-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.control-actions.control-actions--single {
+  grid-template-columns: 1fr;
+}
+
+.control-button {
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+  background: var(--cp-card);
+  border: 1px solid var(--cp-border);
+  color: var(--cp-text);
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.control-button-danger {
+  border-color: hsl(0 60% 35%);
+  color: #fca5a5;
+}
+
+.control-button-danger:not(:disabled):active {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.control-button-primary {
+  background: var(--team-a);
+  border-color: var(--team-a);
+  color: #fff;
+  box-shadow: 0 4px 20px var(--team-a-glow);
+}
+
+.control-button-primary:not(:disabled):active {
+  background: hsl(228 94% 55%);
+}
+
+/* ----- Match Complete Summary ----- */
+.control-summary-time {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.control-summary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.control-summary-title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 1.5rem 0;
+  color: var(--cp-text);
+}
+
+.control-summary-winner {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--cp-text);
+  margin: 0 0 0.25rem 0;
+}
+
+.control-summary-win-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--team-a);
+  letter-spacing: 0.1em;
+  margin: 0 0 1.5rem 0;
+}
+
+.control-summary-sets {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cp-text);
+  margin: 0 0 0.25rem 0;
+}
+
+.control-summary-games {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--cp-muted);
+  margin: 0;
+}
+
+.control-summary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.control-summary-action {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.control-summary-action-hint {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--cp-muted);
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* ----- Modal ----- */
+.control-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.control-modal {
+  background: var(--cp-card);
+  border: 1px solid var(--cp-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.control-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.control-modal-text {
+  font-size: 0.9375rem;
+  color: var(--cp-muted);
+  margin-bottom: 1.25rem;
+}
+
+.control-modal-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Loading / error states (full page) */
+.control-panel .control-loading,
+.control-panel .control-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.25rem;
+}
+
+.control-panel .control-error {
+  color: #ef4444;
+}

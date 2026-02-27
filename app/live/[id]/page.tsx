@@ -3,9 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug } from '@/lib/supabase'
-import ScoreDisplay from '@/components/ScoreDisplay'
 import type { MatchState } from '@/lib/types/match'
+import {
+  buildTeamName,
+  formatGameDuration,
+  getHorizontalScoreParts,
+} from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
+import '@/app/styles/spectator.css'
 
 export default function LivePage() {
   const params = useParams()
@@ -14,11 +19,11 @@ export default function LivePage() {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [gameTime, setGameTime] = useState('0:00')
 
   useEffect(() => {
     if (!courtIdentifier) return
 
-    // Resolve court ID from slug or UUID
     async function resolveCourt() {
       try {
         const court = await getCourtBySlug(courtIdentifier)
@@ -43,7 +48,6 @@ export default function LivePage() {
 
     let channel: ReturnType<typeof supabase.channel> | null = null
 
-    // Initial load
     async function loadMatch() {
       try {
         const { data, error: fetchError } = await supabase
@@ -71,7 +75,6 @@ export default function LivePage() {
 
     loadMatch()
 
-    // Subscribe to real-time changes
     channel = supabase
       .channel(`live-${courtId}`)
       .on(
@@ -89,19 +92,19 @@ export default function LivePage() {
           }
 
           const updatedMatch = payload.new as MatchState
-          
-          // Only update if match is still active
-          if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
+
+          if (
+            updatedMatch.status === 'setup' ||
+            updatedMatch.status === 'in_progress'
+          ) {
             setMatch(updatedMatch)
           } else {
-            // Match completed or abandoned
             setMatch(null)
           }
         }
       )
       .subscribe()
 
-    // Cleanup
     return () => {
       if (channel) {
         supabase.removeChannel(channel)
@@ -109,82 +112,158 @@ export default function LivePage() {
     }
   }, [courtId])
 
+  // Update game time every second when match is active
+  useEffect(() => {
+    if (!match?.started_at) return
+    const updateTime = () =>
+      setGameTime(formatGameDuration(match.started_at ?? null))
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [match?.started_at])
+
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#1a1a2e',
-        color: '#fff',
-        fontSize: '1.5rem'
-      }}>
-        Loading...
+      <div className="spectator-page">
+        <div className="spectator-16-9">
+          <div className="spectator-loading">Loading...</div>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#1a1a2e',
-        color: '#ef4444',
-        fontSize: '1.5rem',
-        padding: '2rem',
-        textAlign: 'center'
-      }}>
-        {error}
+      <div className="spectator-page">
+        <div className="spectator-16-9">
+          <div className="spectator-error">{error}</div>
+        </div>
       </div>
     )
   }
 
   if (!match) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#1a1a2e',
-        color: '#fff',
-        fontSize: '2rem',
-        textAlign: 'center',
-        padding: '2rem'
-      }}>
-        No active match
+      <div className="spectator-page">
+        <div className="spectator-16-9">
+          <div className="spectator-empty">No active match</div>
+        </div>
       </div>
     )
   }
 
+  const teamAName = buildTeamName(
+    match.team_a_player_1,
+    match.team_a_player_2,
+    'Team A'
+  )
+  const teamBName = buildTeamName(
+    match.team_b_player_1,
+    match.team_b_player_2,
+    'Team B'
+  )
+
+  const partsA = getHorizontalScoreParts(
+    match.set_scores,
+    'a',
+    match.team_a_games,
+    match.team_a_points,
+    match.team_b_points,
+    match.is_tiebreak ?? false,
+    match.is_tiebreak ? match.tiebreak_scores?.team_a : undefined
+  )
+  const partsB = getHorizontalScoreParts(
+    match.set_scores,
+    'b',
+    match.team_b_games,
+    match.team_b_points,
+    match.team_a_points,
+    match.is_tiebreak ?? false,
+    match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
+  )
+
   const pointSituation = getPointSituation(match)
 
   return (
-    <div>
-      <ScoreDisplay match={match} variant="spectator" />
-      {pointSituation && (
-        <div className="point-situation-badge-live">
-          {pointSituation.type}
+    <div className="spectator-page">
+      <div className="spectator-16-9">
+        <div className="spectator-container">
+        {/* Top bar: Logo | Game time + LIVE */}
+        <header className="spectator-topbar">
+          <div className="spectator-logo">
+            <div className="spectator-logo-mark">
+              <span className="spectator-logo-l" />
+              <span className="spectator-logo-square" />
+            </div>
+            <h1 className="spectator-brand">
+              <span className="spectator-brand-square">SQUARE</span>
+              <span className="spectator-brand-one">ONE</span>
+            </h1>
+          </div>
+          <div className="spectator-time-live">
+            <span className="spectator-time">{gameTime}</span>
+            <span className="spectator-live">
+              <span className="spectator-live-dot" aria-hidden />
+              LIVE
+            </span>
+          </div>
+        </header>
+
+        {/* Score panel: horizontal layout */}
+        <div
+          className={`spectator-score-panel ${
+            match.serving_team === 'a' ? 'team-a-accent' : 'team-b-accent'
+          }`}
+        >
+          <div className="spectator-player-row">
+            <span className="spectator-player-name">{teamAName}</span>
+            <div className="spectator-player-scores">
+              {match.serving_team === 'a' && (
+                <span className="spectator-serving-dot" aria-hidden />
+              )}
+              {partsA.map((part, i) => {
+                const isHighlight = match.serving_team === 'a' && i === (match.set_scores?.length ?? 0)
+                return (
+                  <span
+                    key={i}
+                    className={`spectator-score-part ${isHighlight ? 'highlight' : i === 0 ? 'muted' : ''}`}
+                  >
+                    {part}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+          <div className="spectator-player-row">
+            <span className="spectator-player-name">{teamBName}</span>
+            <div className="spectator-player-scores">
+              {match.serving_team === 'b' && (
+                <span className="spectator-serving-dot" aria-hidden />
+              )}
+              {partsB.map((part, i) => {
+                const isHighlight = match.serving_team === 'b' && i === (match.set_scores?.length ?? 0)
+                return (
+                  <span
+                    key={i}
+                    className={`spectator-score-part ${isHighlight ? 'highlight' : i === 0 ? 'muted' : ''}`}
+                  >
+                    {part}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+
+          {match.is_tiebreak && (
+            <div className="spectator-tiebreak-badge">Tiebreak</div>
+          )}
+
+          {pointSituation && (
+            <div className="spectator-point-badge">{pointSituation.type}</div>
+          )}
         </div>
-      )}
-      <style jsx>{`
-        .point-situation-badge-live {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #BDF33F;
-          text-align: center;
-          padding: 0.5rem 1rem;
-          background: rgba(0, 0, 0, 0.6);
-          border-radius: 0.5rem;
-          margin-top: 1rem;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-        }
-      `}</style>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,58 +1,11 @@
 'use client'
 
 import type { MatchState } from '@/lib/types/match'
+import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
 
 interface ScoreDisplayProps {
   match: MatchState
   variant?: 'court' | 'spectator'
-}
-
-function formatPointDisplay(
-  points: number, 
-  opponentPoints: number,
-  isTiebreak: boolean, 
-  tiebreakScore?: number
-): string {
-  if (isTiebreak && tiebreakScore !== undefined) {
-    return tiebreakScore.toString()
-  }
-  
-  const pointLabels = ['0', '15', '30', '40']
-  
-  // Standard points (0-3)
-  if (points <= 3) {
-    return pointLabels[points]
-  }
-  
-  // Both teams at 3+ points (deuce situation)
-  if (points >= 3 && opponentPoints >= 3) {
-    // Advantage: this team is ahead by exactly 1
-    if (points - opponentPoints === 1) {
-      return 'Ad'
-    }
-    // Deuce: scores are equal
-    if (points === opponentPoints) {
-      return '40'
-    }
-    // Behind by 1: show 40 (opponent has advantage)
-    if (opponentPoints - points === 1) {
-      return '40'
-    }
-  }
-  
-  // Fallback: show 40 for any other case with 4+ points
-  // (Game should have been won by this point, but handle gracefully)
-  return '40'
-}
-
-function buildTeamName(player1: string | null | undefined, player2: string | null | undefined, fallback: string): string {
-  const names: string[] = []
-  if (player1) names.push(player1)
-  if (player2) names.push(player2)
-  
-  if (names.length === 0) return fallback
-  if (names.length === 1) return names[0]
-  return `${names[0]} / ${names[1]}`
 }
 
 export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisplayProps) {

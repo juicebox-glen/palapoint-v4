@@ -3,21 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
+import SetupScreenHeader from '@/components/SetupScreenHeader'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import type { MatchState } from '@/lib/types/match'
+import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
+import '@/app/styles/setup-form.css'
+import '@/app/styles/control-panel.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-
-function buildTeamName(player1: string | null | undefined, player2: string | null | undefined): string {
-  const names: string[] = []
-  if (player1) names.push(player1)
-  if (player2) names.push(player2)
-  
-  if (names.length === 0) return 'Team A'
-  if (names.length === 1) return names[0]
-  return `${names[0]} / ${names[1]}`
-}
 
 function formatGameMode(gameMode: string): string {
   return gameMode.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -482,7 +476,7 @@ export default function PlayingPage() {
           <div className="playing-swap-preview">
             <div className="playing-swap-preview-label">New matchup:</div>
             <div className="playing-swap-preview-teams">
-              {buildTeamName(previewA1, previewA2)} vs {buildTeamName(previewB1, previewB2)}
+              {buildTeamName(previewA1, previewA2, 'Team A')} vs {buildTeamName(previewB1, previewB2, 'Team B')}
             </div>
             {selectedPlayer && (
               <div className="playing-swap-hint">Tap another player to swap</div>
@@ -645,8 +639,8 @@ export default function PlayingPage() {
 
   // State 2: Match Completed or Abandoned
   if (match && (match.status === 'completed' || match.status === 'abandoned')) {
-    const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2)
-    const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2)
+    const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
+    const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
     const winnerName = match.winner === 'a' ? teamAName : teamBName
 
     return (
@@ -812,64 +806,117 @@ export default function PlayingPage() {
     )
   }
 
-  // State 1: Match In Progress
-  const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2)
-  const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2)
+  // State 1: Match In Progress — same layout as staff controller (/control/[id])
+  const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
+  const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+  const pointsA = formatPointDisplay(
+    match.team_a_points,
+    match.team_b_points,
+    match.is_tiebreak ?? false,
+    match.is_tiebreak ? match.tiebreak_scores?.team_a : undefined
+  )
+  const pointsB = formatPointDisplay(
+    match.team_b_points,
+    match.team_a_points,
+    match.is_tiebreak ?? false,
+    match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
+  )
+  const matchSetsToWin = match.sets_to_win ?? 1
+  const setsWonA = (match.set_scores ?? []).filter((s) => s.team_a > s.team_b).length
+  const setsWonB = (match.set_scores ?? []).filter((s) => s.team_b > s.team_a).length
+  const gameModeLabel =
+    match.game_mode === 'traditional'
+      ? 'Standard'
+      : match.game_mode === 'golden_point'
+        ? 'Golden Point'
+        : 'Silver Point'
+  const pointSituation = getPointSituation(match)
 
   return (
-    <div className="playing-page">
-      <div className="playing-container">
-        <div className="playing-header">
-          <h1 className="playing-court-name">{court?.name || 'Court'}</h1>
-          <div className="playing-settings-small">
-            {formatGameMode(match.game_mode)} · {match.sets_to_win === 1 ? '1 Set' : 'Best of 3'}
-          </div>
-        </div>
+    <div className="control-panel control-panel--player">
+      <div className="control-container">
+        <SetupScreenHeader />
+        <header className="control-header">
+          <span className="control-live">
+            <span className="control-live-dot" aria-hidden />
+            LIVE
+          </span>
+          <span className="control-game-mode">{gameModeLabel}</span>
+        </header>
 
-        <div className="playing-players">
-          {teamAName} vs {teamBName}
-        </div>
+        {error && <div className="control-error-message">{error}</div>}
 
-        <div className="playing-score">
-          <ScoreDisplay match={match} variant="spectator" />
-          {getPointSituation(match) && (
-            <div className="point-situation-badge-playing">
-              {getPointSituation(match)?.type}
+        <div className="control-scoreboard">
+          <div className="control-scoreboard-cols">
+            <div className="control-scoreboard-col">
+              {match.serving_team === 'a' && (
+                <div className="control-server-bar control-server-bar-a" aria-hidden />
+              )}
+              <div className="control-scoreboard-name">{teamAName}</div>
+              <div className="control-scoreboard-point">{pointsA}</div>
             </div>
+            <div className="control-scoreboard-col">
+              {match.serving_team === 'b' && (
+                <div className="control-server-bar control-server-bar-b" aria-hidden />
+              )}
+              <div className="control-scoreboard-name">{teamBName}</div>
+              <div className="control-scoreboard-point">{pointsB}</div>
+            </div>
+          </div>
+          <div className="control-scoreboard-sets-row">
+            <div className="control-scoreboard-sets">
+              {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`control-scoreboard-set-dot team-a ${i < setsWonA ? 'won' : ''}`}
+                  aria-hidden
+                />
+              ))}
+            </div>
+            <div className="control-scoreboard-games">
+              {match.team_a_games} – {match.team_b_games}
+            </div>
+            <div className="control-scoreboard-sets">
+              {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`control-scoreboard-set-dot team-b ${i < setsWonB ? 'won' : ''}`}
+                  aria-hidden
+                />
+              ))}
+            </div>
+          </div>
+          {match.is_tiebreak && (
+            <div className="control-scoreboard-tiebreak">Tiebreak</div>
+          )}
+          {pointSituation && (
+            <div className="control-point-badge">{pointSituation.type}</div>
           )}
         </div>
 
-        <div className="playing-end-link">
+        <div className="control-actions control-actions--single">
           <button
-            className="playing-end-button"
+            className="control-button control-button-danger"
             onClick={() => setShowEndConfirm(true)}
             disabled={!!actionLoading}
           >
-            End Match
+            END MATCH
           </button>
         </div>
       </div>
 
-      {/* End Match Confirmation Modal */}
       {showEndConfirm && (
-        <div className="playing-modal-overlay" onClick={() => setShowEndConfirm(false)}>
-          <div className="playing-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="playing-modal-title">End Match?</h2>
-            <p className="playing-modal-text">Are you sure you want to end this match?</p>
-            {error && <div className="playing-modal-error">{error}</div>}
-            <div className="playing-modal-buttons">
-              <button
-                className="playing-button playing-button-secondary"
-                onClick={() => {
-                  setShowEndConfirm(false)
-                  setError(null)
-                }}
-                disabled={actionLoading === 'end'}
-              >
+        <div className="control-modal-overlay" onClick={() => setShowEndConfirm(false)}>
+          <div className="control-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="control-modal-title">End Match?</h2>
+            <p className="control-modal-text">Are you sure you want to end this match?</p>
+            {error && <div className="control-error-message" style={{ marginBottom: '1rem' }}>{error}</div>}
+            <div className="control-modal-buttons">
+              <button className="control-button" onClick={() => { setShowEndConfirm(false); setError(null) }}>
                 Cancel
               </button>
               <button
-                className="playing-button playing-button-primary"
+                className="control-button control-button-danger"
                 onClick={handleEndMatch}
                 disabled={actionLoading === 'end'}
               >
@@ -879,114 +926,6 @@ export default function PlayingPage() {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .playing-page {
-          min-height: 100vh;
-          background: #1a1a2e;
-          color: #fff;
-          padding: 1.5rem 1rem;
-        }
-        .playing-container {
-          max-width: 500px;
-          margin: 0 auto;
-        }
-        .playing-header {
-          text-align: center;
-          margin-bottom: 1.5rem;
-        }
-        .playing-court-name {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-        }
-        .playing-settings-small {
-          font-size: 0.9rem;
-          opacity: 0.7;
-        }
-        .playing-players {
-          text-align: center;
-          font-size: 1.1rem;
-          margin-bottom: 1.5rem;
-          opacity: 0.9;
-        }
-        .playing-score {
-          margin-bottom: 2rem;
-        }
-        .point-situation-badge-playing {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #BDF33F;
-          text-align: center;
-          padding: 0.5rem 1rem;
-          background: rgba(0, 0, 0, 0.6);
-          border-radius: 0.5rem;
-          margin: 1rem 0;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-        }
-        .playing-end-link {
-          text-align: center;
-        }
-        .playing-end-button {
-          background: transparent;
-          border: none;
-          color: rgba(255, 255, 255, 0.5);
-          text-decoration: underline;
-          font-size: 0.9rem;
-          cursor: pointer;
-          padding: 0.5rem;
-        }
-        .playing-end-button:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-        .playing-end-button:not(:disabled):active {
-          opacity: 0.8;
-        }
-        .playing-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          z-index: 1000;
-        }
-        .playing-modal {
-          background: #1a1a2e;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 1rem;
-          padding: 2rem;
-          max-width: 400px;
-          width: 100%;
-        }
-        .playing-modal-title {
-          font-size: 1.5rem;
-          margin-bottom: 1rem;
-        }
-        .playing-modal-text {
-          margin-bottom: 1.5rem;
-          opacity: 0.9;
-        }
-        .playing-modal-error {
-          background: rgba(239, 68, 68, 0.2);
-          color: #ef4444;
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          margin-bottom: 1.5rem;
-          font-size: 0.9rem;
-        }
-        .playing-modal-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-      `}</style>
     </div>
   )
 }

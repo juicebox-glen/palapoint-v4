@@ -33,26 +33,37 @@ export default function SetWinOverlay({
     return () => clearTimeout(timer)
   }, [handleComplete])
 
-  const winnerName = winningTeam === 'a' 
+  // Allow skipping with any key press (V3 behavior)
+  useEffect(() => {
+    const handleKeyPress = () => handleComplete()
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [handleComplete])
+
+  const winnerName = winningTeam === 'a'
     ? (teamAName || 'TEAM A')
     : (teamBName || 'TEAM B')
 
-  const borderColor = winningTeam === 'a' 
-    ? 'var(--color-team-a)' 
+  const borderColor = winningTeam === 'a'
+    ? 'var(--color-team-a)'
     : 'var(--color-team-b)'
 
   return (
-    <div className="set-win-overlay court-background">
-      <div className="set-win-border" style={{ borderColor }} />
-      
-      <div className="set-win-content">
-        <h1 className="set-win-title">
-          {winnerName} WINS SET {setNumber}
-        </h1>
-        <div className="set-win-score">
-          <span className="set-win-score-value">{score.teamA}</span>
-          <span className="set-win-score-dash">-</span>
-          <span className="set-win-score-value">{score.teamB}</span>
+    <div className="screen-wrapper">
+      <div className="screen-content screen-bordered" style={{ borderColor }}>
+        <div className="screen-border" style={{ borderColor }} />
+
+        <div className="content-centered">
+          <div className="set-win-text-overlay">
+            <h1 className="set-win-title">
+              {winnerName} WINS SET {setNumber}
+            </h1>
+            <div className="set-win-score">
+              <span className="set-win-score-value">{score.teamA}</span>
+              <span className="set-win-score-dash">-</span>
+              <span className="set-win-score-value">{score.teamB}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

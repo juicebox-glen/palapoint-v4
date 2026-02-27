@@ -8,6 +8,7 @@ import { MatchState } from '@/lib/types/match'
 import SideSwapOverlay from '@/components/SideSwapOverlay'
 import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
+import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -96,6 +97,7 @@ export default function CourtDisplay() {
 
   const [court, setCourt] = useState<any>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
+  const [completedMatch, setCompletedMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSideSwap, setShowSideSwap] = useState(false)
@@ -109,7 +111,11 @@ export default function CourtDisplay() {
   const prevTotalGamesRef = useRef(0)
   const prevTiebreakPointsRef = useRef(0)
   const prevSetsRef = useRef<number>(0)
+  const prevTeamAPointsRef = useRef(-1)
+  const prevTeamBPointsRef = useRef(-1)
   const announcementShownRef = useRef<string | null>(null)
+  const [leftScoreAnimating, setLeftScoreAnimating] = useState(false)
+  const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
 
   // Load court and match data
   useEffect(() => {
@@ -156,9 +162,11 @@ export default function CourtDisplay() {
         (payload) => {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
+            setCompletedMatch(null)
           } else {
             const newMatch = payload.new as MatchState
             if (newMatch.status === 'completed' || newMatch.status === 'abandoned') {
+              setCompletedMatch(newMatch)
               setMatch(null)
             } else {
               setMatch(newMatch)
@@ -271,6 +279,39 @@ export default function CourtDisplay() {
     prevSetsRef.current = totalSetsCompleted
   }, [match, showSetWin])
 
+  // Score flash animation when points change (V3 game-score-animate)
+  useEffect(() => {
+    if (!match || showSetWin || showSideSwap || showServerAnnouncement) return
+
+    const pa = match.team_a_points
+    const pb = match.team_b_points
+    const prevPa = prevTeamAPointsRef.current
+    const prevPb = prevTeamBPointsRef.current
+
+    if (prevPa >= 0 && prevPb >= 0) {
+      if (pa > prevPa) {
+        const teamAOnLeft = !calculateSidesSwapped(match)
+        if (teamAOnLeft) setLeftScoreAnimating(true)
+        else setRightScoreAnimating(true)
+        setTimeout(() => {
+          setLeftScoreAnimating(false)
+          setRightScoreAnimating(false)
+        }, 600)
+      } else if (pb > prevPb) {
+        const teamAOnLeft = !calculateSidesSwapped(match)
+        if (teamAOnLeft) setRightScoreAnimating(true)
+        else setLeftScoreAnimating(true)
+        setTimeout(() => {
+          setLeftScoreAnimating(false)
+          setRightScoreAnimating(false)
+        }, 600)
+      }
+    }
+
+    prevTeamAPointsRef.current = pa
+    prevTeamBPointsRef.current = pb
+  }, [match?.team_a_points, match?.team_b_points, match, showSetWin, showSideSwap, showServerAnnouncement])
+
   const handleSetWinComplete = () => {
     setShowSetWin(false)
     setSetWinData(null)
@@ -289,6 +330,16 @@ export default function CourtDisplay() {
       <div className="court-idle">
         <div className="court-idle-main-text">{error}</div>
       </div>
+    )
+  }
+
+  // Match completed - show MatchWin overlay
+  if (completedMatch) {
+    return (
+      <MatchWinOverlay
+        match={completedMatch}
+        onComplete={() => setCompletedMatch(null)}
+      />
     )
   }
 
@@ -323,14 +374,12 @@ export default function CourtDisplay() {
     const servingTeam = match.serving_team as 'a' | 'b'
 
     return (
-      <div className="screen-wrapper">
-        <ServerAnnouncementOverlay
-          servingTeam={servingTeam}
-          teamAName={teamAName}
-          teamBName={teamBName}
-          onComplete={handleServerAnnouncementComplete}
-        />
-      </div>
+      <ServerAnnouncementOverlay
+        servingTeam={servingTeam}
+        teamAName={teamAName}
+        teamBName={teamBName}
+        onComplete={handleServerAnnouncementComplete}
+      />
     )
   }
 
@@ -344,29 +393,25 @@ export default function CourtDisplay() {
       : undefined
 
     return (
-      <div className="screen-wrapper">
-        <SetWinOverlay
-          winningTeam={setWinData.winningTeam}
-          setNumber={setWinData.setNumber}
-          score={setWinData.score}
-          teamAName={teamAName}
-          teamBName={teamBName}
-          onComplete={handleSetWinComplete}
-        />
-      </div>
+      <SetWinOverlay
+        winningTeam={setWinData.winningTeam}
+        setNumber={setWinData.setNumber}
+        score={setWinData.score}
+        teamAName={teamAName}
+        teamBName={teamBName}
+        onComplete={handleSetWinComplete}
+      />
     )
   }
 
   // Show side swap overlay
   if (showSideSwap && match) {
     return (
-      <div className="screen-wrapper">
-        <SideSwapOverlay
-          servingTeam={match.serving_team as 'a' | 'b'}
-          sidesSwapped={calculateSidesSwapped(match)}
-          onComplete={handleSideSwapComplete}
-        />
-      </div>
+      <SideSwapOverlay
+        servingTeam={match.serving_team as 'a' | 'b'}
+        sidesSwapped={calculateSidesSwapped(match)}
+        onComplete={handleSideSwapComplete}
+      />
     )
   }
 
@@ -462,7 +507,7 @@ export default function CourtDisplay() {
 
   return (
     <div className="screen-wrapper">
-      <div className="screen-content layout-split-50-horizontal">
+      <div className="screen-content game-scoreboard-screen layout-split-50-horizontal">
         
         {/* Tiebreak indicator */}
         {isTiebreak && (
@@ -480,7 +525,7 @@ export default function CourtDisplay() {
           <div className="game-team-name">{leftTeamData.name}</div>
           
           <div className="game-score-display">
-            <div className={leftPoints === 'ADV' ? 'game-score-adv' : 'game-score'}>
+            <div className={`${leftPoints === 'ADV' ? 'game-score-adv' : 'game-score'} ${leftScoreAnimating ? 'game-score-animate' : ''}`}>
               {leftPoints}
             </div>
           </div>
@@ -504,7 +549,7 @@ export default function CourtDisplay() {
           <div className="game-team-name">{rightTeamData.name}</div>
           
           <div className="game-score-display">
-            <div className={rightPoints === 'ADV' ? 'game-score-adv' : 'game-score'}>
+            <div className={`${rightPoints === 'ADV' ? 'game-score-adv' : 'game-score'} ${rightScoreAnimating ? 'game-score-animate' : ''}`}>
               {rightPoints}
             </div>
           </div>

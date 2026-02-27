@@ -1,0 +1,267 @@
+/* ============================================================
+   Spectator Page — Reference design (central panel, bottom content)
+   Layout: Logo | Game time + LIVE | Central panel with cyan border
+   16:9 aspect ratio for TV display (matches court/court-1)
+   ============================================================ */
+
+.spectator-page {
+  --sp-bg: #0d0d0d;
+  --sp-panel: hsl(220 20% 8%);
+  --sp-text: hsl(0 0% 98%);
+  --sp-muted: hsl(220 10% 55%);
+  --sp-accent: hsl(190 80% 55%);
+  --team-a: hsl(228 94% 60%);
+  --team-b: hsl(180 55% 45%);
+  --team-a-glow: hsl(228 94% 60% / 0.35);
+  --team-b-glow: hsl(180 55% 45% / 0.35);
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sp-bg);
+}
+
+/* 16:9 container — fills viewport while maintaining aspect ratio (letterboxes on non-16:9) */
+.spectator-16-9 {
+  aspect-ratio: 16/9;
+  width: min(100vw, 177.78vh);
+  height: min(56.25vw, 100vh);
+  max-width: 100vw;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sp-bg);
+  color: var(--sp-text);
+  overflow: hidden;
+}
+
+.spectator-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.2vw 1.8vw;
+  min-height: 0;
+}
+
+/* ----- Top bar: Logo (left) | Game time + LIVE (right) ----- */
+.spectator-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1vw;
+  flex-shrink: 0;
+}
+
+.spectator-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+}
+
+.spectator-logo-mark {
+  width: 2.2vw;
+  height: 2.2vw;
+  min-width: 24px;
+  min-height: 24px;
+  background: transparent;
+  border-radius: 0.3vw;
+  position: relative;
+  flex-shrink: 0;
+  border: 0.15vw solid var(--sp-accent);
+}
+
+.spectator-logo-l {
+  position: absolute;
+  left: 18%;
+  top: 18%;
+  width: 40%;
+  height: 60%;
+  border-left: 0.15vw solid var(--sp-accent);
+  border-bottom: 0.15vw solid var(--sp-accent);
+  box-sizing: border-box;
+}
+
+.spectator-logo-square {
+  position: absolute;
+  right: 18%;
+  bottom: 18%;
+  width: 28%;
+  height: 28%;
+  background: var(--sp-accent);
+  border-radius: 0.15vw;
+}
+
+.spectator-brand {
+  font-size: 1.3vw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.2vw;
+  color: var(--sp-text);
+}
+
+.spectator-brand-square {
+  font-weight: 500;
+}
+
+.spectator-brand-one {
+  font-weight: 700;
+  color: var(--sp-accent);
+}
+
+.spectator-time-live {
+  display: flex;
+  align-items: center;
+  gap: 0.5vw;
+}
+
+.spectator-time {
+  font-size: 1.2vw;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.spectator-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35vw;
+  font-size: 1vw;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--sp-text);
+}
+
+.spectator-live-dot {
+  width: 0.5vw;
+  height: 0.5vw;
+  min-width: 6px;
+  min-height: 6px;
+  border-radius: 50%;
+  background: var(--sp-accent);
+  flex-shrink: 0;
+  animation: spectator-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spectator-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* ----- Central panel: cyan border, content at bottom ----- */
+.spectator-score-panel {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--sp-panel);
+  border: 0.15vw solid var(--sp-accent);
+  border-radius: 0.8vw;
+  padding: 2vw 2.5vw;
+  padding-bottom: 2.5vw;
+  overflow: hidden;
+}
+
+.spectator-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2vw;
+  min-height: 2.8vw;
+}
+
+.spectator-player-row + .spectator-player-row {
+  margin-top: 0.6vw;
+}
+
+.spectator-player-name {
+  font-size: 1.4vw;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--sp-text);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spectator-player-scores {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  flex-shrink: 0;
+}
+
+.spectator-score-part {
+  font-size: 1.8vw;
+  font-weight: 600;
+  color: var(--sp-text);
+  min-width: 2vw;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.spectator-score-part.highlight {
+  color: var(--sp-accent);
+}
+
+.spectator-score-part.muted {
+  font-size: 1.4vw;
+  font-weight: 500;
+  color: var(--sp-muted);
+}
+
+.spectator-serving-dot {
+  width: 0.55vw;
+  height: 0.55vw;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+/* Tiebreak badge */
+.spectator-tiebreak-badge {
+  font-size: 0.9vw;
+  font-weight: 600;
+  color: var(--sp-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.8vw;
+  text-align: center;
+}
+
+/* Point situation badge */
+.spectator-point-badge {
+  font-size: 1.1vw;
+  font-weight: 700;
+  color: hsl(84 70% 60%);
+  text-align: center;
+  padding: 0.5vw 1vw;
+  background: hsl(84 40% 25% / 0.5);
+  border-radius: 0.5vw;
+  margin-top: 1vw;
+  letter-spacing: 0.08em;
+}
+
+/* Loading / error / empty states */
+.spectator-loading,
+.spectator-error,
+.spectator-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  font-size: 2vw;
+  color: var(--sp-muted);
+}
+
+.spectator-error {
+  color: #ef4444;
+}

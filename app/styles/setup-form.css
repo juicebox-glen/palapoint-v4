@@ -64,6 +64,22 @@
   margin-bottom: 1.5rem;
 }
 
+.setup-header--spread {
+  justify-content: space-between;
+}
+
+.setup-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.setup-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .setup-logo-mark {
   width: 40px;
   height: 40px;
