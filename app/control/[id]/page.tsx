@@ -157,34 +157,34 @@ export default function ControlPanelPage() {
     loadMatch()
 
     // Subscribe to real-time changes (clone payload so React sees a new reference)
-    channel = supabase
-      .channel(`control-${courtId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_matches',
-          filter: `court_id=eq.${courtId}`,
-        },
-        (payload: { eventType: string; new?: MatchState; data?: { new?: MatchState } }) => {
-          if (payload.eventType === 'DELETE') {
-            setMatch(null)
-            return
-          }
-          const raw = payload.new ?? (payload as { data?: { new?: MatchState } }).data?.new
-          if (!raw) return
-          const updatedMatch = { ...raw } as MatchState
-          if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
-            setMatch(updatedMatch)
-            setCompletedMatch(null)
-          } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
-            setMatch(null)
-            setCompletedMatch(updatedMatch)
-          }
+    // Type assertion needed: Supabase RealtimeChannel has overload resolution issues with postgres_changes
+    const ch = supabase.channel(`control-${courtId}`)
+    ;(ch as any).on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'live_matches',
+        filter: `court_id=eq.${courtId}`,
+      },
+      (payload: { eventType: string; new?: MatchState; data?: { new?: MatchState } }) => {
+        if (payload.eventType === 'DELETE') {
+          setMatch(null)
+          return
         }
-      )
-      .subscribe()
+        const raw = payload.new ?? (payload as { data?: { new?: MatchState } }).data?.new
+        if (!raw) return
+        const updatedMatch = { ...raw } as MatchState
+        if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
+          setMatch(updatedMatch)
+          setCompletedMatch(null)
+        } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
+          setMatch(null)
+          setCompletedMatch(updatedMatch)
+        }
+      }
+    )
+    channel = ch.subscribe()
 
     // Refetch when tab becomes visible (fallback if realtime misses an event)
     const onVisibility = () => {
