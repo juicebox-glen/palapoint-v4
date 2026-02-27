@@ -166,11 +166,14 @@ export default function TeamsPage() {
     setActionLoading(true)
     setError(null)
 
-    // Read side swap setting from sessionStorage
-    const savedSideSwap = typeof window !== 'undefined' 
+    // Read side swap and session_id from sessionStorage
+    const savedSideSwap = typeof window !== 'undefined'
       ? sessionStorage.getItem(`setup_side_swap_${courtId}`)
       : null
     const sideSwapEnabled = savedSideSwap ? JSON.parse(savedSideSwap) : true
+    const sessionId = typeof window !== 'undefined'
+      ? sessionStorage.getItem(`setup_session_id_${courtId}`)
+      : null
 
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
@@ -181,6 +184,7 @@ export default function TeamsPage() {
         body: JSON.stringify({
           action: 'create',
           court_id: courtId,
+          session_id: sessionId || undefined,
           game_mode: gameMode,
           sets_to_win: setsToWin,
           side_swap_enabled: sideSwapEnabled,
@@ -205,6 +209,7 @@ export default function TeamsPage() {
         sessionStorage.removeItem(`setup_game_mode_${courtId}`)
         sessionStorage.removeItem(`setup_sets_${courtId}`)
         sessionStorage.removeItem(`setup_teams_${courtId}`)
+        sessionStorage.removeItem(`setup_session_id_${courtId}`)
       }
 
       // Redirect to playing page

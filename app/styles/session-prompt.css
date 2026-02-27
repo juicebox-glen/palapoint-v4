@@ -1,0 +1,90 @@
+/* Session Protection Prompt */
+.session-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.session-prompt-card {
+  background: var(--color-bg-secondary, #1E1E1F);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.session-prompt-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #fff);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.session-prompt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-prompt-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-primary, #121212);
+  border-radius: 0.5rem;
+}
+
+.session-prompt-label {
+  color: var(--color-text-secondary, #B3B3B3);
+  font-size: 0.9rem;
+}
+
+.session-prompt-value {
+  color: var(--color-text-primary, #fff);
+  font-weight: 600;
+}
+
+.session-prompt-warning {
+  color: var(--color-text-secondary, #B3B3B3);
+  font-size: 0.85rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.session-prompt-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.session-prompt-btn {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.session-prompt-btn:hover {
+  opacity: 0.9;
+}
+
+.session-prompt-btn-cancel {
+  background: var(--color-bg-primary, #121212);
+  color: var(--color-text-primary, #fff);
+  border: 1px solid var(--color-text-secondary, #B3B3B3);
+}
+
+.session-prompt-btn-takeover {
+  background: #ef4444;
+  color: white;
+}

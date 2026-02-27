@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
+import { checkSession, createSession, takeoverSession } from '@/lib/api/session'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import MatchSetupForm from '@/components/MatchSetupForm'
+import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import type { MatchState, GameMode } from '@/lib/types/match'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -41,6 +43,14 @@ export default function SetupPage() {
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showSetupForm, setShowSetupForm] = useState(false)
+  const [sessionLoading, setSessionLoading] = useState(true)
+  const [activeSession, setActiveSession] = useState<{
+    minutes_active?: number
+    minutes_since_activity?: number
+    games_count?: number
+  } | null>(null)
+  const [showProtectionPrompt, setShowProtectionPrompt] = useState(false)
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
   // Form state
   const [gameMode, setGameMode] = useState<GameMode>('traditional')
@@ -64,6 +74,32 @@ export default function SetupPage() {
         }
         setCourt(courtData)
         setCourtId(courtData.id)
+
+        // Check for existing session
+        try {
+          const sessionResult = await checkSession(courtData.id)
+
+          if (sessionResult.has_active_session && sessionResult.session) {
+            setActiveSession(sessionResult.session)
+            setShowProtectionPrompt(true)
+          } else {
+            // No active session - create one
+            const createResult = await createSession(courtData.id)
+            if (createResult.success && createResult.session) {
+              setCurrentSessionId(createResult.session.id)
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem(
+                  `setup_session_id_${courtData.id}`,
+                  createResult.session.id
+                )
+              }
+            }
+          }
+        } catch (sessionErr) {
+          console.error('Error checking session:', sessionErr)
+        } finally {
+          setSessionLoading(false)
+        }
 
         // Check for active match
         const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
@@ -133,6 +169,38 @@ export default function SetupPage() {
     loadData()
   }, [courtIdentifier])
 
+  const handleCancelSetup = () => {
+    window.history.back()
+  }
+
+  const handleTakeover = async () => {
+    if (!courtId) return
+
+    setActionLoading('takeover')
+    setError(null)
+
+    try {
+      const result = await takeoverSession(courtId)
+      if (result.success && result.session) {
+        setCurrentSessionId(result.session.id)
+        setShowProtectionPrompt(false)
+        setActiveSession(null)
+        setActiveMatch(null)
+        setShowSetupForm(true)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`setup_session_id_${courtId}`, result.session.id)
+        }
+      } else {
+        setError(result.error || 'Failed to take over')
+      }
+    } catch (err) {
+      console.error('Error taking over session:', err)
+      setError('Failed to take over session')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   async function handleEndMatch() {
     if (!courtId) return
 
@@ -200,12 +268,14 @@ export default function SetupPage() {
       sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
       sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
       sessionStorage.setItem(`setup_tiebreak_${courtId}`, JSON.stringify(endGameInTiebreak))
+      sessionStorage.setItem(`setup_session_id_${courtId}`, currentSessionId || '')
     }
 
     try {
       const body: Record<string, unknown> = {
         action: 'create',
         court_id: courtId,
+        session_id: currentSessionId || undefined,
         game_mode: gameMode,
         sets_to_win: setsToWin,
         side_swap_enabled: sideSwapEnabled,
@@ -236,6 +306,7 @@ export default function SetupPage() {
         sessionStorage.removeItem(`setup_sets_${courtId}`)
         sessionStorage.removeItem(`setup_side_swap_${courtId}`)
         sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
+        sessionStorage.removeItem(`setup_session_id_${courtId}`)
       }
 
       router.push(`/playing/${courtIdentifier}`)
@@ -246,10 +317,12 @@ export default function SetupPage() {
     }
   }
 
-  if (loading) {
+  if (loading || sessionLoading) {
     return (
       <div className="setup-page">
-        <div className="setup-loading">Loading...</div>
+        <div className="setup-loading">
+          {sessionLoading ? 'Checking court availability...' : 'Loading...'}
+        </div>
         <style jsx>{`
           .setup-page {
             min-height: 100vh;
@@ -265,6 +338,18 @@ export default function SetupPage() {
           }
         `}</style>
       </div>
+    )
+  }
+
+  if (showProtectionPrompt && activeSession) {
+    return (
+      <SessionProtectionPrompt
+        minutesActive={activeSession.minutes_active ?? 0}
+        minutesSinceActivity={activeSession.minutes_since_activity ?? 0}
+        gamesCount={activeSession.games_count ?? 0}
+        onCancel={handleCancelSetup}
+        onTakeover={handleTakeover}
+      />
     )
   }
 
