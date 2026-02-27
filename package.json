@@ -34,7 +34,7 @@
     "react-dom": "^18.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vercel": "^50.5.0"
+    "vercel": "^50.25.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.48",
