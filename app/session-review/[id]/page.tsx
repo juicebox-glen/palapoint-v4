@@ -11,10 +11,12 @@ interface Game {
   team_a_player_2: string | null
   team_b_player_1: string | null
   team_b_player_2: string | null
-  winner: string
+  winner: string | null
   set_scores: Array<{ team_a: number; team_b: number }>
   created_at: string
-  completed_at: string
+  completed_at: string | null
+  status?: string
+  live_match_id?: string
 }
 
 interface Session {
@@ -58,13 +60,39 @@ export default function SessionReviewPage() {
         }
       }
 
-      const { data: gamesData } = await supabase
-        .from('matches')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true })
+      // Get games from both live_matches (completed but not archived) and matches (archived)
+      const [liveResult, archivedResult] = await Promise.all([
+        supabase
+          .from('live_matches')
+          .select('*')
+          .eq('session_id', sessionId)
+          .in('status', ['completed', 'abandoned'])
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('matches')
+          .select('*')
+          .eq('session_id', sessionId)
+          .order('created_at', { ascending: true }),
+      ])
 
-      if (gamesData) setGames(gamesData as Game[])
+      // Combine and deduplicate (prefer archived if both exist)
+      const archivedIds = new Set(
+        (archivedResult.data || [])
+          .map((g: Game) => g.live_match_id)
+          .filter(Boolean)
+      )
+      const liveOnly = (liveResult.data || []).filter(
+        (g: Game) => !archivedIds.has(g.id)
+      )
+      const allGames = [...(archivedResult.data || []), ...liveOnly]
+
+      // Sort by created_at
+      allGames.sort(
+        (a: Game, b: Game) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+
+      if (allGames.length > 0) setGames(allGames)
 
       setLoading(false)
     }
@@ -131,17 +159,19 @@ export default function SessionReviewPage() {
         ) : (
           games.map((game, index) => {
             const winnerName =
-              game.winner === 'a'
-                ? formatTeamName(
-                    game.team_a_player_1,
-                    game.team_a_player_2,
-                    'Team A'
-                  )
-                : formatTeamName(
-                    game.team_b_player_1,
-                    game.team_b_player_2,
-                    'Team B'
-                  )
+              !game.winner
+                ? 'Abandoned'
+                : game.winner === 'a'
+                  ? formatTeamName(
+                      game.team_a_player_1,
+                      game.team_a_player_2,
+                      'Team A'
+                    )
+                  : formatTeamName(
+                      game.team_b_player_1,
+                      game.team_b_player_2,
+                      'Team B'
+                    )
 
             const score =
               game.set_scores && game.set_scores.length > 0
@@ -153,7 +183,7 @@ export default function SessionReviewPage() {
             const duration =
               game.created_at && game.completed_at
                 ? formatDuration(game.created_at, game.completed_at)
-                : ''
+                : null
 
             return (
               <div key={game.id} className="review-game-card">
@@ -164,7 +194,9 @@ export default function SessionReviewPage() {
                   )}
                 </div>
                 <div className="review-game-result">
-                  <span className="review-game-winner">{winnerName} WIN</span>
+                  <span className="review-game-winner">
+                    {winnerName === 'Abandoned' ? winnerName : `${winnerName} WIN`}
+                  </span>
                   <span className="review-game-score">{score}</span>
                 </div>
               </div>
