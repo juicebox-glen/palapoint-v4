@@ -108,6 +108,25 @@
   padding: 0 1rem;
 }
 
+/* Temporary: test buttons for scoring without control panel */
+.playing-test-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.playing-btn-test-a {
+  flex: 1;
+  background: var(--color-team-a, #03a97c);
+  color: white;
+}
+
+.playing-btn-test-b {
+  flex: 1;
+  background: var(--color-team-b, #e85d04);
+  color: white;
+}
+
 .playing-session-actions {
   margin-top: auto;
   padding-top: 2rem;

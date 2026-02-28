@@ -180,6 +180,33 @@ export default function PlayingPage() {
     router.push(`/setup/${courtIdentifier}`)
   }
 
+  const handleScorePoint = async (team: 'a' | 'b') => {
+    if (!courtId) return
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          court_id: courtId,
+          team,
+          source: 'control_panel',
+        }),
+      })
+
+      const data = await response.json()
+      if (!data.success) {
+        console.error('Failed to score point:', data.error)
+      }
+      // Match updates via realtime subscription
+    } catch (err) {
+      console.error('Error scoring point:', err)
+    }
+  }
+
   const handleEndSession = async () => {
     if (!sessionId || !courtId) return
 
@@ -341,35 +368,55 @@ export default function PlayingPage() {
         </div>
 
         {match && (
-          <div className="playing-mini-score">
-            <div className="playing-mini-team">
-              <span className="playing-mini-name">
-                {formatTeamName(
-                  match.team_a_player_1,
-                  match.team_a_player_2,
-                  'Team A'
-                )}
-              </span>
-              <span className="playing-mini-points">
-                {formatPoints(match.team_a_points, match.is_tiebreak ?? false)}
-              </span>
+          <>
+            <div className="playing-mini-score">
+              <div className="playing-mini-team">
+                <span className="playing-mini-name">
+                  {formatTeamName(
+                    match.team_a_player_1,
+                    match.team_a_player_2,
+                    'Team A'
+                  )}
+                </span>
+                <span className="playing-mini-points">
+                  {formatPoints(match.team_a_points, match.is_tiebreak ?? false)}
+                </span>
+              </div>
+              <div className="playing-mini-games">
+                {match.team_a_games} - {match.team_b_games}
+              </div>
+              <div className="playing-mini-team">
+                <span className="playing-mini-name">
+                  {formatTeamName(
+                    match.team_b_player_1,
+                    match.team_b_player_2,
+                    'Team B'
+                  )}
+                </span>
+                <span className="playing-mini-points">
+                  {formatPoints(match.team_b_points, match.is_tiebreak ?? false)}
+                </span>
+              </div>
             </div>
-            <div className="playing-mini-games">
-              {match.team_a_games} - {match.team_b_games}
+
+            {/* Temporary: add points for testing without control buttons */}
+            <div className="playing-test-buttons">
+              <button
+                type="button"
+                className="playing-btn playing-btn-test-a"
+                onClick={() => handleScorePoint('a')}
+              >
+                + {formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')}
+              </button>
+              <button
+                type="button"
+                className="playing-btn playing-btn-test-b"
+                onClick={() => handleScorePoint('b')}
+              >
+                + {formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')}
+              </button>
             </div>
-            <div className="playing-mini-team">
-              <span className="playing-mini-name">
-                {formatTeamName(
-                  match.team_b_player_1,
-                  match.team_b_player_2,
-                  'Team B'
-                )}
-              </span>
-              <span className="playing-mini-points">
-                {formatPoints(match.team_b_points, match.is_tiebreak ?? false)}
-              </span>
-            </div>
-          </div>
+          </>
         )}
 
         <div className="playing-session-actions">
