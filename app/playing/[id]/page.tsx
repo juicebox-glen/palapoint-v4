@@ -41,7 +41,7 @@ export default function PlayingPage() {
 
   const [loading, setLoading] = useState(true)
   const [court, setCourt] = useState<Court | null>(null)
-  const [courtId, setCourtId] = useState<string | null>(null)
+  const [courtUuid, setCourtUuid] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -57,7 +57,7 @@ export default function PlayingPage() {
       }
 
       setCourt(courtData)
-      setCourtId(courtData.id)
+      setCourtUuid(courtData.id)
 
       if (process.env.NODE_ENV === 'development') {
         console.log('Playing: courtIdentifier (slug):', courtIdentifier)
@@ -108,24 +108,29 @@ export default function PlayingPage() {
 
   // Subscribe to match updates
   useEffect(() => {
-    if (!courtId) return
+    if (!courtUuid) return
 
-    const ch = supabase.channel(`playing-${courtId}`)
+    const ch = supabase.channel(`playing-${courtUuid}`)
     ;(ch as any).on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'live_matches',
-        filter: `court_id=eq.${courtId}`,
+        filter: `court_id=eq.${courtUuid}`,
       },
       (payload: { eventType: string; new?: MatchState }) => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Subscription payload:', payload.eventType, payload.new)
+        }
         if (payload.eventType === 'DELETE') {
           setMatch(null)
-        } else if (payload.eventType === 'UPDATE' && payload.new) {
-          setMatch(payload.new as MatchState)
-        } else if (payload.eventType === 'INSERT' && payload.new) {
-          setMatch(payload.new as MatchState)
+        } else if (payload.new) {
+          const newMatch = payload.new as MatchState
+          if (process.env.NODE_ENV === 'development') {
+            console.log('New match status:', newMatch.status)
+          }
+          setMatch(newMatch)
         }
       }
     )
@@ -134,7 +139,7 @@ export default function PlayingPage() {
     return () => {
       supabase.removeChannel(ch)
     }
-  }, [courtId])
+  }, [courtUuid])
 
   // Periodically validate session (every 60 seconds)
   useEffect(() => {
@@ -150,7 +155,7 @@ export default function PlayingPage() {
 
   // Handlers
   const handlePlayAgain = async () => {
-    if (!match || !sessionId || !courtId) return
+    if (!match || !sessionId || !courtUuid) return
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
       method: 'POST',
@@ -160,7 +165,7 @@ export default function PlayingPage() {
       },
       body: JSON.stringify({
         action: 'create',
-        court_id: courtId,
+        court_id: courtUuid,
         session_id: sessionId,
         game_mode: match.game_mode,
         sets_to_win: match.sets_to_win,
@@ -179,7 +184,11 @@ export default function PlayingPage() {
   }
 
   const handleEndGame = async () => {
-    if (!match || !courtId) return
+    if (!match || !courtUuid) return
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Ending game for court:', courtUuid)
+    }
 
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
@@ -190,28 +199,30 @@ export default function PlayingPage() {
         },
         body: JSON.stringify({
           action: 'end',
-          court_id: courtId,
+          court_id: courtUuid,
           reason: 'abandoned',
         }),
       })
 
-      const data = await response.json()
-      if (!data.success) {
-        console.error('Failed to end game:', data.error)
+      const result = await response.json()
+      if (process.env.NODE_ENV === 'development') {
+        console.log('End game result:', result)
       }
-      // Match will be archived, subscription will update
+      if (!result.success) {
+        console.error('Failed to end game:', result.error)
+      }
     } catch (err) {
       console.error('Error ending game:', err)
     }
   }
 
   const handleNewGame = () => {
-    if (match && courtId && typeof window !== 'undefined') {
+    if (match && courtUuid && typeof window !== 'undefined') {
       // Save current settings using court UUID (matching setup page)
-      sessionStorage.setItem(`setup_game_mode_${courtId}`, match.game_mode)
-      sessionStorage.setItem(`setup_sets_${courtId}`, String(match.sets_to_win))
+      sessionStorage.setItem(`setup_game_mode_${courtUuid}`, match.game_mode)
+      sessionStorage.setItem(`setup_sets_${courtUuid}`, String(match.sets_to_win))
       sessionStorage.setItem(
-        `setup_side_swap_${courtId}`,
+        `setup_side_swap_${courtUuid}`,
         String(match.side_swap_enabled ?? true)
       )
       const players = [
@@ -220,13 +231,13 @@ export default function PlayingPage() {
         match.team_b_player_1 || '',
         match.team_b_player_2 || '',
       ]
-      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
+      sessionStorage.setItem(`setup_players_${courtUuid}`, JSON.stringify(players))
     }
     router.push(`/setup/${courtIdentifier}`)
   }
 
   const handleScorePoint = async (team: 'a' | 'b') => {
-    if (!courtId) return
+    if (!courtUuid) return
 
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
@@ -236,7 +247,7 @@ export default function PlayingPage() {
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          court_id: courtId,
+          court_id: courtUuid,
           team,
           source: 'control_panel',
         }),
@@ -253,7 +264,7 @@ export default function PlayingPage() {
   }
 
   const handleEndSession = async () => {
-    if (!sessionId || !courtId) return
+    if (!sessionId || !courtUuid) return
 
     const result = await endSession(sessionId)
 
@@ -347,8 +358,18 @@ export default function PlayingPage() {
     )
   }
 
-  // Game completed or abandoned - show post-game options
-  if (match && (match.status === 'completed' || match.status === 'abandoned' || match.winner)) {
+  // Show post-game if match exists and is completed/abandoned OR has a winner
+  const showPostGame =
+    match &&
+    (match.status === 'completed' ||
+      match.status === 'abandoned' ||
+      !!match.winner)
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Render - match:', match?.id, 'status:', match?.status, 'winner:', match?.winner)
+  }
+
+  if (showPostGame) {
     const isAbandoned = match.status === 'abandoned'
     const headerText = isAbandoned ? 'Game Ended' : 'Game Complete'
     const hasWinner = match.winner && !isAbandoned
