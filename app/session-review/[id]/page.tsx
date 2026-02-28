@@ -33,6 +33,7 @@ export default function SessionReviewPage() {
   const [session, setSession] = useState<Session | null>(null)
   const [games, setGames] = useState<Game[]>([])
   const [courtName, setCourtName] = useState('')
+  const [courtSlug, setCourtSlug] = useState<string>('')
 
   useEffect(() => {
     async function loadData() {
@@ -47,11 +48,14 @@ export default function SessionReviewPage() {
 
         const { data: court } = await supabase
           .from('courts')
-          .select('name')
+          .select('name, slug')
           .eq('id', sessionData.court_id)
           .single()
 
-        if (court) setCourtName(court.name || '')
+        if (court) {
+          setCourtName(court.name || '')
+          setCourtSlug((court as { slug?: string }).slug || '')
+        }
       }
 
       const { data: gamesData } = await supabase
@@ -87,7 +91,11 @@ export default function SessionReviewPage() {
   }
 
   const handleDone = () => {
-    router.push('/')
+    if (courtSlug) {
+      router.push(`/setup/${courtSlug}`)
+    } else {
+      window.history.back()
+    }
   }
 
   if (loading) {

@@ -384,9 +384,6 @@ export default function SetupPage() {
   if (showProtectionPrompt && activeSession) {
     return (
       <SessionProtectionPrompt
-        minutesActive={activeSession.minutes_active ?? 0}
-        minutesSinceActivity={activeSession.minutes_since_activity ?? 0}
-        gamesCount={activeSession.games_count ?? 0}
         onCancel={handleCancelSetup}
         onTakeover={handleTakeover}
       />

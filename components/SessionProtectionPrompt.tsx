@@ -2,45 +2,21 @@
 
 import '@/app/styles/session-prompt.css'
 
-interface SessionProtectionPromptProps {
-  minutesActive: number
-  minutesSinceActivity: number
-  gamesCount: number
-  onCancel: () => void
-  onTakeover: () => void
-}
-
 export default function SessionProtectionPrompt({
-  minutesActive,
-  minutesSinceActivity,
-  gamesCount,
   onCancel,
   onTakeover,
-}: SessionProtectionPromptProps) {
+}: {
+  onCancel: () => void
+  onTakeover: () => void
+}) {
   return (
     <div className="session-prompt-overlay">
       <div className="session-prompt-card">
-        <h2 className="session-prompt-title">Court Currently In Use</h2>
-
-        <div className="session-prompt-info">
-          <div className="session-prompt-stat">
-            <span className="session-prompt-label">Active session</span>
-            <span className="session-prompt-value">{minutesActive} mins</span>
-          </div>
-          <div className="session-prompt-stat">
-            <span className="session-prompt-label">Last scored</span>
-            <span className="session-prompt-value">{minutesSinceActivity} mins ago</span>
-          </div>
-          {gamesCount > 0 && (
-            <div className="session-prompt-stat">
-              <span className="session-prompt-label">Games played</span>
-              <span className="session-prompt-value">{gamesCount}</span>
-            </div>
-          )}
-        </div>
+        <h2 className="session-prompt-title">Court In Use</h2>
 
         <p className="session-prompt-warning">
-          Taking over will end the current session.
+          There&apos;s an active session on this court. Taking over will end the
+          current session.
         </p>
 
         <div className="session-prompt-actions">

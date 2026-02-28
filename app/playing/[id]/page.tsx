@@ -176,7 +176,50 @@ export default function PlayingPage() {
     }
   }
 
+  const handleEndGame = async () => {
+    if (!match || !courtId) return
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          action: 'end',
+          court_id: courtId,
+          reason: 'abandoned',
+        }),
+      })
+
+      const data = await response.json()
+      if (!data.success) {
+        console.error('Failed to end game:', data.error)
+      }
+      // Match will be archived, subscription will update
+    } catch (err) {
+      console.error('Error ending game:', err)
+    }
+  }
+
   const handleNewGame = () => {
+    if (match && courtId && typeof window !== 'undefined') {
+      // Save current settings using court UUID (matching setup page)
+      sessionStorage.setItem(`setup_game_mode_${courtId}`, match.game_mode)
+      sessionStorage.setItem(`setup_sets_${courtId}`, String(match.sets_to_win))
+      sessionStorage.setItem(
+        `setup_side_swap_${courtId}`,
+        String(match.side_swap_enabled ?? true)
+      )
+      const players = [
+        match.team_a_player_1 || '',
+        match.team_a_player_2 || '',
+        match.team_b_player_1 || '',
+        match.team_b_player_2 || '',
+      ]
+      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
+    }
     router.push(`/setup/${courtIdentifier}`)
   }
 
@@ -422,9 +465,9 @@ export default function PlayingPage() {
         <div className="playing-session-actions">
           <button
             className="playing-btn playing-btn-danger-outline"
-            onClick={handleEndSession}
+            onClick={handleEndGame}
           >
-            End Session
+            End Game
           </button>
         </div>
       </div>
