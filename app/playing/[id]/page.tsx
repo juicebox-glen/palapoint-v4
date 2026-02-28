@@ -45,12 +45,9 @@ export default function PlayingPage() {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [gameEnded, setGameEnded] = useState<'abandoned' | 'completed' | null>(null)
 
   // Load initial data
   useEffect(() => {
-    let cancelled = false
-
     async function loadData() {
       // Resolve court
       const courtData = await getCourtBySlug(courtIdentifier)
@@ -102,31 +99,16 @@ export default function PlayingPage() {
         .limit(1)
         .maybeSingle()
 
-      const matchState = matchData as MatchState | null
-      setMatch(matchState)
-      if (matchState?.status === 'abandoned') {
-        setGameEnded('abandoned')
-        setTimeout(() => {
-          if (!cancelled) {
-            setMatch(null)
-            setGameEnded(null)
-          }
-        }, 3000)
-      }
+      setMatch(matchData as MatchState | null)
       setLoading(false)
     }
 
     loadData()
-    return () => {
-      cancelled = true
-    }
   }, [courtIdentifier])
 
   // Subscribe to match updates
   useEffect(() => {
     if (!courtId) return
-
-    let abandonTimer: ReturnType<typeof setTimeout> | null = null
 
     const ch = supabase.channel(`playing-${courtId}`)
     ;(ch as any).on(
@@ -140,30 +122,16 @@ export default function PlayingPage() {
       (payload: { eventType: string; new?: MatchState }) => {
         if (payload.eventType === 'DELETE') {
           setMatch(null)
-          setGameEnded(null)
         } else if (payload.eventType === 'UPDATE' && payload.new) {
-          const updatedMatch = payload.new as MatchState
-          setMatch(updatedMatch)
-
-          if (updatedMatch.status === 'abandoned') {
-            setGameEnded('abandoned')
-            abandonTimer = setTimeout(() => {
-              setMatch(null)
-              setGameEnded(null)
-            }, 3000)
-          } else if (updatedMatch.status === 'completed') {
-            setGameEnded('completed')
-          }
+          setMatch(payload.new as MatchState)
         } else if (payload.eventType === 'INSERT' && payload.new) {
           setMatch(payload.new as MatchState)
-          setGameEnded(null)
         }
       }
     )
     ch.subscribe()
 
     return () => {
-      if (abandonTimer) clearTimeout(abandonTimer)
       supabase.removeChannel(ch)
     }
   }, [courtId])
@@ -361,18 +329,6 @@ export default function PlayingPage() {
     )
   }
 
-  // Game was ended/abandoned - show brief message before clearing
-  if (gameEnded === 'abandoned') {
-    return (
-      <div className="playing-container">
-        <div className="playing-game-ended">
-          <h1>Game Ended</h1>
-          <p>Returning to session...</p>
-        </div>
-      </div>
-    )
-  }
-
   // No session - redirect to setup
   if (!sessionId) {
     return (
@@ -391,12 +347,17 @@ export default function PlayingPage() {
     )
   }
 
-  // Game completed - show post-game options
-  if (match && (match.status === 'completed' || match.winner)) {
-    const winnerName =
-      match.winner === 'a'
+  // Game completed or abandoned - show post-game options
+  if (match && (match.status === 'completed' || match.status === 'abandoned' || match.winner)) {
+    const isAbandoned = match.status === 'abandoned'
+    const headerText = isAbandoned ? 'Game Ended' : 'Game Complete'
+    const hasWinner = match.winner && !isAbandoned
+
+    const winnerName = hasWinner
+      ? match.winner === 'a'
         ? formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
         : formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+      : null
 
     const finalScore =
       match.set_scores && match.set_scores.length > 0
@@ -407,14 +368,21 @@ export default function PlayingPage() {
       <div className="playing-container">
         <div className="playing-game-complete">
           <div className="playing-complete-header">
-            <h1>Game Complete</h1>
+            <h1>{headerText}</h1>
             <p className="playing-court-name">{court?.name || courtIdentifier}</p>
           </div>
 
           <div className="playing-result">
-            <h2 className="playing-winner">{winnerName}</h2>
-            <p className="playing-winner-label">WINS</p>
+            {hasWinner && winnerName && (
+              <>
+                <h2 className="playing-winner">{winnerName}</h2>
+                <p className="playing-winner-label">WINS</p>
+              </>
+            )}
             <p className="playing-final-score">{finalScore}</p>
+            {isAbandoned && (
+              <p className="playing-abandoned-label">Match was ended early</p>
+            )}
           </div>
 
           <div className="playing-post-actions">
