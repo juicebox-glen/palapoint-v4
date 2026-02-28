@@ -45,9 +45,12 @@ export default function PlayingPage() {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [gameEnded, setGameEnded] = useState<'abandoned' | 'completed' | null>(null)
 
   // Load initial data
   useEffect(() => {
+    let cancelled = false
+
     async function loadData() {
       // Resolve court
       const courtData = await getCourtBySlug(courtIdentifier)
@@ -89,26 +92,41 @@ export default function PlayingPage() {
         }
       }
 
-      // Get active match for this court
+      // Get active match for this court (includes abandoned for transition)
       const { data: matchData } = await supabase
         .from('live_matches')
         .select('*')
         .eq('court_id', courtData.id)
-        .in('status', ['setup', 'in_progress', 'completed'])
+        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      setMatch(matchData as MatchState | null)
+      const matchState = matchData as MatchState | null
+      setMatch(matchState)
+      if (matchState?.status === 'abandoned') {
+        setGameEnded('abandoned')
+        setTimeout(() => {
+          if (!cancelled) {
+            setMatch(null)
+            setGameEnded(null)
+          }
+        }, 3000)
+      }
       setLoading(false)
     }
 
     loadData()
+    return () => {
+      cancelled = true
+    }
   }, [courtIdentifier])
 
   // Subscribe to match updates
   useEffect(() => {
     if (!courtId) return
+
+    let abandonTimer: ReturnType<typeof setTimeout> | null = null
 
     const ch = supabase.channel(`playing-${courtId}`)
     ;(ch as any).on(
@@ -122,14 +140,30 @@ export default function PlayingPage() {
       (payload: { eventType: string; new?: MatchState }) => {
         if (payload.eventType === 'DELETE') {
           setMatch(null)
-        } else if (payload.new) {
-          setMatch(payload.new)
+          setGameEnded(null)
+        } else if (payload.eventType === 'UPDATE' && payload.new) {
+          const updatedMatch = payload.new as MatchState
+          setMatch(updatedMatch)
+
+          if (updatedMatch.status === 'abandoned') {
+            setGameEnded('abandoned')
+            abandonTimer = setTimeout(() => {
+              setMatch(null)
+              setGameEnded(null)
+            }, 3000)
+          } else if (updatedMatch.status === 'completed') {
+            setGameEnded('completed')
+          }
+        } else if (payload.eventType === 'INSERT' && payload.new) {
+          setMatch(payload.new as MatchState)
+          setGameEnded(null)
         }
       }
     )
     ch.subscribe()
 
     return () => {
+      if (abandonTimer) clearTimeout(abandonTimer)
       supabase.removeChannel(ch)
     }
   }, [courtId])
@@ -322,6 +356,18 @@ export default function PlayingPage() {
           >
             Start New Session
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Game was ended/abandoned - show brief message before clearing
+  if (gameEnded === 'abandoned') {
+    return (
+      <div className="playing-container">
+        <div className="playing-game-ended">
+          <h1>Game Ended</h1>
+          <p>Returning to session...</p>
         </div>
       </div>
     )
