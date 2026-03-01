@@ -97,7 +97,6 @@ export default function CourtDisplay() {
 
   const [court, setCourt] = useState<any>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
-  const [completedMatch, setCompletedMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSideSwap, setShowSideSwap] = useState(false)
@@ -164,7 +163,6 @@ export default function CourtDisplay() {
         (payload) => {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
-            setCompletedMatch(null)
             // Don't clear waitingForNextGame - DELETE could be from archiving
           } else if (payload.eventType === 'UPDATE') {
             const updatedMatch = payload.new as MatchState
@@ -172,24 +170,17 @@ export default function CourtDisplay() {
             // Abandoned = wait for next game (don't go to idle)
             if (updatedMatch.status === 'abandoned') {
               setMatch(null)
-              setCompletedMatch(null)
               setAwaitingButtonPress(false)
               setShowServerAnnouncement(false)
               setWaitingForNextGame(true)
               return
             }
 
-            // Completed = show match win overlay
-            if (updatedMatch.status === 'completed') {
-              setCompletedMatch(updatedMatch)
-              setMatch(null)
-            } else {
-              setMatch(updatedMatch)
-            }
+            // If match is COMPLETED, keep it so we can show match win overlay
+            setMatch(updatedMatch)
           } else if (payload.eventType === 'INSERT') {
             const newMatch = payload.new as MatchState
             setMatch(newMatch)
-            setCompletedMatch(null)
             setWaitingForNextGame(false)
             setShowSetWin(false)
             setShowSideSwap(false)
@@ -367,6 +358,11 @@ export default function CourtDisplay() {
     setSetWinData(null)
   }
 
+  const handleMatchWinComplete = () => {
+    setMatch(null)
+    setWaitingForNextGame(true)
+  }
+
   // Timeout for waiting state - if no new game in 60s, assume session ended
   useEffect(() => {
     if (!waitingForNextGame) return
@@ -391,6 +387,16 @@ export default function CourtDisplay() {
       <div className="court-idle">
         <div className="court-idle-main-text">{error}</div>
       </div>
+    )
+  }
+
+  // Match completed - show MatchWin overlay FIRST (before idle check)
+  if (match && match.status === 'completed' && match.winner) {
+    return (
+      <MatchWinOverlay
+        match={match}
+        onComplete={handleMatchWinComplete}
+      />
     )
   }
 
@@ -437,16 +443,6 @@ export default function CourtDisplay() {
           </div>
         </div>
       </div>
-    )
-  }
-
-  // Match completed - show MatchWin overlay (only for completed, not abandoned)
-  if (completedMatch && completedMatch.status === 'completed') {
-    return (
-      <MatchWinOverlay
-        match={completedMatch}
-        onComplete={() => setCompletedMatch(null)}
-      />
     )
   }
 
