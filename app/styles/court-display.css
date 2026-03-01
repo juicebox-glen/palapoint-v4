@@ -331,6 +331,46 @@
 }
 
 /* ================================================
+   READY TO PLAY SCREEN
+   ================================================ */
+
+.ready-to-play-screen {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.ready-to-play-content {
+  text-align: center;
+}
+
+.ready-to-play-title {
+  font-size: 8vw;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2vw;
+}
+
+.ready-to-play-subtitle {
+  font-size: 3vw;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: ready-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ready-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ================================================
    SET WIN OVERLAY
    ================================================ */
 

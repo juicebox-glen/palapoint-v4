@@ -103,6 +103,7 @@ export default function CourtDisplay() {
   const [showSideSwap, setShowSideSwap] = useState(false)
   const [showSetWin, setShowSetWin] = useState(false)
   const [showServerAnnouncement, setShowServerAnnouncement] = useState(false)
+  const [awaitingButtonPress, setAwaitingButtonPress] = useState(false)
   const [setWinData, setSetWinData] = useState<{
     winningTeam: 'a' | 'b'
     setNumber: number
@@ -181,28 +182,35 @@ export default function CourtDisplay() {
     }
   }, [court?.id])
 
-  // Server announcement for new matches
+  // Server announcement for new matches - now waits for button press
   useEffect(() => {
     if (!match) {
       announcementShownRef.current = null
       setShowServerAnnouncement(false)
+      setAwaitingButtonPress(false)
       return
     }
-    
-    // Only show for matches we haven't announced yet
-    // and only if match just started (no points/games scored)
+
+    // Only show "ready to play" for new matches we haven't seen
     const isNewMatch = match.id !== announcementShownRef.current
-    const hasNoScore = match.team_a_points === 0 && 
-                       match.team_b_points === 0 && 
-                       match.team_a_games === 0 && 
-                       match.team_b_games === 0 &&
-                       (match.set_scores || []).length === 0
-    
+    const hasNoScore =
+      match.team_a_points === 0 &&
+      match.team_b_points === 0 &&
+      match.team_a_games === 0 &&
+      match.team_b_games === 0 &&
+      (match.set_scores || []).length === 0
+
     if (isNewMatch && hasNoScore) {
       announcementShownRef.current = match.id
+      setAwaitingButtonPress(true)
+    }
+
+    // If awaiting and match got a score (court button pressed), show server announcement
+    if (awaitingButtonPress && !hasNoScore) {
+      setAwaitingButtonPress(false)
       setShowServerAnnouncement(true)
     }
-  }, [match])
+  }, [match, awaitingButtonPress])
 
   // Side swap detection
   useEffect(() => {
@@ -240,6 +248,22 @@ export default function CourtDisplay() {
       prevTiebreakPointsRef.current = 0
     }
   }, [match, showSideSwap])
+
+  // Handle button press to start game (keyboard for testing)
+  useEffect(() => {
+    if (!awaitingButtonPress) return
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (['q', 'p', 'a', ' '].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        setAwaitingButtonPress(false)
+        setShowServerAnnouncement(true)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [awaitingButtonPress])
 
   const handleSideSwapComplete = () => {
     setShowSideSwap(false)
@@ -358,6 +382,20 @@ export default function CourtDisplay() {
           <QRCodeSVG value={setupUrl} size={150} />
         </div>
         <div className="court-idle-qr-label">Scan for custom game</div>
+      </div>
+    )
+  }
+
+  // Ready to Play - waiting for button press to begin
+  if (awaitingButtonPress && match) {
+    return (
+      <div className="screen-wrapper">
+        <div className="ready-to-play-screen">
+          <div className="ready-to-play-content">
+            <h1 className="ready-to-play-title">READY TO PLAY</h1>
+            <p className="ready-to-play-subtitle">Press button to begin</p>
+          </div>
+        </div>
       </div>
     )
   }
