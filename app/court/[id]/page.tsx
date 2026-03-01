@@ -104,6 +104,7 @@ export default function CourtDisplay() {
   const [showSetWin, setShowSetWin] = useState(false)
   const [showServerAnnouncement, setShowServerAnnouncement] = useState(false)
   const [awaitingButtonPress, setAwaitingButtonPress] = useState(false)
+  const [waitingForNextGame, setWaitingForNextGame] = useState(false)
   const [setWinData, setSetWinData] = useState<{
     winningTeam: 'a' | 'b'
     setNumber: number
@@ -164,15 +165,17 @@ export default function CourtDisplay() {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
             setCompletedMatch(null)
+            // Don't clear waitingForNextGame - DELETE could be from archiving
           } else if (payload.eventType === 'UPDATE') {
             const updatedMatch = payload.new as MatchState
 
-            // Abandoned = session ended, go to idle immediately
+            // Abandoned = wait for next game (don't go to idle)
             if (updatedMatch.status === 'abandoned') {
               setMatch(null)
               setCompletedMatch(null)
               setAwaitingButtonPress(false)
               setShowServerAnnouncement(false)
+              setWaitingForNextGame(true)
               return
             }
 
@@ -187,6 +190,7 @@ export default function CourtDisplay() {
             const newMatch = payload.new as MatchState
             setMatch(newMatch)
             setCompletedMatch(null)
+            setWaitingForNextGame(false)
             setShowSetWin(false)
             setShowSideSwap(false)
             setShowServerAnnouncement(false)
@@ -363,6 +367,17 @@ export default function CourtDisplay() {
     setSetWinData(null)
   }
 
+  // Timeout for waiting state - if no new game in 60s, assume session ended
+  useEffect(() => {
+    if (!waitingForNextGame) return
+
+    const timeout = setTimeout(() => {
+      setWaitingForNextGame(false)
+    }, 60000)
+
+    return () => clearTimeout(timeout)
+  }, [waitingForNextGame])
+
   if (loading) {
     return (
       <div className="court-idle">
@@ -379,8 +394,21 @@ export default function CourtDisplay() {
     )
   }
 
-  // IDLE STATE - No active match
+  // No match - either show waiting for next game OR idle/QR screen
   if (!match) {
+    if (waitingForNextGame) {
+      return (
+        <div className="screen-wrapper">
+          <div className="ready-to-play-screen">
+            <div className="ready-to-play-content">
+              <h1 className="ready-to-play-title">GAME ENDED</h1>
+              <p className="ready-to-play-subtitle">Waiting for next game...</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     const setupUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/setup/${id}` 
       : `/setup/${id}`
