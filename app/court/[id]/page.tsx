@@ -164,14 +164,33 @@ export default function CourtDisplay() {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
             setCompletedMatch(null)
-          } else {
-            const newMatch = payload.new as MatchState
-            if (newMatch.status === 'completed' || newMatch.status === 'abandoned') {
-              setCompletedMatch(newMatch)
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMatch = payload.new as MatchState
+
+            // Abandoned = session ended, go to idle immediately
+            if (updatedMatch.status === 'abandoned') {
+              setMatch(null)
+              setCompletedMatch(null)
+              setAwaitingButtonPress(false)
+              setShowServerAnnouncement(false)
+              return
+            }
+
+            // Completed = show match win overlay
+            if (updatedMatch.status === 'completed') {
+              setCompletedMatch(updatedMatch)
               setMatch(null)
             } else {
-              setMatch(newMatch)
+              setMatch(updatedMatch)
             }
+          } else if (payload.eventType === 'INSERT') {
+            const newMatch = payload.new as MatchState
+            setMatch(newMatch)
+            setCompletedMatch(null)
+            setShowSetWin(false)
+            setShowSideSwap(false)
+            setShowServerAnnouncement(false)
+            setSetWinData(null)
           }
         }
       )
@@ -202,6 +221,9 @@ export default function CourtDisplay() {
 
     if (isNewMatch && hasNoScore) {
       announcementShownRef.current = match.id
+      setShowSetWin(false)
+      setShowSideSwap(false)
+      setShowServerAnnouncement(false)
       setAwaitingButtonPress(true)
     }
 
@@ -357,16 +379,6 @@ export default function CourtDisplay() {
     )
   }
 
-  // Match completed - show MatchWin overlay
-  if (completedMatch) {
-    return (
-      <MatchWinOverlay
-        match={completedMatch}
-        onComplete={() => setCompletedMatch(null)}
-      />
-    )
-  }
-
   // IDLE STATE - No active match
   if (!match) {
     const setupUrl = typeof window !== 'undefined' 
@@ -386,7 +398,7 @@ export default function CourtDisplay() {
     )
   }
 
-  // Ready to Play - waiting for button press to begin
+  // Ready to Play - waiting for button press to begin (before server announcement)
   if (awaitingButtonPress && match) {
     return (
       <div className="screen-wrapper">
@@ -400,7 +412,17 @@ export default function CourtDisplay() {
     )
   }
 
-  // Show server announcement for new match
+  // Match completed - show MatchWin overlay (only for completed, not abandoned)
+  if (completedMatch && completedMatch.status === 'completed') {
+    return (
+      <MatchWinOverlay
+        match={completedMatch}
+        onComplete={() => setCompletedMatch(null)}
+      />
+    )
+  }
+
+  // Show server announcement for new match (after button press)
   if (showServerAnnouncement && match) {
     const teamAName = match.team_a_player_1 || match.team_a_player_2
       ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
