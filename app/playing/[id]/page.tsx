@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
-import ScoreDisplay from '@/components/ScoreDisplay'
-import type { MatchState as LibMatchState } from '@/lib/types/match'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -293,22 +291,6 @@ export default function PlayingPage() {
     return pointMap[points] ?? points.toString()
   }
 
-  function formatTimeAgo(dateString: string | null): string {
-    if (!dateString) return 'In progress'
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    if (diffMins < 1) return 'Just started'
-    if (diffMins === 1) return 'Started 1 minute ago'
-    if (diffMins < 60) return `Started ${diffMins} minutes ago`
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours === 1) return 'Started 1 hour ago'
-    if (diffHours < 24) return `Started ${diffHours} hours ago`
-    const diffDays = Math.floor(diffHours / 24)
-    return `Started ${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  }
-
   // Loading state
   if (loading) {
     return (
@@ -449,36 +431,64 @@ export default function PlayingPage() {
     )
   }
 
-  // Game in progress - mirror setup "Match in Progress" design
+  // Game in progress - show holding screen
   return (
-    <div className="progress-page">
-      <div className="progress-container">
-        <h1 className="progress-title">Game in Progress</h1>
-        <p className="progress-court-name">{court?.name || courtIdentifier}</p>
+    <div className="playing-container">
+      <div className="playing-in-progress">
+        <div className="playing-header">
+          <span className="playing-live-badge">● LIVE</span>
+          <span className="playing-court-name">{court?.name || courtIdentifier}</span>
+        </div>
+
+        <div className="playing-message">
+          <h1>Game in Progress</h1>
+          <p>Use the court buttons to score</p>
+        </div>
 
         {match && (
           <>
-            <div className="progress-match-info">
-              <div className="progress-match-time">
-                {formatTimeAgo((match as unknown as LibMatchState).started_at ?? null)}
+            <div className="playing-mini-score">
+              <div className="playing-mini-team">
+                <span className="playing-mini-name">
+                  {formatTeamName(
+                    match.team_a_player_1,
+                    match.team_a_player_2,
+                    'Team A'
+                  )}
+                </span>
+                <span className="playing-mini-points">
+                  {formatPoints(match.team_a_points, match.is_tiebreak ?? false)}
+                </span>
               </div>
-              <div className="progress-match-score">
-                <ScoreDisplay match={match as unknown as LibMatchState} variant="spectator" />
+              <div className="playing-mini-games">
+                {match.team_a_games} - {match.team_b_games}
+              </div>
+              <div className="playing-mini-team">
+                <span className="playing-mini-name">
+                  {formatTeamName(
+                    match.team_b_player_1,
+                    match.team_b_player_2,
+                    'Team B'
+                  )}
+                </span>
+                <span className="playing-mini-points">
+                  {formatPoints(match.team_b_points, match.is_tiebreak ?? false)}
+                </span>
               </div>
             </div>
 
             {/* Temporary: add points for testing without control buttons */}
-            <div className="progress-test-buttons">
+            <div className="playing-test-buttons">
               <button
                 type="button"
-                className="progress-btn progress-btn-team-a"
+                className="playing-btn playing-btn-test-a"
                 onClick={() => handleScorePoint('a')}
               >
                 + {formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')}
               </button>
               <button
                 type="button"
-                className="progress-btn progress-btn-team-b"
+                className="playing-btn playing-btn-test-b"
                 onClick={() => handleScorePoint('b')}
               >
                 + {formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')}
@@ -487,9 +497,9 @@ export default function PlayingPage() {
           </>
         )}
 
-        <div className="progress-actions">
+        <div className="playing-session-actions">
           <button
-            className="progress-button progress-button-danger-outline"
+            className="playing-btn playing-btn-danger-outline"
             onClick={handleEndGame}
           >
             End Game
