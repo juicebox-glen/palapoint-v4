@@ -190,7 +190,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.875rem 0.5rem;
+  height: fit-content;
+  padding: 6px 0.5rem 16px;
   border-radius: 12px;
   border: none;
   background: #2A3140;
@@ -218,8 +219,8 @@
 
 /* Option chip text — Inter 500 text-sm / 400 text-xs */
 .setup-mode-icon {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   margin-top: 14px;
   margin-bottom: 12px;
   opacity: 0.95;
