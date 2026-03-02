@@ -60,17 +60,25 @@ export default function LivePage() {
         if (fetchError) {
           console.error('Error loading match:', fetchError)
           setError('Failed to load match')
-          setLoading(false)
-          return
+        } else {
+          setMatch(data as MatchState | null)
         }
-
-        setMatch(data)
         setLoading(false)
       } catch (err) {
         console.error('Unexpected error:', err)
         setError('Unexpected error occurred')
         setLoading(false)
       }
+    }
+
+    async function refetchMatch() {
+      const { data } = await supabase
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', courtId)
+        .in('status', ['setup', 'in_progress'])
+        .maybeSingle()
+      if (data) setMatch(data as MatchState)
     }
 
     loadMatch()
@@ -85,19 +93,22 @@ export default function LivePage() {
           table: 'live_matches',
           filter: `court_id=eq.${courtId}`,
         },
-        (payload) => {
-          if (payload.eventType === 'DELETE') {
+        async (payload) => {
+          const eventType = payload.eventType ?? (payload as { event?: string }).event
+          if (eventType === 'DELETE') {
             setMatch(null)
             return
           }
 
-          const updatedMatch = payload.new as MatchState
+          // Support both payload.new and payload.data?.record (different Supabase versions)
+          const record = payload.new ?? (payload as { data?: { record?: unknown } }).data?.record
+          const updatedMatch = record as MatchState | undefined
 
-          if (
-            updatedMatch.status === 'setup' ||
-            updatedMatch.status === 'in_progress'
-          ) {
+          if (updatedMatch?.status === 'setup' || updatedMatch?.status === 'in_progress') {
             setMatch(updatedMatch)
+          } else if (eventType === 'INSERT') {
+            // New match INSERT - refetch to ensure we have full data (realtime can miss or deliver incomplete payload)
+            refetchMatch()
           } else {
             setMatch(null)
           }
@@ -111,6 +122,23 @@ export default function LivePage() {
       }
     }
   }, [courtId])
+
+  // Poll when no match - catches new games if realtime subscription misses the INSERT
+  useEffect(() => {
+    if (!courtId || match) return
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', courtId)
+        .in('status', ['setup', 'in_progress'])
+        .maybeSingle()
+      if (data) setMatch(data as MatchState)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [courtId, match])
 
   // Update game time every second when match is active
   useEffect(() => {
