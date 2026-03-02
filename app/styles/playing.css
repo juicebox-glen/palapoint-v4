@@ -77,11 +77,8 @@
   color: var(--color-text-secondary, #B3B3B3);
 }
 
-/* Mini Score Display */
+/* Mini Score Display — uses setup-section for glass card look */
 .playing-mini-score {
-  background: var(--color-bg-secondary, #1E1E1F);
-  border-radius: 1rem;
-  padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;

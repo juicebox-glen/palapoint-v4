@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
+import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -447,7 +448,7 @@ export default function PlayingPage() {
 
         {match && (
           <>
-            <div className="playing-mini-score">
+            <div className="setup-section playing-mini-score">
               <div className="playing-mini-team">
                 <span className="playing-mini-name">
                   {formatTeamName(
