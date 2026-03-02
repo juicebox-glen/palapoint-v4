@@ -1,10 +1,10 @@
 .playing-container {
   min-height: 100vh;
-  background: var(--color-bg-primary, #121212);
-  color: var(--color-text-primary, #fff);
+  background: #1a1a2e;
+  color: #fff;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 2rem 1rem;
 }
 
 .playing-loading,
@@ -17,132 +17,143 @@
   justify-content: center;
   text-align: center;
   gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .playing-session-ended h1,
 .playing-no-session h1 {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 600;
 }
 
 .playing-abandoned-label {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
 
 .playing-session-ended p,
 .playing-no-session p {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: 1rem;
 }
 
-/* In Progress State */
-.playing-in-progress {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* ================================================
+   Game in Progress - mirrors setup "Match in Progress"
+   ================================================ */
+
+.progress-page {
+  min-height: 100vh;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 2rem 1rem;
 }
 
-.playing-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+.progress-container {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.playing-live-badge {
-  color: #22c55e;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.playing-court-name {
-  color: var(--color-text-secondary, #B3B3B3);
-  font-size: 0.9rem;
-}
-
-.playing-message {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.playing-message h1 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.playing-message p {
-  color: var(--color-text-secondary, #B3B3B3);
-}
-
-/* Mini Score Display */
-.playing-mini-score {
-  background: var(--color-bg-secondary, #1E1E1F);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
-
-.playing-mini-team {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.playing-mini-name {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary, #B3B3B3);
-  text-align: center;
-}
-
-.playing-mini-points {
+.progress-title {
   font-size: 2rem;
-  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
 }
 
-.playing-mini-games {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text-secondary, #B3B3B3);
-  padding: 0 1rem;
+.progress-court-name {
+  text-align: center;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
 }
 
-/* Temporary: test buttons for scoring without control panel */
-.playing-test-buttons {
+.progress-match-info {
+  margin-bottom: 2rem;
+}
+
+.progress-match-time {
+  text-align: center;
+  font-size: 1.2rem;
+  opacity: 0.8;
+  margin-bottom: 1.5rem;
+}
+
+.progress-match-score {
+  margin-bottom: 2rem;
+}
+
+.progress-test-buttons {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.playing-btn-test-a {
+.progress-btn {
   flex: 1;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.progress-btn:hover {
+  opacity: 0.9;
+}
+
+.progress-btn:active {
+  transform: scale(0.98);
+}
+
+.progress-btn-team-a {
   background: var(--color-team-a, #03a97c);
   color: white;
 }
 
-.playing-btn-test-b {
-  flex: 1;
+.progress-btn-team-b {
   background: var(--color-team-b, #e85d04);
   color: white;
 }
 
-.playing-session-actions {
-  margin-top: auto;
-  padding-top: 2rem;
+.progress-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-/* Game Complete State */
+.progress-button {
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.progress-button-danger-outline {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.progress-button-danger-outline:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Game Complete State - mirrors setup design */
 .playing-game-complete {
   flex: 1;
   display: flex;
   flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .playing-complete-header {
@@ -151,11 +162,14 @@
 }
 
 .playing-complete-header h1 {
-  font-size: 1.25rem;
+  font-size: 2rem;
   font-weight: 600;
-  color: var(--color-text-secondary, #B3B3B3);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.playing-court-name {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .playing-result {
@@ -171,7 +185,7 @@
 
 .playing-winner-label {
   font-size: 1rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 1rem;
@@ -189,31 +203,39 @@
   margin-top: auto;
 }
 
-/* Buttons */
-.playing-btn {
+/* Buttons - aligned with setup */
+.playing-btn,
+.progress-button {
   width: 100%;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  font-size: 1rem;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
   font-weight: 600;
+  border-radius: 0.5rem;
   cursor: pointer;
   border: none;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 
-.playing-btn:hover {
+.playing-btn:hover,
+.progress-button:hover {
   opacity: 0.9;
 }
 
+.playing-btn:active,
+.progress-button:active {
+  transform: scale(0.98);
+}
+
 .playing-btn-primary {
-  background: var(--color-team-a, #03a97c);
+  background: #22c55e;
   color: white;
 }
 
 .playing-btn-secondary {
-  background: var(--color-bg-secondary, #1E1E1F);
-  color: var(--color-text-primary, #fff);
-  border: 1px solid var(--color-text-secondary, #B3B3B3);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .playing-btn-danger {
