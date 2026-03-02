@@ -200,35 +200,51 @@ export default function CourtDisplay() {
   useEffect(() => {
     if (!court?.id) return
 
+    console.log('Setting up session subscription for court:', court.id)
+
     const channel = supabase
       .channel(`court-session-${court.id}`)
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'sessions',
           filter: `court_id=eq.${court.id}`,
         },
         (payload) => {
-          console.log('Session update:', payload.new)
-          const session = payload.new as { status?: string }
+          const eventType = payload.eventType ?? (payload as { event?: string }).event
+          console.log('Session subscription received:', eventType, payload.new ?? payload.old)
 
-          // Session ended or expired - go back to idle immediately
-          if (session.status === 'ended' || session.status === 'expired') {
-            console.log('Session ended, returning to idle')
-            setMatch(null)
-            setWaitingForNextGame(false)
-            setAwaitingButtonPress(false)
-            setShowServerAnnouncement(false)
-            setShowSetWin(false)
-            setShowSideSwap(false)
+          if (eventType === 'UPDATE' || eventType === 'DELETE') {
+            const session =
+              eventType === 'DELETE'
+                ? (payload.old as { status?: string } | undefined)
+                : (payload.new as { status?: string } | undefined)
+
+            if (
+              eventType === 'DELETE' ||
+              !session ||
+              session.status === 'ended' ||
+              session.status === 'expired'
+            ) {
+              console.log('Session ended/expired, clearing all state')
+              setMatch(null)
+              setWaitingForNextGame(false)
+              setAwaitingButtonPress(false)
+              setShowServerAnnouncement(false)
+              setShowSetWin(false)
+              setShowSideSwap(false)
+            }
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Session subscription status:', status)
+      })
 
     return () => {
+      console.log('Cleaning up session subscription')
       supabase.removeChannel(channel)
     }
   }, [court?.id])

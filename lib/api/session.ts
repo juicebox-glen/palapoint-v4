@@ -138,6 +138,8 @@ export async function validateSession(sessionId: string): Promise<{
 }
 
 export async function endSession(sessionId: string): Promise<EndSessionResponse> {
+  console.log('endSession API call for:', sessionId)
+
   const response = await fetch(SESSION_FUNCTION_URL, {
     method: 'POST',
     headers: {
@@ -150,7 +152,9 @@ export async function endSession(sessionId: string): Promise<EndSessionResponse>
     }),
   })
 
-  return response.json()
+  const result = await response.json()
+  console.log('endSession API response:', result)
+  return result
 }
 
 export async function updateSessionActivity(

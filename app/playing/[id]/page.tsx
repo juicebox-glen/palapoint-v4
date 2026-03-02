@@ -265,15 +265,28 @@ export default function PlayingPage() {
   }
 
   const handleEndSession = async () => {
-    if (!sessionId || !courtUuid) return
+    console.log('handleEndSession called, sessionId:', sessionId)
 
-    const result = await endSession(sessionId)
+    if (!sessionId) {
+      console.log('No sessionId, cannot end session')
+      return
+    }
 
-    if (result.success) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem(`setup_session_id_${courtIdentifier}`)
+    try {
+      console.log('Calling endSession API...')
+      const result = await endSession(sessionId)
+      console.log('endSession result:', result)
+
+      if (result.success) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(`setup_session_id_${courtIdentifier}`)
+        }
+        router.push(`/session-review/${sessionId}`)
+      } else {
+        console.error('Failed to end session:', result.error)
       }
-      router.push(`/session-review/${sessionId}`)
+    } catch (error) {
+      console.error('Error ending session:', error)
     }
   }
 
