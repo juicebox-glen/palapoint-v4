@@ -196,6 +196,43 @@ export default function CourtDisplay() {
     }
   }, [court?.id])
 
+  // Subscribe to session changes for this court
+  useEffect(() => {
+    if (!court?.id) return
+
+    const channel = supabase
+      .channel(`court-session-${court.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sessions',
+          filter: `court_id=eq.${court.id}`,
+        },
+        (payload) => {
+          console.log('Session update:', payload.new)
+          const session = payload.new as { status?: string }
+
+          // Session ended or expired - go back to idle immediately
+          if (session.status === 'ended' || session.status === 'expired') {
+            console.log('Session ended, returning to idle')
+            setMatch(null)
+            setWaitingForNextGame(false)
+            setAwaitingButtonPress(false)
+            setShowServerAnnouncement(false)
+            setShowSetWin(false)
+            setShowSideSwap(false)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [court?.id])
+
   // Server announcement for new matches - now waits for button press
   useEffect(() => {
     if (!match) {
