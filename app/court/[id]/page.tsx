@@ -146,7 +146,7 @@ export default function CourtDisplay() {
     loadData()
   }, [id])
 
-  // Subscribe to real-time updates (matches and sessions)
+  // Subscribe to real-time updates
   useEffect(() => {
     if (!court?.id) return
 
@@ -167,12 +167,12 @@ export default function CourtDisplay() {
           } else if (payload.eventType === 'UPDATE') {
             const updatedMatch = payload.new as MatchState
 
-            // Abandoned = session ended or game ended, show QR so court is ready for next players
+            // Abandoned = wait for next game (don't go to idle)
             if (updatedMatch.status === 'abandoned') {
               setMatch(null)
               setAwaitingButtonPress(false)
               setShowServerAnnouncement(false)
-              setWaitingForNextGame(false)
+              setWaitingForNextGame(true)
               return
             }
 
@@ -186,22 +186,6 @@ export default function CourtDisplay() {
             setShowSideSwap(false)
             setShowServerAnnouncement(false)
             setSetWinData(null)
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'sessions',
-          filter: `court_id=eq.${court.id}`,
-        },
-        (payload: { new?: { status?: string } }) => {
-          // When session ends, show QR so court is ready for next players
-          if (payload.new?.status === 'ended') {
-            setMatch(null)
-            setWaitingForNextGame(false)
           }
         }
       )
