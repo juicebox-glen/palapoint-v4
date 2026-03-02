@@ -367,7 +367,7 @@ export default function SetupPage() {
           .setup-page {
             min-height: 100vh;
             background: #1a1a2e;
-            color: #fff;
+            color: #E6EAF2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -398,7 +398,7 @@ export default function SetupPage() {
           .setup-page {
             min-height: 100vh;
             background: #1a1a2e;
-            color: #fff;
+            color: #E6EAF2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -454,7 +454,7 @@ export default function SetupPage() {
           .setup-page {
             min-height: 100vh;
             background: #1a1a2e;
-            color: #fff;
+            color: #E6EAF2;
             padding: 2rem 1rem;
           }
           .setup-container {
@@ -485,6 +485,10 @@ export default function SetupPage() {
           }
           .setup-match-score {
             margin-bottom: 2rem;
+            color: #E6EAF2;
+          }
+          .setup-match-score * {
+            color: #E6EAF2;
           }
           .setup-actions {
             display: flex;
@@ -507,7 +511,7 @@ export default function SetupPage() {
           }
           .setup-button-primary {
             background: #22c55e;
-            color: #fff;
+            color: #E6EAF2;
           }
           .setup-button-primary:not(:disabled):active {
             background: #16a34a;
@@ -519,7 +523,7 @@ export default function SetupPage() {
           }
           .setup-button-secondary {
             background: rgba(255, 255, 255, 0.2);
-            color: #fff;
+            color: #E6EAF2;
           }
           .setup-button-secondary:not(:disabled):active {
             background: rgba(255, 255, 255, 0.3);

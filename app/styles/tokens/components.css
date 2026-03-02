@@ -1,33 +1,55 @@
+/* ============================================
+   PALAPOINT DESIGN TOKENS - COMPONENTS
+   ============================================ */
+
 :root {
-  /* Border radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-full: 9999px;
+  /* ----------------------------------------
+     BORDER RADIUS
+     ---------------------------------------- */
+  --radius-sm: 0.375rem;    /* 6px - small elements */
+  --radius-md: 0.5rem;      /* 8px - buttons, inputs */
+  --radius-lg: 0.75rem;     /* 12px - cards */
+  --radius-xl: 1rem;       /* 16px - modals, large cards */
+  --radius-full: 9999px;    /* Pills, avatars */
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  /* ----------------------------------------
+     SHADOWS
+     ---------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+  --shadow-glow-primary: 0 0 20px var(--brand-primary-glow);
+  --shadow-glow-team-a: 0 0 20px var(--team-a-glow);
+  --shadow-glow-team-b: 0 0 20px var(--team-b-glow);
   
-  /* Touch targets */
-  --touch-target-min: 48px;
-  
-  /* Transitions */
+  /* ----------------------------------------
+     TRANSITIONS
+     ---------------------------------------- */
   --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 350ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
   
-  /* Container widths */
-  --container-sm: 400px;
-  --container-md: 500px;
-  --container-lg: 600px;
-  --container-xl: 800px;
+  /* ----------------------------------------
+     Z-INDEX SCALE
+     ---------------------------------------- */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
   
-  /* Z-index layers */
-  --z-base: 1;
-  --z-dropdown: 10;
-  --z-modal: 100;
-  --z-toast: 200;
+  /* ----------------------------------------
+     TOUCH TARGETS
+     ---------------------------------------- */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  
+  /* ----------------------------------------
+     CONTAINERS
+     ---------------------------------------- */
+  --container-sm: 480px;
+  --container-md: 640px;
+  --container-lg: 768px;
+  --container-xl: 1024px;
 }

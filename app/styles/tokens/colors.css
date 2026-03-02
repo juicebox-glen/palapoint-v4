@@ -1,37 +1,108 @@
+/* ============================================
+   PALAPOINT DESIGN TOKENS - COLORS
+   Single source of truth for all colors
+   ============================================ */
+
 :root {
-  /* Brand colors (overridable per venue) */
-  --brand-primary: #03a97c;
-  --brand-secondary: #BB86FC;
+  /* ----------------------------------------
+     BRAND COLORS
+     Override these for venue theming
+     ---------------------------------------- */
+  --brand-primary: #5B6CFF;      /* Blue - primary actions */
+  --brand-primary-hover: #4B5AE0;
+  --brand-primary-glow: rgba(91, 108, 255, 0.3);
   
-  /* Semantic colors derived from brand */
-  --color-team-a: var(--brand-primary);
-  --color-team-b: var(--brand-secondary);
+  --brand-secondary: #8B5CF6;    /* Purple - secondary accent */
   
-  /* Background colors */
-  --color-bg-primary: #121212;
-  --color-bg-secondary: #1E1E1F;
-  --color-bg-tertiary: #2A2A2A;
+  /* ----------------------------------------
+     TEAM COLORS
+     Used for scoring, team identification
+     ---------------------------------------- */
+  --team-a: #5B6CFF;             /* Blue team */
+  --team-a-light: #7B8AFF;
+  --team-a-dark: #4B5AE0;
+  --team-a-bg: rgba(91, 108, 255, 0.15);
+  --team-a-glow: rgba(91, 108, 255, 0.4);
   
-  /* Text colors */
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #B3B3B3;
-  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --team-b: #E84A8A;             /* Pink/Red team */
+  --team-b-light: #FF6BA8;
+  --team-b-dark: #C73D75;
+  --team-b-bg: rgba(232, 74, 138, 0.15);
+  --team-b-glow: rgba(232, 74, 138, 0.4);
   
-  /* Utility colors */
-  --color-success: #22c55e;
-  --color-success-dark: #16a34a;
-  --color-error: #ef4444;
-  --color-error-dark: #dc2626;
-  --color-warning: #f59e0b;
+  /* ----------------------------------------
+     BACKGROUNDS
+     Dark theme foundation
+     ---------------------------------------- */
+  --bg-primary: #0A0A0B;         /* Darkest - page background */
+  --bg-secondary: #121214;       /* Cards, elevated surfaces */
+  --bg-tertiary: #1A1A1E;        /* Inputs, nested elements */
+  --bg-hover: #222228;           /* Hover states */
+  --bg-active: #2A2A32;          /* Active/pressed states */
   
-  /* Overlays */
-  --color-overlay-light: rgba(255, 255, 255, 0.1);
-  --color-overlay-medium: rgba(255, 255, 255, 0.2);
-  --color-overlay-dark: rgba(0, 0, 0, 0.7);
+  /* ----------------------------------------
+     TEXT
+     ---------------------------------------- */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A8;
+  --text-muted: #606068;
+  --text-disabled: #404048;
   
-  /* Team backgrounds (with opacity) */
-  --color-team-a-bg: rgba(3, 169, 124, 0.1);
-  --color-team-a-border: rgba(3, 169, 124, 0.3);
-  --color-team-b-bg: rgba(187, 134, 252, 0.1);
-  --color-team-b-border: rgba(187, 134, 252, 0.3);
+  /* ----------------------------------------
+     BORDERS
+     ---------------------------------------- */
+  --border-default: #2A2A32;
+  --border-light: #1E1E24;
+  --border-focus: var(--brand-primary);
+  
+  /* ----------------------------------------
+     SEMANTIC COLORS
+     ---------------------------------------- */
+  --color-success: #22C55E;
+  --color-success-dark: #16A34A;
+  --color-success-bg: rgba(34, 197, 94, 0.15);
+  
+  --color-error: #EF4444;
+  --color-error-dark: #DC2626;
+  --color-error-bg: rgba(239, 68, 68, 0.15);
+  
+  --color-warning: #F59E0B;
+  --color-warning-dark: #D97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  
+  --color-info: #3B82F6;
+  --color-info-dark: #2563EB;
+  --color-info-bg: rgba(59, 130, 246, 0.15);
+  
+  /* ----------------------------------------
+     OVERLAYS
+     ---------------------------------------- */
+  --overlay-light: rgba(255, 255, 255, 0.05);
+  --overlay-medium: rgba(255, 255, 255, 0.1);
+  --overlay-dark: rgba(0, 0, 0, 0.5);
+  --overlay-darker: rgba(0, 0, 0, 0.8);
+  
+  /* ----------------------------------------
+     COURT DISPLAY SPECIFIC
+     (vw-based screens use these)
+     ---------------------------------------- */
+  --court-bg: #0A0A0B;
+  --court-accent: #BDF33F;        /* Lime green for accents */
+  --court-ball: #D0FF14;          /* Ball color */
+  
+  /* ----------------------------------------
+     LEGACY ALIASES
+     Map old variable names to new system
+     Remove these once all files are updated
+     ---------------------------------------- */
+  --color-team-a: var(--team-a);
+  --color-team-b: var(--team-b);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-overlay-dark: var(--overlay-dark);
+  --color-overlay-darker: var(--overlay-darker);
 }

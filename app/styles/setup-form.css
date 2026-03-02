@@ -4,10 +4,10 @@
 
 /* Design tokens */
 .setup-screen {
-  --background: hsl(220 20% 6%);
-  --foreground: hsl(0 0% 98%);
+  --background: rgba(14, 17, 22, 1);
+  --foreground: #E6EAF2;
   --primary: hsl(228 94% 60%);
-  --primary-foreground: hsl(0 0% 100%);
+  --primary-foreground: #E6EAF2;
   --primary-glow: hsl(228 94% 60% / 0.3);
   --secondary: hsl(220 15% 15%);
   --secondary-foreground: hsl(0 0% 85%);
@@ -150,22 +150,24 @@
 
 /* Glass card wrapper for each section */
 .setup-section {
-  background: linear-gradient(135deg, hsl(220 15% 12% / 0.8), hsl(220 15% 8% / 0.6));
+  background: rgba(21, 26, 34, 1);
+  background-image: none;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid hsl(220 15% 25% / 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-image: none;
   box-shadow: 0 8px 32px hsl(0 0% 0% / 0.3);
   border-radius: 1rem; /* rounded-2xl in spec, 1rem for glass-card */
   padding: 1.25rem; /* p-5 */
 }
 
-/* Section labels — Inter 600 text-sm */
+/* Section labels — Inter 500 text-sm */
 .setup-section-title {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
-  color: var(--muted-foreground);
-  margin: 0 0 0.75rem 0;
+  color: rgba(170, 178, 192, 1);
+  margin: 0 0 20px 0;
 }
 
 /* Option chips (point mode cards + set pills) */
@@ -189,9 +191,9 @@
   align-items: center;
   justify-content: center;
   padding: 0.875rem 0.5rem;
-  border-radius: 1rem;
+  border-radius: 12px;
   border: none;
-  background: var(--secondary);
+  background: rgba(67, 97, 238, 1);
   color: var(--secondary-foreground);
   min-height: 92px;
 }
@@ -206,6 +208,10 @@
   box-shadow: 0 0 40px var(--primary-glow);
 }
 
+.setup-mode-card.active .setup-mode-name {
+  color: var(--primary-foreground);
+}
+
 .setup-mode-card:active {
   transform: scale(0.98);
 }
@@ -214,6 +220,7 @@
 .setup-mode-icon {
   width: 30px;
   height: 30px;
+  margin-top: 8px;
   margin-bottom: 0.5rem;
   opacity: 0.95;
   flex-shrink: 0;
@@ -223,12 +230,18 @@
 .setup-mode-name {
   font-size: 0.875rem;
   font-weight: 500;
+  color: rgba(230, 234, 242, 1);
 }
 
 .setup-mode-desc {
   font-size: 0.75rem;
   font-weight: 400;
-  opacity: 0.9;
+  color: rgba(170, 178, 192, 1);
+  opacity: 1;
+}
+
+.setup-mode-card.active .setup-mode-desc {
+  color: var(--primary-foreground);
 }
 
 /* Number of sets — same option chip style */
@@ -240,9 +253,9 @@
 .setup-sets-pill {
   flex: 1;
   padding: 0.75rem 1rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: none;
-  background: var(--secondary);
+  background: rgba(42, 49, 64, 1);
   color: var(--secondary-foreground);
   font-size: 0.875rem;
   font-weight: 500;
