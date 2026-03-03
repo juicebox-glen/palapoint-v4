@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import '@/app/styles/session-review.css'
+import Header from '@/components/ui/Header'
 
 interface Game {
   id: string
@@ -12,7 +12,14 @@ interface Game {
   team_b_player_1: string | null
   team_b_player_2: string | null
   winner: string | null
-  set_scores: Array<{ team_a: number; team_b: number }>
+  set_scores: Array<{
+    team_a?: number
+    team_b?: number
+    team_a_games?: number
+    team_b_games?: number
+  }>
+  team_a_games?: number
+  team_b_games?: number
   created_at: string
   completed_at: string | null
   status?: string
@@ -23,19 +30,17 @@ interface Session {
   id: string
   court_id: string
   started_at: string
-  ended_at: string
+  ended_at: string | null
 }
 
 export default function SessionReviewPage() {
   const params = useParams()
-  const router = useRouter()
   const sessionId = params.id as string
 
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
   const [games, setGames] = useState<Game[]>([])
   const [courtName, setCourtName] = useState('')
-  const [courtSlug, setCourtSlug] = useState<string>('')
 
   useEffect(() => {
     async function loadData() {
@@ -55,12 +60,10 @@ export default function SessionReviewPage() {
           .single()
 
         if (court) {
-          setCourtName(court.name || '')
-          setCourtSlug((court as { slug?: string }).slug || '')
+          setCourtName(court.name || 'Court')
         }
       }
 
-      // Get games from both live_matches (completed but not archived) and matches (archived)
       const [liveResult, archivedResult] = await Promise.all([
         supabase
           .from('live_matches')
@@ -75,7 +78,6 @@ export default function SessionReviewPage() {
           .order('created_at', { ascending: true }),
       ])
 
-      // Combine and deduplicate (prefer archived if both exist)
       const archivedIds = new Set(
         (archivedResult.data || [])
           .map((g: Game) => g.live_match_id)
@@ -86,7 +88,6 @@ export default function SessionReviewPage() {
       )
       const allGames = [...(archivedResult.data || []), ...liveOnly]
 
-      // Sort by created_at
       allGames.sort(
         (a: Game, b: Game) =>
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -100,38 +101,11 @@ export default function SessionReviewPage() {
     loadData()
   }, [sessionId])
 
-  const formatTeamName = (
-    player1: string | null,
-    player2: string | null,
-    fallback: string
-  ) => {
-    const names = [player1, player2].filter(Boolean)
-    return names.length > 0 ? names.join(' / ') : fallback
-  }
-
-  const formatDuration = (start: string, end: string) => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const minutes = Math.round(
-      (endDate.getTime() - startDate.getTime()) / 1000 / 60
-    )
-    return `${minutes} mins`
-  }
-
-  const handleDone = () => {
-    if (courtSlug) {
-      router.push(`/setup/${courtSlug}`)
-    } else {
-      window.history.back()
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="review-container">
-        <div className="review-loading">Loading...</div>
-      </div>
-    )
+  const abbreviate = (name: string | null | undefined): string => {
+    if (!name) return '---'
+    const parts = name.trim().split(' ')
+    const lastName = parts[parts.length - 1]
+    return lastName.substring(0, 3).toUpperCase()
   }
 
   const totalMinutes =
@@ -144,81 +118,274 @@ export default function SessionReviewPage() {
         )
       : 0
 
+  if (loading) {
+    return (
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header courtName={courtName || 'Court'} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="review-container">
-      <div className="review-header">
-        <h1>Session Complete</h1>
-        <p className="review-meta">
-          {courtName} • {totalMinutes} minutes total
-        </p>
-      </div>
+    <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+      <Header
+        showLogo
+        status="complete"
+        statusText="SESSION COMPLETE"
+        courtName={courtName}
+      />
 
-      <div className="review-games">
-        {games.length === 0 ? (
-          <p className="review-no-games">No games played</p>
-        ) : (
-          games.map((game, index) => {
-            const winnerName =
-              !game.winner
-                ? 'Abandoned'
-                : game.winner === 'a'
-                  ? formatTeamName(
-                      game.team_a_player_1,
-                      game.team_a_player_2,
-                      'Team A'
-                    )
-                  : formatTeamName(
-                      game.team_b_player_1,
-                      game.team_b_player_2,
-                      'Team B'
-                    )
+      <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+        {/* Single GAMES section card */}
+        <div
+          className="card"
+          style={{
+            marginBottom: '1.5rem',
+          }}
+        >
+          <h3 className="card-title">GAMES</h3>
 
-            const score =
-              game.set_scores && game.set_scores.length > 0
-                ? game.set_scores
-                    .map((s) => `${s.team_a}-${s.team_b}`)
-                    .join(', ')
-                : 'N/A'
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {games.length === 0 ? (
+              <p
+                style={{
+                  color: 'var(--text-muted)',
+                  textAlign: 'center',
+                  padding: '1rem',
+                }}
+              >
+                No games played
+              </p>
+            ) : (
+              games.map((game) => {
+                const teamAScore =
+                  game.set_scores?.[0]?.team_a_games ??
+                  game.set_scores?.[0]?.team_a ??
+                  game.team_a_games ??
+                  0
+                const teamBScore =
+                  game.set_scores?.[0]?.team_b_games ??
+                  game.set_scores?.[0]?.team_b ??
+                  game.team_b_games ??
+                  0
+                const isAbandoned =
+                  game.status === 'abandoned' ||
+                  (!game.winner && teamAScore === 0 && teamBScore === 0)
 
-            const duration =
-              game.created_at && game.completed_at
-                ? formatDuration(game.created_at, game.completed_at)
-                : null
+                return (
+                  <div
+                    key={game.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: 'var(--bg-tertiary)',
+                      borderRadius: 'var(--radius-lg)',
+                      padding: '1rem',
+                      cursor: 'pointer',
+                      border: '1px solid var(--border-default)',
+                    }}
+                    onClick={() => {
+                      // TODO: Navigate to game detail
+                    }}
+                  >
+                    {/* Team A abbreviated names */}
+                    <div
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.125rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {abbreviate(game.team_a_player_1)}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {abbreviate(game.team_a_player_2)}
+                      </span>
+                    </div>
 
-            return (
-              <div key={game.id} className="review-game-card">
-                <div className="review-game-header">
-                  <span className="review-game-number">Game {index + 1}</span>
-                  {duration && (
-                    <span className="review-game-duration">{duration}</span>
-                  )}
-                </div>
-                <div className="review-game-result">
-                  <span className="review-game-winner">
-                    {winnerName === 'Abandoned' ? winnerName : `${winnerName} WIN`}
-                  </span>
-                  <span className="review-game-score">{score}</span>
-                </div>
-              </div>
-            )
-          })
-        )}
-      </div>
+                    {/* Score (large) */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0 1rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '2rem',
+                          fontWeight: 700,
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums',
+                          minWidth: '1.5rem',
+                          textAlign: 'right',
+                        }}
+                      >
+                        {isAbandoned ? '-' : teamAScore}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '1rem',
+                          color: 'var(--text-muted)',
+                        }}
+                      >
+                        –
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '2rem',
+                          fontWeight: 700,
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums',
+                          minWidth: '1.5rem',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {isAbandoned ? '-' : teamBScore}
+                      </span>
+                    </div>
 
-      <div className="review-summary">
-        <div className="review-stat">
-          <span className="review-stat-value">{games.length}</span>
-          <span className="review-stat-label">Games Played</span>
+                    {/* Team B abbreviated names */}
+                    <div
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                        gap: '0.125rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {abbreviate(game.team_b_player_1)}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {abbreviate(game.team_b_player_2)}
+                      </span>
+                    </div>
+
+                    {/* Chevron */}
+                    <div
+                      style={{
+                        marginLeft: '0.75rem',
+                        color: 'var(--text-muted)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        aria-hidden
+                      >
+                        <path
+                          d="M7 5l5 5-5 5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </div>
-        <div className="review-stat">
-          <span className="review-stat-value">{totalMinutes}</span>
-          <span className="review-stat-label">Total Minutes</span>
+
+        {/* Stats section (no card wrapper) */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '4rem',
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                fontSize: '3rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                lineHeight: 1,
+              }}
+            >
+              {games.length}
+            </div>
+            <div
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: 'var(--text-muted)',
+                marginTop: '0.5rem',
+              }}
+            >
+              GAMES PLAYED
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                fontSize: '3rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                lineHeight: 1,
+              }}
+            >
+              {totalMinutes}
+            </div>
+            <div
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: 'var(--text-muted)',
+                marginTop: '0.5rem',
+              }}
+            >
+              TOTAL TIME (M)
+            </div>
+          </div>
         </div>
       </div>
-
-      <button className="review-done-btn" onClick={handleDone}>
-        Done
-      </button>
     </div>
   )
 }

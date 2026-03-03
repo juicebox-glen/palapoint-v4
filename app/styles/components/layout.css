@@ -72,9 +72,12 @@
   background: var(--brand-primary);
 }
 
-.status-badge.finished .status-badge-dot,
-.status-badge.complete .status-badge-dot {
+.status-badge.finished .status-badge-dot {
   background: var(--brand-primary);
+}
+
+.status-badge.complete .status-badge-dot {
+  background: var(--color-success);
 }
 
 /* Divider */
