@@ -4,22 +4,16 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
-import {
-  buildTeamName,
-  formatGameDuration,
-  getHorizontalScoreParts,
-} from '@/lib/utils/score-format'
-import { getPointSituation } from '@/lib/utils/point-situation'
-import '@/app/styles/spectator.css'
+import { formatPointDisplay } from '@/lib/utils/score-format'
 
 export default function LivePage() {
   const params = useParams()
   const courtIdentifier = params.id as string
-  const [courtId, setCourtId] = useState<string | null>(null)
-  const [match, setMatch] = useState<MatchState | null>(null)
+
   const [loading, setLoading] = useState(true)
+  const [match, setMatch] = useState<MatchState | null>(null)
+  const [courtId, setCourtId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [gameTime, setGameTime] = useState('0:00')
 
   useEffect(() => {
     if (!courtIdentifier) return
@@ -71,20 +65,10 @@ export default function LivePage() {
       }
     }
 
-    async function refetchMatch() {
-      const { data } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress'])
-        .maybeSingle()
-      if (data) setMatch(data as MatchState)
-    }
-
     loadMatch()
 
     channel = supabase
-      .channel(`live-${courtId}`)
+      .channel(`live-spectator-${courtId}`)
       .on(
         'postgres_changes',
         {
@@ -93,22 +77,22 @@ export default function LivePage() {
           table: 'live_matches',
           filter: `court_id=eq.${courtId}`,
         },
-        async (payload) => {
-          const eventType = payload.eventType ?? (payload as { event?: string }).event
+        (payload) => {
+          const eventType =
+            payload.eventType ?? (payload as { event?: string }).event
           if (eventType === 'DELETE') {
             setMatch(null)
             return
           }
-
-          // Support both payload.new and payload.data?.record (different Supabase versions)
-          const record = payload.new ?? (payload as { data?: { record?: unknown } }).data?.record
+          const record =
+            payload.new ??
+            (payload as { data?: { record?: unknown } }).data?.record
           const updatedMatch = record as MatchState | undefined
-
-          if (updatedMatch?.status === 'setup' || updatedMatch?.status === 'in_progress') {
+          if (
+            updatedMatch?.status === 'setup' ||
+            updatedMatch?.status === 'in_progress'
+          ) {
             setMatch(updatedMatch)
-          } else if (eventType === 'INSERT') {
-            // New match INSERT - refetch to ensure we have full data (realtime can miss or deliver incomplete payload)
-            refetchMatch()
           } else {
             setMatch(null)
           }
@@ -123,10 +107,9 @@ export default function LivePage() {
     }
   }, [courtId])
 
-  // Poll when no match - catches new games if realtime subscription misses the INSERT
+  // Poll when no match - catches new games if realtime misses
   useEffect(() => {
     if (!courtId || match) return
-
     const interval = setInterval(async () => {
       const { data } = await supabase
         .from('live_matches')
@@ -136,160 +119,171 @@ export default function LivePage() {
         .maybeSingle()
       if (data) setMatch(data as MatchState)
     }, 5000)
-
     return () => clearInterval(interval)
   }, [courtId, match])
 
-  // Update game time every second when match is active
-  useEffect(() => {
-    if (!match?.started_at) return
-    const updateTime = () =>
-      setGameTime(formatGameDuration(match.started_at ?? null))
-    updateTime()
-    const interval = setInterval(updateTime, 1000)
-    return () => clearInterval(interval)
-  }, [match?.started_at])
+  const getGameModeText = (mode: string): string => {
+    switch (mode) {
+      case 'golden_point':
+        return 'GOLDEN POINT'
+      case 'silver_point':
+        return 'SILVER POINT'
+      case 'traditional':
+        return 'TRADITIONAL'
+      default:
+        return mode.toUpperCase()
+    }
+  }
+
+  const getSetsWon = (team: 'a' | 'b'): number => {
+    if (!match?.set_scores) return 0
+    return match.set_scores.filter((set) => {
+      const teamA = set.team_a ?? 0
+      const teamB = set.team_b ?? 0
+      return team === 'a' ? teamA > teamB : teamB > teamA
+    }).length
+  }
 
   if (loading) {
     return (
-      <div className="spectator-page">
-        <div className="spectator-16-9">
-          <div className="spectator-loading">Loading...</div>
-        </div>
+      <div className="spectator-container">
+        <p className="spectator-loading">Loading...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="spectator-page">
-        <div className="spectator-16-9">
-          <div className="spectator-error">{error}</div>
-        </div>
+      <div className="spectator-container">
+        <p className="spectator-error">{error}</p>
       </div>
     )
   }
 
   if (!match) {
     return (
-      <div className="spectator-page">
-        <div className="spectator-16-9">
-          <div className="spectator-empty">No active match</div>
+      <div className="spectator-container">
+        <div className="spectator-header">
+          <div className="spectator-logo">
+            <img
+              src="/images/squareone-logo.png"
+              alt="Square One"
+              className="spectator-logo-img"
+            />
+          </div>
+          <div className="spectator-header-right">
+            <div className="spectator-live-badge">
+              <span className="spectator-offline-dot" aria-hidden />
+              <span>OFFLINE</span>
+            </div>
+          </div>
+        </div>
+        <div className="spectator-no-match">
+          <p>No active match</p>
         </div>
       </div>
     )
   }
 
-  const teamAName = buildTeamName(
-    match.team_a_player_1,
-    match.team_a_player_2,
-    'Team A'
-  )
-  const teamBName = buildTeamName(
-    match.team_b_player_1,
-    match.team_b_player_2,
-    'Team B'
-  )
-
-  const partsA = getHorizontalScoreParts(
-    match.set_scores,
-    'a',
-    match.team_a_games,
+  const teamASets = getSetsWon('a')
+  const teamBSets = getSetsWon('b')
+  const pointsA = formatPointDisplay(
     match.team_a_points,
     match.team_b_points,
     match.is_tiebreak ?? false,
     match.is_tiebreak ? match.tiebreak_scores?.team_a : undefined
   )
-  const partsB = getHorizontalScoreParts(
-    match.set_scores,
-    'b',
-    match.team_b_games,
+  const pointsB = formatPointDisplay(
     match.team_b_points,
     match.team_a_points,
     match.is_tiebreak ?? false,
     match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
   )
 
-  const pointSituation = getPointSituation(match)
-
   return (
-    <div className="spectator-page">
-      <div className="spectator-16-9">
-        <div className="spectator-container">
-        {/* Top bar: Logo | Game time + LIVE */}
-        <header className="spectator-topbar">
-          <div className="spectator-logo">
-            <div className="spectator-logo-mark">
-              <span className="spectator-logo-l" />
-              <span className="spectator-logo-square" />
-            </div>
-            <h1 className="spectator-brand">
-              <span className="spectator-brand-square">SQUARE</span>
-              <span className="spectator-brand-one">ONE</span>
-            </h1>
+    <div className="spectator-container">
+      {/* Header: Logo | (Game mode + LIVE badge) right-aligned */}
+      <div className="spectator-header">
+        <div className="spectator-logo">
+          <img
+            src="/images/squareone-logo.png"
+            alt="Square One"
+            className="spectator-logo-img"
+          />
+        </div>
+
+        <div className="spectator-header-right">
+          <div className="spectator-game-info">
+            <span>{getGameModeText(match.game_mode)}</span>
+            {match.is_tiebreak && (
+              <>
+                <span className="spectator-divider">|</span>
+                <span>TIEBREAK</span>
+              </>
+            )}
           </div>
-          <div className="spectator-time-live">
-            <span className="spectator-time">{gameTime}</span>
-            <span className="spectator-live">
-              <span className="spectator-live-dot" aria-hidden />
-              LIVE
+
+          <div className="spectator-live-badge">
+            <span className="spectator-live-dot" aria-hidden />
+            <span>LIVE</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Score Cards */}
+      <div className="spectator-cards">
+        {/* Team A Card */}
+        <div className="spectator-card spectator-card-team-a">
+          <div className="spectator-card-names">
+            <span className="spectator-player-name">
+              {match.team_a_player_1 || 'Player 1'}
+            </span>
+            <span className="spectator-player-name">
+              {match.team_a_player_2 || 'Player 2'}
             </span>
           </div>
-        </header>
 
-        {/* Score panel: horizontal layout */}
-        <div
-          className={`spectator-score-panel ${
-            match.serving_team === 'a' ? 'team-a-accent' : 'team-b-accent'
-          }`}
-        >
-          <div className="spectator-player-row">
-            <span className="spectator-player-name">{teamAName}</span>
-            <div className="spectator-player-scores">
-              {match.serving_team === 'a' && (
-                <span className="spectator-serving-dot" aria-hidden />
-              )}
-              {partsA.map((part, i) => {
-                const isHighlight = match.serving_team === 'a' && i === (match.set_scores?.length ?? 0)
-                return (
-                  <span
-                    key={i}
-                    className={`spectator-score-part ${isHighlight ? 'highlight' : i === 0 ? 'muted' : ''}`}
-                  >
-                    {part}
-                  </span>
-                )
-              })}
-            </div>
+          <div className="spectator-card-scores">
+            {match.serving_team === 'a' && (
+              <span className="spectator-serving-dot" aria-hidden />
+            )}
+            <span className="spectator-score spectator-score-sets">
+              {teamASets}
+            </span>
+            <span className="spectator-score spectator-score-games">
+              {match.team_a_games}
+            </span>
+            <span className="spectator-score spectator-score-points">
+              {pointsA}
+            </span>
           </div>
-          <div className="spectator-player-row">
-            <span className="spectator-player-name">{teamBName}</span>
-            <div className="spectator-player-scores">
-              {match.serving_team === 'b' && (
-                <span className="spectator-serving-dot" aria-hidden />
-              )}
-              {partsB.map((part, i) => {
-                const isHighlight = match.serving_team === 'b' && i === (match.set_scores?.length ?? 0)
-                return (
-                  <span
-                    key={i}
-                    className={`spectator-score-part ${isHighlight ? 'highlight' : i === 0 ? 'muted' : ''}`}
-                  >
-                    {part}
-                  </span>
-                )
-              })}
-            </div>
-          </div>
-
-          {match.is_tiebreak && (
-            <div className="spectator-tiebreak-badge">Tiebreak</div>
-          )}
-
-          {pointSituation && (
-            <div className="spectator-point-badge">{pointSituation.type}</div>
-          )}
         </div>
+
+        {/* Team B Card */}
+        <div className="spectator-card spectator-card-team-b">
+          <div className="spectator-card-names">
+            <span className="spectator-player-name">
+              {match.team_b_player_1 || 'Player 1'}
+            </span>
+            <span className="spectator-player-name">
+              {match.team_b_player_2 || 'Player 2'}
+            </span>
+          </div>
+
+          <div className="spectator-card-scores">
+            {match.serving_team === 'b' && (
+              <span className="spectator-serving-dot" aria-hidden />
+            )}
+            <span className="spectator-score spectator-score-sets">
+              {teamBSets}
+            </span>
+            <span className="spectator-score spectator-score-games">
+              {match.team_b_games}
+            </span>
+            <span className="spectator-score spectator-score-points">
+              {pointsB}
+            </span>
+          </div>
         </div>
       </div>
     </div>
