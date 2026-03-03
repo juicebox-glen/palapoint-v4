@@ -202,6 +202,7 @@
 
 .spectator-score-points {
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Responsive - smaller screens */
@@ -241,7 +242,7 @@
   }
 
   .spectator-card-scores {
-    gap: 26px;
+    gap: 40px;
   }
 }
 
