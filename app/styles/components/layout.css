@@ -15,6 +15,17 @@
   background: var(--bg-primary);
   color: var(--text-primary);
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Page loading state */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: var(--text-secondary);
 }
 
 /* Page header */
@@ -59,7 +70,8 @@
   background: var(--brand-primary);
 }
 
-.status-badge.finished .status-badge-dot {
+.status-badge.finished .status-badge-dot,
+.status-badge.complete .status-badge-dot {
   background: var(--brand-primary);
 }
 

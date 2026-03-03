@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
+import Header from '@/components/ui/Header'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -16,7 +17,7 @@ interface MatchState {
   team_b_points: number
   team_a_games: number
   team_b_games: number
-  set_scores: Array<{ team_a: number; team_b: number }>
+  set_scores: Array<{ team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }>
   winner: string | null
   team_a_player_1: string | null
   team_a_player_2: string | null
@@ -47,10 +48,11 @@ export default function PlayingPage() {
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
 
+  const courtName = court?.name || courtIdentifier
+
   // Load initial data
   useEffect(() => {
     async function loadData() {
-      // Resolve court
       const courtData = await getCourtBySlug(courtIdentifier)
       if (!courtData) {
         setLoading(false)
@@ -65,7 +67,6 @@ export default function PlayingPage() {
         console.log('Playing: courtData.id (UUID):', courtData?.id)
       }
 
-      // Get stored session ID using court slug from URL (consistent with setup/teams)
       const storedSessionId =
         typeof window !== 'undefined'
           ? sessionStorage.getItem(`setup_session_id_${courtIdentifier}`)
@@ -90,7 +91,6 @@ export default function PlayingPage() {
         }
       }
 
-      // Get active match for this court (includes abandoned for transition)
       const { data: matchData } = await supabase
         .from('live_matches')
         .select('*')
@@ -154,7 +154,6 @@ export default function PlayingPage() {
     return () => clearInterval(interval)
   }, [sessionId])
 
-  // Handlers
   const handlePlayAgain = async () => {
     if (!match || !sessionId || !courtUuid) return
 
@@ -219,7 +218,6 @@ export default function PlayingPage() {
 
   const handleNewGame = () => {
     if (match && courtUuid && typeof window !== 'undefined') {
-      // Save current settings using court UUID (matching setup page)
       sessionStorage.setItem(`setup_game_mode_${courtUuid}`, match.game_mode)
       sessionStorage.setItem(`setup_sets_${courtUuid}`, String(match.sets_to_win))
       sessionStorage.setItem(
@@ -237,46 +235,11 @@ export default function PlayingPage() {
     router.push(`/setup/${courtIdentifier}`)
   }
 
-  const handleScorePoint = async (team: 'a' | 'b') => {
-    if (!courtUuid) return
-
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          court_id: courtUuid,
-          team,
-          source: 'control_panel',
-        }),
-      })
-
-      const data = await response.json()
-      if (!data.success) {
-        console.error('Failed to score point:', data.error)
-      }
-      // Match updates via realtime subscription
-    } catch (err) {
-      console.error('Error scoring point:', err)
-    }
-  }
-
   const handleEndSession = async () => {
-    console.log('handleEndSession called, sessionId:', sessionId)
-
-    if (!sessionId) {
-      console.log('No sessionId, cannot end session')
-      return
-    }
+    if (!sessionId) return
 
     try {
-      console.log('Calling endSession API...')
       const result = await endSession(sessionId)
-      console.log('endSession result:', result)
-
       if (result.success) {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(`setup_session_id_${courtIdentifier}`)
@@ -299,17 +262,13 @@ export default function PlayingPage() {
     return names.length > 0 ? names.join(' / ') : fallback
   }
 
-  const formatPoints = (points: number, isTiebreak: boolean) => {
-    if (isTiebreak) return points.toString()
-    const pointMap = ['0', '15', '30', '40']
-    return pointMap[points] ?? points.toString()
-  }
-
-  // Loading state
+  // 1. LOADING STATE
   if (loading) {
     return (
-      <div className="playing-container">
-        <div className="playing-loading">Loading...</div>
+      <div className="page page-padded">
+        <div className="page-loading">
+          <p>Loading...</p>
+        </div>
       </div>
     )
   }
@@ -317,12 +276,23 @@ export default function PlayingPage() {
   // Court not found
   if (!court) {
     return (
-      <div className="playing-container">
-        <div className="playing-no-session">
-          <h1>Court Not Found</h1>
-          <p>Please scan the QR code on the court to get started.</p>
+      <div className="page page-padded">
+        <Header courtName={courtIdentifier} />
+        <div
+          className="stack stack-xl"
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Court Not Found</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Please scan the QR code on the court to get started.
+          </p>
           <button
-            className="playing-btn playing-btn-primary"
+            className="btn btn-primary"
             onClick={() => router.push(`/setup/${courtIdentifier}`)}
           >
             Set Up Game
@@ -332,19 +302,28 @@ export default function PlayingPage() {
     )
   }
 
-  // Session expired/ended
+  // 2. SESSION ENDED STATE
   if (sessionState && !sessionState.valid) {
     return (
-      <div className="playing-container">
-        <div className="playing-session-ended">
-          <h1>Session Ended</h1>
-          <p>
+      <div className="page page-padded">
+        <Header courtName={courtName} />
+        <div
+          className="stack stack-xl"
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Session Ended</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
             {sessionState.reason === 'expired_inactivity'
               ? 'Your session expired due to inactivity.'
               : 'This session has ended.'}
           </p>
           <button
-            className="playing-btn playing-btn-primary"
+            className="btn btn-primary"
             onClick={() => router.push(`/setup/${courtIdentifier}`)}
           >
             Start New Session
@@ -354,15 +333,28 @@ export default function PlayingPage() {
     )
   }
 
-  // No session - redirect to setup
+  // 3. NO SESSION STATE
   if (!sessionId) {
     return (
-      <div className="playing-container">
-        <div className="playing-no-session">
-          <h1>No Active Session</h1>
-          <p>Scan the QR code on the court to start a session.</p>
+      <div className="page page-padded">
+        <Header courtName={courtName} />
+        <div
+          className="stack stack-xl"
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+            No Active Session
+          </h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Scan the QR code on the court to start a session.
+          </p>
           <button
-            className="playing-btn playing-btn-primary"
+            className="btn btn-primary"
             onClick={() => router.push(`/setup/${courtIdentifier}`)}
           >
             Set Up Game
@@ -372,7 +364,73 @@ export default function PlayingPage() {
     )
   }
 
-  // Show post-game if match exists and is completed/abandoned OR has a winner
+  // Detect if match is in "ready" state (just created, no score yet)
+  const isMatchReady =
+    match &&
+    match.status === 'in_progress' &&
+    match.team_a_points === 0 &&
+    match.team_b_points === 0 &&
+    match.team_a_games === 0 &&
+    match.team_b_games === 0
+
+  // 4. MATCH READY STATE
+  if (isMatchReady) {
+    return (
+      <div className="page page-padded">
+        <Header
+          status="ready"
+          statusText="READY"
+          courtName={courtName}
+        />
+        <div className="stack" style={{ flex: 1 }}>
+          <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              style={{ margin: '0 auto 1rem', color: 'var(--brand-primary)' }}
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M12 2C8 2 4.5 5 4.5 9.5C4.5 14 8 17 12 22"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M12 2C16 2 19.5 5 19.5 9.5C19.5 14 16 17 12 22"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+            <h1
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: 600,
+                marginBottom: '0.5rem',
+              }}
+            >
+              Match Ready
+            </h1>
+            <p style={{ color: 'var(--text-secondary)' }}>
+              Press a button on court to begin
+            </p>
+          </div>
+        </div>
+        <button className="btn btn-danger btn-block" onClick={handleEndGame}>
+          End Game
+        </button>
+      </div>
+    )
+  }
+
+  // 5. GAME FINISHED STATE
   const showPostGame =
     match &&
     (match.status === 'completed' ||
@@ -380,146 +438,141 @@ export default function PlayingPage() {
       !!match.winner)
 
   if (process.env.NODE_ENV === 'development') {
-    console.log('Render - match:', match?.id, 'status:', match?.status, 'winner:', match?.winner)
+    console.log(
+      'Render - match:',
+      match?.id,
+      'status:',
+      match?.status,
+      'winner:',
+      match?.winner
+    )
   }
 
-  if (showPostGame) {
+  if (showPostGame && match) {
     const isAbandoned = match.status === 'abandoned'
-    const headerText = isAbandoned ? 'Game Ended' : 'Game Complete'
     const hasWinner = match.winner && !isAbandoned
 
     const winnerName = hasWinner
       ? match.winner === 'a'
-        ? formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
-        : formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+        ? formatTeamName(
+            match.team_a_player_1,
+            match.team_a_player_2,
+            'Team A'
+          )
+        : formatTeamName(
+            match.team_b_player_1,
+            match.team_b_player_2,
+            'Team B'
+          )
       : null
 
     const finalScore =
       match.set_scores && match.set_scores.length > 0
-        ? match.set_scores.map((s) => `${s.team_a}-${s.team_b}`).join(', ')
+        ? match.set_scores
+            .map(
+              (s: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }) =>
+                `${s.team_a_games ?? s.team_a ?? 0}-${s.team_b_games ?? s.team_b ?? 0}`
+            )
+            .join(', ')
         : `${match.team_a_games}-${match.team_b_games}`
 
+    const winnerTeam = match.winner === 'a' ? 'team-a' : 'team-b'
+
     return (
-      <div className="playing-container">
-        <div className="playing-game-complete">
-          <div className="playing-complete-header">
-            <h1>{headerText}</h1>
-            <p className="playing-court-name">{court?.name || courtIdentifier}</p>
-          </div>
-
-          <div className="playing-result">
+      <div className="page page-padded">
+        <Header
+          status="finished"
+          statusText={isAbandoned ? 'GAME ENDED' : 'GAME FINISHED'}
+          courtName={courtName}
+        />
+        <div className="stack" style={{ flex: 1 }}>
+          <div
+            className={`card card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
+          >
             {hasWinner && winnerName && (
-              <>
-                <h2 className="playing-winner">{winnerName}</h2>
-                <p className="playing-winner-label">WINS</p>
-              </>
+              <p
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {winnerName} WIN
+              </p>
             )}
-            <p className="playing-final-score">{finalScore}</p>
+            <p
+              style={{
+                fontSize: '3rem',
+                fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {finalScore.replace(', ', ' - ')}
+            </p>
             {isAbandoned && (
-              <p className="playing-abandoned-label">Match was ended early</p>
+              <p
+                style={{
+                  color: 'var(--text-muted)',
+                  fontSize: '0.875rem',
+                  marginTop: '0.5rem',
+                }}
+              >
+                Match was ended early
+              </p>
             )}
           </div>
-
-          <div className="playing-post-actions">
-            <button
-              className="playing-btn playing-btn-primary"
-              onClick={handlePlayAgain}
-            >
-              Play Again
-            </button>
-            <button
-              className="playing-btn playing-btn-secondary"
-              onClick={handleNewGame}
-            >
-              New Game
-            </button>
-            <button
-              className="playing-btn playing-btn-danger"
-              onClick={handleEndSession}
-            >
-              End Session
-            </button>
-          </div>
+        </div>
+        <div className="stack">
+          <button
+            className="btn btn-primary btn-block"
+            onClick={handlePlayAgain}
+          >
+            Rematch
+          </button>
+          <button
+            className="btn btn-secondary btn-block"
+            onClick={handleNewGame}
+          >
+            Edit Match
+          </button>
+          <div className="divider"></div>
+          <button
+            className="btn btn-danger btn-block"
+            onClick={handleEndSession}
+          >
+            End Session
+          </button>
         </div>
       </div>
     )
   }
 
-  // Game in progress - show holding screen
+  // 6. GAME IN PROGRESS STATE
   return (
-    <div className="playing-container">
-      <div className="playing-in-progress">
-        <div className="playing-header">
-          <span className="playing-live-badge">● LIVE</span>
-          <span className="playing-court-name">{court?.name || courtIdentifier}</span>
-        </div>
-
-        <div className="playing-message">
-          <h1>Game in Progress</h1>
-          <p>Use the court buttons to score</p>
-        </div>
-
-        {match && (
-          <>
-            <div className="setup-section playing-mini-score">
-              <div className="playing-mini-team">
-                <span className="playing-mini-name">
-                  {formatTeamName(
-                    match.team_a_player_1,
-                    match.team_a_player_2,
-                    'Team A'
-                  )}
-                </span>
-                <span className="playing-mini-points">
-                  {formatPoints(match.team_a_points, match.is_tiebreak ?? false)}
-                </span>
-              </div>
-              <div className="playing-mini-games">
-                {match.team_a_games} - {match.team_b_games}
-              </div>
-              <div className="playing-mini-team">
-                <span className="playing-mini-name">
-                  {formatTeamName(
-                    match.team_b_player_1,
-                    match.team_b_player_2,
-                    'Team B'
-                  )}
-                </span>
-                <span className="playing-mini-points">
-                  {formatPoints(match.team_b_points, match.is_tiebreak ?? false)}
-                </span>
-              </div>
-            </div>
-
-            {/* Temporary: add points for testing without control buttons */}
-            <div className="playing-test-buttons">
-              <button
-                type="button"
-                className="playing-btn playing-btn-test-a"
-                onClick={() => handleScorePoint('a')}
-              >
-                + {formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')}
-              </button>
-              <button
-                type="button"
-                className="playing-btn playing-btn-test-b"
-                onClick={() => handleScorePoint('b')}
-              >
-                + {formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')}
-              </button>
-            </div>
-          </>
-        )}
-
-        <div className="playing-session-actions">
-          <button
-            className="playing-btn playing-btn-danger-outline"
-            onClick={handleEndGame}
+    <div className="page page-padded">
+      <Header status="live" statusText="LIVE" courtName={courtName} />
+      <div className="stack" style={{ flex: 1 }}>
+        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+          <h1
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 600,
+              marginBottom: '0.5rem',
+            }}
           >
-            End Game
-          </button>
+            Game in Progress
+          </h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Use the court buttons to score
+          </p>
         </div>
       </div>
+      <button className="btn btn-danger btn-block" onClick={handleEndGame}>
+        End Game
+      </button>
     </div>
   )
 }
