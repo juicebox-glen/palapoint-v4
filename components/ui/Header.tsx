@@ -20,7 +20,7 @@ export default function Header({
           style={{
             display: 'flex',
             justifyContent: 'center',
-            paddingBottom: '0.75rem',
+            paddingBottom: '40px',
           }}
         >
           <img

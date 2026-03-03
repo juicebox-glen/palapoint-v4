@@ -563,7 +563,7 @@ export default function PlayingPage() {
           statusText="READY"
           courtName={courtName}
         />
-        <div style={{ flex: 1, marginTop: '1.875rem' }}>
+        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <TeamMatchupCard
             teamAPlayer1={match.team_a_player_1}
             teamAPlayer2={match.team_a_player_2}
@@ -637,7 +637,7 @@ export default function PlayingPage() {
           statusText={isAbandoned ? 'GAME ENDED' : 'GAME FINISHED'}
           courtName={courtName}
         />
-        <div style={{ flex: 1, marginTop: '1.875rem' }}>
+        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <div
             className={`card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
             style={{
@@ -717,7 +717,7 @@ export default function PlayingPage() {
   return (
     <div className="page page-padded" style={{ paddingTop: '1rem' }}>
       <Header status="live" statusText="LIVE" courtName={courtName} />
-      <div style={{ flex: 1, marginTop: '1.875rem' }}>
+      <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
         <TeamMatchupCard
           teamAPlayer1={match?.team_a_player_1}
           teamAPlayer2={match?.team_a_player_2}
