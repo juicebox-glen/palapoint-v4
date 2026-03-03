@@ -1,27 +1,19 @@
 /* ============================================================
    Staff In-Game Controller — Mobile-first, thumb-friendly
+   Uses global design tokens for consistency
    ============================================================ */
 
 .control-panel {
-  --cp-bg: hsl(220 20% 6%);
-  --cp-card: hsl(220 15% 12%);
-  --cp-text: hsl(0 0% 98%);
-  --cp-muted: hsl(220 10% 55%);
-  --cp-border: hsl(220 15% 20%);
-  --team-a: hsl(228 94% 60%);
-  /* For SetupScreenHeader compatibility */
-  --background: var(--cp-bg);
-  --foreground: var(--cp-text);
+  /* SetupScreenHeader compatibility */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
   --primary: var(--team-a);
-  --secondary: var(--cp-card);
-  --border: var(--cp-border);
-  --team-a-glow: hsl(228 94% 60% / 0.35);
-  --team-b: hsl(180 55% 45%);
-  --team-b-glow: hsl(180 55% 45% / 0.35);
+  --secondary: var(--bg-secondary);
+  --border: var(--border-default);
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--cp-bg);
-  color: var(--cp-text);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   padding: 1rem;
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   display: flex;
@@ -53,7 +45,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--cp-text);
+  color: var(--text-primary);
 }
 
 .control-live-dot {
@@ -73,7 +65,7 @@
 .control-game-mode {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--cp-muted);
+  color: var(--text-secondary);
   text-transform: capitalize;
   letter-spacing: 0.02em;
 }
@@ -82,14 +74,14 @@
 .control-scoreboard {
   position: relative;
   height: fit-content;
-  background: linear-gradient(135deg, hsl(220 15% 14% / 0.9), hsl(220 15% 10% / 0.8));
-  border: 1px solid var(--cp-border);
-  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   padding: 0;
   padding-bottom: 60px;
   margin-bottom: 0;
   flex-shrink: 0;
-  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.25);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
@@ -140,7 +132,7 @@
   margin-top: 30px;
   font-size: 26px;
   font-weight: 500;
-  color: var(--cp-muted);
+  color: var(--text-secondary);
   text-align: center;
   letter-spacing: 0.04em;
   line-height: 1.2;
@@ -151,7 +143,7 @@
   font-size: 140px;
   font-weight: 500;
   line-height: 1;
-  color: var(--cp-text);
+  color: var(--text-primary);
   text-align: center;
   width: 100%;
 }
@@ -183,7 +175,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--cp-muted);
+  border: 2px solid var(--text-muted);
   background: transparent;
   flex-shrink: 0;
 }
@@ -201,7 +193,7 @@
 .control-scoreboard-games {
   font-size: 35px;
   font-weight: 700;
-  color: var(--cp-text);
+  color: var(--text-primary);
   letter-spacing: 0.05em;
   flex-shrink: 0;
 }
@@ -209,7 +201,7 @@
 .control-scoreboard-tiebreak {
   font-size: 0.625rem;
   font-weight: 600;
-  color: var(--cp-muted);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-top: 0.5rem;
@@ -225,21 +217,21 @@
 .control-point-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  color: hsl(84 70% 60%);
+  color: var(--color-success);
   text-align: center;
   padding: 0.35rem 0.6rem;
-  background: hsl(84 40% 25% / 0.5);
-  border-radius: 0.5rem;
+  background: var(--color-success-bg);
+  border-radius: var(--radius-md);
   margin-top: 0.75rem;
   letter-spacing: 0.08em;
 }
 
 /* ----- Error message ----- */
 .control-error-message {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: var(--color-error-bg);
+  color: var(--color-error);
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   margin-bottom: 1rem;
   font-size: 0.875rem;
   text-align: center;
@@ -262,10 +254,10 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-  color: #fff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,12 +306,12 @@
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: transform 0.15s, background 0.15s;
-  background: var(--cp-card);
-  border: 1px solid var(--cp-border);
-  color: var(--cp-text);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
 }
 
 .control-button:disabled {
@@ -332,23 +324,23 @@
 }
 
 .control-button-danger {
-  border-color: hsl(0 60% 35%);
-  color: #fca5a5;
+  border-color: var(--color-error);
+  color: var(--color-error);
 }
 
 .control-button-danger:not(:disabled):active {
-  background: rgba(239, 68, 68, 0.2);
+  background: var(--color-error-bg);
 }
 
 .control-button-primary {
   background: var(--team-a);
   border-color: var(--team-a);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: 0 4px 20px var(--team-a-glow);
 }
 
 .control-button-primary:not(:disabled):active {
-  background: hsl(228 94% 55%);
+  background: var(--team-a-dark);
 }
 
 /* ----- Match Complete Summary ----- */
@@ -374,13 +366,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   margin: 0 0 1.5rem 0;
-  color: var(--cp-text);
+  color: var(--text-primary);
 }
 
 .control-summary-winner {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--cp-text);
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
 }
 
@@ -396,14 +388,14 @@
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: var(--cp-text);
+  color: var(--text-primary);
   margin: 0 0 0.25rem 0;
 }
 
 .control-summary-games {
   font-size: 1rem;
   font-weight: 500;
-  color: var(--cp-muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -424,7 +416,7 @@
 .control-summary-action-hint {
   font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--cp-muted);
+  color: var(--text-secondary);
   line-height: 1.3;
   text-align: center;
 }
@@ -433,7 +425,7 @@
 .control-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-darker);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -442,13 +434,13 @@
 }
 
 .control-modal {
-  background: var(--cp-card);
-  border: 1px solid var(--cp-border);
-  border-radius: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   padding: 1.5rem;
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .control-modal-title {
@@ -459,7 +451,7 @@
 
 .control-modal-text {
   font-size: 0.9375rem;
-  color: var(--cp-muted);
+  color: var(--text-secondary);
   margin-bottom: 1.25rem;
 }
 
@@ -480,5 +472,5 @@
 }
 
 .control-panel .control-error {
-  color: #ef4444;
+  color: var(--color-error);
 }

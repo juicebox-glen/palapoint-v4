@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug, validateControlPin } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
+import Header from '@/components/ui/Header'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, GameMode } from '@/lib/types/match'
-import { formatPointDisplay, buildTeamName, formatGameDuration } from '@/lib/utils/score-format'
+import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
@@ -478,21 +479,33 @@ export default function ControlPanelPage() {
 
   if (loading) {
     return (
-      <div className="control-panel">
-        <div className="control-loading">Loading...</div>
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header courtName={courtIdentifier} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        </div>
       </div>
     )
   }
 
   if (error && !match) {
     return (
-      <div className="control-panel">
-        <div className="control-error">{error}</div>
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header courtName={courtIdentifier} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>{error}</p>
+        </div>
       </div>
     )
   }
 
-  // Match complete — show summary screen
+  // Match complete — same design as player game ended, with control-specific options
   if (completedMatch) {
     const teamAName = buildTeamName(
       completedMatch.team_a_player_1,
@@ -511,75 +524,92 @@ export default function ControlPanelPage() {
           ? teamBName
           : null
     const isAbandoned = completedMatch.status === 'abandoned'
-    const setsWonA = (completedMatch.set_scores ?? []).filter((s) => s.team_a > s.team_b).length
-    const setsWonB = (completedMatch.set_scores ?? []).filter((s) => s.team_b > s.team_a).length
-    const gameScores = (completedMatch.set_scores ?? [])
-      .map((s) => `${s.team_a}-${s.team_b}`)
-      .join(', ')
-    const finalDuration = formatGameDuration(
-      completedMatch.started_at ?? null,
-      completedMatch.completed_at ?? null
-    )
+    const hasWinner = completedMatch.winner && !isAbandoned
+    const finalScore =
+      completedMatch.set_scores && completedMatch.set_scores.length > 0
+        ? completedMatch.set_scores
+            .map(
+              (s: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }) =>
+                `${s.team_a_games ?? s.team_a ?? 0}-${s.team_b_games ?? s.team_b ?? 0}`
+            )
+            .join(', ')
+        : `${completedMatch.team_a_games}-${completedMatch.team_b_games}`
+    const winnerTeam = completedMatch.winner === 'a' ? 'team-a' : 'team-b'
 
     return (
-      <div className="control-panel">
-        <div className="control-container">
-          <SetupScreenHeader
-            rightContent={
-              <>
-                <span className="control-summary-time">{finalDuration}</span>
-                <span className="control-live">
-                  <span className="control-live-dot" aria-hidden />
-                  LIVE
-                </span>
-              </>
-            }
-          />
-
-          {error && <div className="control-error-message">{error}</div>}
-
-          <div className="control-summary">
-            <h2 className="control-summary-title">
-              {isAbandoned ? 'MATCH ENDED' : 'MATCH COMPLETE'}
-            </h2>
-            {winnerName && (
-              <>
-                <p className="control-summary-winner">{winnerName}</p>
-                <p className="control-summary-win-label">WIN</p>
-              </>
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header
+          status="finished"
+          statusText={isAbandoned ? 'MATCH ENDED' : 'MATCH COMPLETE'}
+          courtName={courtIdentifier}
+        />
+        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+          {error && <div className="control-error-message" style={{ marginBottom: '1rem' }}>{error}</div>}
+          <div
+            className={`card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-default)',
+              ...(hasWinner && {
+                borderTop: `3px solid var(--${winnerTeam})`,
+              }),
+              borderRadius: 'var(--radius-xl)',
+              padding: '1.5rem',
+              textAlign: 'center',
+            }}
+          >
+            {hasWinner && winnerName && (
+              <p
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {winnerName} WIN
+              </p>
             )}
-            <div className="control-summary-sets">{setsWonA} – {setsWonB}</div>
-            {gameScores && (
-              <div className="control-summary-games">({gameScores})</div>
+            <p
+              style={{
+                fontSize: '3rem',
+                fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--text-primary)',
+              }}
+            >
+              {finalScore.replace(', ', ' - ')}
+            </p>
+            {isAbandoned && (
+              <p
+                style={{
+                  color: 'var(--text-muted)',
+                  fontSize: '0.875rem',
+                  marginTop: '0.5rem',
+                }}
+              >
+                Match was ended early
+              </p>
             )}
           </div>
-
-          <div className="control-summary-actions">
-            <div className="control-summary-action">
-              <button
-                className="control-button control-button-primary"
-                onClick={handlePlayAgain}
-                disabled={!!actionLoading}
-              >
-                {actionLoading === 'play_again' ? 'Starting...' : 'PLAY AGAIN'}
-              </button>
-              <span className="control-summary-action-hint">
-                Same settings, same players · Random server · Straight to game
-              </span>
-            </div>
-            <div className="control-summary-action">
-              <button
-                className="control-button"
-                onClick={handleNewGame}
-                disabled={!!actionLoading}
-              >
-                NEW GAME
-              </button>
-              <span className="control-summary-action-hint">
-                Return to setup · Last settings + names pre-filled
-              </span>
-            </div>
-          </div>
+        </div>
+        <div className="stack" style={{ paddingTop: '1rem' }}>
+          <button
+            className="btn btn-primary btn-block"
+            onClick={handlePlayAgain}
+            disabled={!!actionLoading}
+          >
+            {actionLoading === 'play_again' ? 'Starting...' : 'Play Again'}
+          </button>
+          <button
+            className="btn btn-secondary btn-block"
+            onClick={handleNewGame}
+            disabled={!!actionLoading}
+          >
+            New Game
+          </button>
         </div>
       </div>
     )

@@ -447,8 +447,12 @@ export default function PlayingPage() {
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <div className="page-loading">
-          <p>Loading...</p>
+        <Header courtName={courtIdentifier} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       </div>
     )

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import ScoreDisplay from '@/components/ScoreDisplay'
+import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import type { MatchState, GameMode } from '@/lib/types/match'
@@ -359,24 +360,16 @@ export default function SetupPage() {
 
   if (loading || sessionLoading) {
     return (
-      <div className="setup-page">
-        <div className="setup-loading">
-          {sessionLoading ? 'Checking court availability...' : 'Loading...'}
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header courtName={courtIdentifier} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>
+            {sessionLoading ? 'Checking court availability...' : 'Loading...'}
+          </p>
         </div>
-        <style jsx>{`
-          .setup-page {
-            min-height: 100vh;
-            background: #1a1a2e;
-            color: #E6EAF2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-          }
-          .setup-loading {
-            font-size: 1.5rem;
-          }
-        `}</style>
       </div>
     )
   }
@@ -392,23 +385,16 @@ export default function SetupPage() {
 
   if (error && !court) {
     return (
-      <div className="setup-page">
-        <div className="setup-error">{error}</div>
-        <style jsx>{`
-          .setup-page {
-            min-height: 100vh;
-            background: #1a1a2e;
-            color: #E6EAF2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-          }
-          .setup-error {
-            font-size: 1.5rem;
-            color: #ef4444;
-          }
-        `}</style>
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header courtName={courtIdentifier} />
+        <div
+          className="page-loading"
+          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
+        >
+          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>
+            {error}
+          </p>
+        </div>
       </div>
     )
   }
