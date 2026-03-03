@@ -319,11 +319,12 @@
   height: 22px;
   border-radius: 50%;
   background: rgba(193, 200, 214, 1);
-  transition: transform 0.2s;
+  transition: transform 0.2s, background 0.2s;
 }
 
 .setup-switch.on .setup-switch-knob {
   transform: translateX(22px);
+  background: #151A22;
 }
 
 /* Team sections */
