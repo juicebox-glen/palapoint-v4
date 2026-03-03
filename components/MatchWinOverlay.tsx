@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import type { MatchState } from '@/lib/types/match'
+import { buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 
 interface MatchWinOverlayProps {
   match: MatchState
@@ -41,13 +42,9 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
   const setScores = match.set_scores || []
 
   const winnerName = winner === 'a'
-    ? (match.team_a_player_1 || match.team_a_player_2
-        ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
-        : 'TEAM A')
+    ? buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'TEAM A')
     : winner === 'b'
-      ? (match.team_b_player_1 || match.team_b_player_2
-          ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
-          : 'TEAM B')
+      ? buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'TEAM B')
       : 'MATCH COMPLETE'
 
   const borderColor = winner === 'a'

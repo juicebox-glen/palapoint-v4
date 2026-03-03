@@ -7,7 +7,7 @@ import MatchSetupForm from '@/components/MatchSetupForm'
 import Header from '@/components/ui/Header'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, GameMode } from '@/lib/types/match'
-import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
+import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
@@ -507,12 +507,12 @@ export default function ControlPanelPage() {
 
   // Match complete — same design as player game ended, with control-specific options
   if (completedMatch) {
-    const teamAName = buildTeamName(
+    const teamAName = buildTeamNameAbbreviated(
       completedMatch.team_a_player_1,
       completedMatch.team_a_player_2,
       'Team A'
     )
-    const teamBName = buildTeamName(
+    const teamBName = buildTeamNameAbbreviated(
       completedMatch.team_b_player_1,
       completedMatch.team_b_player_2,
       'Team B'
@@ -640,8 +640,8 @@ export default function ControlPanelPage() {
   }
 
   // Active match — header (LIVE + game mode), scoreboard card, + Point buttons, UNDO / END MATCH
-  const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
-  const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+  const teamAName = buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')
+  const teamBName = buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'Team B')
   const pointsA = formatPointDisplay(
     match.team_a_points,
     match.team_b_points,

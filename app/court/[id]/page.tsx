@@ -10,6 +10,7 @@ import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
+import { buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -502,10 +503,10 @@ export default function CourtDisplay() {
   // Show server announcement for new match (after button press)
   if (showServerAnnouncement && match) {
     const teamAName = match.team_a_player_1 || match.team_a_player_2
-      ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
+      ? buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')
       : undefined
     const teamBName = match.team_b_player_1 || match.team_b_player_2
-      ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
+      ? buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'Team B')
       : undefined
 
     const servingTeam = match.serving_team as 'a' | 'b'
@@ -523,10 +524,10 @@ export default function CourtDisplay() {
   // Show set win overlay
   if (showSetWin && setWinData && match) {
     const teamAName = match.team_a_player_1 || match.team_a_player_2
-      ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
+      ? buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')
       : undefined
     const teamBName = match.team_b_player_1 || match.team_b_player_2
-      ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
+      ? buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'Team B')
       : undefined
 
     return (
@@ -568,18 +569,14 @@ export default function CourtDisplay() {
   // Get data for left side (always darker background)
   const leftTeamData = teamOnLeft === 'a' 
     ? {
-        name: match.team_a_player_1 || match.team_a_player_2 
-          ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
-          : 'TEAM A',
+        name: buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'TEAM A'),
         points: match.team_a_points,
         games: match.team_a_games,
         setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
         team: 'a' as const
       }
     : {
-        name: match.team_b_player_1 || match.team_b_player_2 
-          ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
-          : 'TEAM B',
+        name: buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'TEAM B'),
         points: match.team_b_points,
         games: match.team_b_games,
         setsWon: setScores.filter((s) => s.team_b > s.team_a).length,
@@ -589,18 +586,14 @@ export default function CourtDisplay() {
   // Get data for right side (always lighter background)
   const rightTeamData = teamOnRight === 'a'
     ? {
-        name: match.team_a_player_1 || match.team_a_player_2 
-          ? [match.team_a_player_1, match.team_a_player_2].filter(Boolean).join(' / ')
-          : 'TEAM A',
+        name: buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'TEAM A'),
         points: match.team_a_points,
         games: match.team_a_games,
         setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
         team: 'a' as const
       }
     : {
-        name: match.team_b_player_1 || match.team_b_player_2 
-          ? [match.team_b_player_1, match.team_b_player_2].filter(Boolean).join(' / ')
-          : 'TEAM B',
+        name: buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'TEAM B'),
         points: match.team_b_points,
         games: match.team_b_games,
         setsWon: setScores.filter((s) => s.team_b > s.team_a).length,

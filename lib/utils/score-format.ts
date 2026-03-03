@@ -40,6 +40,28 @@ export function buildTeamName(
   return `${names[0]} / ${names[1]}`
 }
 
+/** First 3 letters of surname (uppercase) for display on control panel. */
+export function abbreviateSurname(name: string | null | undefined): string {
+  if (!name?.trim()) return '---'
+  const parts = name.trim().split(/\s+/)
+  const lastName = parts[parts.length - 1]
+  return lastName.substring(0, 3).toUpperCase()
+}
+
+/** Team name built from abbreviated surnames only (e.g. "SMI / DOE"). */
+export function buildTeamNameAbbreviated(
+  player1: string | null | undefined,
+  player2: string | null | undefined,
+  fallback: string
+): string {
+  const abbrevs: string[] = []
+  if (player1) abbrevs.push(abbreviateSurname(player1))
+  if (player2) abbrevs.push(abbreviateSurname(player2))
+  if (abbrevs.length === 0) return fallback
+  if (abbrevs.length === 1) return abbrevs[0]
+  return `${abbrevs[0]} / ${abbrevs[1]}`
+}
+
 /**
  * Format game duration as MM:SS from started_at.
  * If endAt is provided (e.g. completed_at), uses that as end time.
