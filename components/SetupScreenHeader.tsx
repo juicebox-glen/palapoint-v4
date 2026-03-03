@@ -12,14 +12,11 @@ export default function SetupScreenHeader({
   return (
     <header className={`setup-header ${rightContent ? 'setup-header--spread' : ''}`}>
       <div className="setup-header-left">
-        <div className="setup-logo-mark">
-          <span className="setup-logo-l" />
-          <span className="setup-logo-square" />
-        </div>
-        <h1 className="setup-brand">
-          <span className="setup-brand-square">SQUARE</span>
-          <span className="setup-brand-one">ONE</span>
-        </h1>
+        <img
+          src="/images/squareone-logo.png"
+          alt="Square One"
+          className="setup-logo-img"
+        />
       </div>
       {rightContent && <div className="setup-header-right">{rightContent}</div>}
     </header>

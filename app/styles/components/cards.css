@@ -1,0 +1,67 @@
+/* ============================================
+   SHARED CARD STYLES
+   ============================================ */
+
+/* Base card */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+}
+
+/* Card with subtle glow */
+.card-elevated {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-md);
+}
+
+/* Card header/title */
+.card-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+/* Interactive card (selectable) */
+.card-interactive {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.card-interactive:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-light);
+}
+
+.card-interactive.active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+/* Result card - for showing scores/results */
+.card-result {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.card-result.team-a-winner {
+  border-top: 3px solid var(--team-a);
+}
+
+.card-result.team-b-winner {
+  border-top: 3px solid var(--team-b);
+}

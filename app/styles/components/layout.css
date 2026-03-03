@@ -1,0 +1,82 @@
+/* ============================================
+   SHARED LAYOUT STYLES
+   ============================================ */
+
+/* Page container */
+.page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Page with padding */
+.page-padded {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 1rem;
+}
+
+/* Page header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.page-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-badge.live .status-badge-dot {
+  background: var(--color-success);
+}
+
+.status-badge.ready .status-badge-dot {
+  background: var(--brand-primary);
+}
+
+.status-badge.finished .status-badge-dot {
+  background: var(--brand-primary);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border-default);
+  margin: 1.5rem 0;
+}
+
+/* Stack - vertical spacing */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stack-sm { gap: 0.5rem; }
+.stack-lg { gap: 1.5rem; }
+.stack-xl { gap: 2rem; }

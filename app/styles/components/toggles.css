@@ -1,0 +1,63 @@
+/* ============================================
+   SHARED TOGGLE & PILL STYLES
+   ============================================ */
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.toggle.active {
+  background: var(--brand-primary);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: var(--text-primary);
+  border-radius: 50%;
+  transition: transform var(--transition-normal);
+}
+
+.toggle.active .toggle-knob {
+  transform: translateX(24px);
+}
+
+/* Pill group (segmented control) */
+.pill-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pill {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.pill:hover {
+  background: var(--bg-hover);
+}
+
+.pill.active {
+  color: var(--text-primary);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
