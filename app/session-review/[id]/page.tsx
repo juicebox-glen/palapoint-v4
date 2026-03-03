@@ -101,8 +101,11 @@ export default function SessionReviewPage() {
     loadData()
   }, [sessionId])
 
-  const abbreviate = (name: string | null | undefined): string => {
-    if (!name) return '---'
+  const getTeamLabel = (
+    name: string | null | undefined,
+    fallback: string
+  ): string => {
+    if (!name?.trim()) return fallback
     const parts = name.trim().split(' ')
     const lastName = parts[parts.length - 1]
     return lastName.substring(0, 3).toUpperCase()
@@ -121,7 +124,7 @@ export default function SessionReviewPage() {
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtName || 'Court'} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
@@ -164,19 +167,19 @@ export default function SessionReviewPage() {
               </p>
             ) : (
               games.map((game) => {
+                const lastSet = game.set_scores?.length
+                  ? game.set_scores[game.set_scores.length - 1]
+                  : null
                 const teamAScore =
-                  game.set_scores?.[0]?.team_a_games ??
-                  game.set_scores?.[0]?.team_a ??
+                  lastSet?.team_a_games ??
+                  lastSet?.team_a ??
                   game.team_a_games ??
                   0
                 const teamBScore =
-                  game.set_scores?.[0]?.team_b_games ??
-                  game.set_scores?.[0]?.team_b ??
+                  lastSet?.team_b_games ??
+                  lastSet?.team_b ??
                   game.team_b_games ??
                   0
-                const isAbandoned =
-                  game.status === 'abandoned' ||
-                  (!game.winner && teamAScore === 0 && teamBScore === 0)
 
                 return (
                   <div
@@ -194,7 +197,7 @@ export default function SessionReviewPage() {
                       // TODO: Navigate to game detail
                     }}
                   >
-                    {/* Team A abbreviated names */}
+                    {/* Team A - default to Team A if no names */}
                     <div
                       style={{
                         flex: 1,
@@ -210,7 +213,7 @@ export default function SessionReviewPage() {
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        {abbreviate(game.team_a_player_1)}
+                        {getTeamLabel(game.team_a_player_1, 'Team A')}
                       </span>
                       <span
                         style={{
@@ -219,11 +222,11 @@ export default function SessionReviewPage() {
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        {abbreviate(game.team_a_player_2)}
+                        {getTeamLabel(game.team_a_player_2, '')}
                       </span>
                     </div>
 
-                    {/* Score (large) */}
+                    {/* Score - always show last score, 0-0 if none */}
                     <div
                       style={{
                         display: 'flex',
@@ -242,7 +245,7 @@ export default function SessionReviewPage() {
                           textAlign: 'right',
                         }}
                       >
-                        {isAbandoned ? '-' : teamAScore}
+                        {teamAScore}
                       </span>
                       <span
                         style={{
@@ -262,11 +265,11 @@ export default function SessionReviewPage() {
                           textAlign: 'left',
                         }}
                       >
-                        {isAbandoned ? '-' : teamBScore}
+                        {teamBScore}
                       </span>
                     </div>
 
-                    {/* Team B abbreviated names */}
+                    {/* Team B - default to Team B if no names */}
                     <div
                       style={{
                         flex: 1,
@@ -283,7 +286,7 @@ export default function SessionReviewPage() {
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        {abbreviate(game.team_b_player_1)}
+                        {getTeamLabel(game.team_b_player_1, 'Team B')}
                       </span>
                       <span
                         style={{
@@ -292,7 +295,7 @@ export default function SessionReviewPage() {
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        {abbreviate(game.team_b_player_2)}
+                        {getTeamLabel(game.team_b_player_2, '')}
                       </span>
                     </div>
 

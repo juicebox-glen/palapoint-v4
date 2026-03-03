@@ -447,7 +447,7 @@ export default function PlayingPage() {
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
@@ -462,7 +462,7 @@ export default function PlayingPage() {
   if (!court) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="stack stack-xl"
           style={{
@@ -491,7 +491,7 @@ export default function PlayingPage() {
   if (sessionState && !sessionState.valid) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtName} />
+        <Header />
         <div
           className="stack stack-xl"
           style={{
@@ -522,7 +522,7 @@ export default function PlayingPage() {
   if (!sessionId) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtName} />
+        <Header />
         <div
           className="stack stack-xl"
           style={{

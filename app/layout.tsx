@@ -13,7 +13,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        {process.env.NODE_ENV === 'development' && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 4,
+              right: 4,
+              fontSize: '10px',
+              color: 'rgba(255,255,255,0.3)',
+              pointerEvents: 'none',
+              zIndex: 9999,
+            }}
+          >
+            v{Date.now()}
+          </div>
+        )}
+      </body>
     </html>
   )
 }

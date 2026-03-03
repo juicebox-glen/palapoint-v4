@@ -480,7 +480,7 @@ export default function ControlPanelPage() {
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
@@ -494,7 +494,7 @@ export default function ControlPanelPage() {
   if (error && !match) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}

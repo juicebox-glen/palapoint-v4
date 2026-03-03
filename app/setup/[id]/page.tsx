@@ -361,7 +361,7 @@ export default function SetupPage() {
   if (loading || sessionLoading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
@@ -386,7 +386,7 @@ export default function SetupPage() {
   if (error && !court) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header courtName={courtIdentifier} />
+        <Header />
         <div
           className="page-loading"
           style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
