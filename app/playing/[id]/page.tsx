@@ -36,6 +36,176 @@ interface SessionState {
   session?: unknown
 }
 
+interface TeamMatchupCardProps {
+  teamAPlayer1?: string | null
+  teamAPlayer2?: string | null
+  teamBPlayer1?: string | null
+  teamBPlayer2?: string | null
+  subtitle: string
+  title?: string
+}
+
+const TeamMatchupCard = ({
+  teamAPlayer1,
+  teamAPlayer2,
+  teamBPlayer1,
+  teamBPlayer2,
+  subtitle,
+  title = 'Match Ready',
+}: TeamMatchupCardProps) => {
+  const abbreviate = (name: string | null | undefined): string => {
+    if (!name) return '---'
+    const parts = name.trim().split(' ')
+    const lastName = parts[parts.length - 1]
+    return lastName.substring(0, 3).toUpperCase()
+  }
+
+  const hasTeamANames = !!(teamAPlayer1?.trim() || teamAPlayer2?.trim())
+  const hasTeamBNames = !!(teamBPlayer1?.trim() || teamBPlayer2?.trim())
+
+  return (
+    <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+      <h2
+        style={{
+          fontSize: '1.25rem',
+          fontWeight: 600,
+          marginBottom: '1rem',
+        }}
+      >
+        {title}
+      </h2>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          background: 'var(--bg-tertiary)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1rem',
+          position: 'relative',
+          minHeight: '5rem',
+        }}
+      >
+        {/* Team A */}
+        <div
+          style={{
+            flex: 1,
+            padding: '0.75rem',
+            borderLeft: '3px solid var(--team-a)',
+            textAlign: 'center',
+          }}
+        >
+          {hasTeamANames ? (
+            <>
+              <div
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {abbreviate(teamAPlayer1)}
+              </div>
+              <div
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {abbreviate(teamAPlayer2)}
+              </div>
+            </>
+          ) : (
+            <div
+              style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                lineHeight: 1.4,
+              }}
+            >
+              Team A
+            </div>
+          )}
+        </div>
+
+        {/* VS */}
+        <div
+          style={{
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            padding: '0 0.5rem',
+          }}
+        >
+          VS
+        </div>
+
+        {/* Team B */}
+        <div
+          style={{
+            flex: 1,
+            padding: '0.75rem',
+            borderRight: '3px solid var(--team-b)',
+            textAlign: 'center',
+          }}
+        >
+          {hasTeamBNames ? (
+            <>
+              <div
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {abbreviate(teamBPlayer1)}
+              </div>
+              <div
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {abbreviate(teamBPlayer2)}
+              </div>
+            </>
+          ) : (
+            <div
+              style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                lineHeight: 1.4,
+              }}
+            >
+              Team B
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p
+        style={{
+          color: 'var(--text-secondary)',
+          fontSize: '0.9rem',
+          marginTop: '1rem',
+        }}
+      >
+        {subtitle}
+      </p>
+    </div>
+  )
+}
+
 export default function PlayingPage() {
   const params = useParams()
   const router = useRouter()
@@ -374,7 +544,7 @@ export default function PlayingPage() {
     match.team_b_games === 0
 
   // 4. MATCH READY STATE
-  if (isMatchReady) {
+  if (isMatchReady && match) {
     return (
       <div className="page page-padded">
         <Header
@@ -382,46 +552,18 @@ export default function PlayingPage() {
           statusText="READY"
           courtName={courtName}
         />
-        <div className="stack" style={{ flex: 1 }}>
-          <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              style={{ margin: '0 auto 1rem', color: 'var(--brand-primary)' }}
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path
-                d="M12 2C8 2 4.5 5 4.5 9.5C4.5 14 8 17 12 22"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-              <path
-                d="M12 2C16 2 19.5 5 19.5 9.5C19.5 14 16 17 12 22"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-            <h1
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-              }}
-            >
-              Match Ready
-            </h1>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Press a button on court to begin
-            </p>
-          </div>
+        <div
+          className="stack"
+          style={{ flex: 1, justifyContent: 'flex-start', paddingTop: '1rem' }}
+        >
+          <TeamMatchupCard
+            teamAPlayer1={match.team_a_player_1}
+            teamAPlayer2={match.team_a_player_2}
+            teamBPlayer1={match.team_b_player_1}
+            teamBPlayer2={match.team_b_player_2}
+            title="Match Ready"
+            subtitle="Press a button on court to begin"
+          />
         </div>
         <button className="btn btn-danger btn-block" onClick={handleEndGame}>
           End Game
@@ -554,21 +696,18 @@ export default function PlayingPage() {
   return (
     <div className="page page-padded">
       <Header status="live" statusText="LIVE" courtName={courtName} />
-      <div className="stack" style={{ flex: 1 }}>
-        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 600,
-              marginBottom: '0.5rem',
-            }}
-          >
-            Game in Progress
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Use the court buttons to score
-          </p>
-        </div>
+      <div
+        className="stack"
+        style={{ flex: 1, justifyContent: 'flex-start', paddingTop: '1rem' }}
+      >
+        <TeamMatchupCard
+          teamAPlayer1={match?.team_a_player_1}
+          teamAPlayer2={match?.team_a_player_2}
+          teamBPlayer1={match?.team_b_player_1}
+          teamBPlayer2={match?.team_b_player_2}
+          title="Game in Progress"
+          subtitle="Use the court buttons to score"
+        />
       </div>
       <button className="btn btn-danger btn-block" onClick={handleEndGame}>
         End Game
