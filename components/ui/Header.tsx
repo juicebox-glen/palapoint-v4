@@ -16,7 +16,13 @@ export default function Header({
   return (
     <>
       {showLogo && (
-        <div className="page-header-center">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            paddingBottom: '0.75rem',
+          }}
+        >
           <img
             src="/images/squareone-logo.png"
             alt="Square One"
@@ -26,7 +32,14 @@ export default function Header({
       )}
 
       {(status || courtName) && (
-        <div className="page-header">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: '0.75rem',
+          }}
+        >
           {status && (
             <div className={`status-badge ${status}`}>
               <span className="status-badge-dot"></span>
@@ -39,6 +52,7 @@ export default function Header({
                 color: 'var(--text-secondary)',
                 fontSize: '0.875rem',
                 textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
               {courtName}

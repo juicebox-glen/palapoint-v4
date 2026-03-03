@@ -1,7 +1,7 @@
 .playing-container {
   min-height: 100vh;
-  background: var(--color-bg-primary, #121212);
-  color: var(--color-text-primary, #fff);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
@@ -26,14 +26,14 @@
 }
 
 .playing-abandoned-label {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
 
 .playing-session-ended p,
 .playing-no-session p {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -52,13 +52,13 @@
 }
 
 .playing-live-badge {
-  color: #22c55e;
+  color: var(--color-success);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .playing-court-name {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -74,7 +74,7 @@
 }
 
 .playing-message p {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
 }
 
 /* Mini Score Display — uses setup-section for glass card look */
@@ -95,7 +95,7 @@
 
 .playing-mini-name {
   font-size: 0.8rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -107,7 +107,7 @@
 .playing-mini-games {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   padding: 0 1rem;
 }
 
@@ -120,14 +120,14 @@
 
 .playing-btn-test-a {
   flex: 1;
-  background: var(--color-team-a, #03a97c);
-  color: white;
+  background: var(--team-a);
+  color: var(--text-primary);
 }
 
 .playing-btn-test-b {
   flex: 1;
-  background: var(--color-team-b, #e85d04);
-  color: white;
+  background: var(--team-b);
+  color: var(--text-primary);
 }
 
 .playing-session-actions {
@@ -150,7 +150,7 @@
 .playing-complete-header h1 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -168,7 +168,7 @@
 
 .playing-winner-label {
   font-size: 1rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 1rem;
@@ -203,23 +203,23 @@
 }
 
 .playing-btn-primary {
-  background: var(--color-team-a, #03a97c);
-  color: white;
+  background: var(--team-a);
+  color: var(--text-primary);
 }
 
 .playing-btn-secondary {
-  background: var(--color-bg-secondary, #1E1E1F);
-  color: var(--color-text-primary, #fff);
-  border: 1px solid var(--color-text-secondary, #B3B3B3);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--text-secondary);
 }
 
 .playing-btn-danger {
-  background: #ef4444;
-  color: white;
+  background: var(--color-error);
+  color: var(--text-primary);
 }
 
 .playing-btn-danger-outline {
   background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
 }

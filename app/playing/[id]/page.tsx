@@ -64,12 +64,21 @@ const TeamMatchupCard = ({
   const hasTeamBNames = !!(teamBPlayer1?.trim() || teamBPlayer2?.trim())
 
   return (
-    <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+    <div
+      style={{
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-xl)',
+        padding: '1.25rem',
+      }}
+    >
       <h2
         style={{
-          fontSize: '1.25rem',
+          fontSize: '1.125rem',
           fontWeight: 600,
+          textAlign: 'center',
           marginBottom: '1rem',
+          color: 'var(--text-primary)',
         }}
       >
         {title}
@@ -78,13 +87,10 @@ const TeamMatchupCard = ({
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
+          alignItems: 'stretch',
           background: 'var(--bg-tertiary)',
           borderRadius: 'var(--radius-lg)',
-          padding: '1rem',
-          position: 'relative',
+          overflow: 'hidden',
           minHeight: '5rem',
         }}
       >
@@ -92,55 +98,58 @@ const TeamMatchupCard = ({
         <div
           style={{
             flex: 1,
-            padding: '0.75rem',
+            padding: '1rem',
             borderLeft: '3px solid var(--team-a)',
-            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.25rem',
           }}
         >
           {hasTeamANames ? (
             <>
-              <div
+              <span
                 style={{
                   fontSize: '1rem',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
-                  lineHeight: 1.4,
                 }}
               >
                 {abbreviate(teamAPlayer1)}
-              </div>
-              <div
+              </span>
+              <span
                 style={{
                   fontSize: '1rem',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
-                  lineHeight: 1.4,
                 }}
               >
                 {abbreviate(teamAPlayer2)}
-              </div>
+              </span>
             </>
           ) : (
-            <div
+            <span
               style={{
                 fontSize: '1rem',
                 fontWeight: 600,
                 color: 'var(--text-primary)',
-                lineHeight: 1.4,
               }}
             >
               Team A
-            </div>
+            </span>
           )}
         </div>
 
         {/* VS */}
         <div
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 1rem',
             fontSize: '0.875rem',
             fontWeight: 600,
             color: 'var(--text-muted)',
-            padding: '0 0.5rem',
           }}
         >
           VS
@@ -150,45 +159,46 @@ const TeamMatchupCard = ({
         <div
           style={{
             flex: 1,
-            padding: '0.75rem',
+            padding: '1rem',
             borderRight: '3px solid var(--team-b)',
-            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.25rem',
           }}
         >
           {hasTeamBNames ? (
             <>
-              <div
+              <span
                 style={{
                   fontSize: '1rem',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
-                  lineHeight: 1.4,
                 }}
               >
                 {abbreviate(teamBPlayer1)}
-              </div>
-              <div
+              </span>
+              <span
                 style={{
                   fontSize: '1rem',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
-                  lineHeight: 1.4,
                 }}
               >
                 {abbreviate(teamBPlayer2)}
-              </div>
+              </span>
             </>
           ) : (
-            <div
+            <span
               style={{
                 fontSize: '1rem',
                 fontWeight: 600,
                 color: 'var(--text-primary)',
-                lineHeight: 1.4,
               }}
             >
               Team B
-            </div>
+            </span>
           )}
         </div>
       </div>
@@ -196,7 +206,8 @@ const TeamMatchupCard = ({
       <p
         style={{
           color: 'var(--text-secondary)',
-          fontSize: '0.9rem',
+          fontSize: '0.875rem',
+          textAlign: 'center',
           marginTop: '1rem',
         }}
       >
@@ -435,7 +446,7 @@ export default function PlayingPage() {
   // 1. LOADING STATE
   if (loading) {
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <div className="page-loading">
           <p>Loading...</p>
         </div>
@@ -446,7 +457,7 @@ export default function PlayingPage() {
   // Court not found
   if (!court) {
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header courtName={courtIdentifier} />
         <div
           className="stack stack-xl"
@@ -475,7 +486,7 @@ export default function PlayingPage() {
   // 2. SESSION ENDED STATE
   if (sessionState && !sessionState.valid) {
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header courtName={courtName} />
         <div
           className="stack stack-xl"
@@ -506,7 +517,7 @@ export default function PlayingPage() {
   // 3. NO SESSION STATE
   if (!sessionId) {
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header courtName={courtName} />
         <div
           className="stack stack-xl"
@@ -546,16 +557,13 @@ export default function PlayingPage() {
   // 4. MATCH READY STATE
   if (isMatchReady && match) {
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header
           status="ready"
           statusText="READY"
           courtName={courtName}
         />
-        <div
-          className="stack"
-          style={{ flex: 1, justifyContent: 'flex-start', paddingTop: '1rem' }}
-        >
+        <div style={{ flex: 1, marginTop: '1.875rem' }}>
           <TeamMatchupCard
             teamAPlayer1={match.team_a_player_1}
             teamAPlayer2={match.team_a_player_2}
@@ -565,9 +573,11 @@ export default function PlayingPage() {
             subtitle="Press a button on court to begin"
           />
         </div>
-        <button className="btn btn-danger btn-block" onClick={handleEndGame}>
-          End Game
-        </button>
+        <div style={{ paddingTop: '1rem' }}>
+          <button className="btn btn-danger btn-block" onClick={handleEndGame}>
+            End Game
+          </button>
+        </div>
       </div>
     )
   }
@@ -621,15 +631,25 @@ export default function PlayingPage() {
     const winnerTeam = match.winner === 'a' ? 'team-a' : 'team-b'
 
     return (
-      <div className="page page-padded">
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header
           status="finished"
           statusText={isAbandoned ? 'GAME ENDED' : 'GAME FINISHED'}
           courtName={courtName}
         />
-        <div className="stack" style={{ flex: 1 }}>
+        <div style={{ flex: 1, marginTop: '1.875rem' }}>
           <div
-            className={`card card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
+            className={`card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-default)',
+              ...(hasWinner && {
+                borderTop: `3px solid var(--${winnerTeam})`,
+              }),
+              borderRadius: 'var(--radius-xl)',
+              padding: '1.5rem',
+              textAlign: 'center',
+            }}
           >
             {hasWinner && winnerName && (
               <p
@@ -650,6 +670,7 @@ export default function PlayingPage() {
                 fontSize: '3rem',
                 fontWeight: 700,
                 fontVariantNumeric: 'tabular-nums',
+                color: 'var(--text-primary)',
               }}
             >
               {finalScore.replace(', ', ' - ')}
@@ -667,7 +688,7 @@ export default function PlayingPage() {
             )}
           </div>
         </div>
-        <div className="stack">
+        <div className="stack" style={{ paddingTop: '1rem' }}>
           <button
             className="btn btn-primary btn-block"
             onClick={handlePlayAgain}
@@ -694,12 +715,9 @@ export default function PlayingPage() {
 
   // 6. GAME IN PROGRESS STATE
   return (
-    <div className="page page-padded">
+    <div className="page page-padded" style={{ paddingTop: '1rem' }}>
       <Header status="live" statusText="LIVE" courtName={courtName} />
-      <div
-        className="stack"
-        style={{ flex: 1, justifyContent: 'flex-start', paddingTop: '1rem' }}
-      >
+      <div style={{ flex: 1, marginTop: '1.875rem' }}>
         <TeamMatchupCard
           teamAPlayer1={match?.team_a_player_1}
           teamAPlayer2={match?.team_a_player_2}
@@ -709,9 +727,11 @@ export default function PlayingPage() {
           subtitle="Use the court buttons to score"
         />
       </div>
-      <button className="btn btn-danger btn-block" onClick={handleEndGame}>
-        End Game
-      </button>
+      <div style={{ paddingTop: '1rem' }}>
+        <button className="btn btn-danger btn-block" onClick={handleEndGame}>
+          End Game
+        </button>
+      </div>
     </div>
   )
 }

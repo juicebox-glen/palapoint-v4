@@ -32,13 +32,13 @@
   
   /* ----------------------------------------
      BACKGROUNDS
-     Dark theme foundation
+     Dark theme foundation - matches setup page
      ---------------------------------------- */
-  --bg-primary: #0A0A0B;         /* Darkest - page background */
-  --bg-secondary: #121214;       /* Cards, elevated surfaces */
-  --bg-tertiary: #1A1A1E;        /* Inputs, nested elements */
-  --bg-hover: #222228;           /* Hover states */
-  --bg-active: #2A2A32;          /* Active/pressed states */
+  --bg-primary: #0E1116;         /* Page background */
+  --bg-secondary: #151A22;       /* Cards, sections, elevated surfaces */
+  --bg-tertiary: #2A3140;        /* Inputs, inactive buttons, inner elements */
+  --bg-hover: #343D4D;           /* Hover states (slightly lighter than tertiary) */
+  --bg-active: #3E4859;         /* Active/pressed states */
   
   /* ----------------------------------------
      TEXT
@@ -51,8 +51,8 @@
   /* ----------------------------------------
      BORDERS
      ---------------------------------------- */
-  --border-default: #2A2A32;
-  --border-light: #1E1E24;
+  --border-default: #2A3140;     /* Same as tertiary for subtle borders */
+  --border-light: #1E2530;       /* Subtle dividers */
   --border-focus: var(--brand-primary);
   
   /* ----------------------------------------

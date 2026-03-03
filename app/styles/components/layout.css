@@ -5,6 +5,7 @@
 /* Page container */
 .page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-primary);
   color: var(--text-primary);
 }
@@ -12,6 +13,7 @@
 /* Page with padding */
 .page-padded {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-primary);
   color: var(--text-primary);
   padding: 1rem;
