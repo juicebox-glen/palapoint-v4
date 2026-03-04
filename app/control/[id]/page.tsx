@@ -601,14 +601,14 @@ export default function ControlPanelPage() {
             onClick={handlePlayAgain}
             disabled={!!actionLoading}
           >
-            {actionLoading === 'play_again' ? 'Starting...' : 'Play Again'}
+            {actionLoading === 'play_again' ? 'Starting...' : 'Rematch'}
           </button>
           <button
             className="btn btn-secondary btn-block"
             onClick={handleNewGame}
             disabled={!!actionLoading}
           >
-            New Game
+            Edit Match
           </button>
         </div>
       </div>
