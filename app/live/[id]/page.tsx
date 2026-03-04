@@ -135,13 +135,42 @@ export default function LivePage() {
     }
   }
 
-  const getSetsWon = (team: 'a' | 'b'): number => {
-    if (!match?.set_scores) return 0
-    return match.set_scores.filter((set) => {
-      const teamA = set.team_a ?? 0
-      const teamB = set.team_b ?? 0
-      return team === 'a' ? teamA > teamB : teamB > teamA
-    }).length
+  // Build score columns dynamically based on set history
+  const getScoreColumns = (m: MatchState) => {
+    const columns: { teamA: string | number; teamB: string | number; isPoints?: boolean; isPastSet?: boolean }[] = []
+
+    // Add completed set scores
+    if (m.set_scores && m.set_scores.length > 0) {
+      m.set_scores.forEach((set: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }, index: number) => {
+        const teamAGames = set.team_a_games ?? set.team_a ?? 0
+        const teamBGames = set.team_b_games ?? set.team_b ?? 0
+        const isCurrentSet = index === m.set_scores!.length - 1 && m.status === 'in_progress'
+
+        if (!isCurrentSet) {
+          columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true })
+        }
+      })
+    }
+
+    // Add current games
+    columns.push({ teamA: m.team_a_games, teamB: m.team_b_games, isPastSet: false })
+
+    // Add current points (use formatPointDisplay for advantage/deuce)
+    const pointsA = formatPointDisplay(
+      m.team_a_points,
+      m.team_b_points,
+      m.is_tiebreak ?? false,
+      m.is_tiebreak ? m.tiebreak_scores?.team_a : undefined
+    )
+    const pointsB = formatPointDisplay(
+      m.team_b_points,
+      m.team_a_points,
+      m.is_tiebreak ?? false,
+      m.is_tiebreak ? m.tiebreak_scores?.team_b : undefined
+    )
+    columns.push({ teamA: pointsA, teamB: pointsB, isPoints: true })
+
+    return columns
   }
 
   if (loading) {
@@ -184,21 +213,6 @@ export default function LivePage() {
       </div>
     )
   }
-
-  const teamASets = getSetsWon('a')
-  const teamBSets = getSetsWon('b')
-  const pointsA = formatPointDisplay(
-    match.team_a_points,
-    match.team_b_points,
-    match.is_tiebreak ?? false,
-    match.is_tiebreak ? match.tiebreak_scores?.team_a : undefined
-  )
-  const pointsB = formatPointDisplay(
-    match.team_b_points,
-    match.team_a_points,
-    match.is_tiebreak ?? false,
-    match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
-  )
 
   return (
     <div className="spectator-container">
@@ -247,15 +261,14 @@ export default function LivePage() {
             {match.serving_team === 'a' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
-            <span className="spectator-score spectator-score-sets">
-              {teamASets}
-            </span>
-            <span className="spectator-score spectator-score-games">
-              {match.team_a_games}
-            </span>
-            <span className="spectator-score spectator-score-points">
-              {pointsA}
-            </span>
+            {getScoreColumns(match).map((col, i) => (
+              <span
+                key={i}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'}`}
+              >
+                {col.teamA}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -274,15 +287,14 @@ export default function LivePage() {
             {match.serving_team === 'b' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
-            <span className="spectator-score spectator-score-sets">
-              {teamBSets}
-            </span>
-            <span className="spectator-score spectator-score-games">
-              {match.team_b_games}
-            </span>
-            <span className="spectator-score spectator-score-points">
-              {pointsB}
-            </span>
+            {getScoreColumns(match).map((col, i) => (
+              <span
+                key={i}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'}`}
+              >
+                {col.teamB}
+              </span>
+            ))}
           </div>
         </div>
       </div>
