@@ -84,6 +84,15 @@
   border-radius: 50%;
 }
 
+/* Final/Completed state - green dot, no animation */
+.spectator-final-dot {
+  width: clamp(10px, 2vh, 20px);
+  height: clamp(10px, 2vh, 20px);
+  background: var(--color-success);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 @keyframes pulse-live {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -133,7 +142,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: clamp(12px, 2vh, 24px);
-  padding: clamp(1.5rem, 5vh, 4rem) clamp(2rem, 4vw, 5rem);
+  padding: clamp(1rem, 3.5vh, 2.5rem) clamp(2rem, 4vw, 5rem);
   border-left: clamp(5px, 1vh, 10px) solid;
   min-height: clamp(120px, 30vh, 280px);
 }
@@ -150,30 +159,34 @@
 .spectator-card-names {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.5rem, 1.5vh, 1rem);
+  gap: clamp(0.75rem, 2vh, 1.25rem);
 }
 
 .spectator-player-name {
   font-size: clamp(1.25rem, 5vh, 3.5rem);
   font-weight: 500;
-  color: var(--text-primary);
+  color: rgba(230, 234, 242, 1);
   line-height: 1.2;
 }
 
-/* Scores - fixed width columns to prevent shifting */
+/* Scores - fixed width columns to prevent shifting when score changes */
 .spectator-card-scores {
   display: flex;
   align-items: center;
-  gap: clamp(0.5rem, 1.5vw, 2rem);
+  justify-content: flex-end;
+  gap: clamp(3.6rem, 8vw, 8rem);
+  padding-right: clamp(2rem, 5vw, 6rem);
 }
 
 .spectator-score {
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  text-align: center;
-  font-size: clamp(3rem, 15vh, 12rem);
-  width: clamp(3rem, 12vh, 10rem);
+  text-align: right;
+  font-size: clamp(3rem, 15vh, 20rem);
+  width: clamp(4rem, 12vh, 10rem);
+  min-width: clamp(4rem, 12vh, 10rem);
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .spectator-score-past-set {
@@ -186,6 +199,13 @@
 
 .spectator-score-points {
   color: var(--text-primary);
+  width: clamp(5rem, 16vh, 14rem);
+  min-width: clamp(5rem, 16vh, 14rem);
+}
+
+/* Winning team's final set score */
+.spectator-score-winner {
+  color: #E6EAF2;
 }
 
 .spectator-serving-dot {

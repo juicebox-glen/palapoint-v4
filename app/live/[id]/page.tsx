@@ -48,7 +48,9 @@ export default function LivePage() {
           .from('live_matches')
           .select('*')
           .eq('court_id', courtId)
-          .in('status', ['setup', 'in_progress'])
+          .in('status', ['in_progress', 'completed', 'abandoned'])
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle()
 
         if (fetchError) {
@@ -81,20 +83,15 @@ export default function LivePage() {
           const eventType =
             payload.eventType ?? (payload as { event?: string }).event
           if (eventType === 'DELETE') {
-            setMatch(null)
+            // Don't clear on delete - keep final score visible until new match starts
             return
           }
           const record =
             payload.new ??
             (payload as { data?: { record?: unknown } }).data?.record
           const updatedMatch = record as MatchState | undefined
-          if (
-            updatedMatch?.status === 'setup' ||
-            updatedMatch?.status === 'in_progress'
-          ) {
+          if (updatedMatch) {
             setMatch(updatedMatch)
-          } else {
-            setMatch(null)
           }
         }
       )
@@ -115,7 +112,9 @@ export default function LivePage() {
         .from('live_matches')
         .select('*')
         .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress'])
+        .in('status', ['in_progress', 'completed', 'abandoned'])
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle()
       if (data) setMatch(data as MatchState)
     }, 5000)
@@ -136,39 +135,53 @@ export default function LivePage() {
   }
 
   // Build score columns dynamically based on set history
+  // set_scores contains only COMPLETED sets. For completed matches, only show set scores (no points column).
   const getScoreColumns = (m: MatchState) => {
-    const columns: { teamA: string | number; teamB: string | number; isPoints?: boolean; isPastSet?: boolean }[] = []
+    const columns: { teamA: string | number; teamB: string | number; isPoints?: boolean; isPastSet?: boolean; isFinalSet?: boolean }[] = []
+    const isMatchComplete = m.status === 'completed' || m.status === 'abandoned' || m.winner
 
-    // Add completed set scores
-    if (m.set_scores && m.set_scores.length > 0) {
-      m.set_scores.forEach((set: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }, index: number) => {
+    // Add completed set scores from set_scores array
+    if (m.set_scores && Array.isArray(m.set_scores)) {
+      m.set_scores.forEach((set: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }, idx: number) => {
         const teamAGames = set.team_a_games ?? set.team_a ?? 0
         const teamBGames = set.team_b_games ?? set.team_b ?? 0
-        const isCurrentSet = index === m.set_scores!.length - 1 && m.status === 'in_progress'
-
-        if (!isCurrentSet) {
-          columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true })
-        }
+        const isLastSet = idx === m.set_scores!.length - 1
+        columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true, isFinalSet: isMatchComplete && isLastSet })
       })
     }
 
-    // Add current games
-    columns.push({ teamA: m.team_a_games, teamB: m.team_b_games, isPastSet: false })
+    // For completed matches with no set_scores, show final games as the only set
+    if (isMatchComplete && columns.length === 0) {
+      columns.push({
+        teamA: m.team_a_games ?? 0,
+        teamB: m.team_b_games ?? 0,
+        isPastSet: true,
+        isFinalSet: true,
+      })
+    }
 
-    // Add current points (use formatPointDisplay for advantage/deuce)
-    const pointsA = formatPointDisplay(
-      m.team_a_points,
-      m.team_b_points,
-      m.is_tiebreak ?? false,
-      m.is_tiebreak ? m.tiebreak_scores?.team_a : undefined
-    )
-    const pointsB = formatPointDisplay(
-      m.team_b_points,
-      m.team_a_points,
-      m.is_tiebreak ?? false,
-      m.is_tiebreak ? m.tiebreak_scores?.team_b : undefined
-    )
-    columns.push({ teamA: pointsA, teamB: pointsB, isPoints: true })
+    // Only show current games and points if match is still in progress
+    if (!isMatchComplete) {
+      columns.push({
+        teamA: m.team_a_games ?? 0,
+        teamB: m.team_b_games ?? 0,
+        isPastSet: false,
+      })
+
+      const pointsA = formatPointDisplay(
+        m.team_a_points ?? 0,
+        m.team_b_points ?? 0,
+        m.is_tiebreak ?? false,
+        m.is_tiebreak ? m.tiebreak_scores?.team_a : undefined
+      )
+      const pointsB = formatPointDisplay(
+        m.team_b_points ?? 0,
+        m.team_a_points ?? 0,
+        m.is_tiebreak ?? false,
+        m.is_tiebreak ? m.tiebreak_scores?.team_b : undefined
+      )
+      columns.push({ teamA: pointsA, teamB: pointsB, isPoints: true })
+    }
 
     return columns
   }
@@ -214,9 +227,11 @@ export default function LivePage() {
     )
   }
 
+  const isMatchComplete = match.status === 'completed' || match.status === 'abandoned' || match.winner
+
   return (
     <div className="spectator-container">
-      {/* Header: Logo | (Game mode + LIVE badge) right-aligned */}
+      {/* Header: Logo | (Game mode + LIVE/FINAL badge) right-aligned */}
       <div className="spectator-header">
         <div className="spectator-logo">
           <img
@@ -229,7 +244,7 @@ export default function LivePage() {
         <div className="spectator-header-right">
           <div className="spectator-game-info">
             <span>{getGameModeText(match.game_mode)}</span>
-            {match.is_tiebreak && (
+            {match.is_tiebreak && !isMatchComplete && (
               <>
                 <span className="spectator-divider">|</span>
                 <span>TIEBREAK</span>
@@ -237,9 +252,9 @@ export default function LivePage() {
             )}
           </div>
 
-          <div className="spectator-live-badge">
-            <span className="spectator-live-dot" aria-hidden />
-            <span>LIVE</span>
+          <div className={`spectator-live-badge ${isMatchComplete ? 'spectator-final-badge' : ''}`}>
+            <span className={isMatchComplete ? 'spectator-final-dot' : 'spectator-live-dot'} aria-hidden />
+            <span>{isMatchComplete ? 'FINAL' : 'LIVE'}</span>
           </div>
         </div>
       </div>
@@ -258,13 +273,13 @@ export default function LivePage() {
           </div>
 
           <div className="spectator-card-scores">
-            {match.serving_team === 'a' && (
+            {!isMatchComplete && match.serving_team === 'a' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''}`}
               >
                 {col.teamA}
               </span>
@@ -284,13 +299,13 @@ export default function LivePage() {
           </div>
 
           <div className="spectator-card-scores">
-            {match.serving_team === 'b' && (
+            {!isMatchComplete && match.serving_team === 'b' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''}`}
               >
                 {col.teamB}
               </span>
