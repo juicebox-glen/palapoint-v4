@@ -115,6 +115,7 @@ export default function CourtDisplay() {
   const prevTeamAPointsRef = useRef(-1)
   const prevTeamBPointsRef = useRef(-1)
   const announcementShownRef = useRef<string | null>(null)
+  const justStartedGameRef = useRef(false)
   const [leftScoreAnimating, setLeftScoreAnimating] = useState(false)
   const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
 
@@ -328,8 +329,16 @@ export default function CourtDisplay() {
 
     const handleKeyPress = (e: KeyboardEvent) => {
       if (['q', 'p', ' '].includes(e.key.toLowerCase())) {
+        // Set ref immediately (synchronous) to block scoring
+        justStartedGameRef.current = true
+
         setAwaitingButtonPress(false)
         setShowServerAnnouncement(true)
+
+        // Reset ref after a short delay
+        setTimeout(() => {
+          justStartedGameRef.current = false
+        }, 100)
       }
     }
 
@@ -342,7 +351,10 @@ export default function CourtDisplay() {
     if (!court?.id) return
 
     const handleScoreKeyPress = async (e: KeyboardEvent) => {
-      // Ignore scoring during these states
+      // Block if we just started the game (ref updates synchronously)
+      if (justStartedGameRef.current) return
+
+      // Block during non-scoring states
       if (awaitingButtonPress) return      // Ready to Play screen
       if (showServerAnnouncement) return   // Server announcement playing
       if (match?.status === 'completed') return  // Match win overlay
