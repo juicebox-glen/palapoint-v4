@@ -74,11 +74,11 @@
 .control-scoreboard {
   position: relative;
   height: fit-content;
-  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  background: linear-gradient(to right, var(--bg-secondary) 50%, color-mix(in srgb, var(--bg-secondary) 75%, var(--bg-tertiary) 25%) 50%);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   padding: 0;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
   margin-bottom: 0;
   flex-shrink: 0;
   box-shadow: var(--shadow-lg);
@@ -89,7 +89,7 @@
 .control-scoreboard-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 0.5rem;
+  column-gap: 0;
   row-gap: 0;
   margin-bottom: 0.5rem;
 }
@@ -129,8 +129,8 @@
 }
 
 .control-scoreboard-name {
-  margin-top: 30px;
-  font-size: 26px;
+  margin-top: 36px;
+  font-size: 20px;
   font-weight: 500;
   color: var(--text-secondary);
   text-align: center;
@@ -140,7 +140,7 @@
 }
 
 .control-scoreboard-point {
-  font-size: 140px;
+  font-size: 130px;
   font-weight: 500;
   line-height: 1;
   color: var(--text-primary);
@@ -162,9 +162,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 10px;
   min-width: 0;
-  padding-left: 31px;
+}
+
+.control-scoreboard-sets-row .control-scoreboard-sets:first-child {
+  padding-left: 50px;
+}
+.control-scoreboard-sets-row .control-scoreboard-sets:last-child {
+  padding-right: 50px;
 }
 
 .control-scoreboard-sets-row .control-scoreboard-games {
@@ -192,7 +198,7 @@
 
 .control-scoreboard-games {
   font-size: 35px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.05em;
   flex-shrink: 0;
