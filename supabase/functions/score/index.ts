@@ -353,6 +353,49 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Phone setup Ready to Play: first FLIC/button press = acknowledge only, don't add score
+    // Court display shows "Press button to begin" - that press should start the game, not score
+    const hasNoScore =
+      match.team_a_points === 0 &&
+      match.team_b_points === 0 &&
+      match.team_a_games === 0 &&
+      match.team_b_games === 0 &&
+      (match.set_scores || []).length === 0;
+    if (match.session_id && hasNoScore && !match.started_at) {
+      const { data: ackMatch, error: ackError } = await supabase
+        .from('live_matches')
+        .update({
+          started_at: new Date().toISOString(),
+          version: match.version + 1,
+        })
+        .eq('id', match.id)
+        .eq('version', match.version)
+        .select()
+        .single();
+
+      if (!ackError && ackMatch) {
+        if (match.session_id) {
+          await supabase
+            .from('sessions')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', match.session_id)
+            .eq('status', 'active');
+        }
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: 'ready_acknowledged',
+            match_id: match.id,
+            new_state: ackMatch,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+
     // Check for idempotency if event_id provided
     if (event_id) {
       const { data: existingEvent } = await supabase

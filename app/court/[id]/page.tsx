@@ -278,8 +278,8 @@ export default function CourtDisplay() {
       }
     }
 
-    // Transition when score added (single press from Ready to Play is handled by keyboard handler)
-    if (awaitingButtonPress && !hasNoScore) {
+    // Transition when score added OR when started_at set (FLIC acknowledge from Ready to Play)
+    if (awaitingButtonPress && (!hasNoScore || match.started_at)) {
       setAwaitingButtonPress(false)
       setShowServerAnnouncement(true)
     }
