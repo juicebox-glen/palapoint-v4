@@ -1,16 +1,17 @@
 /* ============================================
    SPECTATOR DISPLAY - TV/Large Screen View
-   Uses same design tokens as player setup flow.
-   Large, readable from distance. Clean layout.
-   Real-time score updates via Supabase.
+   Viewport-based sizing (vw/vh) so content scales
+   with screen size. Readable from distance on
+   external displays. Real-time via Supabase.
    ============================================ */
 
+/* Fluid scale: sizes scale with viewport width for responsive external displays */
 .spectator-container {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg-primary);
   color: var(--text-primary);
-  padding: var(--ui-space-2xl) var(--ui-space-3xl);
+  padding: clamp(1rem, 3vw, 3rem) clamp(1.5rem, 4vw, 4rem);
   display: flex;
   flex-direction: column;
   font-family: var(--font-family);
@@ -21,7 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--ui-space-2xl);
+  margin-bottom: clamp(1rem, 2.5vw, 2rem);
   flex-shrink: 0;
 }
 
@@ -36,7 +37,7 @@
 }
 
 .spectator-logo-img {
-  height: 48px;
+  height: clamp(32px, 3.5vw, 80px);
   width: auto;
 }
 
@@ -44,14 +45,14 @@
 .spectator-header-right {
   display: flex;
   align-items: center;
-  gap: var(--ui-space-2xl);
+  gap: clamp(0.75rem, 2vw, 2rem);
 }
 
 .spectator-game-info {
   display: flex;
   align-items: center;
-  gap: var(--ui-space-md);
-  font-size: var(--ui-font-xl);
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  font-size: clamp(0.875rem, 1.5vw, 1.5rem);
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
   letter-spacing: 0.05em;
@@ -64,16 +65,16 @@
 .spectator-live-badge {
   display: flex;
   align-items: center;
-  gap: var(--ui-space-sm);
-  font-size: var(--ui-font-xl);
+  gap: clamp(0.25rem, 0.5vw, 0.5rem);
+  font-size: clamp(0.875rem, 1.5vw, 1.5rem);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   letter-spacing: 0.08em;
 }
 
 .spectator-live-dot {
-  width: 12px;
-  height: 12px;
+  width: clamp(8px, 1vw, 16px);
+  height: clamp(8px, 1vw, 16px);
   background: var(--brand-primary);
   border-radius: var(--radius-full);
   flex-shrink: 0;
@@ -81,8 +82,8 @@
 }
 
 .spectator-offline-dot {
-  width: 12px;
-  height: 12px;
+  width: clamp(8px, 1vw, 16px);
+  height: clamp(8px, 1vw, 16px);
   background: var(--text-muted);
   border-radius: var(--radius-full);
   flex-shrink: 0;
@@ -104,7 +105,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--ui-font-2xl);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   color: var(--text-muted);
 }
 
@@ -114,7 +115,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--ui-font-2xl);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   color: var(--text-muted);
 }
 
@@ -122,14 +123,14 @@
   color: var(--color-error);
 }
 
-/* Score Cards - same tokens as .card (bg-secondary, border-default, radius-xl) */
+/* Score Cards - viewport-scaled for external displays */
 .spectator-cards {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: var(--ui-space-xl);
-  max-width: var(--container-xl);
+  gap: clamp(1rem, 2.5vw, 2rem);
+  max-width: min(1024px, 90vw);
   margin: 0 auto;
   width: 100%;
 }
@@ -141,8 +142,8 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: var(--ui-space-xl) var(--ui-space-2xl);
-  border-left: 6px solid;
+  padding: clamp(1rem, 2vw, 2rem) clamp(1.25rem, 2.5vw, 2.5rem);
+  border-left: clamp(4px, 0.5vw, 8px) solid;
 }
 
 .spectator-card-team-a {
@@ -153,31 +154,31 @@
   border-left-color: var(--team-b);
 }
 
-/* Player Names - full names, more breathing room */
+/* Player Names - viewport-scaled */
 .spectator-card-names {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-sm);
+  gap: clamp(0.25rem, 0.5vw, 0.5rem);
 }
 
 .spectator-player-name {
-  font-size: 1.75rem;
+  font-size: clamp(1rem, 1.8vw, 2.5rem);
   font-weight: 400;
   color: rgba(170, 178, 192, 1);
   line-height: 1.4;
 }
 
-/* Scores: Sets | Games | Points - all same large size */
+/* Scores: Sets | Games | Points - viewport-scaled for readability */
 .spectator-card-scores {
   display: flex;
   align-items: center;
-  gap: var(--ui-space-xl);
+  gap: clamp(1rem, 3vw, 4rem);
 }
 
 /* Serving indicator - yellow ball style (like court display) */
 .spectator-serving-dot {
-  width: 20px;
-  height: 20px;
+  width: clamp(14px, 1.5vw, 28px);
+  height: clamp(14px, 1.5vw, 28px);
   background: var(--court-ball);
   border-radius: var(--radius-full);
   flex-shrink: 0;
@@ -188,8 +189,8 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   text-align: right;
-  font-size: 5rem;
-  min-width: 3.5rem;
+  font-size: clamp(2.5rem, 6vw, 10rem);
+  min-width: clamp(2rem, 3vw, 4rem);
 }
 
 .spectator-score-sets {
@@ -205,89 +206,5 @@
   font-weight: 600;
 }
 
-/* Responsive - smaller screens */
-@media (max-width: 768px) {
-  .spectator-container {
-    padding: var(--ui-space-lg) var(--ui-space-xl);
-  }
-
-  .spectator-logo-img {
-    height: 36px;
-  }
-
-  .spectator-game-info {
-    font-size: var(--ui-font-base);
-  }
-
-  .spectator-live-badge {
-    font-size: var(--ui-font-base);
-  }
-
-  .spectator-player-name {
-    font-size: 1.25rem;
-  }
-
-  .spectator-score {
-    font-size: 52px;
-    min-width: 2rem;
-  }
-
-  .spectator-serving-dot {
-    width: 14px;
-    height: 14px;
-  }
-
-  .spectator-card {
-    padding: var(--ui-space-lg) var(--ui-space-xl);
-  }
-
-  .spectator-card-scores {
-    gap: 60px;
-  }
-}
-
-/* Large TV screens */
-@media (min-width: 1920px) {
-  .spectator-container {
-    padding: var(--ui-space-3xl) 5rem;
-  }
-
-  .spectator-logo-img {
-    height: 64px;
-  }
-
-  .spectator-game-info {
-    font-size: 1.5rem;
-  }
-
-  .spectator-live-badge {
-    font-size: 1.5rem;
-  }
-
-  .spectator-card-names {
-    gap: 0.75rem;
-  }
-
-  .spectator-player-name {
-    font-size: 2.25rem;
-  }
-
-  .spectator-score {
-    font-size: 6rem;
-    min-width: 4rem;
-  }
-
-  .spectator-serving-dot {
-    width: 24px;
-    height: 24px;
-  }
-
-  .spectator-card {
-    padding: var(--ui-space-2xl) var(--ui-space-3xl);
-    border-left-width: 8px;
-  }
-
-  .spectator-cards {
-    gap: var(--ui-space-2xl);
-  }
-}
+/* Media queries removed - clamp() provides fluid scaling across all viewport sizes.
+   Content scales with screen: small on phones, large on TVs/external displays. */
