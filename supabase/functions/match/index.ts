@@ -229,6 +229,9 @@ Deno.serve(async (req) => {
         // Add session_id from request
         dbRow.session_id = createReq.session_id || null;
 
+        // Explicitly null - set on first FLIC press (score API acknowledge), not at creation
+        dbRow.started_at = null;
+
         // If session_id provided, update session's last_activity
         if (createReq.session_id) {
           await supabase
