@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { QRCodeSVG } from 'qrcode.react'
@@ -115,7 +115,6 @@ export default function CourtDisplay() {
   const prevTeamAPointsRef = useRef(-1)
   const prevTeamBPointsRef = useRef(-1)
   const announcementShownRef = useRef<string | null>(null)
-  const justStartedGameRef = useRef(false)
   const [leftScoreAnimating, setLeftScoreAnimating] = useState(false)
   const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
 
@@ -323,53 +322,10 @@ export default function CourtDisplay() {
     }
   }, [match, showSideSwap])
 
-  // Handle button press to start game from Ready to Play (single press, separate from scoring)
-  useEffect(() => {
-    if (!awaitingButtonPress) return
+  const handleScore = useCallback(
+    async (team: 'a' | 'b') => {
+      if (!court?.id) return
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (['q', 'p', ' '].includes(e.key.toLowerCase())) {
-        // Set ref immediately (synchronous) to block scoring
-        justStartedGameRef.current = true
-
-        setAwaitingButtonPress(false)
-        setShowServerAnnouncement(true)
-
-        // Reset ref after a short delay
-        setTimeout(() => {
-          justStartedGameRef.current = false
-        }, 100)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [awaitingButtonPress])
-
-  // Scoring keyboard handler - ignores presses during non-scoring states
-  useEffect(() => {
-    if (!court?.id) return
-
-    const handleScoreKeyPress = async (e: KeyboardEvent) => {
-      // Block if we just started the game (ref updates synchronously)
-      if (justStartedGameRef.current) return
-
-      // Block during non-scoring states
-      if (awaitingButtonPress) return      // Ready to Play screen
-      if (showServerAnnouncement) return   // Server announcement playing
-      if (match?.status === 'completed') return  // Match win overlay
-      if (showSetWin) return               // Set win overlay
-      if (showSideSwap) return             // Side swap overlay
-      if (!match) return                   // No active match
-      if (match.status !== 'in_progress' && match.status !== 'setup') return  // Match not active
-
-      const key = e.key.toLowerCase()
-      let team: 'a' | 'b' | null = null
-      if (key === 'q') team = 'a'
-      else if (key === 'p') team = 'b'
-      if (!team) return
-
-      e.preventDefault()
       try {
         await fetch(`${SUPABASE_URL}/functions/v1/score`, {
           method: 'POST',
@@ -383,11 +339,89 @@ export default function CourtDisplay() {
       } catch (err) {
         console.error('Error scoring point:', err)
       }
+    },
+    [court?.id]
+  )
+
+  // Single unified keyboard handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase()
+
+      // Only handle our keys
+      if (!['q', 'p', ' ', 'a'].includes(key)) return
+
+      const showMatchWin = match?.status === 'completed' && match?.winner
+
+      console.log('Key pressed:', key, {
+        awaitingButtonPress,
+        showServerAnnouncement,
+        showMatchWin,
+        showSetWin,
+        showSideSwap,
+        matchStatus: match?.status,
+      })
+
+      // STATE 1: Ready to Play - waiting for button press to start
+      if (awaitingButtonPress) {
+        console.log('Starting game from ready state')
+        setAwaitingButtonPress(false)
+        setShowServerAnnouncement(true)
+        return
+      }
+
+      // STATE 2: Server announcement playing - ignore all input
+      if (showServerAnnouncement) {
+        console.log('Ignoring - server announcement playing')
+        return
+      }
+
+      // STATE 3: Match win overlay - ignore
+      if (showMatchWin) {
+        console.log('Ignoring - match win showing')
+        return
+      }
+
+      // STATE 4: Set win overlay - ignore
+      if (showSetWin) {
+        console.log('Ignoring - set win showing')
+        return
+      }
+
+      // STATE 5: Side swap overlay - ignore
+      if (showSideSwap) {
+        console.log('Ignoring - side swap showing')
+        return
+      }
+
+      // STATE 6: No match or match not in progress - ignore
+      if (!match || (match.status !== 'in_progress' && match.status !== 'setup')) {
+        console.log('Ignoring - no active match')
+        return
+      }
+
+      // STATE 7: Active game - SCORE!
+      if (key === 'q' || key === 'a') {
+        console.log('Scoring for team: a')
+        e.preventDefault()
+        handleScore('a')
+      } else if (key === 'p') {
+        console.log('Scoring for team: b')
+        e.preventDefault()
+        handleScore('b')
+      }
     }
 
-    window.addEventListener('keydown', handleScoreKeyPress)
-    return () => window.removeEventListener('keydown', handleScoreKeyPress)
-  }, [court?.id, match, awaitingButtonPress, showServerAnnouncement, showSetWin, showSideSwap])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [
+    awaitingButtonPress,
+    showServerAnnouncement,
+    showSetWin,
+    showSideSwap,
+    match,
+    handleScore,
+  ])
 
   const handleSideSwapComplete = () => {
     setShowSideSwap(false)
