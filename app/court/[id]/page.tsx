@@ -104,7 +104,6 @@ export default function CourtDisplay() {
   const [showSetWin, setShowSetWin] = useState(false)
   const [showServerAnnouncement, setShowServerAnnouncement] = useState(false)
   const [awaitingButtonPress, setAwaitingButtonPress] = useState(false)
-  const [waitingForNextGame, setWaitingForNextGame] = useState(false)
   const [setWinData, setSetWinData] = useState<{
     winningTeam: 'a' | 'b'
     setNumber: number
@@ -164,16 +163,14 @@ export default function CourtDisplay() {
         (payload) => {
           if (payload.eventType === 'DELETE') {
             setMatch(null)
-            // Don't clear waitingForNextGame - DELETE could be from archiving
           } else if (payload.eventType === 'UPDATE') {
             const updatedMatch = payload.new as MatchState
 
-            // Abandoned = wait for next game (don't go to idle)
+            // Abandoned = go to idle
             if (updatedMatch.status === 'abandoned') {
               setMatch(null)
               setAwaitingButtonPress(false)
               setShowServerAnnouncement(false)
-              setWaitingForNextGame(true)
               return
             }
 
@@ -182,7 +179,7 @@ export default function CourtDisplay() {
           } else if (payload.eventType === 'INSERT') {
             const newMatch = payload.new as MatchState
             setMatch(newMatch)
-            setWaitingForNextGame(false)
+            setAwaitingButtonPress(false)
             setShowSetWin(false)
             setShowSideSwap(false)
             setShowServerAnnouncement(false)
@@ -231,7 +228,6 @@ export default function CourtDisplay() {
             ) {
               console.log('Session ended/expired, clearing all state')
               setMatch(null)
-              setWaitingForNextGame(false)
               setAwaitingButtonPress(false)
               setShowServerAnnouncement(false)
               setShowSetWin(false)
@@ -250,7 +246,9 @@ export default function CourtDisplay() {
     }
   }, [court?.id])
 
-  // Server announcement for new matches - now waits for button press
+  // Server announcement for new matches
+  // Quick play (FLIC hold): no session_id → skip Ready to Play, go straight to selecting server
+  // Phone setup: has session_id → show Ready to Play, wait for court button press
   useEffect(() => {
     if (!match) {
       announcementShownRef.current = null
@@ -259,7 +257,6 @@ export default function CourtDisplay() {
       return
     }
 
-    // Only show "ready to play" for new matches we haven't seen
     const isNewMatch = match.id !== announcementShownRef.current
     const hasNoScore =
       match.team_a_points === 0 &&
@@ -272,11 +269,16 @@ export default function CourtDisplay() {
       announcementShownRef.current = match.id
       setShowSetWin(false)
       setShowSideSwap(false)
-      setShowServerAnnouncement(false)
-      setAwaitingButtonPress(true)
+
+      const isQuickPlay = !match.session_id
+      if (isQuickPlay) {
+        setShowServerAnnouncement(true)
+      } else {
+        setAwaitingButtonPress(true)
+      }
     }
 
-    // If awaiting and match got a score (court button pressed), show server announcement
+    // Transition when score added (single press from Ready to Play is handled by keyboard handler)
     if (awaitingButtonPress && !hasNoScore) {
       setAwaitingButtonPress(false)
       setShowServerAnnouncement(true)
@@ -320,13 +322,12 @@ export default function CourtDisplay() {
     }
   }, [match, showSideSwap])
 
-  // Handle button press to start game (keyboard for testing)
+  // Handle button press to start game from Ready to Play (single press, separate from scoring)
   useEffect(() => {
     if (!awaitingButtonPress) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (['q', 'p', 'a', ' '].includes(e.key.toLowerCase())) {
-        e.preventDefault()
+      if (['q', 'p', ' '].includes(e.key.toLowerCase())) {
         setAwaitingButtonPress(false)
         setShowServerAnnouncement(true)
       }
@@ -335,6 +336,46 @@ export default function CourtDisplay() {
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [awaitingButtonPress])
+
+  // Scoring keyboard handler - ignores presses during non-scoring states
+  useEffect(() => {
+    if (!court?.id) return
+
+    const handleScoreKeyPress = async (e: KeyboardEvent) => {
+      // Ignore scoring during these states
+      if (awaitingButtonPress) return      // Ready to Play screen
+      if (showServerAnnouncement) return   // Server announcement playing
+      if (match?.status === 'completed') return  // Match win overlay
+      if (showSetWin) return               // Set win overlay
+      if (showSideSwap) return             // Side swap overlay
+      if (!match) return                   // No active match
+      if (match.status !== 'in_progress' && match.status !== 'setup') return  // Match not active
+
+      const key = e.key.toLowerCase()
+      let team: 'a' | 'b' | null = null
+      if (key === 'q') team = 'a'
+      else if (key === 'p') team = 'b'
+      if (!team) return
+
+      e.preventDefault()
+      try {
+        await fetch(`${SUPABASE_URL}/functions/v1/score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            court_id: court.id,
+            team,
+            source: 'control_panel',
+          }),
+        })
+      } catch (err) {
+        console.error('Error scoring point:', err)
+      }
+    }
+
+    window.addEventListener('keydown', handleScoreKeyPress)
+    return () => window.removeEventListener('keydown', handleScoreKeyPress)
+  }, [court?.id, match, awaitingButtonPress, showServerAnnouncement, showSetWin, showSideSwap])
 
   const handleSideSwapComplete = () => {
     setShowSideSwap(false)
@@ -414,19 +455,7 @@ export default function CourtDisplay() {
 
   const handleMatchWinComplete = () => {
     setMatch(null)
-    setWaitingForNextGame(true)
   }
-
-  // Timeout for waiting state - if no new game in 60s, assume session ended
-  useEffect(() => {
-    if (!waitingForNextGame) return
-
-    const timeout = setTimeout(() => {
-      setWaitingForNextGame(false)
-    }, 60000)
-
-    return () => clearTimeout(timeout)
-  }, [waitingForNextGame])
 
   if (loading) {
     return (
@@ -454,21 +483,8 @@ export default function CourtDisplay() {
     )
   }
 
-  // No match - either show waiting for next game OR idle/QR screen
+  // No match - show idle/QR screen
   if (!match) {
-    if (waitingForNextGame) {
-      return (
-        <div className="screen-wrapper">
-          <div className="ready-to-play-screen">
-            <div className="ready-to-play-content">
-              <h1 className="ready-to-play-title">GAME ENDED</h1>
-              <p className="ready-to-play-subtitle">Waiting for next game...</p>
-            </div>
-          </div>
-        </div>
-      )
-    }
-
     const setupUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/setup/${id}` 
       : `/setup/${id}`
@@ -486,7 +502,7 @@ export default function CourtDisplay() {
     )
   }
 
-  // Ready to Play - waiting for button press to begin (before server announcement)
+  // Ready to Play - phone setup only, wait for court button press before server announcement
   if (awaitingButtonPress && match) {
     return (
       <div className="screen-wrapper">
@@ -500,7 +516,7 @@ export default function CourtDisplay() {
     )
   }
 
-  // Show server announcement for new match (after button press)
+  // Show server announcement for new match (selecting server)
   if (showServerAnnouncement && match) {
     const teamAName = match.team_a_player_1 || match.team_a_player_2
       ? buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')

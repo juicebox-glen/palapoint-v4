@@ -36,4 +36,5 @@ export interface MatchState {
   started_at?: string | null
   completed_at?: string | null
   side_swap_enabled?: boolean
+  session_id?: string | null
 }
