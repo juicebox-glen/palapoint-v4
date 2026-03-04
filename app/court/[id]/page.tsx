@@ -116,6 +116,12 @@ export default function CourtDisplay() {
   const prevTeamBPointsRef = useRef(-1)
   const announcementShownRef = useRef<string | null>(null)
   const [leftScoreAnimating, setLeftScoreAnimating] = useState(false)
+
+  // Refs for keyboard handler - always current, avoids stale closure
+  const awaitingButtonPressRef = useRef(awaitingButtonPress)
+  const showServerAnnouncementRef = useRef(showServerAnnouncement)
+  awaitingButtonPressRef.current = awaitingButtonPress
+  showServerAnnouncementRef.current = showServerAnnouncement
   const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
 
   // Load court and match data
@@ -343,7 +349,7 @@ export default function CourtDisplay() {
     [court?.id]
   )
 
-  // Single unified keyboard handler
+  // Single unified keyboard handler (FLIC may send as keyboard or HTTP)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
@@ -351,11 +357,17 @@ export default function CourtDisplay() {
       // Only handle our keys
       if (!['q', 'p', ' ', 'a'].includes(key)) return
 
+      // Ignore key repeat - prevents double-scoring when holding button
+      if (e.repeat) return
+
+      // Use refs for current state (avoids stale closure)
+      const awaiting = awaitingButtonPressRef.current
+      const serverAnnouncement = showServerAnnouncementRef.current
       const showMatchWin = match?.status === 'completed' && match?.winner
 
       console.log('Key pressed:', key, {
-        awaitingButtonPress,
-        showServerAnnouncement,
+        awaiting,
+        serverAnnouncement,
         showMatchWin,
         showSetWin,
         showSideSwap,
@@ -363,7 +375,7 @@ export default function CourtDisplay() {
       })
 
       // STATE 1: Ready to Play - waiting for button press to start
-      if (awaitingButtonPress) {
+      if (awaiting) {
         console.log('Starting game from ready state')
         setAwaitingButtonPress(false)
         setShowServerAnnouncement(true)
@@ -371,7 +383,7 @@ export default function CourtDisplay() {
       }
 
       // STATE 2: Server announcement playing - ignore all input
-      if (showServerAnnouncement) {
+      if (serverAnnouncement) {
         console.log('Ignoring - server announcement playing')
         return
       }
@@ -414,14 +426,7 @@ export default function CourtDisplay() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [
-    awaitingButtonPress,
-    showServerAnnouncement,
-    showSetWin,
-    showSideSwap,
-    match,
-    handleScore,
-  ])
+  }, [match, showSetWin, showSideSwap, handleScore])
 
   const handleSideSwapComplete = () => {
     setShowSideSwap(false)

@@ -355,12 +355,14 @@ Deno.serve(async (req) => {
 
     // Phone setup Ready to Play: first FLIC/button press = acknowledge only, don't add score
     // Court display shows "Press button to begin" - that press should start the game, not score
+    // Only for session_id matches (phone setup) - Quick Play has no Ready to Play screen
     const hasNoScore =
       match.team_a_points === 0 &&
       match.team_b_points === 0 &&
       match.team_a_games === 0 &&
       match.team_b_games === 0 &&
       (match.set_scores || []).length === 0;
+
     if (match.session_id && hasNoScore && !match.started_at) {
       const { data: ackMatch, error: ackError } = await supabase
         .from('live_matches')
@@ -392,6 +394,15 @@ Deno.serve(async (req) => {
             status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           }
+        );
+      }
+
+      // Acknowledge failed (e.g. version conflict) - don't fall through to scoring
+      if (ackError) {
+        console.error('Ready acknowledge failed:', ackError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'acknowledge_failed' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
