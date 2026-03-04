@@ -113,14 +113,14 @@
   color: var(--color-error);
 }
 
-/* Score Cards - fill more vertical space */
+/* Score Cards - fill more vertical space, wider horizontally */
 .spectator-cards {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: clamp(1rem, 3vh, 2rem);
-  max-width: min(1600px, 95vw);
+  max-width: min(2200px, 98vw);
   margin: 0 auto;
   width: 100%;
   padding: 0 clamp(1rem, 2vw, 3rem);
@@ -160,11 +160,11 @@
   line-height: 1.2;
 }
 
-/* Scores - much larger */
+/* Scores - much larger, more spacing between */
 .spectator-card-scores {
   display: flex;
   align-items: center;
-  gap: clamp(1rem, 3vw, 3rem);
+  gap: clamp(1.5rem, 6vw, 6rem);
 }
 
 .spectator-serving-dot {
