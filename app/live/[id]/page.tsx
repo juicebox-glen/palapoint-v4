@@ -146,7 +146,7 @@ export default function LivePage() {
         const teamAGames = set.team_a_games ?? set.team_a ?? 0
         const teamBGames = set.team_b_games ?? set.team_b ?? 0
         const isLastSet = idx === m.set_scores!.length - 1
-        columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true, isFinalSet: isMatchComplete && isLastSet })
+        columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true, isFinalSet: !!isMatchComplete && isLastSet })
       })
     }
 
