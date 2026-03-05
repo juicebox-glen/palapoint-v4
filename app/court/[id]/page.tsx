@@ -560,48 +560,39 @@ export default function CourtDisplay() {
     )
   }
 
-  // Ready to Play - phone setup only, wait for court button press before server announcement
+  // Ready to Play screen - waiting for button press to start
   if (awaitingButtonPress && match) {
-    const teamAName = match.team_a_player_1 || match.team_a_player_2
-      ? buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'TEAM A')
-      : 'TEAM A'
-    const teamBName = match.team_b_player_1 || match.team_b_player_2
-      ? buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'TEAM B')
-      : 'TEAM B'
+    const abbreviate = (name: string | null | undefined): string => {
+      if (!name) return '---'
+      const parts = name.trim().split(' ')
+      const lastName = parts[parts.length - 1]
+      return lastName.substring(0, 3).toUpperCase()
+    }
 
     return (
-      <div className="screen-wrapper">
-        <div className="ready-to-play-screen">
-          {/* Team color strokes - left = Team A, right = Team B */}
-          <div
-            className="ready-to-play-stroke ready-to-play-stroke-left"
-            style={{ backgroundColor: 'var(--color-team-a)' }}
-          />
-          <div
-            className="ready-to-play-stroke ready-to-play-stroke-right"
-            style={{ backgroundColor: 'var(--color-team-b)' }}
-          />
-
-          {/* 50/50 split content */}
-          <div className="ready-to-play-split">
-            <div className="tile team-1-dark ready-to-play-team">
-              <div className="ready-to-play-team-name">
-                {teamAName.split(' / ').map((part, i) => (
-                  <span key={i}>{part}</span>
-                ))}
-              </div>
-            </div>
-            <div className="tile team-2-dark ready-to-play-team">
-              <div className="ready-to-play-team-name">
-                {teamBName.split(' / ').map((part, i) => (
-                  <span key={i}>{part}</span>
-                ))}
-              </div>
-            </div>
-            <div className="ready-to-play-vs">VS</div>
+      <div className="court-ready-screen">
+        {/* Team A - Left Half */}
+        <div className="court-ready-half court-ready-team-a">
+          <div className="court-ready-names">
+            <span className="court-ready-name">{abbreviate(match.team_a_player_1)}</span>
+            <span className="court-ready-name">{abbreviate(match.team_a_player_2)}</span>
           </div>
+        </div>
 
-          <div className="ready-to-play-cta">PRESS BUTTON TO START</div>
+        {/* VS Divider */}
+        <div className="court-ready-vs">VS</div>
+
+        {/* Team B - Right Half */}
+        <div className="court-ready-half court-ready-team-b">
+          <div className="court-ready-names">
+            <span className="court-ready-name">{abbreviate(match.team_b_player_1)}</span>
+            <span className="court-ready-name">{abbreviate(match.team_b_player_2)}</span>
+          </div>
+        </div>
+
+        {/* Instruction overlay at bottom */}
+        <div className="court-ready-instruction">
+          PRESS BUTTON TO START
         </div>
       </div>
     )

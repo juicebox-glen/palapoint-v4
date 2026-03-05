@@ -357,88 +357,81 @@
 }
 
 /* ================================================
-   READY TO PLAY SCREEN
+   READY TO PLAY SCREEN - Pre-game waiting state
    ================================================ */
 
-.ready-to-play-screen {
+.court-ready-screen {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
-  z-index: 100;
+  overflow: hidden;
 }
 
-/* Team color strokes on left and right edges */
-.ready-to-play-stroke {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 0.5vw;
-  pointer-events: none;
-}
-
-.ready-to-play-stroke-left {
-  left: 0;
-}
-
-.ready-to-play-stroke-right {
-  right: 0;
-}
-
-/* 50/50 background split - same as main scoreboard */
-.ready-to-play-split {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  position: relative;
-}
-
-.ready-to-play-split .tile {
+/* Each half of the screen - 50/50 background split (same as scoreboard) */
+.court-ready-half {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
+  position: relative;
 }
 
-.ready-to-play-team {
-  flex-direction: column;
+/* Team A - Left side: darker background + blue border */
+.court-ready-team-a {
+  background-color: #121212;
+  border-left: clamp(6px, 1vw, 12px) solid var(--color-team-a, #5B6CFF);
 }
 
-.ready-to-play-team-name {
+/* Team B - Right side: lighter background + pink border */
+.court-ready-team-b {
+  background-color: #1E1E1F;
+  border-right: clamp(6px, 1vw, 12px) solid var(--color-team-b, #E84A8A);
+}
+
+/* Player names container */
+.court-ready-names {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3em;
-  font-size: 3.7vw;
-  font-weight: 400;
-  color: var(--color-text-primary);
-  letter-spacing: 0.2em;
+  gap: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+/* Individual player name */
+.court-ready-name {
+  font-size: clamp(3rem, 8vw, 10rem);
+  font-weight: 500;
+  color: var(--color-text-primary, #FFFFFF);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
-.ready-to-play-vs {
+/* VS text in the center */
+.court-ready-vs {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2.5vw;
-  font-weight: 400;
-  color: #888;
+  font-size: clamp(2rem, 5vw, 6rem);
+  font-weight: 600;
+  color: var(--color-text-secondary, #606068);
   letter-spacing: 0.1em;
-  pointer-events: none;
-  z-index: 2;
+  z-index: 10;
 }
 
-.ready-to-play-cta {
-  padding: 2vw;
-  font-size: 2.2vw;
+/* Instruction text at bottom */
+.court-ready-instruction {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 48px;
   font-weight: 600;
-  color: white;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text-secondary, #A0A0A8);
+  letter-spacing: 2px;
   text-align: center;
+  text-transform: uppercase;
+  z-index: 10;
 }
 
 /* ================================================
