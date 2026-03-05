@@ -69,35 +69,35 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .game-detail-team {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
   flex: 1;
   min-width: 0;
 }
 
 .game-detail-team-left {
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .game-detail-team-right {
-  justify-content: flex-end;
-  flex-direction: row-reverse;
+  justify-content: center;
 }
 
 .game-detail-team-name {
   display: flex;
   flex-direction: column;
-  align-items: inherit;
+  align-items: center;
   gap: 0.125rem;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
+  text-align: center;
 }
 
 .game-detail-team-name-line {
@@ -107,13 +107,10 @@
   white-space: nowrap;
 }
 
-.game-detail-team-right .game-detail-team-name {
-  align-items: flex-end;
-}
-
 .game-detail-score {
   margin: 0.25rem 0;
   flex-shrink: 0;
+  padding: 0 0.5rem;
 }
 
 .game-detail-score-value {
@@ -161,19 +158,22 @@
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
   overflow: hidden;
+  padding: 1rem;
 }
 
 .game-detail-momentum-grid {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: stretch;
+  width: 100%;
+  height: 100%;
 }
 
 .game-detail-momentum-grid .game-detail-momentum-svg {
   width: 100%;
-  max-width: 280px;
   height: 100%;
   display: block;
+  min-width: 0;
 }
 
 /* Points won stats */
