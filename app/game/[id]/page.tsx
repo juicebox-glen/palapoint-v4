@@ -60,13 +60,20 @@ const dummyGameData: {
   ],
 }
 
-function buildTeamName(
+function getSurnameAbbrev(name: string | null | undefined): string {
+  if (!name?.trim()) return ''
+  const parts = name.trim().split(' ')
+  const lastName = parts[parts.length - 1]
+  return lastName.substring(0, 3).toUpperCase()
+}
+
+function buildTeamLabel(
   p1: string | null | undefined,
   p2: string | null | undefined,
   fallback: string
 ): string {
-  const names = [p1, p2].filter(Boolean).map((n) => n?.trim()).filter(Boolean)
-  return names.length > 0 ? names.join(' / ') : fallback
+  const abbrevs = [getSurnameAbbrev(p1), getSurnameAbbrev(p2)].filter(Boolean)
+  return abbrevs.length > 0 ? abbrevs.join(' / ') : fallback
 }
 
 export default function GameDetailPage() {
@@ -75,12 +82,12 @@ export default function GameDetailPage() {
   const router = useRouter()
   const game = dummyGameData
 
-  const teamAName = buildTeamName(
+  const teamAName = buildTeamLabel(
     game.team_a_player_1,
     game.team_a_player_2,
     'Team A'
   )
-  const teamBName = buildTeamName(
+  const teamBName = buildTeamLabel(
     game.team_b_player_1,
     game.team_b_player_2,
     'Team B'
