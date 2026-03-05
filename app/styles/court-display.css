@@ -294,15 +294,6 @@
   background-color: var(--color-bg-primary);
 }
 
-.court-idle-name {
-  font-size: 2.5vw;
-  font-weight: 600;
-  color: #E6EAF2;
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
 .court-idle-main-text {
   font-size: 3vw;
   font-weight: 600;
@@ -311,23 +302,58 @@
   line-height: 1.2;
 }
 
-.court-idle-subtitle {
-  font-size: 1.5vw;
-  color: var(--color-text-secondary);
-  text-align: center;
+/* Square One idle design */
+.court-idle-square-one {
+  position: relative;
+  background-color: #171A21;
+  justify-content: flex-start;
+  padding: 2vw;
+  box-sizing: border-box;
 }
 
-.court-idle-qr {
+.court-idle-border {
+  position: absolute;
+  inset: 0;
+  border: 0.5vw solid #3F66F4;
+  pointer-events: none;
+}
+
+.court-idle-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vw;
+}
+
+.court-idle-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.court-idle-logo-img {
+  height: 8vw;
+  width: auto;
+  object-fit: contain;
+}
+
+.court-idle-instruction {
+  font-size: 2.2vw;
+  font-weight: 600;
+  color: #C0C0C0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.court-idle-square-one .court-idle-qr {
+  position: absolute;
+  bottom: 2vw;
+  right: 2vw;
   padding: 1vw;
   background: white;
   border-radius: 0.5vw;
-}
-
-.court-idle-qr-label {
-  font-size: 1.2vw;
-  color: var(--color-text-secondary);
-  margin-top: 1vw;
-  text-align: center;
 }
 
 /* ================================================

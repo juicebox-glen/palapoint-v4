@@ -534,21 +534,28 @@ export default function CourtDisplay() {
     )
   }
 
-  // No match - show idle/QR screen
+  // No match - show idle/QR screen (Square One design)
   if (!match) {
     const setupUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/setup/${id}` 
       : `/setup/${id}`
 
     return (
-      <div className="court-idle">
-        <div className="court-idle-name">{court?.name || 'Court'}</div>
-        <div className="court-idle-main-text">Hold button to start</div>
-        <div className="court-idle-subtitle">Quick Play: 1 set, Golden Point</div>
-        <div className="court-idle-qr">
-          <QRCodeSVG value={setupUrl} size={150} />
+      <div className="court-idle court-idle-square-one">
+        <div className="court-idle-border" />
+        <div className="court-idle-content">
+          <div className="court-idle-logo">
+            <img
+              src="/images/squareone-logo.png"
+              alt="Square One"
+              className="court-idle-logo-img"
+            />
+          </div>
+          <div className="court-idle-instruction">HOLD BUTTON TO START</div>
         </div>
-        <div className="court-idle-qr-label">Scan for custom game</div>
+        <div className="court-idle-qr">
+          <QRCodeSVG value={setupUrl} size={120} />
+        </div>
       </div>
     )
   }
