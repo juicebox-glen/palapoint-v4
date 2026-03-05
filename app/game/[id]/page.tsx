@@ -108,6 +108,24 @@ export default function GameDetailPage() {
     ...momentumData.map((v) => Math.abs(v))
   )
 
+  // Grid momentum: 6 rows × 10 columns (like original design)
+  const MOMENTUM_ROWS = 6
+  const MOMENTUM_COLS = 10
+  const pathPoints: { col: number; row: number }[] = []
+  if (momentumData.length > 0) {
+    for (let col = 0; col < MOMENTUM_COLS; col++) {
+      const idx = Math.min(
+        Math.max(0, Math.round((col / (MOMENTUM_COLS - 1)) * (momentumData.length - 1))),
+        momentumData.length - 1
+      )
+      const v = momentumData[idx]
+      const normalized = v / maxAbs
+      // Row 0 = top = Team A ahead, Row 5 = bottom = Team B ahead
+      const row = Math.round(((1 - normalized) / 2) * (MOMENTUM_ROWS - 1))
+      pathPoints.push({ col, row: Math.max(0, Math.min(row, MOMENTUM_ROWS - 1)) })
+    }
+  }
+
   return (
     <div className="page page-padded game-detail-page">
       <div className="game-detail-header">
@@ -178,40 +196,35 @@ export default function GameDetailPage() {
               <span>Team A</span>
               <span>Team B</span>
             </div>
-            <div className="game-detail-momentum-chart">
+            <div className="game-detail-momentum-chart game-detail-momentum-grid">
               <svg
-                viewBox={`0 0 ${momentumData.length} 100`}
-                preserveAspectRatio="none"
+                viewBox={`0 0 ${MOMENTUM_COLS} ${MOMENTUM_ROWS}`}
+                preserveAspectRatio="xMidYMid meet"
                 className="game-detail-momentum-svg"
               >
-                <line
-                  x1="0"
-                  y1="50"
-                  x2={momentumData.length}
-                  y2="50"
-                  stroke="var(--text-muted)"
-                  strokeWidth="0.2"
-                  strokeDasharray="2 2"
-                  opacity="0.5"
-                />
-                {momentumData.map((v, i) => {
-                  const y = 50 - (v / maxAbs) * 45
-                  const fill =
-                    v > 0
-                      ? 'var(--team-a)'
-                      : v < 0
-                        ? 'var(--team-b)'
-                        : 'var(--text-muted)'
-                  return (
+                {/* Grid dots (muted) */}
+                {Array.from({ length: MOMENTUM_ROWS }).flatMap((_, row) =>
+                  Array.from({ length: MOMENTUM_COLS }).map((_, col) => (
                     <circle
-                      key={i}
-                      cx={i}
-                      cy={y}
-                      r="1.5"
-                      fill={fill}
+                      key={`${row}-${col}`}
+                      cx={col + 0.5}
+                      cy={row + 0.5}
+                      r="0.4"
+                      fill="var(--game-detail-momentum-grid-dot, #8B7BB8)"
+                      opacity="0.4"
                     />
-                  )
-                })}
+                  ))
+                )}
+                {/* Path dots (accent) */}
+                {pathPoints.map(({ col, row }, i) => (
+                  <circle
+                    key={`path-${i}`}
+                    cx={col + 0.5}
+                    cy={row + 0.5}
+                    r="0.45"
+                    fill="var(--game-detail-momentum-path-dot, #2DD4BF)"
+                  />
+                ))}
               </svg>
             </div>
           </div>

@@ -163,8 +163,15 @@
   overflow: hidden;
 }
 
-.game-detail-momentum-svg {
+.game-detail-momentum-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-detail-momentum-grid .game-detail-momentum-svg {
   width: 100%;
+  max-width: 280px;
   height: 100%;
   display: block;
 }
