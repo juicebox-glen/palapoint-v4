@@ -36,7 +36,10 @@
 
 .spectator-logo-img {
   height: clamp(40px, 6vh, 80px);
+  max-height: clamp(40px, 6vh, 80px);
+  max-width: 240px;
   width: auto;
+  object-fit: contain;
 }
 
 .spectator-header-right {
