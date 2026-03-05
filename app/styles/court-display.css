@@ -363,37 +363,82 @@
 .ready-to-play-screen {
   position: absolute;
   inset: 0;
-  background-color: var(--color-bg-primary);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   z-index: 100;
 }
 
-.ready-to-play-content {
-  text-align: center;
+/* Team color strokes on left and right edges */
+.ready-to-play-stroke {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.5vw;
+  pointer-events: none;
 }
 
-.ready-to-play-title {
-  font-size: 8vw;
-  font-weight: 700;
-  color: #E6EAF2;
-  letter-spacing: 0.1em;
+.ready-to-play-stroke-left {
+  left: 0;
+}
+
+.ready-to-play-stroke-right {
+  right: 0;
+}
+
+/* 50/50 background split - same as main scoreboard */
+.ready-to-play-split {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  position: relative;
+}
+
+.ready-to-play-split .tile {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.ready-to-play-team {
+  flex-direction: column;
+}
+
+.ready-to-play-team-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 3.7vw;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  margin-bottom: 2vw;
 }
 
-.ready-to-play-subtitle {
-  font-size: 3vw;
-  color: var(--color-text-secondary);
+.ready-to-play-vs {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5vw;
+  font-weight: 400;
+  color: #888;
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ready-to-play-cta {
+  padding: 2vw;
+  font-size: 2.2vw;
+  font-weight: 600;
+  color: white;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  animation: ready-pulse 2s ease-in-out infinite;
-}
-
-@keyframes ready-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  text-align: center;
 }
 
 /* ================================================
