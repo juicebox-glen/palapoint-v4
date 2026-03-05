@@ -90,20 +90,25 @@
   flex-direction: row-reverse;
 }
 
-.game-detail-team-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .game-detail-team-name {
+  display: flex;
+  flex-direction: column;
+  align-items: inherit;
+  gap: 0.125rem;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.game-detail-team-name-line {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.game-detail-team-right .game-detail-team-name {
+  align-items: flex-end;
 }
 
 .game-detail-score {

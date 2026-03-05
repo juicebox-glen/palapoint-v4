@@ -142,21 +142,25 @@ export default function GameDetailPage() {
         >
           <div className="game-detail-teams">
             <div className="game-detail-team game-detail-team-left">
-              <span
-                className="game-detail-team-dot"
-                style={{ background: 'var(--team-a)' }}
-              />
-              <span className="game-detail-team-name">{teamAName}</span>
+              <span className="game-detail-team-name">
+                {teamAName.split(' / ').map((part, i) => (
+                  <span key={i} className="game-detail-team-name-line">
+                    {part}
+                  </span>
+                ))}
+              </span>
             </div>
             <div className="game-detail-score">
               <span className="game-detail-score-value">{game.final_score}</span>
             </div>
             <div className="game-detail-team game-detail-team-right">
-              <span
-                className="game-detail-team-dot"
-                style={{ background: 'var(--team-b)' }}
-              />
-              <span className="game-detail-team-name">{teamBName}</span>
+              <span className="game-detail-team-name">
+                {teamBName.split(' / ').map((part, i) => (
+                  <span key={i} className="game-detail-team-name-line">
+                    {part}
+                  </span>
+                ))}
+              </span>
             </div>
           </div>
           <div className="game-detail-meta">
@@ -180,19 +184,6 @@ export default function GameDetailPage() {
                 preserveAspectRatio="none"
                 className="game-detail-momentum-svg"
               >
-                <polyline
-                  fill="none"
-                  stroke="var(--team-a)"
-                  strokeWidth="0.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  points={momentumData
-                    .map(
-                      (v, i) =>
-                        `${i} ${50 - (v / maxAbs) * 45}`
-                    )
-                    .join(' ')}
-                />
                 <line
                   x1="0"
                   y1="50"
@@ -203,6 +194,24 @@ export default function GameDetailPage() {
                   strokeDasharray="2 2"
                   opacity="0.5"
                 />
+                {momentumData.map((v, i) => {
+                  const y = 50 - (v / maxAbs) * 45
+                  const fill =
+                    v > 0
+                      ? 'var(--team-a)'
+                      : v < 0
+                        ? 'var(--team-b)'
+                        : 'var(--text-muted)'
+                  return (
+                    <circle
+                      key={i}
+                      cx={i}
+                      cy={y}
+                      r="1.5"
+                      fill={fill}
+                    />
+                  )
+                })}
               </svg>
             </div>
           </div>
