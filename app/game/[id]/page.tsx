@@ -1,0 +1,295 @@
+'use client'
+
+import { useRouter, useParams } from 'next/navigation'
+import '@/app/styles/game-detail.css'
+
+// Dummy data for demo - matches V3-style stats structure
+const dummyGameData: {
+  id: string
+  winner: 'a' | 'b'
+  final_score: string
+  duration_minutes: number
+  total_points_played: number
+  team_a_points_won: number
+  team_b_points_won: number
+  team_a_service_points_won: number
+  team_a_service_points_total: number
+  team_b_service_points_won: number
+  team_b_service_points_total: number
+  team_a_breaks: number
+  team_b_breaks: number
+  team_a_longest_streak: number
+  team_b_longest_streak: number
+  point_history: number[]
+  team_a_player_1: string
+  team_a_player_2: string
+  team_b_player_1: string
+  team_b_player_2: string
+  set_scores: Array<{ team_a: number; team_b: number }>
+  created_at: string
+  completed_at: string
+} = {
+  id: '123',
+  team_a_player_1: 'Robert Anderson',
+  team_a_player_2: 'Glen Noble',
+  team_b_player_1: 'Julian Waters',
+  team_b_player_2: 'Carl Pettitt',
+  winner: 'b',
+  final_score: '6-4',
+  set_scores: [{ team_a: 6, team_b: 4 }],
+  duration_minutes: 32,
+  created_at: '2025-03-05T14:00:00Z',
+  completed_at: '2025-03-05T14:32:00Z',
+  // V3-style stats
+  total_points_played: 58,
+  team_a_points_won: 26,
+  team_b_points_won: 32,
+  team_a_service_points_won: 14,
+  team_a_service_points_total: 28,
+  team_b_service_points_won: 18,
+  team_b_service_points_total: 30,
+  team_a_breaks: 1,
+  team_b_breaks: 2,
+  team_a_longest_streak: 3,
+  team_b_longest_streak: 4,
+  // Point history: 1 = Team A won, -1 = Team B won (for momentum chart)
+  point_history: [
+    1, -1, 1, 1, -1, -1, 1, -1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, -1, -1,
+    1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, 1, -1, -1, -1, 1, 1, -1, -1,
+    -1, 1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1,
+  ],
+}
+
+function buildTeamName(
+  p1: string | null | undefined,
+  p2: string | null | undefined,
+  fallback: string
+): string {
+  const names = [p1, p2].filter(Boolean).map((n) => n?.trim()).filter(Boolean)
+  return names.length > 0 ? names.join(' / ') : fallback
+}
+
+export default function GameDetailPage() {
+  const params = useParams()
+  const id = params.id as string
+  const router = useRouter()
+  const game = dummyGameData
+
+  const teamAName = buildTeamName(
+    game.team_a_player_1,
+    game.team_a_player_2,
+    'Team A'
+  )
+  const teamBName = buildTeamName(
+    game.team_b_player_1,
+    game.team_b_player_2,
+    'Team B'
+  )
+
+  // Cumulative lead for momentum chart: positive = Team A ahead, negative = Team B
+  const momentumData = (game.point_history || []).reduce<number[]>(
+    (acc, pt) => {
+      const prev = acc.length > 0 ? acc[acc.length - 1] : 0
+      acc.push(prev + pt)
+      return acc
+    },
+    []
+  )
+
+  const maxAbs = Math.max(
+    1,
+    ...momentumData.map((v) => Math.abs(v))
+  )
+
+  return (
+    <div className="page page-padded game-detail-page">
+      <div className="game-detail-header">
+        <button
+          type="button"
+          className="game-detail-back"
+          onClick={() => router.back()}
+          aria-label="Back"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="game-detail-header-title">Match Details</span>
+      </div>
+
+      <div className="game-detail-content">
+        {/* Match result */}
+        <div
+          className={`card game-detail-result ${
+            game.winner === 'a' ? 'team-a-winner' : 'team-b-winner'
+          }`}
+        >
+          <div className="game-detail-teams">
+            <div className="game-detail-team game-detail-team-left">
+              <span
+                className="game-detail-team-dot"
+                style={{ background: 'var(--team-a)' }}
+              />
+              <span className="game-detail-team-name">{teamAName}</span>
+            </div>
+            <div className="game-detail-score">
+              <span className="game-detail-score-value">{game.final_score}</span>
+            </div>
+            <div className="game-detail-team game-detail-team-right">
+              <span
+                className="game-detail-team-dot"
+                style={{ background: 'var(--team-b)' }}
+              />
+              <span className="game-detail-team-name">{teamBName}</span>
+            </div>
+          </div>
+          <div className="game-detail-meta">
+            <span>{game.duration_minutes} min</span>
+            <span className="game-detail-meta-sep">•</span>
+            <span>{game.total_points_played} points</span>
+          </div>
+        </div>
+
+        {/* Momentum chart */}
+        <div className="card game-detail-section">
+          <h3 className="card-title">Momentum</h3>
+          <div className="game-detail-momentum">
+            <div className="game-detail-momentum-labels">
+              <span>Team A</span>
+              <span>Team B</span>
+            </div>
+            <div className="game-detail-momentum-chart">
+              <svg
+                viewBox={`0 0 ${momentumData.length} 100`}
+                preserveAspectRatio="none"
+                className="game-detail-momentum-svg"
+              >
+                <polyline
+                  fill="none"
+                  stroke="var(--team-a)"
+                  strokeWidth="0.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={momentumData
+                    .map(
+                      (v, i) =>
+                        `${i} ${50 - (v / maxAbs) * 45}`
+                    )
+                    .join(' ')}
+                />
+                <line
+                  x1="0"
+                  y1="50"
+                  x2={momentumData.length}
+                  y2="50"
+                  stroke="var(--text-muted)"
+                  strokeWidth="0.2"
+                  strokeDasharray="2 2"
+                  opacity="0.5"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Points won */}
+        <div className="card game-detail-section">
+          <h3 className="card-title">Points Won</h3>
+          <div className="game-detail-stats-row">
+            <div className="game-detail-stat">
+              <span
+                className="game-detail-stat-value"
+                style={{ color: 'var(--team-a)' }}
+              >
+                {game.team_a_points_won}
+              </span>
+              <span className="game-detail-stat-label">{teamAName}</span>
+            </div>
+            <div className="game-detail-stat">
+              <span
+                className="game-detail-stat-value"
+                style={{ color: 'var(--team-b)' }}
+              >
+                {game.team_b_points_won}
+              </span>
+              <span className="game-detail-stat-label">{teamBName}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Service stats */}
+        <div className="card game-detail-section">
+          <h3 className="card-title">Service</h3>
+          <div className="game-detail-service-grid">
+            <div className="game-detail-service-item">
+              <span className="game-detail-service-team" style={{ color: 'var(--team-a)' }}>
+                {teamAName}
+              </span>
+              <span className="game-detail-service-stat">
+                {game.team_a_service_points_won}/{game.team_a_service_points_total}
+              </span>
+              <div className="game-detail-service-bar">
+                <div
+                  className="game-detail-service-bar-fill"
+                  style={{
+                    width: `${(game.team_a_service_points_won / game.team_a_service_points_total) * 100}%`,
+                    background: 'var(--team-a)',
+                  }}
+                />
+              </div>
+            </div>
+            <div className="game-detail-service-item">
+              <span className="game-detail-service-team" style={{ color: 'var(--team-b)' }}>
+                {teamBName}
+              </span>
+              <span className="game-detail-service-stat">
+                {game.team_b_service_points_won}/{game.team_b_service_points_total}
+              </span>
+              <div className="game-detail-service-bar">
+                <div
+                  className="game-detail-service-bar-fill"
+                  style={{
+                    width: `${(game.team_b_service_points_won / game.team_b_service_points_total) * 100}%`,
+                    background: 'var(--team-b)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Breaks & streaks */}
+        <div className="card game-detail-section">
+          <h3 className="card-title">Breaks & Streaks</h3>
+          <div className="game-detail-stats-grid">
+            <div className="game-detail-mini-stat">
+              <span className="game-detail-mini-stat-value">{game.team_a_breaks}</span>
+              <span className="game-detail-mini-stat-label">Breaks (Team A)</span>
+            </div>
+            <div className="game-detail-mini-stat">
+              <span className="game-detail-mini-stat-value">{game.team_b_breaks}</span>
+              <span className="game-detail-mini-stat-label">Breaks (Team B)</span>
+            </div>
+            <div className="game-detail-mini-stat">
+              <span className="game-detail-mini-stat-value">{game.team_a_longest_streak}</span>
+              <span className="game-detail-mini-stat-label">Longest streak (A)</span>
+            </div>
+            <div className="game-detail-mini-stat">
+              <span className="game-detail-mini-stat-value">{game.team_b_longest_streak}</span>
+              <span className="game-detail-mini-stat-label">Longest streak (B)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

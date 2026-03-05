@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/ui/Header'
 
@@ -35,6 +35,7 @@ interface Session {
 
 export default function SessionReviewPage() {
   const params = useParams()
+  const router = useRouter()
   const sessionId = params.id as string
 
   const [loading, setLoading] = useState(true)
@@ -193,9 +194,7 @@ export default function SessionReviewPage() {
                       cursor: 'pointer',
                       border: '1px solid var(--border-default)',
                     }}
-                    onClick={() => {
-                      // TODO: Navigate to game detail
-                    }}
+                    onClick={() => router.push(`/game/${game.id}`)}
                   >
                     {/* Team A - default to Team A if no names */}
                     <div

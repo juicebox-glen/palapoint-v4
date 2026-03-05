@@ -1,0 +1,270 @@
+/* ============================================
+   GAME DETAIL PAGE - Match statistics
+   Mobile-first, player companion layout
+   ============================================ */
+
+.game-detail-page {
+  padding-top: 0.5rem;
+}
+
+.game-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.game-detail-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.game-detail-back:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-light);
+}
+
+.game-detail-back:active {
+  transform: scale(0.98);
+}
+
+.game-detail-header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.game-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Match result card */
+.game-detail-result {
+  text-align: center;
+  padding: 1.5rem 1.25rem;
+}
+
+.game-detail-result.team-a-winner {
+  border-top: 3px solid var(--team-a);
+}
+
+.game-detail-result.team-b-winner {
+  border-top: 3px solid var(--team-b);
+}
+
+.game-detail-teams {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.game-detail-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.game-detail-team-left {
+  justify-content: flex-start;
+}
+
+.game-detail-team-right {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.game-detail-team-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.game-detail-team-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-detail-score {
+  margin: 0.25rem 0;
+  flex-shrink: 0;
+}
+
+.game-detail-score-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.game-detail-meta {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.game-detail-meta-sep {
+  margin: 0 0.5rem;
+  opacity: 0.6;
+}
+
+/* Section cards */
+.game-detail-section .card-title {
+  margin-bottom: 0.75rem;
+}
+
+/* Momentum chart */
+.game-detail-momentum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-detail-momentum-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.game-detail-momentum-chart {
+  height: 120px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.game-detail-momentum-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Points won stats */
+.game-detail-stats-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.game-detail-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.game-detail-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-detail-stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Service stats */
+.game-detail-service-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-detail-service-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.game-detail-service-team {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.game-detail-service-stat {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-detail-service-bar {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.game-detail-service-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+/* Breaks & streaks grid */
+.game-detail-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.game-detail-mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.game-detail-mini-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.game-detail-mini-stat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-align: center;
+}
