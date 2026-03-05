@@ -334,11 +334,11 @@
 }
 
 .court-idle-logo-img {
-  height: 8vw;
-  max-height: 8vw;
-  max-width: 40vw;
-  width: auto;
-  object-fit: contain;
+  height: 8vw !important;
+  max-height: 8vw !important;
+  max-width: 40vw !important;
+  width: auto !important;
+  object-fit: contain !important;
 }
 
 .court-idle-instruction {

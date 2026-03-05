@@ -21,6 +21,8 @@ export default function Header({
             display: 'flex',
             justifyContent: 'center',
             paddingBottom: '40px',
+            overflow: 'hidden',
+            maxWidth: '100%',
           }}
         >
           <img

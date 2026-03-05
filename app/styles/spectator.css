@@ -35,11 +35,11 @@
 }
 
 .spectator-logo-img {
-  height: clamp(40px, 6vh, 80px);
-  max-height: clamp(40px, 6vh, 80px);
-  max-width: 240px;
-  width: auto;
-  object-fit: contain;
+  height: clamp(40px, 6vh, 80px) !important;
+  max-height: clamp(40px, 6vh, 80px) !important;
+  max-width: 240px !important;
+  width: auto !important;
+  object-fit: contain !important;
 }
 
 .spectator-header-right {

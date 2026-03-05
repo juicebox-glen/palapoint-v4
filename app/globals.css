@@ -43,3 +43,14 @@ body {
   max-width: var(--container-xl);
   margin: 0 auto;
 }
+
+/* Square One logo - always constrain size (used on setup, session-review, etc.) */
+.setup-logo-img {
+  height: 40px !important;
+  max-height: 40px !important;
+  max-width: 180px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+}
