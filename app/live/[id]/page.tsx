@@ -83,17 +83,12 @@ export default function LivePage() {
           table: 'live_matches',
           filter: `court_id=eq.${courtId}`,
         },
-        (payload) => {
-          const eventType =
-            payload.eventType ?? (payload as { event?: string }).event
-          if (eventType === 'DELETE') {
+        (payload: { eventType?: string; new?: MatchState }) => {
+          if (payload.eventType === 'DELETE') {
             // Don't clear on delete - keep final score visible until new match starts
             return
           }
-          const record =
-            payload.new ??
-            (payload as { data?: { record?: unknown } }).data?.record
-          const updatedMatch = record as MatchState | undefined
+          const updatedMatch = payload.new
           if (updatedMatch) {
             setMatch(updatedMatch)
           }
@@ -117,19 +112,24 @@ export default function LivePage() {
     const prevPa = prevPointsARef.current
     const prevPb = prevPointsBRef.current
 
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     if (prevPa >= 0 && prevPb >= 0) {
       if (pa > prevPa) {
         setTeamAScoreAnimating(true)
-        setTimeout(() => setTeamAScoreAnimating(false), 600)
+        timeoutId = setTimeout(() => setTeamAScoreAnimating(false), 450)
       } else if (pb > prevPb) {
         setTeamBScoreAnimating(true)
-        setTimeout(() => setTeamBScoreAnimating(false), 600)
+        timeoutId = setTimeout(() => setTeamBScoreAnimating(false), 450)
       }
     }
 
     prevPointsARef.current = pa
     prevPointsBRef.current = pb
-  }, [match?.team_a_points, match?.team_b_points, match?.tiebreak_scores?.team_a, match?.tiebreak_scores?.team_b, match?.is_tiebreak, match?.status])
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [match])
 
   // Poll when no match - catches new games if realtime misses
   useEffect(() => {
@@ -306,7 +306,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''} ${col.isPoints && teamAScoreAnimating ? 'game-score-animate' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''} ${col.isPoints && teamAScoreAnimating ? 'spectator-score-animate' : ''}`}
               >
                 {col.teamA}
               </span>
@@ -332,7 +332,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''} ${col.isPoints && teamBScoreAnimating ? 'game-score-animate' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''} ${col.isPoints && teamBScoreAnimating ? 'spectator-score-animate' : ''}`}
               >
                 {col.teamB}
               </span>
