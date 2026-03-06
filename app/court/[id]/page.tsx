@@ -18,6 +18,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Format points for display (0, 15, 30, 40, ADV)
+// At deuce (4-4, 5-5, etc.) both sides show 40; only ahead-by-one shows ADV
 function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean): string {
   if (isTiebreak) {
     return points.toString()
@@ -26,7 +27,8 @@ function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean)
     return 'ADV'
   }
   const pointMap: Record<number, string> = { 0: '0', 1: '15', 2: '30', 3: '40' }
-  return pointMap[points] ?? points.toString()
+  // Points 4+ at deuce (not advantage) → always show 40
+  return pointMap[points] ?? '40'
 }
 
 // Calculate if sides should be swapped (V3 logic - padel rules)
