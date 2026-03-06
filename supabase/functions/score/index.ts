@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
         const matchState = createMatchState({
           id: matchId,
           court_id: court_id,
-          game_mode: 'golden_point',
+          game_mode: 'traditional',
           sets_to_win: 1,
           tiebreak_at: 6,
           serving_team: Math.random() > 0.5 ? 'a' : 'b',
