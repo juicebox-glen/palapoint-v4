@@ -206,18 +206,6 @@
   min-width: clamp(5rem, 16vh, 14rem);
 }
 
-/* Score flash animation when points change (same as court scoreboard) */
-.spectator-score-points.spectator-score-animate {
-  display: inline-block;
-  transform-origin: center center;
-  animation: spectatorScoreFlash 0.4s ease-out;
-}
-
-@keyframes spectatorScoreFlash {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
-}
-
 /* Winning team's final set score */
 .spectator-score-winner {
   color: #E6EAF2;

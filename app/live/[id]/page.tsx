@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
@@ -14,10 +14,6 @@ export default function LivePage() {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [courtId, setCourtId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [teamAScoreAnimating, setTeamAScoreAnimating] = useState(false)
-  const [teamBScoreAnimating, setTeamBScoreAnimating] = useState(false)
-  const prevPointsARef = useRef(-1)
-  const prevPointsBRef = useRef(-1)
 
   useEffect(() => {
     if (!courtIdentifier) return
@@ -73,28 +69,28 @@ export default function LivePage() {
 
     loadMatch()
 
-    channel = supabase
-      .channel(`live-spectator-${courtId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_matches',
-          filter: `court_id=eq.${courtId}`,
-        },
-        (payload: { eventType?: string; new?: MatchState }) => {
-          if (payload.eventType === 'DELETE') {
-            // Don't clear on delete - keep final score visible until new match starts
-            return
-          }
-          const updatedMatch = payload.new
-          if (updatedMatch) {
-            setMatch(updatedMatch)
-          }
+    // Type assertion needed: Supabase RealtimeChannel has overload resolution issues with postgres_changes
+    const ch = supabase.channel(`live-spectator-${courtId}`)
+    ;(ch as any).on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'live_matches',
+        filter: `court_id=eq.${courtId}`,
+      },
+      (payload: { eventType?: string; new?: MatchState }) => {
+        if (payload.eventType === 'DELETE') {
+          // Don't clear on delete - keep final score visible until new match starts
+          return
         }
-      )
-      .subscribe()
+        const updatedMatch = payload.new
+        if (updatedMatch) {
+          setMatch(updatedMatch)
+        }
+      }
+    )
+    channel = ch.subscribe()
 
     return () => {
       if (channel) {
@@ -102,34 +98,6 @@ export default function LivePage() {
       }
     }
   }, [courtId])
-
-  // Score flash animation when points change (same as court scoreboard)
-  useEffect(() => {
-    if (!match || match.status === 'completed' || match.status === 'abandoned') return
-
-    const pa = match.is_tiebreak ? (match.tiebreak_scores?.team_a ?? 0) : (match.team_a_points ?? 0)
-    const pb = match.is_tiebreak ? (match.tiebreak_scores?.team_b ?? 0) : (match.team_b_points ?? 0)
-    const prevPa = prevPointsARef.current
-    const prevPb = prevPointsBRef.current
-
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    if (prevPa >= 0 && prevPb >= 0) {
-      if (pa > prevPa) {
-        setTeamAScoreAnimating(true)
-        timeoutId = setTimeout(() => setTeamAScoreAnimating(false), 450)
-      } else if (pb > prevPb) {
-        setTeamBScoreAnimating(true)
-        timeoutId = setTimeout(() => setTeamBScoreAnimating(false), 450)
-      }
-    }
-
-    prevPointsARef.current = pa
-    prevPointsBRef.current = pb
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [match])
 
   // Poll when no match - catches new games if realtime misses
   useEffect(() => {
@@ -306,7 +274,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''} ${col.isPoints && teamAScoreAnimating ? 'spectator-score-animate' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''}`}
               >
                 {col.teamA}
               </span>
@@ -332,7 +300,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''} ${col.isPoints && teamBScoreAnimating ? 'spectator-score-animate' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''}`}
               >
                 {col.teamB}
               </span>
