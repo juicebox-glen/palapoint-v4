@@ -141,6 +141,47 @@ export default function CourtDisplay() {
     loadData()
   }, [id])
 
+  // WebSocket: connect to FLIC ws-bridge (HOLD/SCORE_LEFT/SCORE_RIGHT/UNDO)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const wsPort = process.env.NEXT_PUBLIC_WS_PORT || '4001'
+    const wsUrl = `ws://${window.location.hostname}:${wsPort}`
+    let ws: WebSocket | null = null
+    let retry: ReturnType<typeof setTimeout> | null = null
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(wsUrl)
+        ws.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data)
+            if (msg?.type !== 'command') return
+            const keyMap: Record<string, string> = {
+              HOLD: 'r',
+              SCORE_LEFT: 'q',
+              SCORE_RIGHT: 'p',
+              UNDO: 'a',
+            }
+            const key = keyMap[msg.cmd]
+            if (key) {
+              window.dispatchEvent(new KeyboardEvent('keydown', { key }))
+            }
+          } catch {}
+        }
+        ws.onclose = () => {
+          retry = setTimeout(connect, 2000)
+        }
+      } catch (err) {
+        retry = setTimeout(connect, 2000)
+      }
+    }
+    connect()
+    return () => {
+      if (retry) clearTimeout(retry)
+      ws?.close()
+    }
+  }, [])
+
   // Subscribe to real-time updates
   useEffect(() => {
     if (!court?.id) return
@@ -343,8 +384,8 @@ export default function CourtDisplay() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
 
-      // Only handle our keys
-      if (!['q', 'p', ' ', 'a'].includes(key)) return
+      // Only handle our keys (r = FLIC hold for Quick Play start/end)
+      if (!['q', 'p', ' ', 'a', 'r'].includes(key)) return
 
       // Ignore key repeat - prevents double-scoring when holding button
       if (e.repeat) return
@@ -362,6 +403,24 @@ export default function CourtDisplay() {
         showSideSwap,
         matchStatus: match?.status,
       })
+
+      // HOLD (r): Quick Play - start new match if none, or end match if active
+      if (key === 'r') {
+        e.preventDefault()
+        if (court?.id) {
+          fetch(`${SUPABASE_URL}/functions/v1/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              court_id: court.id,
+              team: 'a',
+              source: 'button_a',
+              gesture: 'hold',
+            }),
+          }).catch((err) => console.error('Quick Play hold error:', err))
+        }
+        return
+      }
 
       // STATE 1: Ready to Play - waiting for button press to start
       if (awaiting) {
@@ -413,7 +472,7 @@ export default function CourtDisplay() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [match, showSetWin, showSideSwap, handleScore])
+  }, [match, showSetWin, showSideSwap, handleScore, court?.id])
 
   const handleSideSwapComplete = () => {
     setShowSideSwap(false)

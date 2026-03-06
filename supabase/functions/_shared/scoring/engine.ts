@@ -465,7 +465,7 @@ export function createMatchState(config: {
     version: 1,
     
     // Configuration
-    game_mode: config.game_mode || 'golden_point',
+    game_mode: config.game_mode ?? 'traditional',
     sets_to_win: config.sets_to_win || 1,
     tiebreak_at: config.tiebreak_at || 6,
     

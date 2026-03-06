@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
           .insert({
             court_id,
             settings: settings || {
-              game_mode: 'golden_point',
+              game_mode: 'traditional',
               sets_to_win: 1,
               tiebreak_at: 6,
               side_swap_enabled: true,
@@ -511,7 +511,7 @@ Deno.serve(async (req) => {
           .insert({
             court_id,
             settings: settings || {
-              game_mode: 'golden_point',
+              game_mode: 'traditional',
               sets_to_win: 1,
               tiebreak_at: 6,
               side_swap_enabled: true,

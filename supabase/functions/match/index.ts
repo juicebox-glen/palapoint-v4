@@ -206,11 +206,11 @@ Deno.serve(async (req) => {
         // Generate UUID for match
         const matchId = crypto.randomUUID();
 
-        // Create match state
+        // Create match state (default traditional = ADV/deuce, not golden point)
         const matchState = createMatchState({
           id: matchId,
           court_id: court_id,
-          game_mode: createReq.game_mode,
+          game_mode: createReq.game_mode ?? 'traditional',
           sets_to_win: createReq.sets_to_win,
           tiebreak_at: createReq.tiebreak_at,
           serving_team: createReq.serving_team,

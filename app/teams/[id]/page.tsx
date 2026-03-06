@@ -26,7 +26,7 @@ export default function TeamsPage() {
   const [editingPlayer, setEditingPlayer] = useState<{ team: 'a' | 'b'; index: number } | null>(null)
 
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
-  const [gameMode, setGameMode] = useState<GameMode>('golden_point')
+  const [gameMode, setGameMode] = useState<GameMode>('traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [teams, setTeams] = useState<TeamAssignments | null>(null)
 
