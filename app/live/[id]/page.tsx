@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase, getCourtBySlug } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
@@ -14,6 +14,10 @@ export default function LivePage() {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [courtId, setCourtId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [teamAScoreAnimating, setTeamAScoreAnimating] = useState(false)
+  const [teamBScoreAnimating, setTeamBScoreAnimating] = useState(false)
+  const prevPointsARef = useRef(-1)
+  const prevPointsBRef = useRef(-1)
 
   useEffect(() => {
     if (!courtIdentifier) return
@@ -103,6 +107,29 @@ export default function LivePage() {
       }
     }
   }, [courtId])
+
+  // Score flash animation when points change (same as court scoreboard)
+  useEffect(() => {
+    if (!match || match.status === 'completed' || match.status === 'abandoned') return
+
+    const pa = match.is_tiebreak ? (match.tiebreak_scores?.team_a ?? 0) : (match.team_a_points ?? 0)
+    const pb = match.is_tiebreak ? (match.tiebreak_scores?.team_b ?? 0) : (match.team_b_points ?? 0)
+    const prevPa = prevPointsARef.current
+    const prevPb = prevPointsBRef.current
+
+    if (prevPa >= 0 && prevPb >= 0) {
+      if (pa > prevPa) {
+        setTeamAScoreAnimating(true)
+        setTimeout(() => setTeamAScoreAnimating(false), 600)
+      } else if (pb > prevPb) {
+        setTeamBScoreAnimating(true)
+        setTimeout(() => setTeamBScoreAnimating(false), 600)
+      }
+    }
+
+    prevPointsARef.current = pa
+    prevPointsBRef.current = pb
+  }, [match?.team_a_points, match?.team_b_points, match?.tiebreak_scores?.team_a, match?.tiebreak_scores?.team_b, match?.is_tiebreak, match?.status])
 
   // Poll when no match - catches new games if realtime misses
   useEffect(() => {
@@ -279,7 +306,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'a' ? 'spectator-score-winner' : ''} ${col.isPoints && teamAScoreAnimating ? 'game-score-animate' : ''}`}
               >
                 {col.teamA}
               </span>
@@ -305,7 +332,7 @@ export default function LivePage() {
             {getScoreColumns(match).map((col, i) => (
               <span
                 key={i}
-                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''}`}
+                className={`spectator-score ${col.isPoints ? 'spectator-score-points' : col.isPastSet ? 'spectator-score-past-set' : 'spectator-score-games'} ${col.isFinalSet && match.winner === 'b' ? 'spectator-score-winner' : ''} ${col.isPoints && teamBScoreAnimating ? 'game-score-animate' : ''}`}
               >
                 {col.teamB}
               </span>

@@ -182,7 +182,7 @@
 }
 
 .spectator-score {
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   text-align: right;
   font-size: clamp(3rem, 15vh, 20rem);
