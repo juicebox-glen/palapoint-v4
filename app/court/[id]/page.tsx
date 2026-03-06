@@ -29,41 +29,30 @@ function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean)
   return pointMap[points] ?? points.toString()
 }
 
-// Calculate if sides should be swapped
-// Sides swap after every odd-numbered total game (1, 3, 5, 7...) and every 6 points in tiebreak
+// Calculate if sides should be swapped (V3 logic - padel rules)
+// Swap after game 1, then after every odd total (3, 5, 7, 9...). In tiebreak: every 6 points.
+// sidesSwapped = cumulative result of all swaps (toggles each time overlay completes)
 function calculateSidesSwapped(match: MatchState): boolean {
-  // If side swap is disabled, never swap
   if (match.side_swap_enabled === false) return false
-  
-  // Count total games from set_scores
+
   const setScores = match.set_scores || []
   let totalGames = 0
-  
-  // Add completed set games
   for (const set of setScores) {
     totalGames += (set.team_a || 0) + (set.team_b || 0)
   }
-  
-  // Add current set games
   totalGames += match.team_a_games + match.team_b_games
-  
-  // In tiebreak, also count tiebreak points
+
   if (match.is_tiebreak) {
     const tiebreakPoints = match.team_a_points + match.team_b_points
-    // Swap every 6 points in tiebreak
-    // Each 6 points = 1 additional "swap unit"
     const tiebreakSwaps = Math.floor(tiebreakPoints / 6)
-    // Total swaps = games swaps + tiebreak swaps
-    // Games swap on odd totals (1,3,5,7) = swap count is Math.ceil(totalGames / 2) for odd, Math.floor for even
-    // Simpler: just count total swap events
-    const gameSwaps = Math.floor((totalGames + 1) / 2) // 1 swap after game 1, 2 swaps after game 3, etc.
+    const gameSwaps = Math.floor((totalGames + 1) / 2)
     return (gameSwaps + tiebreakSwaps) % 2 === 1
   }
-  
-  // Normal games: swap after odd game counts (1, 3, 5, 7...)
-  // After 1 game = swapped, after 2 = not swapped, after 3 = swapped, etc.
-  // Pattern: swapped when total games is odd
-  return totalGames % 2 === 1
+
+  // Normal games: swap after 1, 3, 5, 7... (odd total). After game 1 we're swapped; after game 2
+  // we stay swapped (no new swap); after game 3 we swap again (2nd swap = not swapped).
+  const gameSwaps = Math.floor((totalGames + 1) / 2)
+  return gameSwaps % 2 === 1
 }
 
 // Get court by slug or UUID

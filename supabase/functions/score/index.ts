@@ -7,7 +7,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { applyScore, createMatchState } from '../_shared/scoring/engine.ts';
 import type { MatchState, Team } from '../_shared/scoring/types.ts';
 
-/** Compute if sides are swapped from current match state (must match court display logic). */
+/** Compute if sides are swapped (V3 padel rules - must match court display). */
 function calculateSidesSwapped(match: {
   side_swap_enabled?: boolean | null;
   set_scores?: Array<{ team_a?: number; team_b?: number }> | null;
@@ -30,7 +30,8 @@ function calculateSidesSwapped(match: {
     const gameSwaps = Math.floor((totalGames + 1) / 2);
     return (gameSwaps + tiebreakSwaps) % 2 === 1;
   }
-  return totalGames % 2 === 1;
+  const gameSwaps = Math.floor((totalGames + 1) / 2);
+  return gameSwaps % 2 === 1;
 }
 
 // CORS headers for all responses
