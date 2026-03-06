@@ -329,7 +329,7 @@ export default function CourtDisplay() {
   }, [match, showSideSwap])
 
   const handleScore = useCallback(
-    async (team: 'a' | 'b') => {
+    async (team: 'a' | 'b', source: 'button_a' | 'button_b' | 'control_panel' = 'control_panel') => {
       if (!court?.id) return
 
       try {
@@ -339,7 +339,7 @@ export default function CourtDisplay() {
           body: JSON.stringify({
             court_id: court.id,
             team,
-            source: 'control_panel',
+            source,
           }),
         })
       } catch (err) {
@@ -412,15 +412,13 @@ export default function CourtDisplay() {
         return
       }
 
-      // STATE 7: Active game - SCORE!
+      // STATE 7: Active game - SCORE! (positional: left key = left side, right key = right side)
       if (key === 'q' || key === 'a') {
-        console.log('Scoring for team: a')
         e.preventDefault()
-        handleScore('a')
+        handleScore('a', 'button_a')
       } else if (key === 'p') {
-        console.log('Scoring for team: b')
         e.preventDefault()
-        handleScore('b')
+        handleScore('b', 'button_b')
       }
     }
 

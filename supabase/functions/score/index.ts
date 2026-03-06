@@ -7,6 +7,32 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { applyScore, createMatchState } from '../_shared/scoring/engine.ts';
 import type { MatchState, Team } from '../_shared/scoring/types.ts';
 
+/** Compute if sides are swapped from current match state (must match court display logic). */
+function calculateSidesSwapped(match: {
+  side_swap_enabled?: boolean | null;
+  set_scores?: Array<{ team_a?: number; team_b?: number }> | null;
+  team_a_games?: number;
+  team_b_games?: number;
+  is_tiebreak?: boolean;
+  team_a_points?: number;
+  team_b_points?: number;
+}): boolean {
+  if (match.side_swap_enabled === false) return false;
+  const setScores = match.set_scores || [];
+  let totalGames = 0;
+  for (const set of setScores) {
+    totalGames += (set.team_a || 0) + (set.team_b || 0);
+  }
+  totalGames += (match.team_a_games ?? 0) + (match.team_b_games ?? 0);
+  if (match.is_tiebreak) {
+    const tiebreakPoints = (match.team_a_points ?? 0) + (match.team_b_points ?? 0);
+    const tiebreakSwaps = Math.floor(tiebreakPoints / 6);
+    const gameSwaps = Math.floor((totalGames + 1) / 2);
+    return (gameSwaps + tiebreakSwaps) % 2 === 1;
+  }
+  return totalGames % 2 === 1;
+}
+
 // CORS headers for all responses
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -433,6 +459,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Map button position to team: buttons are positional (left/right), not team-based.
+    // After a side swap, left button still scores for whoever is on the LEFT.
+    const sidesSwapped = calculateSidesSwapped(match);
+    let scoringTeam: Team;
+    if (source === 'control_panel') {
+      scoringTeam = team;
+    } else if (source === 'button_a') {
+      scoringTeam = sidesSwapped ? 'b' : 'a';
+    } else if (source === 'button_b') {
+      scoringTeam = sidesSwapped ? 'a' : 'b';
+    } else {
+      scoringTeam = team;
+    }
+
     // Convert database row to MatchState
     // The database uses snake_case which matches MatchState type
     const stateBefore: MatchState = {
@@ -463,8 +503,8 @@ Deno.serve(async (req) => {
       completed_at: match.completed_at || null,
     };
 
-    // Apply score using engine
-    const result = applyScore(stateBefore, { type: 'point', team });
+    // Apply score using engine (use positional team for buttons)
+    const result = applyScore(stateBefore, { type: 'point', team: scoringTeam });
 
     // Prepare update data (convert back to database format)
     const newState = result.newState;
@@ -538,8 +578,8 @@ Deno.serve(async (req) => {
         .eq('status', 'active');
     }
 
-    // Insert into score_events
-    const eventType = team === 'a' ? 'point_a' : 'point_b';
+    // Insert into score_events (record the team that actually scored)
+    const eventType = scoringTeam === 'a' ? 'point_a' : 'point_b';
     const { error: eventError } = await supabase
       .from('score_events')
       .insert({
