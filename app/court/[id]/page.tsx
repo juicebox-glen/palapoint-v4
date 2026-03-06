@@ -627,12 +627,29 @@ export default function CourtDisplay() {
     )
   }
 
-  // Show side swap overlay
+  // Show side swap overlay - pass "before swap" positions so circles match scoreboard
+  // (Overlay appears at swap moment; teams haven't moved yet)
   if (showSideSwap && match) {
+    const setScores = match.set_scores || []
+    let totalGames = 0
+    for (const set of setScores) {
+      totalGames += (set.team_a || 0) + (set.team_b || 0)
+    }
+    totalGames += match.team_a_games + match.team_b_games
+    let sidesBeforeSwap: boolean
+    if (match.is_tiebreak) {
+      const tiebreakPoints = match.team_a_points + match.team_b_points
+      const tiebreakSwaps = Math.floor(tiebreakPoints / 6)
+      const gameSwaps = Math.floor((totalGames + 1) / 2)
+      sidesBeforeSwap = (gameSwaps + tiebreakSwaps - 1) % 2 === 1
+    } else {
+      const gameSwaps = Math.floor((totalGames + 1) / 2)
+      sidesBeforeSwap = (gameSwaps - 1) % 2 === 1
+    }
     return (
       <SideSwapOverlay
         servingTeam={match.serving_team as 'a' | 'b'}
-        sidesSwapped={calculateSidesSwapped(match)}
+        sidesSwapped={sidesBeforeSwap}
         onComplete={handleSideSwapComplete}
       />
     )
