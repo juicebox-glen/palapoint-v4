@@ -23,7 +23,6 @@ export default function ControlPanelPage() {
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
-  const [completedMatch, setCompletedMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -128,24 +127,9 @@ export default function ControlPanelPage() {
 
         if (data) {
           setMatch(data)
-          setCompletedMatch(null)
         } else {
           setMatch(null)
-          // If no active match, check for recently completed (within 2 min) to show summary
-          const { data: recent } = await supabase
-            .from('live_matches')
-            .select('*')
-            .eq('court_id', courtId)
-            .in('status', ['completed', 'abandoned'])
-            .order('completed_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-          if (recent?.completed_at) {
-            const completedAt = new Date(recent.completed_at).getTime()
-            if (Date.now() - completedAt < 120_000) {
-              setCompletedMatch(recent as MatchState)
-            }
-          }
+          // Staff always see setup screen when no active match - don't show completed match summary
         }
         setLoading(false)
       } catch (err) {
@@ -178,10 +162,9 @@ export default function ControlPanelPage() {
         const updatedMatch = { ...raw } as MatchState
         if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
           setMatch(updatedMatch)
-          setCompletedMatch(null)
         } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
           setMatch(null)
-          setCompletedMatch(updatedMatch)
+          // Don't show completed match - staff go straight to setup for next game
         }
       }
     )
@@ -377,66 +360,6 @@ export default function ControlPanelPage() {
     }
   }
 
-  async function handlePlayAgain() {
-    if (!courtId || !completedMatch) return
-
-    setActionLoading('play_again')
-    setError(null)
-
-    try {
-      const body: Record<string, unknown> = {
-        action: 'create',
-        court_id: courtId,
-        game_mode: completedMatch.game_mode,
-        sets_to_win: completedMatch.sets_to_win ?? 1,
-        side_swap_enabled: completedMatch.side_swap_enabled ?? true,
-        tiebreak_at: completedMatch.tiebreak_at ?? 6,
-      }
-      if (completedMatch.team_a_player_1) body.team_a_player_1 = completedMatch.team_a_player_1
-      if (completedMatch.team_a_player_2) body.team_a_player_2 = completedMatch.team_a_player_2
-      if (completedMatch.team_b_player_1) body.team_b_player_1 = completedMatch.team_b_player_1
-      if (completedMatch.team_b_player_2) body.team_b_player_2 = completedMatch.team_b_player_2
-
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-
-      const data = await response.json()
-
-      if (!data.success) {
-        setError(data.error || 'Failed to start match')
-        setActionLoading(null)
-        return
-      }
-
-      setCompletedMatch(null)
-      setActionLoading(null)
-    } catch (err) {
-      console.error('Error starting match:', err)
-      setError('Failed to start match')
-      setActionLoading(null)
-    }
-  }
-
-  function handleNewGame() {
-    if (!completedMatch) return
-
-    setPlayers([
-      completedMatch.team_a_player_1 ?? '',
-      completedMatch.team_a_player_2 ?? '',
-      completedMatch.team_b_player_1 ?? '',
-      completedMatch.team_b_player_2 ?? '',
-    ])
-    setGameMode(completedMatch.game_mode ?? 'traditional')
-    setSetsToWin((completedMatch.sets_to_win ?? 1) as 1 | 2)
-    setSideSwapEnabled(completedMatch.side_swap_enabled ?? true)
-    setEndGameInTiebreak((completedMatch.tiebreak_at ?? 6) === 6)
-    setCompletedMatch(null)
-    setError(null)
-  }
-
   // PIN entry screen (same design language as setup)
   if (pinLoading || !pinAuthenticated) {
     return (
@@ -505,117 +428,7 @@ export default function ControlPanelPage() {
     )
   }
 
-  // Match complete — same design as player game ended, with control-specific options
-  if (completedMatch) {
-    const teamAName = buildTeamNameAbbreviated(
-      completedMatch.team_a_player_1,
-      completedMatch.team_a_player_2,
-      'Team A'
-    )
-    const teamBName = buildTeamNameAbbreviated(
-      completedMatch.team_b_player_1,
-      completedMatch.team_b_player_2,
-      'Team B'
-    )
-    const winnerName =
-      completedMatch.winner === 'a'
-        ? teamAName
-        : completedMatch.winner === 'b'
-          ? teamBName
-          : null
-    const isAbandoned = completedMatch.status === 'abandoned'
-    const hasWinner = completedMatch.winner && !isAbandoned
-    const finalScore =
-      completedMatch.set_scores && completedMatch.set_scores.length > 0
-        ? completedMatch.set_scores
-            .map(
-              (s: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }) =>
-                `${s.team_a_games ?? s.team_a ?? 0}-${s.team_b_games ?? s.team_b ?? 0}`
-            )
-            .join(', ')
-        : `${completedMatch.team_a_games}-${completedMatch.team_b_games}`
-    const winnerTeam = completedMatch.winner === 'a' ? 'team-a' : 'team-b'
-
-    return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header
-          status="finished"
-          statusText={isAbandoned ? 'MATCH ENDED' : 'MATCH COMPLETE'}
-          courtName={courtIdentifier}
-        />
-        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          {error && <div className="control-error-message" style={{ marginBottom: '1rem' }}>{error}</div>}
-          <div
-            className={`card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-default)',
-              ...(hasWinner && {
-                borderTop: `3px solid var(--${winnerTeam})`,
-              }),
-              borderRadius: 'var(--radius-xl)',
-              padding: '1.5rem',
-              textAlign: 'center',
-            }}
-          >
-            {hasWinner && winnerName && (
-              <p
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  color: 'var(--text-secondary)',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                {winnerName} WIN
-              </p>
-            )}
-            <p
-              style={{
-                fontSize: '3rem',
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                color: 'var(--text-primary)',
-              }}
-            >
-              {finalScore.replace(', ', ' - ')}
-            </p>
-            {isAbandoned && (
-              <p
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.875rem',
-                  marginTop: '0.5rem',
-                }}
-              >
-                Match was ended early
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="stack" style={{ paddingTop: '1rem' }}>
-          <button
-            className="btn btn-primary btn-block"
-            onClick={handlePlayAgain}
-            disabled={!!actionLoading}
-          >
-            {actionLoading === 'play_again' ? 'Starting...' : 'Rematch'}
-          </button>
-          <button
-            className="btn btn-secondary btn-block"
-            onClick={handleNewGame}
-            disabled={!!actionLoading}
-          >
-            Edit Match
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // No active match - show same setup form as player setup
+  // No active match - show setup form (staff always start fresh)
   if (!match) {
     return (
       <MatchSetupForm
