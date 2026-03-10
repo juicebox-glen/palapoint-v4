@@ -1,0 +1,610 @@
+/* ============================================================
+   MATCHPLAY TV BOARD - Public leaderboard display
+   Full-screen, vh-based scaling, readable from distance
+   ============================================================ */
+
+.board-container {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0E1116;
+  color: #FFFFFF;
+  font-family: var(--font-family);
+}
+
+.board-loading,
+.board-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.2rem, 3vh, 2rem);
+  color: var(--text-muted);
+}
+
+.board-error {
+  color: var(--color-error);
+}
+
+/* ============================================================
+   HEADER (Live & Completed)
+   ============================================================ */
+
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(0.75rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+  flex-shrink: 0;
+  background: #151A22;
+  border-bottom: 1px solid #2A3140;
+}
+
+.board-header-title {
+  font-size: clamp(1.2rem, 2.5vh, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+
+.board-round-indicator {
+  font-size: clamp(0.9rem, 2vh, 1.4rem);
+  font-weight: 600;
+  color: #A0A0A8;
+  letter-spacing: 0.05em;
+  margin: 0 clamp(1rem, 2vw, 2rem);
+}
+
+.board-badge {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vh, 1rem);
+  font-size: clamp(1rem, 2.5vh, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.board-badge-dot {
+  width: clamp(10px, 2vh, 18px);
+  height: clamp(10px, 2vh, 18px);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.board-badge-dot-live {
+  background: #22C55E;
+  animation: board-pulse 2s ease-in-out infinite;
+}
+
+.board-badge-dot-final {
+  background: #A0A0A8;
+}
+
+@keyframes board-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================================
+   MAIN CONTENT (flex area)
+   ============================================================ */
+
+.board-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.board-main-single {
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   LEADERBOARD PANEL (Live)
+   ============================================================ */
+
+.board-panel {
+  padding: clamp(1rem, 2.5vh, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+  overflow: auto;
+}
+
+.board-leaderboard {
+  flex: 0 0 60%;
+  min-width: 0;
+  border-right: 1px solid #2A3140;
+}
+
+.board-fixtures {
+  flex: 1;
+  min-width: 0;
+}
+
+.board-panel-title {
+  font-size: clamp(1rem, 2.2vh, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #A0A0A8;
+  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+/* ============================================================
+   STANDINGS TABLE
+   ============================================================ */
+
+.board-standings {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.8rem, 1.6vh, 1.2rem);
+}
+
+.board-standings th,
+.board-standings td {
+  padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 1rem);
+  text-align: left;
+  border-bottom: 1px solid #2A3140;
+}
+
+.board-standings th {
+  font-weight: 600;
+  color: #A0A0A8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: clamp(0.7rem, 1.4vh, 1rem);
+}
+
+.board-standings td {
+  color: #FFFFFF;
+}
+
+.board-th-rank,
+.board-td-rank {
+  width: 2.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-th-player,
+.board-td-player {
+  font-weight: 500;
+  min-width: 0;
+}
+
+.board-th-num,
+.board-td-num {
+  width: 2.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-th-pts,
+.board-td-pts {
+  width: 3em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(1rem, 2vh, 1.4rem);
+  color: var(--brand-primary);
+}
+
+.board-td-pts {
+  color: #FFFFFF;
+}
+
+/* Top 3 rank accents */
+.board-rank-1 .board-td-rank {
+  color: #FFD700;
+  font-weight: 700;
+}
+
+.board-rank-1 {
+  border-left: 3px solid #FFD700;
+}
+
+.board-rank-2 .board-td-rank {
+  color: #C0C0C0;
+  font-weight: 700;
+}
+
+.board-rank-2 {
+  border-left: 3px solid #C0C0C0;
+}
+
+.board-rank-3 .board-td-rank {
+  color: #CD7F32;
+  font-weight: 700;
+}
+
+.board-rank-3 {
+  border-left: 3px solid #CD7F32;
+}
+
+/* ============================================================
+   FIXTURES PANEL
+   ============================================================ */
+
+.board-fixture-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+.board-fixture {
+  background: #151A22;
+  border: 1px solid #2A3140;
+  border-radius: clamp(8px, 1.5vh, 12px);
+  padding: clamp(0.75rem, 2vh, 1.25rem);
+  position: relative;
+}
+
+.board-fixture-court {
+  font-size: clamp(0.8rem, 1.6vh, 1.1rem);
+  font-weight: 600;
+  color: #A0A0A8;
+  margin-bottom: clamp(0.5rem, 1.5vh, 0.75rem);
+}
+
+.board-fixture-teams {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.25rem, 0.8vh, 0.5rem);
+}
+
+.board-fixture-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: clamp(1rem, 2.2vh, 1.5rem);
+  font-weight: 500;
+}
+
+.board-fixture-team-winner {
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.board-fixture-vs {
+  font-size: clamp(0.75rem, 1.6vh, 1rem);
+  color: #606068;
+  padding: clamp(0.25rem, 0.8vh, 0.5rem) 0;
+}
+
+.board-fixture-score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 2.5vh, 1.6rem);
+  margin-left: 0.5rem;
+}
+
+.board-fixture-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(0.75rem, 1.6vh, 1rem);
+  color: #22C55E;
+  margin-top: clamp(0.5rem, 1.5vh, 0.75rem);
+}
+
+.board-fixture-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #22C55E;
+  border-radius: 50%;
+  animation: board-pulse 2s ease-in-out infinite;
+}
+
+.board-fixture-check {
+  position: absolute;
+  top: clamp(0.75rem, 2vh, 1.25rem);
+  right: clamp(0.75rem, 2vh, 1.25rem);
+  color: #22C55E;
+  font-size: clamp(1rem, 2.5vh, 1.5rem);
+}
+
+.board-fixtures-empty {
+  padding: clamp(2rem, 5vh, 3rem);
+  text-align: center;
+  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  color: #606068;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.board-footer {
+  flex-shrink: 0;
+  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(1.5rem, 4vw, 3rem);
+  font-size: clamp(0.7rem, 1.4vh, 1rem);
+  color: #606068;
+  background: #151A22;
+  border-top: 1px solid #2A3140;
+}
+
+/* ============================================================
+   SETUP STATE
+   ============================================================ */
+
+.board-setup {
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vh, 4rem);
+}
+
+.board-setup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+}
+
+.board-brand {
+  font-size: clamp(1.5rem, 4vh, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #A0A0A8;
+  margin-bottom: clamp(1rem, 3vh, 2rem);
+}
+
+.board-event-name {
+  font-size: clamp(1.25rem, 3.5vh, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+}
+
+.board-event-date {
+  font-size: clamp(1rem, 2.5vh, 1.5rem);
+  color: #A0A0A8;
+  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.board-starting-soon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.5vh, 1rem);
+  font-size: clamp(1rem, 2.5vh, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #22C55E;
+  margin-bottom: clamp(2rem, 5vh, 3rem);
+}
+
+.board-pulse-dot {
+  width: clamp(12px, 2.5vh, 20px);
+  height: clamp(12px, 2.5vh, 20px);
+  background: #22C55E;
+  border-radius: 50%;
+  animation: board-pulse 2s ease-in-out infinite;
+}
+
+.board-players-card {
+  background: #151A22;
+  border: 1px solid #2A3140;
+  border-radius: clamp(12px, 2vh, 20px);
+  padding: clamp(1.5rem, 4vh, 2.5rem);
+  width: 100%;
+  max-width: 500px;
+}
+
+.board-players-title {
+  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #A0A0A8;
+  margin-bottom: clamp(1rem, 2.5vh, 1.5rem);
+}
+
+.board-players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: clamp(0.5rem, 1.5vh, 1rem);
+  margin-bottom: clamp(1rem, 2.5vh, 1.5rem);
+}
+
+.board-player-name {
+  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  font-weight: 500;
+}
+
+.board-players-count {
+  font-size: clamp(0.9rem, 2vh, 1.2rem);
+  color: #606068;
+}
+
+/* ============================================================
+   COMPLETED STATE - Winner section
+   ============================================================ */
+
+.board-winner-section {
+  flex: 1;
+  padding: clamp(1rem, 3vh, 2rem) clamp(1.5rem, 4vw, 3rem);
+  overflow-y: auto;
+}
+
+.board-winner-trophy {
+  font-size: clamp(1.25rem, 3vh, 2rem);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+.board-winner-names {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.5vh, 1rem);
+  margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+}
+
+.board-winner-name {
+  font-size: clamp(1.5rem, 4vh, 3rem);
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.board-winner-points {
+  font-size: clamp(1.25rem, 3vh, 1.75rem);
+  color: #A0A0A8;
+  text-align: center;
+  margin-bottom: clamp(1rem, 3vh, 1.5rem);
+}
+
+.board-winner-label {
+  font-size: clamp(1rem, 2.5vh, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #A0A0A8;
+  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+.board-winner-card {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: clamp(8px, 1.5vh, 12px);
+  padding: clamp(1rem, 2.5vh, 1.5rem);
+  margin-bottom: clamp(1.5rem, 4vh, 2rem);
+}
+
+.board-winner-stats {
+  font-size: clamp(0.9rem, 2vh, 1.2rem);
+  color: #A0A0A8;
+  margin-top: 0.5rem;
+}
+
+/* Podium */
+.board-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 1.5rem);
+  margin-bottom: clamp(1.5rem, 4vh, 2rem);
+}
+
+.board-podium-platform {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(0.75rem, 2vh, 1.25rem);
+  border-radius: clamp(8px, 1.5vh, 12px) clamp(8px, 1.5vh, 12px) 0 0;
+  min-width: clamp(80px, 15vw, 140px);
+}
+
+.board-podium-2nd {
+  height: clamp(80px, 18vh, 120px);
+  background: linear-gradient(180deg, #C0C0C0 0%, #A0A0A0 100%);
+  color: #1a1a1a;
+}
+
+.board-podium-1st {
+  height: clamp(120px, 25vh, 180px);
+  background: linear-gradient(180deg, #FFD700 0%, #E6C200 100%);
+  color: #1a1a1a;
+}
+
+.board-podium-3rd {
+  height: clamp(60px, 14vh, 100px);
+  background: linear-gradient(180deg, #CD7F32 0%, #B87333 100%);
+  color: #fff;
+}
+
+.board-podium-label {
+  font-size: clamp(0.8rem, 1.8vh, 1.1rem);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.board-podium-names {
+  font-size: clamp(0.9rem, 2vh, 1.2rem);
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+.board-podium-medal {
+  font-size: clamp(1.5rem, 3vh, 2rem);
+  margin-top: 0.5rem;
+}
+
+/* Podium animation */
+.board-main-single.board-podium-visible .board-winner-section {
+  animation: board-podium-fade 0.5s ease-out;
+}
+
+.board-main-single.board-podium-visible .board-podium {
+  animation: board-podium-scale 0.6s ease-out 0.2s both;
+}
+
+@keyframes board-podium-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes board-podium-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Activity feed */
+.board-activity-feed {
+  flex-shrink: 0;
+  padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(1.5rem, 4vw, 3rem);
+  font-size: clamp(0.75rem, 1.5vh, 1rem);
+  color: #606068;
+  background: #151A22;
+  border-top: 1px solid #2A3140;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.board-activity-dot {
+  width: 6px;
+  height: 6px;
+  background: #22C55E;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Tie connector */
+.board-tie-cont .board-td-rank-cell {
+  border-left: 2px solid #2A3140;
+  padding-left: 0.5rem;
+}
+
+.board-tie-connector {
+  color: #606068;
+  font-size: 0.875em;
+}
+
+.board-winner-divider {
+  height: 1px;
+  background: #2A3140;
+  margin: clamp(1rem, 2.5vh, 1.5rem) 0;
+}
+
+.board-standings-title {
+  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #A0A0A8;
+  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}

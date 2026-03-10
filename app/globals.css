@@ -3,6 +3,7 @@
 @import './styles/court-display.css';
 @import './styles/playing.css';
 @import './styles/spectator.css';
+@import './styles/matchplay.css';
 
 /* Reset and base styles */
 * {

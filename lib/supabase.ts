@@ -138,3 +138,42 @@ export async function validateControlPin(courtId: string, pin: string): Promise<
 
   return true
 }
+
+/**
+ * Get venue ID for matchplay (from env or first venue in DB)
+ */
+export async function getMatchplayVenueId(): Promise<string | null> {
+  const envVenue = process.env.NEXT_PUBLIC_MATCHPLAY_VENUE_ID
+  if (envVenue?.trim()) return envVenue.trim()
+
+  const { data, error } = await supabase
+    .from('venues')
+    .select('id')
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return data.id
+}
+
+/**
+ * Get first court for a venue (used for matchplay PIN validation)
+ */
+export async function getFirstCourtForVenue(venueId: string): Promise<Court | null> {
+  const { data, error } = await supabase
+    .from('courts')
+    .select(`
+      *,
+      venue:venues (
+        id,
+        name,
+        company_id
+      )
+    `)
+    .eq('venue_id', venueId)
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return data
+}
