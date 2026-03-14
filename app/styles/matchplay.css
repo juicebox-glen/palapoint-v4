@@ -311,6 +311,29 @@
   margin-top: 0.5rem;
 }
 
+.matchplay-event-summary .matchplay-format-label {
+  margin-bottom: 0.5rem;
+}
+
+.matchplay-summary-panel {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.matchplay-summary-panel p {
+  margin: 0.25rem 0;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+.matchplay-summary-based {
+  font-size: 0.8125rem !important;
+  color: var(--text-muted) !important;
+  margin-top: 0.5rem !important;
+}
+
 .matchplay-format-footer {
   position: fixed;
   bottom: 0;

@@ -12,13 +12,8 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 interface MatchplaySettings {
   courtCount: number
-  matchFormat: 'timed' | 'first_to_points'
-  matchDuration: number
-  matchTarget: number
-  gameMode: string
-  winPoints: number
-  drawPoints: number
-  lossPoints: number
+  maxScore: number
+  maxScoreCustom?: number
   rounds: number
   roundsCustom?: number
 }
@@ -36,7 +31,7 @@ function generateEventName(): string {
   const d = new Date()
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} Matchplay`
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} Americano`
 }
 
 async function callMatchplayEvent(body: Record<string, unknown>) {
@@ -107,21 +102,22 @@ export default function MatchplayNewPlayersPage() {
     setError(null)
 
     try {
+      const maxScore = settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore
+      const courtLabels = Array.from({ length: settings.courtCount }, (_, i) => `Court ${i + 1}`)
+
       const body: Record<string, unknown> = {
         action: 'create',
         venue_id: venueId,
         name: generateEventName(),
+        format: 'americano',
+        scoring_type: 'raw_points',
         court_count: settings.courtCount,
-        match_format: settings.matchFormat,
-        game_mode: settings.gameMode,
-        win_points: settings.winPoints,
-        draw_points: settings.drawPoints,
-        loss_points: settings.lossPoints,
-      }
-      if (settings.matchFormat === 'timed') {
-        body.match_duration_minutes = settings.matchDuration
-      } else {
-        body.match_target_score = settings.matchTarget
+        court_labels: courtLabels,
+        match_format: 'first_to_points',
+        match_target_score: maxScore,
+        win_points: 0,
+        draw_points: 0,
+        loss_points: 0,
       }
 
       const createResult = await callMatchplayEvent(body)
@@ -215,6 +211,9 @@ export default function MatchplayNewPlayersPage() {
         </button>
         {!canStart && (
           <p className="matchplay-players-hint">Add at least 4 players to start</p>
+        )}
+        {canStart && players.length % 4 !== 0 && (
+          <p className="matchplay-players-hint">Americano works best with multiples of 4 (8, 12, 16 players)</p>
         )}
       </div>
     </div>

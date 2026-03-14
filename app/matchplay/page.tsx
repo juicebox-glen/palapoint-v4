@@ -230,9 +230,9 @@ export default function MatchplayPage() {
       <div className="matchplay-mode-cards">
         <Link href="/matchplay/new" className="matchplay-mode-card matchplay-mode-card-active">
           <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Matchplay</h2>
-            <p className="matchplay-mode-desc">Curated social play with manual pairings</p>
-            <span className="matchplay-mode-badge">3pts · 1pt · 0pts</span>
+            <h2 className="matchplay-mode-name">Americano</h2>
+            <p className="matchplay-mode-desc">Everyone plays with everyone once</p>
+            <span className="matchplay-mode-badge">Points-based scoring · auto-generated pairings</span>
           </div>
         </Link>
 
@@ -247,8 +247,16 @@ export default function MatchplayPage() {
         <div className="matchplay-mode-card matchplay-mode-card-coming">
           <span className="matchplay-coming-badge">COMING SOON</span>
           <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Americano</h2>
-            <p className="matchplay-mode-desc">Fixed partner rotation format</p>
+            <h2 className="matchplay-mode-name">Matchplay</h2>
+            <p className="matchplay-mode-desc">Curated social play with manual pairings</p>
+          </div>
+        </div>
+
+        <div className="matchplay-mode-card matchplay-mode-card-coming">
+          <span className="matchplay-coming-badge">COMING SOON</span>
+          <div className="matchplay-mode-card-content">
+            <h2 className="matchplay-mode-name">Mexicano</h2>
+            <p className="matchplay-mode-desc">Coming soon</p>
           </div>
         </div>
       </div>

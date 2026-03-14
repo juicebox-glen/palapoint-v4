@@ -12,27 +12,16 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 interface MatchplaySettings {
   courtCount: number
-  matchFormat: 'timed' | 'first_to_points'
-  matchDuration: number
-  matchTarget: number
-  gameMode: 'golden_point' | 'silver_point' | 'traditional'
-  winPoints: number
-  drawPoints: number
-  lossPoints: number
+  maxScore: number
+  maxScoreCustom?: number
   rounds: number
   roundsCustom?: number
 }
 
 const DEFAULT_SETTINGS: MatchplaySettings = {
   courtCount: 2,
-  matchFormat: 'timed',
-  matchDuration: 10,
-  matchTarget: 9,
-  gameMode: 'golden_point',
-  winPoints: 3,
-  drawPoints: 1,
-  lossPoints: 0,
-  rounds: 3,
+  maxScore: 32,
+  rounds: 4,
 }
 
 function loadSettings(): MatchplaySettings {
@@ -66,6 +55,20 @@ async function callMatchplayEvent(body: Record<string, unknown>) {
   return res.json()
 }
 
+function getEventSummary(courtCount: number, rounds: number, maxScore: number) {
+  const courts = Math.max(1, courtCount)
+  const totalMatches = rounds * courts
+  const avgMatchMins = maxScore <= 16 ? 8 : maxScore <= 24 ? 10 : 12
+  const estDurationMins = totalMatches * avgMatchMins
+  const hours = Math.floor(estDurationMins / 60)
+  const mins = estDurationMins % 60
+  const durationStr = hours > 0 ? `~${hours}h ${mins}m` : `~${mins}m`
+  return {
+    totalMatches,
+    estimatedDuration: durationStr,
+  }
+}
+
 export default function MatchplayNewPage() {
   const router = useRouter()
   const [venueId, setVenueId] = useState<string | null>(null)
@@ -87,7 +90,8 @@ export default function MatchplayNewPage() {
     async function prefill() {
       const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
       const events = (result.events ?? []).filter((e: { status: string }) => e.status === 'completed')
-      const latest = events.sort(
+      const americanoEvents = events.filter((e: { format?: string }) => e.format === 'americano')
+      const latest = americanoEvents.sort(
         (a: { created_at: string }, b: { created_at: string }) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0]
@@ -95,14 +99,8 @@ export default function MatchplayNewPage() {
       if (latest) {
         setSettings({
           courtCount: latest.court_count ?? DEFAULT_SETTINGS.courtCount,
-          matchFormat: (latest.match_format === 'first_to_points' ? 'first_to_points' : 'timed') as 'timed' | 'first_to_points',
-          matchDuration: latest.match_duration_minutes ?? DEFAULT_SETTINGS.matchDuration,
-          matchTarget: latest.match_target_score ?? DEFAULT_SETTINGS.matchTarget,
-          gameMode: (latest.game_mode || DEFAULT_SETTINGS.gameMode) as MatchplaySettings['gameMode'],
-          winPoints: latest.win_points ?? DEFAULT_SETTINGS.winPoints,
-          drawPoints: latest.draw_points ?? DEFAULT_SETTINGS.drawPoints,
-          lossPoints: latest.loss_points ?? DEFAULT_SETTINGS.lossPoints,
-          rounds: DEFAULT_SETTINGS.rounds,
+          maxScore: latest.match_target_score ?? DEFAULT_SETTINGS.maxScore,
+          rounds: 4,
         })
       } else {
         const saved = loadSettings()
@@ -115,12 +113,19 @@ export default function MatchplayNewPage() {
   function handleContinue() {
     const toSave: MatchplaySettings = {
       ...settings,
-      rounds: settings.rounds === 0 ? 3 : settings.rounds,
+      maxScore: settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore,
+      maxScoreCustom: settings.maxScore === 0 ? settings.maxScoreCustom : undefined,
+      rounds: settings.rounds === 0 ? (settings.roundsCustom ?? 4) : settings.rounds,
       roundsCustom: settings.rounds === 0 ? settings.roundsCustom : undefined,
     }
     saveSettings(toSave)
     router.push('/matchplay/new/players')
   }
+
+  const effectiveMaxScore = settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore
+  const effectiveRounds = settings.rounds === 0 ? (settings.roundsCustom ?? 4) : settings.rounds
+  const summary = getEventSummary(settings.courtCount, effectiveRounds, effectiveMaxScore)
+  const courts = Math.max(1, settings.courtCount)
 
   if (loading) {
     return (
@@ -157,117 +162,47 @@ export default function MatchplayNewPage() {
         </div>
 
         <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Match Format</label>
+          <label className="matchplay-format-label">Points per match</label>
+          <p className="matchplay-format-hint" style={{ marginBottom: '0.5rem' }}>
+            Total points per match. Scores always sum to this number.
+          </p>
           <div className="matchplay-pill-row">
+            {[16, 24, 32].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`matchplay-pill ${settings.maxScore === n ? 'active' : ''}`}
+                onClick={() => setSettings((s) => ({ ...s, maxScore: n }))}
+              >
+                {n}
+              </button>
+            ))}
             <button
               type="button"
-              className={`matchplay-pill ${settings.matchFormat === 'timed' ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, matchFormat: 'timed' }))}
+              className={`matchplay-pill ${settings.maxScore === 0 ? 'active' : ''}`}
+              onClick={() => setSettings((s) => ({ ...s, maxScore: 0 }))}
             >
-              Timed
-            </button>
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.matchFormat === 'first_to_points' ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, matchFormat: 'first_to_points' }))}
-            >
-              First to X
+              Custom
             </button>
           </div>
-          {settings.matchFormat === 'timed' && (
+          {settings.maxScore === 0 && (
             <div className="matchplay-format-sub">
-              <label className="matchplay-format-sublabel">Duration (minutes)</label>
               <input
                 type="number"
                 className="input"
-                min={5}
-                max={60}
-                value={settings.matchDuration}
-                onChange={(e) => setSettings((s) => ({ ...s, matchDuration: Number(e.target.value) || 10 }))}
+                min={8}
+                max={64}
+                value={settings.maxScoreCustom ?? 32}
+                onChange={(e) => setSettings((s) => ({ ...s, maxScoreCustom: Number(e.target.value) || 32 }))}
               />
             </div>
           )}
-          {settings.matchFormat === 'first_to_points' && (
-            <div className="matchplay-format-sub">
-              <label className="matchplay-format-sublabel">Target Score</label>
-              <input
-                type="number"
-                className="input"
-                min={5}
-                max={15}
-                value={settings.matchTarget}
-                onChange={(e) => setSettings((s) => ({ ...s, matchTarget: Number(e.target.value) || 9 }))}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Deuce Rule</label>
-          <div className="matchplay-pill-row">
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.gameMode === 'golden_point' ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, gameMode: 'golden_point' }))}
-            >
-              Golden
-            </button>
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.gameMode === 'silver_point' ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, gameMode: 'silver_point' }))}
-            >
-              Silver
-            </button>
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.gameMode === 'traditional' ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, gameMode: 'traditional' }))}
-            >
-              Traditional
-            </button>
-          </div>
-        </div>
-
-        <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Points</label>
-          <div className="matchplay-points-row">
-            <span>Win</span>
-            <input
-              type="number"
-              className="input matchplay-point-input"
-              min={0}
-              max={10}
-              value={settings.winPoints}
-              onChange={(e) => setSettings((s) => ({ ...s, winPoints: Number(e.target.value) || 0 }))}
-            />
-            <span>·</span>
-            <span>Draw</span>
-            <input
-              type="number"
-              className="input matchplay-point-input"
-              min={0}
-              max={5}
-              value={settings.drawPoints}
-              onChange={(e) => setSettings((s) => ({ ...s, drawPoints: Number(e.target.value) || 0 }))}
-            />
-            <span>·</span>
-            <span>Loss</span>
-            <input
-              type="number"
-              className="input matchplay-point-input"
-              min={0}
-              max={5}
-              value={settings.lossPoints}
-              onChange={(e) => setSettings((s) => ({ ...s, lossPoints: Number(e.target.value) || 0 }))}
-            />
-          </div>
         </div>
 
         <div className="matchplay-format-section">
           <label className="matchplay-format-label">Rounds</label>
           <div className="matchplay-pill-row">
-            {[3, 4, 5].map((n) => (
+            {[3, 4, 5, 6].map((n) => (
               <button
                 key={n}
                 type="button"
@@ -292,12 +227,24 @@ export default function MatchplayNewPage() {
                 className="input"
                 min={1}
                 max={20}
-                value={settings.roundsCustom ?? 3}
-                onChange={(e) => setSettings((s) => ({ ...s, roundsCustom: Number(e.target.value) || 3 }))}
+                value={settings.roundsCustom ?? 4}
+                onChange={(e) => setSettings((s) => ({ ...s, roundsCustom: Number(e.target.value) || 4 }))}
               />
             </div>
           )}
-          <p className="matchplay-format-hint">Guide — you can add more or finish early</p>
+          <p className="matchplay-format-hint">Guide — Americano generates rounds so everyone partners with everyone</p>
+        </div>
+
+        <div className="matchplay-format-section matchplay-event-summary">
+          <label className="matchplay-format-label">Event Summary</label>
+          <div className="matchplay-summary-panel">
+            <p>Matches per player: Add players to see full estimate</p>
+            <p>Total matches: {summary.totalMatches}</p>
+            <p>Estimated duration: {summary.estimatedDuration}</p>
+            <p className="matchplay-summary-based">
+              Based on {courts} court{courts !== 1 ? 's' : ''} · {effectiveRounds} rounds · {effectiveMaxScore} pts per match
+            </p>
+          </div>
         </div>
       </div>
 

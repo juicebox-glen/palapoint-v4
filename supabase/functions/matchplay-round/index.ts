@@ -111,6 +111,7 @@ interface MatchRow {
 
 interface EventRow {
   id: string;
+  scoring_type?: string;
   win_points: number;
   draw_points: number;
   loss_points: number;
@@ -180,15 +181,22 @@ async function recalculateStandings(
       s.games_won += my;
       s.games_lost += their;
 
-      if (my > their) {
-        s.matches_won++;
-        s.total_points += event.win_points;
-      } else if (my === their) {
-        s.matches_drawn++;
-        s.total_points += event.draw_points;
+      if (event.scoring_type === 'raw_points') {
+        s.total_points += my;
+        if (my > their) s.matches_won++;
+        else if (my === their) s.matches_drawn++;
+        else s.matches_lost++;
       } else {
-        s.matches_lost++;
-        s.total_points += event.loss_points;
+        if (my > their) {
+          s.matches_won++;
+          s.total_points += event.win_points;
+        } else if (my === their) {
+          s.matches_drawn++;
+          s.total_points += event.draw_points;
+        } else {
+          s.matches_lost++;
+          s.total_points += event.loss_points;
+        }
       }
     }
   }
@@ -328,7 +336,7 @@ Deno.serve(async (req) => {
 
         const { data: event, error: eventErr } = await supabase
           .from('matchplay_events')
-          .select('win_points, draw_points, loss_points')
+          .select('scoring_type, win_points, draw_points, loss_points')
           .eq('id', eventId)
           .single();
 

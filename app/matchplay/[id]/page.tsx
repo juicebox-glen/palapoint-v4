@@ -16,6 +16,8 @@ interface MatchplayEvent {
   name: string
   status: string
   venue_id: string
+  format?: string
+  match_target_score?: number
   court_count?: number
   court_labels?: string[]
 }
@@ -65,6 +67,9 @@ interface MatchplayPlayer {
 }
 
 interface MatchplaySettings {
+  courtCount?: number
+  maxScore?: number
+  maxScoreCustom?: number
   rounds: number
   roundsCustom?: number
 }
@@ -78,10 +83,15 @@ function loadSettings(): MatchplaySettings | null {
   return null
 }
 
+function getTotalRoundsAmericano(playerCount: number): number {
+  if (playerCount < 4) return 0
+  return playerCount % 2 === 0 ? playerCount - 1 : playerCount
+}
+
 function getTotalRounds(): number {
   const s = loadSettings()
-  if (!s) return 3
-  return s.rounds === 0 ? (s.roundsCustom ?? 3) : s.rounds
+  if (!s) return 4
+  return s.rounds === 0 ? (s.roundsCustom ?? 4) : s.rounds
 }
 
 async function callMatchplayEvent(body: Record<string, unknown>) {
@@ -120,46 +130,49 @@ async function callMatchplayRound(body: Record<string, unknown>) {
   return res.json()
 }
 
-/** Circle method: fix one player, rotate others. Partners are across from each other. */
-function generatePairings(
+/** Americano: everyone partners with everyone once. Circle method. */
+function generateAmericanoPairings(
   playerIds: string[],
-  courtLabels: string[],
-  totalRounds: number
+  courtLabels: string[]
 ): { roundNumber: number; matches: { court_label: string; team_a: string[]; team_b: string[] }[]; resting?: string }[] {
   const result: { roundNumber: number; matches: { court_label: string; team_a: string[]; team_b: string[] }[]; resting?: string }[] = []
   const n = playerIds.length
-  const odd = n % 2 === 1
-  const playingCount = odd ? n - 1 : n
-  const numCourts = Math.max(1, Math.floor(playingCount / 4))
+  const hasBye = n % 2 !== 0
+  const playerList = hasBye ? [...playerIds, null as unknown as string] : [...playerIds]
+  const total = playerList.length
+  const fixed = playerList[0]!
+  const rotating = playerList.slice(1)
+  const numCourts = Math.max(1, Math.floor(total / 4))
   const courts = courtLabels.length > 0 ? courtLabels.slice(0, numCourts) : Array.from({ length: numCourts }, (_, i) => `Court ${i + 1}`)
 
-  for (let r = 0; r < totalRounds; r++) {
-    const restingIdx = odd ? r % n : -1
-    const resting = odd ? playerIds[restingIdx]! : undefined
-    const playing = odd ? playerIds.filter((_, i) => i !== restingIdx) : [...playerIds]
-
-    const fixed = playing[0]!
-    const rotating = playing.slice(1)
-    const rotated = rotating.map((_, i) => rotating[(i + r) % rotating.length]!)
-    const circle = [fixed, ...rotated]
-    const half = circle.length / 2
-
+  for (let round = 0; round < total - 1; round++) {
+    const currentOrder = [fixed, ...rotating]
     const pairs: [string, string][] = []
-    for (let i = 0; i < half; i++) {
-      pairs.push([circle[i]!, circle[i + half]!])
+    let resting: string | undefined
+
+    for (let i = 0; i < total / 2; i++) {
+      const p1 = currentOrder[i]
+      const p2 = currentOrder[total - 1 - i]
+      if (p1 != null && p2 != null) {
+        pairs.push([p1, p2])
+      } else {
+        resting = (p1 ?? p2) as string
+      }
     }
 
     const matches: { court_label: string; team_a: string[]; team_b: string[] }[] = []
-    for (let m = 0; m < Math.floor(pairs.length / 2); m++) {
-      const court = courts[m] ?? `Court ${m + 1}`
+    for (let i = 0; i < pairs.length - 1; i += 2) {
+      const courtIdx = Math.floor(i / 2) % courts.length
       matches.push({
-        court_label: court,
-        team_a: pairs[m * 2]!,
-        team_b: pairs[m * 2 + 1]!,
+        court_label: courts[courtIdx] ?? `Court ${courtIdx + 1}`,
+        team_a: pairs[i]!,
+        team_b: pairs[i + 1]!,
       })
     }
 
-    result.push({ roundNumber: r + 1, matches, resting })
+    result.push({ roundNumber: round + 1, matches, resting })
+
+    rotating.push(rotating.shift()!)
   }
 
   return result
@@ -247,13 +260,12 @@ export default function MatchplayEventPage() {
     if (event.status !== 'setup' && event.status !== 'in_progress') return
 
     pairingGeneratedRef.current = true
-    const totalRounds = getTotalRounds()
     const courtLabels = getCourtLabels()
     const playerIds = players.map((p) => p.id)
 
     if (playerIds.length < 4) return
 
-    const pairings = generatePairings(playerIds, courtLabels, totalRounds)
+    const pairings = generateAmericanoPairings(playerIds, courtLabels)
 
     async function createRounds() {
       const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
@@ -332,6 +344,8 @@ export default function MatchplayEventPage() {
 
   const viewingRound = rounds.find((r) => r.id === selectedRoundId) ?? rounds[0]
   const currentRoundNumber = viewingRound ? Math.max(...rounds.filter((r) => r.status !== 'completed').map((r) => r.round_number ?? 0), 0) : 0
+  const isAmericano = event?.format === 'americano'
+  const maxScore = event?.match_target_score ?? 32
   const hasCompletedMatchInCurrentRound = viewingRound?.matches?.some((m) => m.status === 'completed') ?? false
   const allMatchesScoredInCurrentRound = (viewingRound?.matches?.length ?? 0) > 0 && (viewingRound?.matches ?? []).every((m) => m.status === 'completed')
   const isFinalRound = rounds.length > 0 && (viewingRound?.round_number ?? 0) >= (rounds[rounds.length - 1]?.round_number ?? 0)
@@ -487,14 +501,13 @@ export default function MatchplayEventPage() {
     const remaining = (listResult.rounds ?? []) as { round_number?: number }[]
     const existingNumbers = new Set(remaining.map((r) => r.round_number ?? 0))
 
-    const totalRounds = getTotalRounds()
     const courtLabels = getCourtLabels()
     const playerIds = players.map((p) => p.id)
     if (playerIds.length < 4) {
       await loadRounds()
       return
     }
-    const pairings = generatePairings(playerIds, courtLabels, totalRounds)
+    const pairings = generateAmericanoPairings(playerIds, courtLabels)
 
     for (const p of pairings) {
       if (existingNumbers.has(p.roundNumber)) continue
@@ -708,8 +721,8 @@ export default function MatchplayEventPage() {
             const isExpanded = expandedMatchId === match.id
             const draft = draftScores[match.id]
             const scoreA = draft?.a ?? (isExpanded ? (match.team_a_score ?? 0) : 0)
-            const scoreB = draft?.b ?? (isExpanded ? (match.team_b_score ?? 0) : 0)
-            const canEdit = isSetup || (isLive && !hasCompletedMatchInCurrentRound)
+            const scoreB = isAmericano ? (maxScore - scoreA) : (draft?.b ?? (isExpanded ? (match.team_b_score ?? 0) : 0))
+            const canEdit = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
 
             if (isSetup) {
               return (
@@ -776,10 +789,14 @@ export default function MatchplayEventPage() {
                           type="button"
                           className="matchplay-event-stepper-btn"
                           aria-label="Increase Team A"
+                          disabled={isAmericano && scoreA >= maxScore}
                           onClick={() =>
                             setDraftScores((prev) => ({
                               ...prev,
-                              [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), a: scoreA + 1 },
+                              [match.id]: {
+                                ...(prev[match.id] ?? { a: 0, b: 0 }),
+                                a: isAmericano ? Math.min(maxScore, scoreA + 1) : scoreA + 1,
+                              },
                             }))
                           }
                         >
@@ -790,36 +807,40 @@ export default function MatchplayEventPage() {
                     <div className="matchplay-event-vs">vs</div>
                     <div className="matchplay-event-score-row">
                       <span className="matchplay-event-score-team">{teamBNames}</span>
-                      <div className="matchplay-event-stepper">
-                        <button
-                          type="button"
-                          className="matchplay-event-stepper-btn"
-                          aria-label="Decrease Team B"
-                          disabled={scoreB <= 0}
-                          onClick={() =>
-                            setDraftScores((prev) => ({
-                              ...prev,
-                              [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: Math.max(0, scoreB - 1) },
-                            }))
-                          }
-                        >
-                          −
-                        </button>
+                      {isAmericano ? (
                         <span className="matchplay-event-stepper-value">{scoreB}</span>
-                        <button
-                          type="button"
-                          className="matchplay-event-stepper-btn"
-                          aria-label="Increase Team B"
-                          onClick={() =>
-                            setDraftScores((prev) => ({
-                              ...prev,
-                              [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: scoreB + 1 },
-                            }))
-                          }
-                        >
-                          +
-                        </button>
-                      </div>
+                      ) : (
+                        <div className="matchplay-event-stepper">
+                          <button
+                            type="button"
+                            className="matchplay-event-stepper-btn"
+                            aria-label="Decrease Team B"
+                            disabled={scoreB <= 0}
+                            onClick={() =>
+                              setDraftScores((prev) => ({
+                                ...prev,
+                                [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: Math.max(0, scoreB - 1) },
+                              }))
+                            }
+                          >
+                            −
+                          </button>
+                          <span className="matchplay-event-stepper-value">{scoreB}</span>
+                          <button
+                            type="button"
+                            className="matchplay-event-stepper-btn"
+                            aria-label="Increase Team B"
+                            onClick={() =>
+                              setDraftScores((prev) => ({
+                                ...prev,
+                                [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: scoreB + 1 },
+                              }))
+                            }
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {(scoreA > 0 || scoreB > 0) && (
@@ -1006,12 +1027,24 @@ export default function MatchplayEventPage() {
                     <tr>
                       <th className="rank">#</th>
                       <th className="player">Player</th>
-                      <th className="num">P</th>
-                      <th className="num">W</th>
-                      <th className="num">D</th>
-                      <th className="num">L</th>
-                      <th className="num">GD</th>
-                      <th className="num">Pts</th>
+                      {isAmericano ? (
+                        <>
+                          <th className="num">W</th>
+                          <th className="num">T</th>
+                          <th className="num">L</th>
+                          <th className="num">P</th>
+                          <th className="num">+/−</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="num">P</th>
+                          <th className="num">W</th>
+                          <th className="num">D</th>
+                          <th className="num">L</th>
+                          <th className="num">GD</th>
+                          <th className="num">Pts</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1022,12 +1055,24 @@ export default function MatchplayEventPage() {
                             {idx === 0 ? (g.rank <= 3 ? ['🥇', '🥈', '🥉'][g.rank - 1] : g.rank) : <span className="matchplay-tie-connector">└</span>}
                           </td>
                           <td className="player">{s.name}</td>
-                          <td className="num">{(s.matches_played ?? 0) || '-'}</td>
-                          <td className="num">{(s.matches_won ?? 0) || '-'}</td>
-                          <td className="num">{(s.matches_drawn ?? 0) || '-'}</td>
-                          <td className="num">{(s.matches_lost ?? 0) || '-'}</td>
-                          <td className="num">{(s.game_difference ?? 0) || '-'}</td>
-                          <td className="num">{(s.total_points ?? 0) || '-'}</td>
+                          {isAmericano ? (
+                            <>
+                              <td className="num">{(s.matches_won ?? 0) || '-'}</td>
+                              <td className="num">{(s.matches_drawn ?? 0) || '-'}</td>
+                              <td className="num">{(s.matches_lost ?? 0) || '-'}</td>
+                              <td className="num">{(s.total_points ?? 0) || '-'}</td>
+                              <td className="num">{(s.game_difference ?? 0) >= 0 ? `+${s.game_difference}` : s.game_difference}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="num">{(s.matches_played ?? 0) || '-'}</td>
+                              <td className="num">{(s.matches_won ?? 0) || '-'}</td>
+                              <td className="num">{(s.matches_drawn ?? 0) || '-'}</td>
+                              <td className="num">{(s.matches_lost ?? 0) || '-'}</td>
+                              <td className="num">{(s.game_difference ?? 0) || '-'}</td>
+                              <td className="num">{(s.total_points ?? 0) || '-'}</td>
+                            </>
+                          )}
                         </tr>
                       ))
                     )}
