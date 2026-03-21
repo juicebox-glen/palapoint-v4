@@ -1,6 +1,6 @@
 'use client'
 
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 
 interface HeaderProps {
   showLogo?: boolean

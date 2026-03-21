@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { getCourtBySlug } from '@/lib/supabase'
-import { getVenueBranding, type VenueBranding } from '@/lib/supabase/venue'
+import { getVenueBranding, type VenueBranding } from '@/lib/venue'
 import PlayingDisplay from '@/components/displays/PlayingDisplay'
 
 export default function PlayingPage() {

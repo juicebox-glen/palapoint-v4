@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay } from '@/lib/utils/score-format'
 
 interface SpectatorDisplayProps {

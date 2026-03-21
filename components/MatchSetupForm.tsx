@@ -1,7 +1,7 @@
 'use client'
 
 import type { GameMode } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 import SetupScreenHeader from './SetupScreenHeader'
 import '@/app/styles/setup-form.css'
 

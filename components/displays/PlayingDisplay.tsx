@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!

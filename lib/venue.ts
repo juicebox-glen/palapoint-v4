@@ -1,4 +1,4 @@
-import { createClient } from './client'
+import { createClient } from './supabase/client'
 
 export interface VenueBranding {
   companyName: string

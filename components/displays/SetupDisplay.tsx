@@ -8,7 +8,7 @@ import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import type { MatchState, GameMode } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 

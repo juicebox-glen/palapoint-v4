@@ -1,6 +1,6 @@
 'use client'
 
-import type { VenueBranding } from '@/lib/supabase/venue'
+import type { VenueBranding } from '@/lib/venue'
 
 /**
  * Shared header for staff (control + PIN) and player setup screens.
