@@ -1,4 +1,4 @@
-import { createClient } from './supabase/client'
+import { supabase } from './supabase'
 
 export interface VenueBranding {
   companyName: string
@@ -19,8 +19,6 @@ export async function getVenueBranding(
   venueSlug: string,
   courtNumber: number | string
 ): Promise<VenueBranding | null> {
-  const supabase = createClient()
-
   const courtNum = typeof courtNumber === 'string' ? parseInt(courtNumber, 10) : courtNumber
 
   // Query courts with venue and company joins
