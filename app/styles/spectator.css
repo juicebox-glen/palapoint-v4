@@ -42,6 +42,13 @@
   object-fit: contain !important;
 }
 
+.spectator-logo-text {
+  font-size: clamp(1.5rem, 4vh, 2.5rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  max-width: 240px;
+}
+
 .spectator-header-right {
   display: flex;
   align-items: center;

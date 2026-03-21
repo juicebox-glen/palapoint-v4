@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { supabase, getCourtBySlug, type Court } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
+import type { VenueBranding } from '@/lib/supabase/venue'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 interface MatchState {
   id: string
@@ -17,7 +17,12 @@ interface MatchState {
   team_b_points: number
   team_a_games: number
   team_b_games: number
-  set_scores: Array<{ team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }>
+  set_scores: Array<{
+    team_a?: number
+    team_b?: number
+    team_a_games?: number
+    team_b_games?: number
+  }>
   winner: string | null
   team_a_player_1: string | null
   team_a_player_2: string | null
@@ -45,21 +50,20 @@ interface TeamMatchupCardProps {
   title?: string
 }
 
-const TeamMatchupCard = ({
+function TeamMatchupCard({
   teamAPlayer1,
   teamAPlayer2,
   teamBPlayer1,
   teamBPlayer2,
   subtitle,
   title = 'Match Ready',
-}: TeamMatchupCardProps) => {
+}: TeamMatchupCardProps) {
   const abbreviate = (name: string | null | undefined): string => {
     if (!name) return '---'
     const parts = name.trim().split(' ')
     const lastName = parts[parts.length - 1]
     return lastName.substring(0, 3).toUpperCase()
   }
-
   const hasTeamANames = !!(teamAPlayer1?.trim() || teamAPlayer2?.trim())
   const hasTeamBNames = !!(teamBPlayer1?.trim() || teamBPlayer2?.trim())
 
@@ -83,7 +87,6 @@ const TeamMatchupCard = ({
       >
         {title}
       </h2>
-
       <div
         style={{
           display: 'flex',
@@ -94,7 +97,6 @@ const TeamMatchupCard = ({
           minHeight: '5rem',
         }}
       >
-        {/* Team A */}
         <div
           style={{
             flex: 1,
@@ -129,19 +131,11 @@ const TeamMatchupCard = ({
               </span>
             </>
           ) : (
-            <span
-              style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-              }}
-            >
+            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
               Team A
             </span>
           )}
         </div>
-
-        {/* VS */}
         <div
           style={{
             display: 'flex',
@@ -154,8 +148,6 @@ const TeamMatchupCard = ({
         >
           VS
         </div>
-
-        {/* Team B */}
         <div
           style={{
             flex: 1,
@@ -190,19 +182,12 @@ const TeamMatchupCard = ({
               </span>
             </>
           ) : (
-            <span
-              style={{
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-              }}
-            >
+            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
               Team B
             </span>
           )}
         </div>
       </div>
-
       <p
         style={{
           color: 'var(--text-secondary)',
@@ -217,55 +202,36 @@ const TeamMatchupCard = ({
   )
 }
 
-export default function PlayingPage() {
-  const params = useParams()
-  const router = useRouter()
-  const courtIdentifier = params.id as string
+interface PlayingDisplayProps {
+  courtId: string
+  courtSlug: string
+  courtName: string
+  branding?: VenueBranding | null
+}
 
+export default function PlayingDisplay({
+  courtId,
+  courtSlug,
+  courtName,
+  branding,
+}: PlayingDisplayProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [court, setCourt] = useState<Court | null>(null)
-  const [courtUuid, setCourtUuid] = useState<string | null>(null)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
 
-  const courtName = court?.name || courtIdentifier
-
-  // Load initial data
   useEffect(() => {
     async function loadData() {
-      const courtData = await getCourtBySlug(courtIdentifier)
-      if (!courtData) {
-        setLoading(false)
-        return
-      }
-
-      setCourt(courtData)
-      setCourtUuid(courtData.id)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Playing: courtIdentifier (slug):', courtIdentifier)
-        console.log('Playing: courtData.id (UUID):', courtData?.id)
-      }
-
       const storedSessionId =
         typeof window !== 'undefined'
-          ? sessionStorage.getItem(`setup_session_id_${courtIdentifier}`)
+          ? sessionStorage.getItem(`setup_session_id_${courtSlug}`)
           : null
       setSessionId(storedSessionId)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Playing: storedSessionId:', storedSessionId)
-      }
 
       if (storedSessionId) {
         const validation = await validateSession(storedSessionId)
         setSessionState(validation)
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Playing: sessionState:', validation)
-        }
-
         if (!validation.valid) {
           setLoading(false)
           return
@@ -275,7 +241,7 @@ export default function PlayingPage() {
       const { data: matchData } = await supabase
         .from('live_matches')
         .select('*')
-        .eq('court_id', courtData.id)
+        .eq('court_id', courtId)
         .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
         .order('created_at', { ascending: false })
         .limit(1)
@@ -286,67 +252,51 @@ export default function PlayingPage() {
     }
 
     loadData()
-  }, [courtIdentifier])
+  }, [courtId, courtSlug])
 
-  // Subscribe to match updates
   useEffect(() => {
-    if (!courtUuid) return
-
-    const ch = supabase.channel(`playing-${courtUuid}`)
+    if (!courtId) return
+    const ch = supabase.channel(`playing-${courtId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel
     ;(ch as any).on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'live_matches',
-        filter: `court_id=eq.${courtUuid}`,
+        filter: `court_id=eq.${courtId}`,
       },
       (payload: { eventType: string; new?: MatchState }) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Subscription payload:', payload.eventType, payload.new)
-        }
         if (payload.eventType === 'DELETE') {
           setMatch(null)
         } else if (payload.new) {
-          const newMatch = payload.new as MatchState
-          if (process.env.NODE_ENV === 'development') {
-            console.log('New match status:', newMatch.status)
-          }
-          setMatch(newMatch)
+          setMatch(payload.new as MatchState)
         }
       }
     )
     ch.subscribe()
-
     return () => {
-      supabase.removeChannel(ch)
+      void supabase.removeChannel(ch)
     }
-  }, [courtUuid])
+  }, [courtId])
 
-  // Periodically validate session (every 60 seconds)
   useEffect(() => {
     if (!sessionId) return
-
     const interval = setInterval(async () => {
       const validation = await validateSession(sessionId)
       setSessionState(validation)
     }, 60000)
-
     return () => clearInterval(interval)
   }, [sessionId])
 
   const handlePlayAgain = async () => {
-    if (!match || !sessionId || !courtUuid) return
-
+    if (!match || !sessionId || !courtId) return
     const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'create',
-        court_id: courtUuid,
+        court_id: courtId,
         session_id: sessionId,
         game_mode: match.game_mode,
         sets_to_win: match.sets_to_win,
@@ -357,52 +307,33 @@ export default function PlayingPage() {
         team_b_player_2: match.team_b_player_2,
       }),
     })
-
     const result = await response.json()
-    if (result.success) {
-      setMatch(result.match)
-    }
+    if (result.success) setMatch(result.match)
   }
 
   const handleEndGame = async () => {
-    if (!match || !courtUuid) return
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Ending game for court:', courtUuid)
-    }
-
+    if (!match || !courtId) return
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+      await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'end',
-          court_id: courtUuid,
+          court_id: courtId,
           reason: 'abandoned',
         }),
       })
-
-      const result = await response.json()
-      if (process.env.NODE_ENV === 'development') {
-        console.log('End game result:', result)
-      }
-      if (!result.success) {
-        console.error('Failed to end game:', result.error)
-      }
     } catch (err) {
       console.error('Error ending game:', err)
     }
   }
 
   const handleNewGame = () => {
-    if (match && courtUuid && typeof window !== 'undefined') {
-      sessionStorage.setItem(`setup_game_mode_${courtUuid}`, match.game_mode)
-      sessionStorage.setItem(`setup_sets_${courtUuid}`, String(match.sets_to_win))
+    if (match && courtId && typeof window !== 'undefined') {
+      sessionStorage.setItem(`setup_game_mode_${courtId}`, match.game_mode)
+      sessionStorage.setItem(`setup_sets_${courtId}`, String(match.sets_to_win))
       sessionStorage.setItem(
-        `setup_side_swap_${courtUuid}`,
+        `setup_side_swap_${courtId}`,
         String(match.side_swap_enabled ?? true)
       )
       const players = [
@@ -411,26 +342,23 @@ export default function PlayingPage() {
         match.team_b_player_1 || '',
         match.team_b_player_2 || '',
       ]
-      sessionStorage.setItem(`setup_players_${courtUuid}`, JSON.stringify(players))
+      sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
     }
-    router.push(`/setup/${courtIdentifier}`)
+    router.push(`/setup/${courtSlug}`)
   }
 
   const handleEndSession = async () => {
     if (!sessionId) return
-
     try {
       const result = await endSession(sessionId)
       if (result.success) {
         if (typeof window !== 'undefined') {
-          sessionStorage.removeItem(`setup_session_id_${courtIdentifier}`)
+          sessionStorage.removeItem(`setup_session_id_${courtSlug}`)
         }
         router.push(`/session-review/${sessionId}`)
-      } else {
-        console.error('Failed to end session:', result.error)
       }
-    } catch (error) {
-      console.error('Error ending session:', error)
+    } catch (err) {
+      console.error('Failed to end session:', err)
     }
   }
 
@@ -443,63 +371,24 @@ export default function PlayingPage() {
     return names.length > 0 ? names.join(' / ') : fallback
   }
 
-  // 1. LOADING STATE
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
-        <div
-          className="page-loading"
-          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
-        >
+        <Header branding={branding} />
+        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
         </div>
       </div>
     )
   }
 
-  // Court not found
-  if (!court) {
-    return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
-        <div
-          className="stack stack-xl"
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-          }}
-        >
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Court Not Found</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Please scan the QR code on the court to get started.
-          </p>
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push(`/setup/${courtIdentifier}`)}
-          >
-            Set Up Game
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // 2. SESSION ENDED STATE
   if (sessionState && !sessionState.valid) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
+        <Header branding={branding} />
         <div
           className="stack stack-xl"
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-          }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
         >
           <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Session Ended</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
@@ -507,10 +396,7 @@ export default function PlayingPage() {
               ? 'Your session expired due to inactivity.'
               : 'This session has ended.'}
           </p>
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push(`/setup/${courtIdentifier}`)}
-          >
+          <button className="btn btn-primary" onClick={() => router.push(`/setup/${courtSlug}`)}>
             Start New Session
           </button>
         </div>
@@ -518,30 +404,19 @@ export default function PlayingPage() {
     )
   }
 
-  // 3. NO SESSION STATE
   if (!sessionId) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
+        <Header branding={branding} />
         <div
           className="stack stack-xl"
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-          }}
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
         >
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>
-            No Active Session
-          </h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>No Active Session</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
             Scan the QR code on the court to start a session.
           </p>
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push(`/setup/${courtIdentifier}`)}
-          >
+          <button className="btn btn-primary" onClick={() => router.push(`/setup/${courtSlug}`)}>
             Set Up Game
           </button>
         </div>
@@ -549,7 +424,6 @@ export default function PlayingPage() {
     )
   }
 
-  // Detect if match is in "ready" state (just created, no score yet)
   const isMatchReady =
     match &&
     match.status === 'in_progress' &&
@@ -558,15 +432,10 @@ export default function PlayingPage() {
     match.team_a_games === 0 &&
     match.team_b_games === 0
 
-  // 4. MATCH READY STATE
   if (isMatchReady && match) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header
-          status="ready"
-          statusText="READY"
-          courtName={courtName}
-        />
+        <Header status="ready" statusText="READY" courtName={courtName} branding={branding} />
         <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <TeamMatchupCard
             teamAPlayer1={match.team_a_player_1}
@@ -586,42 +455,18 @@ export default function PlayingPage() {
     )
   }
 
-  // 5. GAME FINISHED STATE
   const showPostGame =
     match &&
-    (match.status === 'completed' ||
-      match.status === 'abandoned' ||
-      !!match.winner)
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log(
-      'Render - match:',
-      match?.id,
-      'status:',
-      match?.status,
-      'winner:',
-      match?.winner
-    )
-  }
+    (match.status === 'completed' || match.status === 'abandoned' || !!match.winner)
 
   if (showPostGame && match) {
     const isAbandoned = match.status === 'abandoned'
     const hasWinner = match.winner && !isAbandoned
-
     const winnerName = hasWinner
       ? match.winner === 'a'
-        ? formatTeamName(
-            match.team_a_player_1,
-            match.team_a_player_2,
-            'Team A'
-          )
-        : formatTeamName(
-            match.team_b_player_1,
-            match.team_b_player_2,
-            'Team B'
-          )
+        ? formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
+        : formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
       : null
-
     const finalScore =
       match.set_scores && match.set_scores.length > 0
         ? match.set_scores
@@ -631,7 +476,6 @@ export default function PlayingPage() {
             )
             .join(', ')
         : `${match.team_a_games}-${match.team_b_games}`
-
     const winnerTeam = match.winner === 'a' ? 'team-a' : 'team-b'
 
     return (
@@ -640,6 +484,7 @@ export default function PlayingPage() {
           status="finished"
           statusText={isAbandoned ? 'GAME ENDED' : 'GAME FINISHED'}
           courtName={courtName}
+          branding={branding}
         />
         <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <div
@@ -647,9 +492,7 @@ export default function PlayingPage() {
             style={{
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-default)',
-              ...(hasWinner && {
-                borderTop: `3px solid var(--${winnerTeam})`,
-              }),
+              ...(hasWinner && { borderTop: `3px solid var(--${winnerTeam})` }),
               borderRadius: 'var(--radius-xl)',
               padding: '1.5rem',
               textAlign: 'center',
@@ -693,23 +536,14 @@ export default function PlayingPage() {
           </div>
         </div>
         <div className="stack" style={{ paddingTop: '1rem' }}>
-          <button
-            className="btn btn-primary btn-block"
-            onClick={handlePlayAgain}
-          >
+          <button className="btn btn-primary btn-block" onClick={handlePlayAgain}>
             Rematch
           </button>
-          <button
-            className="btn btn-secondary btn-block"
-            onClick={handleNewGame}
-          >
+          <button className="btn btn-secondary btn-block" onClick={handleNewGame}>
             Edit Match
           </button>
           <div className="divider"></div>
-          <button
-            className="btn btn-danger btn-block"
-            onClick={handleEndSession}
-          >
+          <button className="btn btn-danger btn-block" onClick={handleEndSession}>
             End Session
           </button>
         </div>
@@ -717,10 +551,9 @@ export default function PlayingPage() {
     )
   }
 
-  // 6. GAME IN PROGRESS STATE
   return (
     <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-      <Header status="live" statusText="LIVE" courtName={courtName} />
+      <Header status="live" statusText="LIVE" courtName={courtName} branding={branding} />
       <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
         <TeamMatchupCard
           teamAPlayer1={match?.team_a_player_1}

@@ -1,10 +1,13 @@
 'use client'
 
+import type { VenueBranding } from '@/lib/supabase/venue'
+
 interface HeaderProps {
   showLogo?: boolean
   status?: 'live' | 'ready' | 'finished' | 'complete'
   statusText?: string
   courtName?: string
+  branding?: VenueBranding | null
 }
 
 export default function Header({
@@ -12,7 +15,18 @@ export default function Header({
   status,
   statusText,
   courtName,
+  branding,
 }: HeaderProps) {
+  const logoContent = branding ? (
+    branding.logoUrl ? (
+      <img src={branding.logoUrl} alt={branding.companyName} className="setup-logo-img" />
+    ) : (
+      <span className="setup-logo-text">{branding.companyName}</span>
+    )
+  ) : (
+    <img src="/images/squareone-logo.png" alt="Square One" className="setup-logo-img" />
+  )
+
   return (
     <>
       {showLogo && (
@@ -25,11 +39,7 @@ export default function Header({
             maxWidth: '100%',
           }}
         >
-          <img
-            src="/images/squareone-logo.png"
-            alt="Square One"
-            className="setup-logo-img"
-          />
+          {logoContent}
         </div>
       )}
 

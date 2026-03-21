@@ -1,6 +1,7 @@
 'use client'
 
 import type { GameMode } from '@/lib/types/match'
+import type { VenueBranding } from '@/lib/supabase/venue'
 import SetupScreenHeader from './SetupScreenHeader'
 import '@/app/styles/setup-form.css'
 
@@ -21,6 +22,7 @@ export interface MatchSetupFormProps {
   submitLabel?: string
   error?: string | null
   showHeader?: boolean
+  branding?: VenueBranding | null
 }
 
 export default function MatchSetupForm({
@@ -40,11 +42,12 @@ export default function MatchSetupForm({
   submitLabel = 'START GAME',
   error,
   showHeader = true,
+  branding,
 }: MatchSetupFormProps) {
   return (
     <div className="setup-screen">
       <div className="setup-screen-inner">
-        {showHeader && <SetupScreenHeader />}
+        {showHeader && <SetupScreenHeader branding={branding} />}
 
         {error && <div className="setup-error">{error}</div>}
 

@@ -90,6 +90,13 @@
   flex-shrink: 0;
 }
 
+.setup-logo-text {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  max-width: 180px;
+}
+
 .setup-brand {
   font-size: 1.375rem;
   font-weight: 700;

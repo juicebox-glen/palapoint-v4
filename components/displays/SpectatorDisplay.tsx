@@ -1,45 +1,129 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { supabase, getCourtBySlug } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
+import type { VenueBranding } from '@/lib/supabase/venue'
 import { formatPointDisplay } from '@/lib/utils/score-format'
 
-export default function LivePage() {
-  const params = useParams()
-  const courtIdentifier = params.id as string
+interface SpectatorDisplayProps {
+  courtId: string
+  branding?: VenueBranding | null
+}
 
-  const [loading, setLoading] = useState(true)
+function getGameModeText(mode: string): string {
+  switch (mode) {
+    case 'golden_point':
+      return 'GOLDEN POINT'
+    case 'silver_point':
+      return 'SILVER POINT'
+    case 'traditional':
+      return 'TRADITIONAL'
+    default:
+      return mode.toUpperCase()
+  }
+}
+
+function getScoreColumns(m: MatchState) {
+  const columns: {
+    teamA: string | number
+    teamB: string | number
+    isPoints?: boolean
+    isPastSet?: boolean
+    isFinalSet?: boolean
+  }[] = []
+  const isMatchComplete =
+    m.status === 'completed' || m.status === 'abandoned' || m.winner
+
+  if (m.set_scores && Array.isArray(m.set_scores)) {
+    m.set_scores.forEach(
+      (
+        set: {
+          team_a?: number
+          team_b?: number
+          team_a_games?: number
+          team_b_games?: number
+        },
+        idx: number
+      ) => {
+        const teamAGames = set.team_a_games ?? set.team_a ?? 0
+        const teamBGames = set.team_b_games ?? set.team_b ?? 0
+        const isLastSet = idx === m.set_scores!.length - 1
+        columns.push({
+          teamA: teamAGames,
+          teamB: teamBGames,
+          isPastSet: true,
+          isFinalSet: !!isMatchComplete && isLastSet,
+        })
+      }
+    )
+  }
+
+  if (isMatchComplete && columns.length === 0) {
+    columns.push({
+      teamA: m.team_a_games ?? 0,
+      teamB: m.team_b_games ?? 0,
+      isPastSet: true,
+      isFinalSet: true,
+    })
+  }
+
+  if (!isMatchComplete) {
+    columns.push({
+      teamA: m.team_a_games ?? 0,
+      teamB: m.team_b_games ?? 0,
+      isPastSet: false,
+    })
+    const pointsA = formatPointDisplay(
+      m.team_a_points ?? 0,
+      m.team_b_points ?? 0,
+      m.is_tiebreak ?? false,
+      m.is_tiebreak ? m.tiebreak_scores?.team_a : undefined
+    )
+    const pointsB = formatPointDisplay(
+      m.team_b_points ?? 0,
+      m.team_a_points ?? 0,
+      m.is_tiebreak ?? false,
+      m.is_tiebreak ? m.tiebreak_scores?.team_b : undefined
+    )
+    columns.push({ teamA: pointsA, teamB: pointsB, isPoints: true })
+  }
+
+  return columns
+}
+
+function LogoContent({ branding }: { branding: VenueBranding | null }) {
+  if (!branding) {
+    return (
+      <img
+        src="/images/squareone-logo.png"
+        alt="Square One"
+        className="spectator-logo-img"
+      />
+    )
+  }
+  if (branding.logoUrl) {
+    return (
+      <img
+        src={branding.logoUrl}
+        alt={branding.companyName}
+        className="spectator-logo-img"
+      />
+    )
+  }
+  return (
+    <span className="spectator-logo-text" style={{ color: 'inherit' }}>
+      {branding.companyName}
+    </span>
+  )
+}
+
+export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplayProps) {
   const [match, setMatch] = useState<MatchState | null>(null)
-  const [courtId, setCourtId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!courtIdentifier) return
-
-    async function resolveCourt() {
-      try {
-        const court = await getCourtBySlug(courtIdentifier)
-        if (!court) {
-          setError('Court not found')
-          setLoading(false)
-          return
-        }
-        setCourtId(court.id)
-      } catch (err) {
-        console.error('Error resolving court:', err)
-        setError('Failed to load court')
-        setLoading(false)
-      }
-    }
-
-    resolveCourt()
-  }, [courtIdentifier])
-
-  useEffect(() => {
-    if (!courtId) return
-
     let channel: ReturnType<typeof supabase.channel> | null = null
 
     async function loadMatch() {
@@ -69,8 +153,8 @@ export default function LivePage() {
 
     loadMatch()
 
-    // Type assertion needed: Supabase RealtimeChannel has overload resolution issues with postgres_changes
     const ch = supabase.channel(`live-spectator-${courtId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel overload resolution
     ;(ch as any).on(
       'postgres_changes',
       {
@@ -80,26 +164,17 @@ export default function LivePage() {
         filter: `court_id=eq.${courtId}`,
       },
       (payload: { eventType?: string; new?: MatchState }) => {
-        if (payload.eventType === 'DELETE') {
-          // Don't clear on delete - keep final score visible until new match starts
-          return
-        }
-        const updatedMatch = payload.new
-        if (updatedMatch) {
-          setMatch(updatedMatch)
-        }
+        if (payload.eventType === 'DELETE') return
+        if (payload.new) setMatch(payload.new)
       }
     )
     channel = ch.subscribe()
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel)
-      }
+      if (channel) supabase.removeChannel(channel)
     }
   }, [courtId])
 
-  // Poll when no match - catches new games if realtime misses
   useEffect(() => {
     if (!courtId || match) return
     const interval = setInterval(async () => {
@@ -115,71 +190,6 @@ export default function LivePage() {
     }, 5000)
     return () => clearInterval(interval)
   }, [courtId, match])
-
-  const getGameModeText = (mode: string): string => {
-    switch (mode) {
-      case 'golden_point':
-        return 'GOLDEN POINT'
-      case 'silver_point':
-        return 'SILVER POINT'
-      case 'traditional':
-        return 'TRADITIONAL'
-      default:
-        return mode.toUpperCase()
-    }
-  }
-
-  // Build score columns dynamically based on set history
-  // set_scores contains only COMPLETED sets. For completed matches, only show set scores (no points column).
-  const getScoreColumns = (m: MatchState) => {
-    const columns: { teamA: string | number; teamB: string | number; isPoints?: boolean; isPastSet?: boolean; isFinalSet?: boolean }[] = []
-    const isMatchComplete = m.status === 'completed' || m.status === 'abandoned' || m.winner
-
-    // Add completed set scores from set_scores array
-    if (m.set_scores && Array.isArray(m.set_scores)) {
-      m.set_scores.forEach((set: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }, idx: number) => {
-        const teamAGames = set.team_a_games ?? set.team_a ?? 0
-        const teamBGames = set.team_b_games ?? set.team_b ?? 0
-        const isLastSet = idx === m.set_scores!.length - 1
-        columns.push({ teamA: teamAGames, teamB: teamBGames, isPastSet: true, isFinalSet: !!isMatchComplete && isLastSet })
-      })
-    }
-
-    // For completed matches with no set_scores, show final games as the only set
-    if (isMatchComplete && columns.length === 0) {
-      columns.push({
-        teamA: m.team_a_games ?? 0,
-        teamB: m.team_b_games ?? 0,
-        isPastSet: true,
-        isFinalSet: true,
-      })
-    }
-
-    // Only show current games and points if match is still in progress
-    if (!isMatchComplete) {
-      columns.push({
-        teamA: m.team_a_games ?? 0,
-        teamB: m.team_b_games ?? 0,
-        isPastSet: false,
-      })
-
-      const pointsA = formatPointDisplay(
-        m.team_a_points ?? 0,
-        m.team_b_points ?? 0,
-        m.is_tiebreak ?? false,
-        m.is_tiebreak ? m.tiebreak_scores?.team_a : undefined
-      )
-      const pointsB = formatPointDisplay(
-        m.team_b_points ?? 0,
-        m.team_a_points ?? 0,
-        m.is_tiebreak ?? false,
-        m.is_tiebreak ? m.tiebreak_scores?.team_b : undefined
-      )
-      columns.push({ teamA: pointsA, teamB: pointsB, isPoints: true })
-    }
-
-    return columns
-  }
 
   if (loading) {
     return (
@@ -202,11 +212,7 @@ export default function LivePage() {
       <div className="spectator-container">
         <div className="spectator-header">
           <div className="spectator-logo">
-            <img
-              src="/images/squareone-logo.png"
-              alt="Square One"
-              className="spectator-logo-img"
-            />
+            <LogoContent branding={branding ?? null} />
           </div>
           <div className="spectator-header-right">
             <div className="spectator-live-badge">
@@ -222,20 +228,15 @@ export default function LivePage() {
     )
   }
 
-  const isMatchComplete = match.status === 'completed' || match.status === 'abandoned' || match.winner
+  const isMatchComplete =
+    match.status === 'completed' || match.status === 'abandoned' || match.winner
 
   return (
     <div className="spectator-container">
-      {/* Header: Logo | (Game mode + LIVE/FINAL badge) right-aligned */}
       <div className="spectator-header">
         <div className="spectator-logo">
-          <img
-            src="/images/squareone-logo.png"
-            alt="Square One"
-            className="spectator-logo-img"
-          />
+          <LogoContent branding={branding ?? null} />
         </div>
-
         <div className="spectator-header-right">
           <div className="spectator-game-info">
             <span>{getGameModeText(match.game_mode)}</span>
@@ -246,17 +247,19 @@ export default function LivePage() {
               </>
             )}
           </div>
-
-          <div className={`spectator-live-badge ${isMatchComplete ? 'spectator-final-badge' : ''}`}>
-            <span className={isMatchComplete ? 'spectator-final-dot' : 'spectator-live-dot'} aria-hidden />
+          <div
+            className={`spectator-live-badge ${isMatchComplete ? 'spectator-final-badge' : ''}`}
+          >
+            <span
+              className={isMatchComplete ? 'spectator-final-dot' : 'spectator-live-dot'}
+              aria-hidden
+            />
             <span>{isMatchComplete ? 'FINAL' : 'LIVE'}</span>
           </div>
         </div>
       </div>
 
-      {/* Score Cards */}
       <div className="spectator-cards">
-        {/* Team A Card */}
         <div className="spectator-card spectator-card-team-a">
           <div className="spectator-card-names">
             <span className="spectator-player-name">
@@ -266,7 +269,6 @@ export default function LivePage() {
               {match.team_a_player_2 || 'Player 2'}
             </span>
           </div>
-
           <div className="spectator-card-scores">
             {!isMatchComplete && match.serving_team === 'a' && (
               <span className="spectator-serving-dot" aria-hidden />
@@ -282,7 +284,6 @@ export default function LivePage() {
           </div>
         </div>
 
-        {/* Team B Card */}
         <div className="spectator-card spectator-card-team-b">
           <div className="spectator-card-names">
             <span className="spectator-player-name">
@@ -292,7 +293,6 @@ export default function LivePage() {
               {match.team_b_player_2 || 'Player 2'}
             </span>
           </div>
-
           <div className="spectator-card-scores">
             {!isMatchComplete && match.serving_team === 'b' && (
               <span className="spectator-serving-dot" aria-hidden />

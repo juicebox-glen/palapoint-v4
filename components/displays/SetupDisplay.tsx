@@ -1,44 +1,45 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { getCourtBySlug, type Court } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import type { MatchState, GameMode } from '@/lib/types/match'
+import type { VenueBranding } from '@/lib/supabase/venue'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 function formatTimeAgo(dateString: string | null): string {
   if (!dateString) return 'Unknown'
-  
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMins = Math.floor(diffMs / 60000)
-  
   if (diffMins < 1) return 'Just started'
   if (diffMins === 1) return 'Started 1 minute ago'
   if (diffMins < 60) return `Started ${diffMins} minutes ago`
-  
   const diffHours = Math.floor(diffMins / 60)
   if (diffHours === 1) return 'Started 1 hour ago'
   if (diffHours < 24) return `Started ${diffHours} hours ago`
-  
   const diffDays = Math.floor(diffHours / 24)
   return `Started ${diffDays} day${diffDays > 1 ? 's' : ''} ago`
 }
 
-export default function SetupPage() {
-  const params = useParams()
+interface SetupDisplayProps {
+  courtId: string
+  courtSlug: string
+  branding?: VenueBranding | null
+}
+
+export default function SetupDisplay({
+  courtId,
+  courtSlug,
+  branding,
+}: SetupDisplayProps) {
   const router = useRouter()
-  const courtIdentifier = params.id as string
-  
-  const [court, setCourt] = useState<Court | null>(null)
-  const [courtId, setCourtId] = useState<string | null>(null)
   const [activeMatch, setActiveMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,166 +54,99 @@ export default function SetupPage() {
   const [showProtectionPrompt, setShowProtectionPrompt] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
-  // Form state
   const [gameMode, setGameMode] = useState<GameMode>('traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
 
-  // Load court and check for active match
   useEffect(() => {
-    if (!courtIdentifier) return
-
     async function loadData() {
       try {
-        // Resolve court
-        const courtData = await getCourtBySlug(courtIdentifier)
-        if (!courtData) {
-          setError('Court not found')
-          setLoading(false)
-          return
-        }
-        setCourt(courtData)
-        setCourtId(courtData.id)
+        const storageKey = `setup_session_id_${courtSlug}`
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Setup: courtData.id (UUID):', courtData?.id)
-          console.log('Setup: courtIdentifier (slug):', courtIdentifier)
-          console.log('Setup: sessionStorage key:', `setup_session_id_${courtIdentifier}`)
-        }
-
-        // Check for existing session when page loads
-        try {
-          const storageKey = `setup_session_id_${courtIdentifier}`
-
-          // Check if we already have a session stored for this court (by slug from URL)
-          const existingSessionId =
-            typeof window !== 'undefined'
-              ? sessionStorage.getItem(storageKey)
-              : null
-
-          let hasValidStoredSession = false
+        let hasValidStoredSession = false
+        if (typeof window !== 'undefined') {
+          const existingSessionId = sessionStorage.getItem(storageKey)
           if (existingSessionId) {
             const validation = await validateSession(existingSessionId)
             if (validation.valid) {
               setCurrentSessionId(existingSessionId)
               hasValidStoredSession = true
-              if (process.env.NODE_ENV === 'development') {
-                console.log('Setup: currentSessionId (from storage):', existingSessionId)
-              }
             } else {
-              if (typeof window !== 'undefined') {
-                sessionStorage.removeItem(storageKey)
-              }
+              sessionStorage.removeItem(storageKey)
             }
           }
-
-          // If we don't have a valid stored session, check for active session on court
-          if (!hasValidStoredSession) {
-            const result = await checkSession(courtData.id)
-
-            if (result.has_active_session && result.session) {
-              setActiveSession(result.session)
-              setShowProtectionPrompt(true)
-            } else {
-              // No active session - create one
-              const createResult = await createSession(courtData.id)
-              if (createResult.success && createResult.session) {
-                setCurrentSessionId(createResult.session.id)
-                if (typeof window !== 'undefined') {
-                  sessionStorage.setItem(storageKey, createResult.session.id)
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('Setup: currentSessionId (created):', createResult.session.id)
-                  }
-                }
-              }
-            }
-          }
-        } catch (sessionErr) {
-          console.error('Error checking session:', sessionErr)
-        } finally {
-          setSessionLoading(false)
         }
 
-        // Check for active match
+        if (!hasValidStoredSession) {
+          const result = await checkSession(courtId)
+          if (result.has_active_session && result.session) {
+            setActiveSession(result.session)
+            setShowProtectionPrompt(true)
+          } else {
+            const createResult = await createSession(courtId)
+            if (createResult.success && createResult.session) {
+              setCurrentSessionId(createResult.session.id)
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem(storageKey, createResult.session.id)
+              }
+            }
+          }
+        }
+      } catch (sessionErr) {
+        console.error('Error checking session:', sessionErr)
+      } finally {
+        setSessionLoading(false)
+      }
+
+      try {
         const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'status',
-            court_id: courtData.id,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'status', court_id: courtId }),
         })
-
         const data = await response.json()
-
         if (data.success && data.match) {
           setActiveMatch(data.match)
         } else {
           setShowSetupForm(true)
-          
-          // Load saved data from sessionStorage if returning from teams page
           if (typeof window !== 'undefined') {
-            const savedPlayers = sessionStorage.getItem(`setup_players_${courtData.id}`)
-            const savedGameMode = sessionStorage.getItem(`setup_game_mode_${courtData.id}`)
-            const savedSets = sessionStorage.getItem(`setup_sets_${courtData.id}`)
-            
+            const savedPlayers = sessionStorage.getItem(`setup_players_${courtId}`)
+            const savedGameMode = sessionStorage.getItem(`setup_game_mode_${courtId}`)
+            const savedSets = sessionStorage.getItem(`setup_sets_${courtId}`)
+            const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtId}`)
+            const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtId}`)
             if (savedPlayers) {
               try {
                 const parsed = JSON.parse(savedPlayers)
-                if (Array.isArray(parsed) && parsed.length === 4) {
-                  setPlayers(parsed)
-                }
-              } catch (e) {
-                // Ignore parse errors
-              }
+                if (Array.isArray(parsed) && parsed.length === 4) setPlayers(parsed)
+              } catch {}
             }
-            
-            if (savedGameMode) {
-              const value = savedGameMode as GameMode
-              if (['golden_point', 'silver_point', 'traditional'].includes(value)) {
-                setGameMode(value)
-              }
+            if (savedGameMode && ['golden_point', 'silver_point', 'traditional'].includes(savedGameMode)) {
+              setGameMode(savedGameMode as GameMode)
             }
-            
-            if (savedSets) {
-              setSetsToWin(Number(savedSets) as 1 | 2)
-            }
-            
-            const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtData.id}`)
-            if (savedSideSwap) {
-              setSideSwapEnabled(JSON.parse(savedSideSwap))
-            }
-            const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtData.id}`)
-            if (savedTiebreak !== null) {
-              setEndGameInTiebreak(JSON.parse(savedTiebreak))
-            }
+            if (savedSets) setSetsToWin(Number(savedSets) as 1 | 2)
+            if (savedSideSwap) setSideSwapEnabled(JSON.parse(savedSideSwap))
+            if (savedTiebreak !== null) setEndGameInTiebreak(JSON.parse(savedTiebreak))
           }
         }
       } catch (err) {
-        console.error('Error loading data:', err)
-        setError('Failed to load court data')
+        console.error('Error loading match:', err)
       } finally {
         setLoading(false)
       }
     }
 
     loadData()
-  }, [courtIdentifier])
+  }, [courtId, courtSlug])
 
-  const handleCancelSetup = () => {
-    window.history.back()
-  }
+  const handleCancelSetup = () => window.history.back()
 
   const handleTakeover = async () => {
     if (!courtId) return
-
     setActionLoading('takeover')
     setError(null)
-
     try {
       const result = await takeoverSession(courtId)
       if (result.success && result.session) {
@@ -222,10 +156,7 @@ export default function SetupPage() {
         setActiveMatch(null)
         setShowSetupForm(true)
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem(
-            `setup_session_id_${courtIdentifier}`,
-            result.session.id
-          )
+          sessionStorage.setItem(`setup_session_id_${courtSlug}`, result.session.id)
         }
       } else {
         setError(result.error || 'Failed to take over')
@@ -240,77 +171,56 @@ export default function SetupPage() {
 
   async function handleEndMatch() {
     if (!courtId) return
-
     setActionLoading('end')
     setError(null)
-
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'end',
-          court_id: courtId,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'end', court_id: courtId }),
       })
-
       const data = await response.json()
-
       if (!data.success) {
         setError(data.error || 'Failed to end match')
-        setActionLoading(null)
-        return
+      } else {
+        setActiveMatch(null)
+        setShowSetupForm(true)
       }
-
-      // Clear active match and show setup form
-      setActiveMatch(null)
-      setShowSetupForm(true)
-      setActionLoading(null)
     } catch (err) {
       console.error('Error ending match:', err)
       setError('Failed to end match')
+    } finally {
       setActionLoading(null)
     }
   }
 
-  // Handle player name changes
   function handlePlayerChange(index: number, value: string) {
     const newPlayers = [...players]
     newPlayers[index] = value
     setPlayers(newPlayers)
   }
 
-  // Randomize: shuffle the four player names and reassign to slots
   function handleRandomize() {
     const copy = [...players]
     for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]]
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
     }
     setPlayers(copy)
   }
 
-  // Handle Start Game - create match and go to playing
   async function handleStartGame() {
     if (!courtId) return
-
     setActionLoading('create')
     setError(null)
-
     if (typeof window !== 'undefined') {
       sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
       sessionStorage.setItem(`setup_game_mode_${courtId}`, gameMode)
       sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
       sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
       sessionStorage.setItem(`setup_tiebreak_${courtId}`, JSON.stringify(endGameInTiebreak))
-      sessionStorage.setItem(
-        `setup_session_id_${courtIdentifier}`,
-        currentSessionId || ''
-      )
+      sessionStorage.setItem(`setup_session_id_${courtSlug}`, currentSessionId || '')
     }
-
     try {
       const body: Record<string, unknown> = {
         action: 'create',
@@ -331,29 +241,23 @@ export default function SetupPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-
       const data = await response.json()
-
       if (!data.success) {
         setError(data.error || 'Failed to create match')
-        setActionLoading(null)
-        return
+      } else {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(`setup_players_${courtId}`)
+          sessionStorage.removeItem(`setup_game_mode_${courtId}`)
+          sessionStorage.removeItem(`setup_sets_${courtId}`)
+          sessionStorage.removeItem(`setup_side_swap_${courtId}`)
+          sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
+        }
+        router.push(`/playing/${courtSlug}`)
       }
-
-      if (typeof window !== 'undefined') {
-        // Clear setup form data but KEEP the session ID
-        sessionStorage.removeItem(`setup_players_${courtId}`)
-        sessionStorage.removeItem(`setup_game_mode_${courtId}`)
-        sessionStorage.removeItem(`setup_sets_${courtId}`)
-        sessionStorage.removeItem(`setup_side_swap_${courtId}`)
-        sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
-        // NOTE: Do NOT remove session_id - it's needed by the playing page
-      }
-
-      router.push(`/playing/${courtIdentifier}`)
     } catch (err) {
       console.error('Error creating match:', err)
       setError('Failed to create match')
+    } finally {
       setActionLoading(null)
     }
   }
@@ -361,11 +265,8 @@ export default function SetupPage() {
   if (loading || sessionLoading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
-        <div
-          className="page-loading"
-          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
-        >
+        <Header branding={branding} />
+        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>
             {sessionLoading ? 'Checking court availability...' : 'Loading...'}
           </p>
@@ -383,41 +284,31 @@ export default function SetupPage() {
     )
   }
 
-  if (error && !court) {
+  if (error && !activeMatch && !showSetupForm) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header />
-        <div
-          className="page-loading"
-          style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}
-        >
-          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>
-            {error}
-          </p>
+        <Header branding={branding} />
+        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>{error}</p>
         </div>
       </div>
     )
   }
 
-  // State 1: Active match exists
   if (activeMatch && !showSetupForm) {
     return (
       <div className="setup-page">
         <div className="setup-container">
           <h1 className="setup-title">Match in Progress</h1>
-          
           {error && <div className="setup-error-message">{error}</div>}
-
           <div className="setup-match-info">
             <div className="setup-match-time">
               {formatTimeAgo(activeMatch.started_at ?? null)}
             </div>
-            
             <div className="setup-match-score">
               <ScoreDisplay match={activeMatch} variant="spectator" />
             </div>
           </div>
-
           <div className="setup-actions">
             <button
               className="setup-button setup-button-primary"
@@ -428,14 +319,13 @@ export default function SetupPage() {
             </button>
             <button
               className="setup-button setup-button-secondary"
-              onClick={() => router.push(`/court/${courtIdentifier}`)}
+              onClick={() => router.push(`/court/${courtSlug}`)}
               disabled={!!actionLoading}
             >
               View Match
             </button>
           </div>
         </div>
-
         <style jsx>{`
           .setup-page {
             min-height: 100vh;
@@ -503,10 +393,6 @@ export default function SetupPage() {
             background: #16a34a;
             transform: scale(0.98);
           }
-          .setup-button-primary:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-          }
           .setup-button-secondary {
             background: rgba(255, 255, 255, 0.2);
             color: #E6EAF2;
@@ -520,7 +406,6 @@ export default function SetupPage() {
     )
   }
 
-  // State 2: Setup form (same design as staff setup)
   return (
     <MatchSetupForm
       gameMode={gameMode}
@@ -539,6 +424,7 @@ export default function SetupPage() {
       submitLabel="START GAME"
       error={error}
       showHeader
+      branding={branding}
     />
   )
 }
