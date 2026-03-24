@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
+import ControlMatchPreview from '@/components/displays/ControlMatchPreview'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
@@ -13,6 +14,8 @@ import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+
+type ControlStage = 'setup' | 'preview' | 'live'
 
 interface ControlPanelProps {
   courtId: string
@@ -33,6 +36,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
   const [tempMatchId] = useState(() => crypto.randomUUID())
   const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
+  const [stage, setStage] = useState<ControlStage>('setup')
 
   const handlePlayerPhotoChange = useCallback(
     (key: keyof PlayerPhotosState, url: string | null) => {
@@ -59,9 +63,13 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
           console.error('Error loading match:', fetchError)
           setError('Failed to load match')
         } else if (data) {
-          setMatch(data)
+          const m = { ...data } as MatchState
+          setMatch(m)
+          if (m.status === 'setup') setStage('preview')
+          else if (m.status === 'in_progress') setStage('live')
         } else {
           setMatch(null)
+          setStage('setup')
         }
         setLoading(false)
       } catch (err) {
@@ -86,6 +94,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       (payload: { eventType: string; new?: MatchState; data?: { new?: MatchState } }) => {
         if (payload.eventType === 'DELETE') {
           setMatch(null)
+          setStage('setup')
           return
         }
         const raw = payload.new ?? (payload as { data?: { new?: MatchState } }).data?.new
@@ -93,8 +102,10 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
         const updatedMatch = { ...raw } as MatchState
         if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
           setMatch(updatedMatch)
+          if (updatedMatch.status === 'in_progress') setStage('live')
         } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
           setMatch(null)
+          setStage('setup')
         }
       }
     )
@@ -109,8 +120,15 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
           .in('status', ['setup', 'in_progress'])
           .maybeSingle()
           .then(({ data }) => {
-            if (data) setMatch({ ...data } as MatchState)
-            else setMatch(null)
+            if (data) {
+              const m = { ...data } as MatchState
+              setMatch(m)
+              if (m.status === 'in_progress') setStage('live')
+              else if (m.status === 'setup') setStage('preview')
+            } else {
+              setMatch(null)
+              setStage('setup')
+            }
           })
       }
     }
@@ -137,13 +155,13 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
     setPlayerPhotos(nextPhotos)
   }
 
-  async function createMatch() {
+  async function handleContinue() {
     if (!courtId) return
-    setActionLoading('create')
+    const updating = !!match && match.status === 'setup'
+    setActionLoading('continue')
     setError(null)
     try {
       const body: Record<string, unknown> = {
-        action: 'create',
         court_id: courtId,
         game_mode: gameMode,
         sets_to_win: setsToWin,
@@ -159,16 +177,76 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       body.team_b_player_1_photo = playerPhotos.team_b_player_1_photo
       body.team_b_player_2_photo = playerPhotos.team_b_player_2_photo
 
+      if (updating) {
+        body.action = 'update_setup'
+        body.match_id = match!.id
+      } else {
+        body.action = 'create'
+      }
+
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
       const data = await response.json()
-      if (!data.success) setError(data.error || 'Failed to create match')
+      if (!data.success) {
+        setError(data.error || (updating ? 'Failed to update match' : 'Failed to create match'))
+      } else if (data.match) {
+        setMatch(data.match as MatchState)
+        setStage('preview')
+      }
     } catch (err) {
-      console.error('Error creating match:', err)
-      setError('Failed to create match')
+      console.error('Error saving match:', err)
+      setError('Failed to save match')
+    }
+    setActionLoading(null)
+  }
+
+  function handleBackToEdit() {
+    if (!match || match.status !== 'setup') return
+    setPlayers([
+      match.team_a_player_1 ?? '',
+      match.team_a_player_2 ?? '',
+      match.team_b_player_1 ?? '',
+      match.team_b_player_2 ?? '',
+    ])
+    setPlayerPhotos({
+      team_a_player_1_photo: match.team_a_player_1_photo ?? null,
+      team_a_player_2_photo: match.team_a_player_2_photo ?? null,
+      team_b_player_1_photo: match.team_b_player_1_photo ?? null,
+      team_b_player_2_photo: match.team_b_player_2_photo ?? null,
+    })
+    setGameMode(match.game_mode)
+    setSetsToWin((match.sets_to_win === 2 ? 2 : 1) as 1 | 2)
+    setSideSwapEnabled(match.side_swap_enabled ?? true)
+    setStage('setup')
+  }
+
+  async function handleStartMatch() {
+    if (!match || match.status !== 'setup') return
+    setActionLoading('start')
+    setError(null)
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'start',
+          match_id: match.id,
+          court_id: courtId,
+        }),
+      })
+      const data = await response.json()
+      if (!data.success) {
+        setError(data.error || 'Failed to start match')
+      } else if (data.match) {
+        setMatch(data.match as MatchState)
+        setStage('live')
+      }
+    } catch (err) {
+      console.error('Error starting match:', err)
+      setError('Failed to start match')
     }
     setActionLoading(null)
   }
@@ -231,6 +309,31 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
     setActionLoading(null)
   }
 
+  const renderSetupForm = () => (
+    <MatchSetupForm
+      gameMode={gameMode}
+      setGameMode={setGameMode}
+      setsToWin={setsToWin}
+      setSetsToWin={setSetsToWin}
+      players={players}
+      onPlayerChange={handlePlayerChange}
+      onRandomize={handleRandomize}
+      tempMatchId={tempMatchId}
+      playerPhotos={playerPhotos}
+      onPlayerPhotoChange={handlePlayerPhotoChange}
+      sideSwapEnabled={sideSwapEnabled}
+      setSideSwapEnabled={setSideSwapEnabled}
+      endGameInTiebreak={endGameInTiebreak}
+      setEndGameInTiebreak={setEndGameInTiebreak}
+      onSubmit={handleContinue}
+      submitLoading={actionLoading === 'continue'}
+      submitLabel="Continue"
+      error={error}
+      showHeader
+      branding={branding}
+    />
+  )
+
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
@@ -254,30 +357,27 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   if (!match) {
-    return (
-      <MatchSetupForm
-        gameMode={gameMode}
-        setGameMode={setGameMode}
-        setsToWin={setsToWin}
-        setSetsToWin={setSetsToWin}
-        players={players}
-        onPlayerChange={handlePlayerChange}
-        onRandomize={handleRandomize}
-        tempMatchId={tempMatchId}
-        playerPhotos={playerPhotos}
-        onPlayerPhotoChange={handlePlayerPhotoChange}
-        sideSwapEnabled={sideSwapEnabled}
-        setSideSwapEnabled={setSideSwapEnabled}
-        endGameInTiebreak={endGameInTiebreak}
-        setEndGameInTiebreak={setEndGameInTiebreak}
-        onSubmit={createMatch}
-        submitLoading={actionLoading === 'create'}
-        submitLabel="START GAME"
-        error={error}
-        showHeader
-        branding={branding}
-      />
-    )
+    return renderSetupForm()
+  }
+
+  if (match.status === 'setup') {
+    if (stage === 'preview') {
+      return (
+        <ControlMatchPreview
+          match={match}
+          branding={branding}
+          onBack={handleBackToEdit}
+          onStart={handleStartMatch}
+          loading={actionLoading === 'start'}
+          error={error}
+        />
+      )
+    }
+    return renderSetupForm()
+  }
+
+  if (match.status !== 'in_progress') {
+    return null
   }
 
   const teamAName = buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')

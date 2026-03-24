@@ -196,7 +196,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
           .from('live_matches')
           .select(SPECTATOR_LIVE_MATCH_SELECT)
           .eq('court_id', courtId)
-          .in('status', ['in_progress', 'completed', 'abandoned'])
+          .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -246,7 +246,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
         .from('live_matches')
         .select(SPECTATOR_LIVE_MATCH_SELECT)
         .eq('court_id', courtId)
-        .in('status', ['in_progress', 'completed', 'abandoned'])
+        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
@@ -287,6 +287,108 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
         </div>
         <div className="spectator-no-match">
           <p>No active match</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (match.status === 'setup') {
+    const setsToWin = match.sets_to_win ?? 1
+    return (
+      <div className="spectator-container spectator-container--pregame">
+        <div className="spectator-header">
+          <div className="spectator-logo">
+            <LogoContent branding={branding ?? null} />
+          </div>
+          <div className="spectator-header-right">
+            <div className="spectator-pregame-badge">
+              <span className="spectator-pregame-dot" aria-hidden />
+              <span>COMING UP</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="spectator-pregame">
+          <div className="spectator-pregame-team spectator-pregame-team-a">
+            <div className="spectator-pregame-players">
+              <div className="spectator-pregame-player">
+                {match.team_a_player_1_photo ? (
+                  <img
+                    src={match.team_a_player_1_photo}
+                    alt=""
+                    className="spectator-pregame-photo"
+                  />
+                ) : (
+                  <div className="spectator-pregame-avatar" aria-hidden>
+                    {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-pregame-name">
+                  {match.team_a_player_1?.trim() || 'Player 1'}
+                </span>
+              </div>
+              <div className="spectator-pregame-player">
+                {match.team_a_player_2_photo ? (
+                  <img
+                    src={match.team_a_player_2_photo}
+                    alt=""
+                    className="spectator-pregame-photo"
+                  />
+                ) : (
+                  <div className="spectator-pregame-avatar" aria-hidden>
+                    {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-pregame-name">
+                  {match.team_a_player_2?.trim() || 'Player 2'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="spectator-pregame-vs">VS</div>
+
+          <div className="spectator-pregame-team spectator-pregame-team-b">
+            <div className="spectator-pregame-players">
+              <div className="spectator-pregame-player">
+                {match.team_b_player_1_photo ? (
+                  <img
+                    src={match.team_b_player_1_photo}
+                    alt=""
+                    className="spectator-pregame-photo"
+                  />
+                ) : (
+                  <div className="spectator-pregame-avatar" aria-hidden>
+                    {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-pregame-name">
+                  {match.team_b_player_1?.trim() || 'Player 1'}
+                </span>
+              </div>
+              <div className="spectator-pregame-player">
+                {match.team_b_player_2_photo ? (
+                  <img
+                    src={match.team_b_player_2_photo}
+                    alt=""
+                    className="spectator-pregame-photo"
+                  />
+                ) : (
+                  <div className="spectator-pregame-avatar" aria-hidden>
+                    {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-pregame-name">
+                  {match.team_b_player_2?.trim() || 'Player 2'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="spectator-pregame-mode">
+          {getGameModeText(match.game_mode)}
+          {setsToWin > 1 && ` • BEST OF ${setsToWin * 2 - 1}`}
         </div>
       </div>
     )

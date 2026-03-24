@@ -48,7 +48,39 @@ interface StatusRequest {
   court_id: string;
 }
 
-type MatchRequest = CreateRequest | EndRequest | UndoRequest | StatusRequest;
+interface StartRequest {
+  action: 'start';
+  match_id: string;
+  court_id?: string;
+}
+
+interface UpdateSetupRequest {
+  action: 'update_setup';
+  match_id: string;
+  court_id: string;
+  session_id?: string;
+  game_mode?: 'traditional' | 'golden_point' | 'silver_point';
+  sets_to_win?: 1 | 2;
+  tiebreak_at?: 6 | 7;
+  team_a_player_1?: string;
+  team_a_player_2?: string;
+  team_b_player_1?: string;
+  team_b_player_2?: string;
+  team_a_player_1_photo?: string | null;
+  team_a_player_2_photo?: string | null;
+  team_b_player_1_photo?: string | null;
+  team_b_player_2_photo?: string | null;
+  serving_team?: 'a' | 'b';
+  side_swap_enabled?: boolean;
+}
+
+type MatchRequest =
+  | CreateRequest
+  | EndRequest
+  | UndoRequest
+  | StatusRequest
+  | StartRequest
+  | UpdateSetupRequest;
 
 /**
  * Convert MatchState to database row format
@@ -450,6 +482,245 @@ Deno.serve(async (req) => {
             success: true,
             action: 'undo',
             match: restoredMatch,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      case 'start': {
+        const startReq = body as StartRequest;
+        const { match_id, court_id } = startReq;
+
+        if (!match_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'missing_match_id' }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const { data: row, error: fetchErr } = await supabase
+          .from('live_matches')
+          .select('*')
+          .eq('id', match_id)
+          .maybeSingle();
+
+        if (fetchErr) {
+          console.error('Error loading match for start:', fetchErr);
+          return new Response(
+            JSON.stringify({ success: false, error: 'database_error' }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (!row || row.status !== 'setup') {
+          return new Response(
+            JSON.stringify({ success: false, error: 'invalid_match_state' }),
+            {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (court_id && row.court_id !== court_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'court_mismatch' }),
+            {
+              status: 403,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const startedAt = new Date().toISOString();
+        const { data: started, error: startErr } = await supabase
+          .from('live_matches')
+          .update({
+            status: 'in_progress',
+            started_at: startedAt,
+            version: row.version + 1,
+          })
+          .eq('id', match_id)
+          .eq('version', row.version)
+          .eq('status', 'setup')
+          .select()
+          .single();
+
+        if (startErr) {
+          console.error('Error starting match:', startErr);
+          return new Response(
+            JSON.stringify({ success: false, error: 'database_error' }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (!started) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'version_conflict' }),
+            {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (row.session_id) {
+          await supabase
+            .from('sessions')
+            .update({ last_activity: new Date().toISOString() })
+            .eq('id', row.session_id)
+            .eq('status', 'active');
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: 'start',
+            match: started,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      case 'update_setup': {
+        const updReq = body as UpdateSetupRequest;
+        const { match_id, court_id } = updReq;
+
+        if (!match_id || !court_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'missing_match_or_court_id' }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const { data: row, error: fetchErr } = await supabase
+          .from('live_matches')
+          .select('*')
+          .eq('id', match_id)
+          .maybeSingle();
+
+        if (fetchErr) {
+          console.error('Error loading match for update_setup:', fetchErr);
+          return new Response(
+            JSON.stringify({ success: false, error: 'database_error' }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (!row || row.status !== 'setup' || row.court_id !== court_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'invalid_match_state' }),
+            {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const patch: Record<string, unknown> = {
+          version: row.version + 1,
+          game_mode: updReq.game_mode ?? row.game_mode,
+          sets_to_win: updReq.sets_to_win ?? row.sets_to_win,
+          tiebreak_at: updReq.tiebreak_at ?? row.tiebreak_at,
+          side_swap_enabled: updReq.side_swap_enabled ?? row.side_swap_enabled,
+          team_a_player_1:
+            updReq.team_a_player_1 !== undefined
+              ? updReq.team_a_player_1.trim() || null
+              : row.team_a_player_1,
+          team_a_player_2:
+            updReq.team_a_player_2 !== undefined
+              ? updReq.team_a_player_2.trim() || null
+              : row.team_a_player_2,
+          team_b_player_1:
+            updReq.team_b_player_1 !== undefined
+              ? updReq.team_b_player_1.trim() || null
+              : row.team_b_player_1,
+          team_b_player_2:
+            updReq.team_b_player_2 !== undefined
+              ? updReq.team_b_player_2.trim() || null
+              : row.team_b_player_2,
+          team_a_player_1_photo:
+            updReq.team_a_player_1_photo !== undefined
+              ? updReq.team_a_player_1_photo
+              : row.team_a_player_1_photo,
+          team_a_player_2_photo:
+            updReq.team_a_player_2_photo !== undefined
+              ? updReq.team_a_player_2_photo
+              : row.team_a_player_2_photo,
+          team_b_player_1_photo:
+            updReq.team_b_player_1_photo !== undefined
+              ? updReq.team_b_player_1_photo
+              : row.team_b_player_1_photo,
+          team_b_player_2_photo:
+            updReq.team_b_player_2_photo !== undefined
+              ? updReq.team_b_player_2_photo
+              : row.team_b_player_2_photo,
+        };
+
+        if (updReq.serving_team !== undefined) {
+          patch.serving_team = updReq.serving_team;
+        }
+
+        if (updReq.session_id !== undefined) {
+          patch.session_id = updReq.session_id || null;
+        }
+
+        const { data: updated, error: updErr } = await supabase
+          .from('live_matches')
+          .update(patch)
+          .eq('id', match_id)
+          .eq('version', row.version)
+          .eq('status', 'setup')
+          .select()
+          .single();
+
+        if (updErr) {
+          console.error('Error update_setup:', updErr);
+          return new Response(
+            JSON.stringify({ success: false, error: 'database_error' }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        if (!updated) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'version_conflict' }),
+            {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: 'update_setup',
+            match: updated,
           }),
           {
             status: 200,

@@ -480,3 +480,151 @@
 .control-panel .control-error {
   color: var(--color-error);
 }
+
+/* ----- Pre-start preview (staff confirms matchup before going live) ----- */
+.control-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1rem 0 2rem;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.preview-header {
+  text-align: center;
+}
+
+.preview-badge {
+  display: inline-block;
+  background: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.preview-matchup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1rem 1.5rem;
+  width: 100%;
+}
+
+.preview-team {
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.preview-team-a {
+  align-items: flex-end;
+  padding-right: 1rem;
+  border-right: 3px solid var(--team-a);
+}
+
+.preview-team-b {
+  align-items: flex-start;
+  padding-left: 1rem;
+  border-left: 3px solid var(--team-b);
+}
+
+.preview-player {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+
+.preview-team-a .preview-player {
+  flex-direction: row-reverse;
+}
+
+.preview-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.preview-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.preview-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: min(160px, 40vw);
+}
+
+.preview-vs {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0 0.25rem;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preview-mode-badge {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.preview-sets-badge {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.preview-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 480px) {
+  .preview-actions {
+    flex-direction: row;
+  }
+
+  .preview-actions .control-button {
+    flex: 1;
+  }
+}
