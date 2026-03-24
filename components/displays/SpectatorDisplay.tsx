@@ -156,6 +156,11 @@ function getScoreColumns(m: MatchState) {
   return columns
 }
 
+function getEndgameSetScores(m: MatchState) {
+  if (m.set_scores && m.set_scores.length > 0) return m.set_scores
+  return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
+}
+
 function LogoContent({ branding }: { branding: VenueBranding | null }) {
   if (!branding) {
     return (
@@ -394,8 +399,150 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
     )
   }
 
-  const isMatchComplete =
-    match.status === 'completed' || match.status === 'abandoned' || match.winner
+  const showSpectatorEndgame =
+    match.status === 'completed' ||
+    match.status === 'abandoned' ||
+    (match.winner != null && match.status !== 'in_progress')
+
+  if (showSpectatorEndgame) {
+    const endgameSets = getEndgameSetScores(match)
+    return (
+      <div className="spectator-container spectator-container--endgame">
+        <div className="spectator-header">
+          <div className="spectator-logo">
+            <LogoContent branding={branding ?? null} />
+          </div>
+          <div className="spectator-header-right">
+            <div className="spectator-game-info">
+              <span>{getGameModeText(match.game_mode)}</span>
+            </div>
+            <div className="spectator-final-badge">
+              <span className="spectator-final-dot" aria-hidden />
+              <span>FINAL</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="spectator-endgame">
+          <div
+            className={`spectator-endgame-team ${match.winner === 'a' ? 'spectator-endgame-winner' : ''}`}
+          >
+            <div className="spectator-endgame-players">
+              <div className="spectator-endgame-player">
+                {match.team_a_player_1_photo ? (
+                  <img
+                    src={match.team_a_player_1_photo}
+                    alt=""
+                    className="spectator-endgame-photo"
+                  />
+                ) : (
+                  <div className="spectator-endgame-avatar" aria-hidden>
+                    {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-endgame-name">
+                  {match.team_a_player_1?.trim() || 'Player 1'}
+                </span>
+              </div>
+              <div className="spectator-endgame-player">
+                {match.team_a_player_2_photo ? (
+                  <img
+                    src={match.team_a_player_2_photo}
+                    alt=""
+                    className="spectator-endgame-photo"
+                  />
+                ) : (
+                  <div className="spectator-endgame-avatar" aria-hidden>
+                    {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-endgame-name">
+                  {match.team_a_player_2?.trim() || 'Player 2'}
+                </span>
+              </div>
+            </div>
+            {match.winner === 'a' && (
+              <div className="spectator-endgame-winner-label">WINNER</div>
+            )}
+          </div>
+
+          <div className="spectator-endgame-score">
+            {endgameSets.map((set, i) => {
+              const a =
+                set.team_a ??
+                (set as { team_a_games?: number }).team_a_games ??
+                0
+              const b =
+                set.team_b ??
+                (set as { team_b_games?: number }).team_b_games ??
+                0
+              return (
+                <div key={i} className="spectator-endgame-set">
+                  <span
+                    className={
+                      match.winner === 'a' ? 'spectator-endgame-set-winner' : ''
+                    }
+                  >
+                    {a}
+                  </span>
+                  <span className="spectator-endgame-set-divider">-</span>
+                  <span
+                    className={
+                      match.winner === 'b' ? 'spectator-endgame-set-winner' : ''
+                    }
+                  >
+                    {b}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          <div
+            className={`spectator-endgame-team ${match.winner === 'b' ? 'spectator-endgame-winner' : ''}`}
+          >
+            <div className="spectator-endgame-players">
+              <div className="spectator-endgame-player">
+                {match.team_b_player_1_photo ? (
+                  <img
+                    src={match.team_b_player_1_photo}
+                    alt=""
+                    className="spectator-endgame-photo"
+                  />
+                ) : (
+                  <div className="spectator-endgame-avatar" aria-hidden>
+                    {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-endgame-name">
+                  {match.team_b_player_1?.trim() || 'Player 1'}
+                </span>
+              </div>
+              <div className="spectator-endgame-player">
+                {match.team_b_player_2_photo ? (
+                  <img
+                    src={match.team_b_player_2_photo}
+                    alt=""
+                    className="spectator-endgame-photo"
+                  />
+                ) : (
+                  <div className="spectator-endgame-avatar" aria-hidden>
+                    {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <span className="spectator-endgame-name">
+                  {match.team_b_player_2?.trim() || 'Player 2'}
+                </span>
+              </div>
+            </div>
+            {match.winner === 'b' && (
+              <div className="spectator-endgame-winner-label">WINNER</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="spectator-container">
@@ -406,21 +553,16 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
         <div className="spectator-header-right">
           <div className="spectator-game-info">
             <span>{getGameModeText(match.game_mode)}</span>
-            {match.is_tiebreak && !isMatchComplete && (
+            {match.is_tiebreak && (
               <>
                 <span className="spectator-divider">|</span>
                 <span>TIEBREAK</span>
               </>
             )}
           </div>
-          <div
-            className={`spectator-live-badge ${isMatchComplete ? 'spectator-final-badge' : ''}`}
-          >
-            <span
-              className={isMatchComplete ? 'spectator-final-dot' : 'spectator-live-dot'}
-              aria-hidden
-            />
-            <span>{isMatchComplete ? 'FINAL' : 'LIVE'}</span>
+          <div className="spectator-live-badge">
+            <span className="spectator-live-dot" aria-hidden />
+            <span>LIVE</span>
           </div>
         </div>
       </div>
@@ -440,7 +582,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
             />
           </div>
           <div className="spectator-card-scores">
-            {!isMatchComplete && match.serving_team === 'a' && (
+            {match.serving_team === 'a' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
             {getScoreColumns(match).map((col, i) => (
@@ -468,7 +610,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
             />
           </div>
           <div className="spectator-card-scores">
-            {!isMatchComplete && match.serving_team === 'b' && (
+            {match.serving_team === 'b' && (
               <span className="spectator-serving-dot" aria-hidden />
             )}
             {getScoreColumns(match).map((col, i) => (

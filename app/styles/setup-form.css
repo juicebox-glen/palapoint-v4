@@ -28,8 +28,59 @@
 }
 
 .setup-screen-inner {
-  max-width: 28rem; /* max-w-md */
+  max-width: min(28rem, 100%); /* phone; widened on tablet below */
   margin: 0 auto;
+}
+
+/* Tablet / iPad: use horizontal space without stretching to full desktop width */
+@media (min-width: 600px) {
+  .setup-screen {
+    padding: 2rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .setup-screen-inner {
+    max-width: min(40rem, 100%);
+  }
+
+  .setup-section {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .setup-pin-wrap {
+    max-width: min(40rem, 100%);
+  }
+
+  .setup-photo-sheet {
+    max-width: min(40rem, 100%);
+  }
+}
+
+@media (min-width: 900px) {
+  .setup-screen-inner {
+    max-width: min(48rem, 100%);
+  }
+
+  .setup-pin-wrap {
+    max-width: min(48rem, 100%);
+  }
+
+  .setup-photo-sheet {
+    max-width: min(48rem, 100%);
+  }
+}
+
+@media (min-width: 1200px) {
+  .setup-screen-inner {
+    max-width: min(52rem, 100%);
+  }
+
+  .setup-pin-wrap {
+    max-width: min(52rem, 100%);
+  }
+
+  .setup-photo-sheet {
+    max-width: min(52rem, 100%);
+  }
 }
 
 /* Animations */

@@ -54,6 +54,12 @@ interface StartRequest {
   court_id?: string;
 }
 
+interface ClearMatchRequest {
+  action: 'clear_match';
+  match_id: string;
+  court_id: string;
+}
+
 interface UpdateSetupRequest {
   action: 'update_setup';
   match_id: string;
@@ -80,7 +86,8 @@ type MatchRequest =
   | UndoRequest
   | StatusRequest
   | StartRequest
-  | UpdateSetupRequest;
+  | UpdateSetupRequest
+  | ClearMatchRequest;
 
 /**
  * Convert MatchState to database row format
@@ -721,6 +728,50 @@ Deno.serve(async (req) => {
             success: true,
             action: 'update_setup',
             match: updated,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      case 'clear_match': {
+        const clearReq = body as ClearMatchRequest;
+        const { match_id, court_id } = clearReq;
+
+        if (!match_id || !court_id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'missing_match_or_court_id' }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const { error: deleteError } = await supabase
+          .from('live_matches')
+          .delete()
+          .eq('id', match_id)
+          .eq('court_id', court_id)
+          .in('status', ['completed', 'abandoned']);
+
+        if (deleteError) {
+          console.error('Error clear_match:', deleteError);
+          return new Response(
+            JSON.stringify({ success: false, error: 'database_error' }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: 'clear_match',
           }),
           {
             status: 200,

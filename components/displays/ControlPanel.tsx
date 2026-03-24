@@ -22,6 +22,11 @@ interface ControlPanelProps {
   branding?: VenueBranding | null
 }
 
+function getEndgameSetScores(m: MatchState) {
+  if (m.set_scores && m.set_scores.length > 0) return m.set_scores
+  return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
+}
+
 export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   const [match, setMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,7 +61,9 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
           .from('live_matches')
           .select('*')
           .eq('court_id', courtId)
-          .in('status', ['setup', 'in_progress'])
+          .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle()
 
         if (fetchError) {
@@ -104,8 +111,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
           setMatch(updatedMatch)
           if (updatedMatch.status === 'in_progress') setStage('live')
         } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
-          setMatch(null)
-          setStage('setup')
+          setMatch(updatedMatch)
         }
       }
     )
@@ -117,7 +123,9 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
           .from('live_matches')
           .select('*')
           .eq('court_id', courtId)
-          .in('status', ['setup', 'in_progress'])
+          .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle()
           .then(({ data }) => {
             if (data) {
@@ -205,21 +213,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
 
   function handleBackToEdit() {
     if (!match || match.status !== 'setup') return
-    setPlayers([
-      match.team_a_player_1 ?? '',
-      match.team_a_player_2 ?? '',
-      match.team_b_player_1 ?? '',
-      match.team_b_player_2 ?? '',
-    ])
-    setPlayerPhotos({
-      team_a_player_1_photo: match.team_a_player_1_photo ?? null,
-      team_a_player_2_photo: match.team_a_player_2_photo ?? null,
-      team_b_player_1_photo: match.team_b_player_1_photo ?? null,
-      team_b_player_2_photo: match.team_b_player_2_photo ?? null,
-    })
-    setGameMode(match.game_mode)
-    setSetsToWin((match.sets_to_win === 2 ? 2 : 1) as 1 | 2)
-    setSideSwapEnabled(match.side_swap_enabled ?? true)
+    prefillFormFromMatch(match)
     setStage('setup')
   }
 
@@ -309,6 +303,101 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
     setActionLoading(null)
   }
 
+  function prefillFormFromMatch(m: MatchState) {
+    setPlayers([
+      m.team_a_player_1 ?? '',
+      m.team_a_player_2 ?? '',
+      m.team_b_player_1 ?? '',
+      m.team_b_player_2 ?? '',
+    ])
+    setPlayerPhotos({
+      team_a_player_1_photo: m.team_a_player_1_photo ?? null,
+      team_a_player_2_photo: m.team_a_player_2_photo ?? null,
+      team_b_player_1_photo: m.team_b_player_1_photo ?? null,
+      team_b_player_2_photo: m.team_b_player_2_photo ?? null,
+    })
+    setGameMode(m.game_mode)
+    setSetsToWin((m.sets_to_win === 2 ? 2 : 1) as 1 | 2)
+    setSideSwapEnabled(m.side_swap_enabled ?? true)
+    setEndGameInTiebreak((m.tiebreak_at ?? 6) === 6)
+  }
+
+  async function handlePlayAgain() {
+    if (!courtId || !match) return
+    setActionLoading('play-again')
+    setError(null)
+    try {
+      const body: Record<string, unknown> = {
+        action: 'create',
+        court_id: courtId,
+        game_mode: match.game_mode,
+        sets_to_win: match.sets_to_win ?? 1,
+        tiebreak_at: match.tiebreak_at ?? 6,
+        side_swap_enabled: match.side_swap_enabled ?? true,
+      }
+      if (match.team_a_player_1?.trim()) body.team_a_player_1 = match.team_a_player_1.trim()
+      if (match.team_a_player_2?.trim()) body.team_a_player_2 = match.team_a_player_2.trim()
+      if (match.team_b_player_1?.trim()) body.team_b_player_1 = match.team_b_player_1.trim()
+      if (match.team_b_player_2?.trim()) body.team_b_player_2 = match.team_b_player_2.trim()
+      body.team_a_player_1_photo = match.team_a_player_1_photo ?? null
+      body.team_a_player_2_photo = match.team_a_player_2_photo ?? null
+      body.team_b_player_1_photo = match.team_b_player_1_photo ?? null
+      body.team_b_player_2_photo = match.team_b_player_2_photo ?? null
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await response.json()
+      if (!data.success) {
+        setError(data.error || 'Failed to create match')
+      } else if (data.match) {
+        setMatch(data.match as MatchState)
+        setStage('preview')
+      }
+    } catch (err) {
+      console.error('Error in play again:', err)
+      setError('Failed to create match')
+    }
+    setActionLoading(null)
+  }
+
+  function handleEditAndPlayAgain() {
+    if (!match) return
+    prefillFormFromMatch(match)
+    setMatch(null)
+    setStage('setup')
+  }
+
+  async function handleClearCompletedMatch() {
+    if (!courtId || !match) return
+    setActionLoading('clear')
+    setError(null)
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'clear_match',
+          match_id: match.id,
+          court_id: courtId,
+        }),
+      })
+      const data = await response.json()
+      if (!data.success) {
+        setError(data.error || 'Failed to clear match')
+      } else {
+        setMatch(null)
+        setStage('setup')
+      }
+    } catch (err) {
+      console.error('Error clearing match:', err)
+      setError('Failed to clear match')
+    }
+    setActionLoading(null)
+  }
+
   const renderSetupForm = () => (
     <MatchSetupForm
       gameMode={gameMode}
@@ -358,6 +447,128 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
 
   if (!match) {
     return renderSetupForm()
+  }
+
+  const showEndgame =
+    match.status === 'completed' ||
+    match.status === 'abandoned' ||
+    (match.winner != null && match.status !== 'setup' && match.status !== 'in_progress')
+
+  if (showEndgame) {
+    const endgameSets = getEndgameSetScores(match)
+    return (
+      <div className="control-panel">
+        <div className="control-container">
+          <SetupScreenHeader branding={branding} />
+          {error && <div className="control-error-message">{error}</div>}
+
+          <div className="control-endgame">
+            <div className="endgame-header">
+              <span className="endgame-badge">FINAL</span>
+            </div>
+
+            <div className="endgame-result">
+              <div
+                className={`endgame-team ${match.winner === 'a' ? 'endgame-winner' : ''}`}
+              >
+                <div className="endgame-team-photos">
+                  {match.team_a_player_1_photo ? (
+                    <img src={match.team_a_player_1_photo} alt="" className="endgame-photo" />
+                  ) : (
+                    <div className="endgame-avatar" aria-hidden>
+                      {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  {match.team_a_player_2_photo ? (
+                    <img src={match.team_a_player_2_photo} alt="" className="endgame-photo" />
+                  ) : (
+                    <div className="endgame-avatar" aria-hidden>
+                      {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                </div>
+                <div className="endgame-names">
+                  <span>{match.team_a_player_1?.trim() || '—'}</span>
+                  <span>{match.team_a_player_2?.trim() || '—'}</span>
+                </div>
+                {match.winner === 'a' && (
+                  <span className="endgame-winner-badge">WINNER</span>
+                )}
+              </div>
+
+              <div className="endgame-score">
+                {endgameSets.map((set, i) => {
+                  const a = set.team_a ?? (set as { team_a_games?: number }).team_a_games ?? 0
+                  const b = set.team_b ?? (set as { team_b_games?: number }).team_b_games ?? 0
+                  return (
+                    <div key={i} className="endgame-set">
+                      <span className={match.winner === 'a' ? 'endgame-set-winner' : ''}>{a}</span>
+                      <span className="endgame-set-divider">-</span>
+                      <span className={match.winner === 'b' ? 'endgame-set-winner' : ''}>{b}</span>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div
+                className={`endgame-team ${match.winner === 'b' ? 'endgame-winner' : ''}`}
+              >
+                <div className="endgame-team-photos">
+                  {match.team_b_player_1_photo ? (
+                    <img src={match.team_b_player_1_photo} alt="" className="endgame-photo" />
+                  ) : (
+                    <div className="endgame-avatar" aria-hidden>
+                      {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  {match.team_b_player_2_photo ? (
+                    <img src={match.team_b_player_2_photo} alt="" className="endgame-photo" />
+                  ) : (
+                    <div className="endgame-avatar" aria-hidden>
+                      {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                </div>
+                <div className="endgame-names">
+                  <span>{match.team_b_player_1?.trim() || '—'}</span>
+                  <span>{match.team_b_player_2?.trim() || '—'}</span>
+                </div>
+                {match.winner === 'b' && (
+                  <span className="endgame-winner-badge">WINNER</span>
+                )}
+              </div>
+            </div>
+
+            <div className="endgame-actions">
+              <button
+                type="button"
+                className="control-button control-button-primary"
+                onClick={() => void handlePlayAgain()}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'play-again' ? '…' : 'Play Again'}
+              </button>
+              <button
+                type="button"
+                className="control-button"
+                onClick={handleEditAndPlayAgain}
+                disabled={!!actionLoading}
+              >
+                Edit &amp; Play Again
+              </button>
+              <button
+                type="button"
+                className="control-button control-button-danger"
+                onClick={() => void handleClearCompletedMatch()}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'clear' ? '…' : 'End'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (match.status === 'setup') {

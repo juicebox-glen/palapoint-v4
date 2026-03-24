@@ -15,8 +15,20 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   padding: 2rem;
-  max-width: 400px;
+  max-width: min(28rem, 100%);
   width: 100%;
+}
+
+@media (min-width: 600px) {
+  .session-prompt-card {
+    max-width: min(40rem, 100%);
+  }
+}
+
+@media (min-width: 900px) {
+  .session-prompt-card {
+    max-width: min(48rem, 100%);
+  }
 }
 
 .session-prompt-title {
