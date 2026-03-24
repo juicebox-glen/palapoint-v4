@@ -1,8 +1,9 @@
 'use client'
 
-import type { GameMode } from '@/lib/types/match'
+import type { GameMode, PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import SetupScreenHeader from './SetupScreenHeader'
+import PlayerPhotoCapture from '@/components/ui/PlayerPhotoCapture'
 import '@/app/styles/setup-form.css'
 
 export interface MatchSetupFormProps {
@@ -13,6 +14,9 @@ export interface MatchSetupFormProps {
   players: string[]
   onPlayerChange: (index: number, value: string) => void
   onRandomize: () => void
+  tempMatchId: string
+  playerPhotos: PlayerPhotosState
+  onPlayerPhotoChange: (key: keyof PlayerPhotosState, url: string | null) => void
   sideSwapEnabled: boolean
   setSideSwapEnabled: (v: boolean) => void
   endGameInTiebreak: boolean
@@ -33,6 +37,9 @@ export default function MatchSetupForm({
   players,
   onPlayerChange,
   onRandomize,
+  tempMatchId,
+  playerPhotos,
+  onPlayerPhotoChange,
   sideSwapEnabled,
   setSideSwapEnabled,
   endGameInTiebreak,
@@ -160,26 +167,42 @@ export default function MatchSetupForm({
               TEAM A
             </h2>
             <div className="setup-inputs">
-              <label className="setup-input-wrap">
-                <span className="setup-input-icon" aria-hidden />
-                <input
-                  type="text"
-                  className="setup-input"
-                  placeholder="Player 1"
-                  value={players[0] ?? ''}
-                  onChange={(e) => onPlayerChange(0, e.target.value)}
+              <div className="player-input-row">
+                <PlayerPhotoCapture
+                  playerId="team_a_player_1"
+                  matchId={tempMatchId}
+                  currentPhotoUrl={playerPhotos.team_a_player_1_photo}
+                  onPhotoChange={(url) => onPlayerPhotoChange('team_a_player_1_photo', url)}
                 />
-              </label>
-              <label className="setup-input-wrap">
-                <span className="setup-input-icon" aria-hidden />
-                <input
-                  type="text"
-                  className="setup-input"
-                  placeholder="Player 2"
-                  value={players[1] ?? ''}
-                  onChange={(e) => onPlayerChange(1, e.target.value)}
+                <label className="setup-input-wrap">
+                  <span className="setup-input-icon" aria-hidden />
+                  <input
+                    type="text"
+                    className="setup-input"
+                    placeholder="Player 1"
+                    value={players[0] ?? ''}
+                    onChange={(e) => onPlayerChange(0, e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="player-input-row">
+                <PlayerPhotoCapture
+                  playerId="team_a_player_2"
+                  matchId={tempMatchId}
+                  currentPhotoUrl={playerPhotos.team_a_player_2_photo}
+                  onPhotoChange={(url) => onPlayerPhotoChange('team_a_player_2_photo', url)}
                 />
-              </label>
+                <label className="setup-input-wrap">
+                  <span className="setup-input-icon" aria-hidden />
+                  <input
+                    type="text"
+                    className="setup-input"
+                    placeholder="Player 2"
+                    value={players[1] ?? ''}
+                    onChange={(e) => onPlayerChange(1, e.target.value)}
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="setup-randomize-wrap">
@@ -202,26 +225,42 @@ export default function MatchSetupForm({
               TEAM B
             </h2>
             <div className="setup-inputs">
-              <label className="setup-input-wrap">
-                <span className="setup-input-icon" aria-hidden />
-                <input
-                  type="text"
-                  className="setup-input"
-                  placeholder="Player 3"
-                  value={players[2] ?? ''}
-                  onChange={(e) => onPlayerChange(2, e.target.value)}
+              <div className="player-input-row">
+                <PlayerPhotoCapture
+                  playerId="team_b_player_1"
+                  matchId={tempMatchId}
+                  currentPhotoUrl={playerPhotos.team_b_player_1_photo}
+                  onPhotoChange={(url) => onPlayerPhotoChange('team_b_player_1_photo', url)}
                 />
-              </label>
-              <label className="setup-input-wrap">
-                <span className="setup-input-icon" aria-hidden />
-                <input
-                  type="text"
-                  className="setup-input"
-                  placeholder="Player 4"
-                  value={players[3] ?? ''}
-                  onChange={(e) => onPlayerChange(3, e.target.value)}
+                <label className="setup-input-wrap">
+                  <span className="setup-input-icon" aria-hidden />
+                  <input
+                    type="text"
+                    className="setup-input"
+                    placeholder="Player 3"
+                    value={players[2] ?? ''}
+                    onChange={(e) => onPlayerChange(2, e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="player-input-row">
+                <PlayerPhotoCapture
+                  playerId="team_b_player_2"
+                  matchId={tempMatchId}
+                  currentPhotoUrl={playerPhotos.team_b_player_2_photo}
+                  onPhotoChange={(url) => onPlayerPhotoChange('team_b_player_2_photo', url)}
                 />
-              </label>
+                <label className="setup-input-wrap">
+                  <span className="setup-input-icon" aria-hidden />
+                  <input
+                    type="text"
+                    className="setup-input"
+                    placeholder="Player 4"
+                    value={players[3] ?? ''}
+                    onChange={(e) => onPlayerChange(3, e.target.value)}
+                  />
+                </label>
+              </div>
             </div>
           </section>
 

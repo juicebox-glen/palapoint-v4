@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import ScoreDisplay from '@/components/ScoreDisplay'
 import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
-import type { MatchState, GameMode } from '@/lib/types/match'
+import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -59,6 +59,15 @@ export default function SetupDisplay({
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
+  const [tempMatchId] = useState(() => crypto.randomUUID())
+  const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
+
+  const handlePlayerPhotoChange = useCallback(
+    (key: keyof PlayerPhotosState, url: string | null) => {
+      setPlayerPhotos((prev) => ({ ...prev, [key]: url }))
+    },
+    []
+  )
 
   useEffect(() => {
     async function loadData() {
@@ -117,10 +126,19 @@ export default function SetupDisplay({
             const savedSets = sessionStorage.getItem(`setup_sets_${courtId}`)
             const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtId}`)
             const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtId}`)
+            const savedPhotos = sessionStorage.getItem(`setup_photos_${courtId}`)
             if (savedPlayers) {
               try {
                 const parsed = JSON.parse(savedPlayers)
                 if (Array.isArray(parsed) && parsed.length === 4) setPlayers(parsed)
+              } catch {}
+            }
+            if (savedPhotos) {
+              try {
+                const parsed = JSON.parse(savedPhotos) as Partial<PlayerPhotosState>
+                if (parsed && typeof parsed === 'object') {
+                  setPlayerPhotos({ ...EMPTY_PLAYER_PHOTOS, ...parsed })
+                }
               } catch {}
             }
             if (savedGameMode && ['golden_point', 'silver_point', 'traditional'].includes(savedGameMode)) {
@@ -219,6 +237,7 @@ export default function SetupDisplay({
       sessionStorage.setItem(`setup_sets_${courtId}`, setsToWin.toString())
       sessionStorage.setItem(`setup_side_swap_${courtId}`, JSON.stringify(sideSwapEnabled))
       sessionStorage.setItem(`setup_tiebreak_${courtId}`, JSON.stringify(endGameInTiebreak))
+      sessionStorage.setItem(`setup_photos_${courtId}`, JSON.stringify(playerPhotos))
       sessionStorage.setItem(`setup_session_id_${courtSlug}`, currentSessionId || '')
     }
     try {
@@ -235,6 +254,10 @@ export default function SetupDisplay({
       if (players[1]?.trim()) body.team_a_player_2 = players[1].trim()
       if (players[2]?.trim()) body.team_b_player_1 = players[2].trim()
       if (players[3]?.trim()) body.team_b_player_2 = players[3].trim()
+      body.team_a_player_1_photo = playerPhotos.team_a_player_1_photo
+      body.team_a_player_2_photo = playerPhotos.team_a_player_2_photo
+      body.team_b_player_1_photo = playerPhotos.team_b_player_1_photo
+      body.team_b_player_2_photo = playerPhotos.team_b_player_2_photo
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
@@ -251,6 +274,7 @@ export default function SetupDisplay({
           sessionStorage.removeItem(`setup_sets_${courtId}`)
           sessionStorage.removeItem(`setup_side_swap_${courtId}`)
           sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
+          sessionStorage.removeItem(`setup_photos_${courtId}`)
         }
         router.push(`/playing/${courtSlug}`)
       }
@@ -415,6 +439,9 @@ export default function SetupDisplay({
       players={players}
       onPlayerChange={handlePlayerChange}
       onRandomize={handleRandomize}
+      tempMatchId={tempMatchId}
+      playerPhotos={playerPhotos}
+      onPlayerPhotoChange={handlePlayerPhotoChange}
       sideSwapEnabled={sideSwapEnabled}
       setSideSwapEnabled={setSideSwapEnabled}
       endGameInTiebreak={endGameInTiebreak}

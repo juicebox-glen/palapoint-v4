@@ -56,6 +56,12 @@ export interface MatchState {
   team_a_player_2?: string | null;
   team_b_player_1?: string | null;
   team_b_player_2?: string | null;
+
+  /** Public URLs from storage; not used by the scoring engine. */
+  team_a_player_1_photo?: string | null;
+  team_a_player_2_photo?: string | null;
+  team_b_player_1_photo?: string | null;
+  team_b_player_2_photo?: string | null;
   
   // Result
   winner: Team | null;

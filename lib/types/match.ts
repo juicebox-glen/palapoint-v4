@@ -9,6 +9,21 @@ export type GameMode = 'traditional' | 'golden_point' | 'silver_point'
 
 export type MatchStatus = 'setup' | 'in_progress' | 'completed' | 'abandoned'
 
+/** Headshot URLs captured before match create (stored on `live_matches`). */
+export interface PlayerPhotosState {
+  team_a_player_1_photo: string | null
+  team_a_player_2_photo: string | null
+  team_b_player_1_photo: string | null
+  team_b_player_2_photo: string | null
+}
+
+export const EMPTY_PLAYER_PHOTOS: PlayerPhotosState = {
+  team_a_player_1_photo: null,
+  team_a_player_2_photo: null,
+  team_b_player_1_photo: null,
+  team_b_player_2_photo: null,
+}
+
 export interface MatchState {
   id: string
   court_id: string
@@ -32,6 +47,10 @@ export interface MatchState {
   team_a_player_2?: string | null
   team_b_player_1?: string | null
   team_b_player_2?: string | null
+  team_a_player_1_photo?: string | null
+  team_a_player_2_photo?: string | null
+  team_b_player_1_photo?: string | null
+  team_b_player_2_photo?: string | null
   winner: Team | null
   started_at?: string | null
   completed_at?: string | null

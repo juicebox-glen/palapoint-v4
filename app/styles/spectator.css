@@ -172,11 +172,40 @@
   gap: clamp(0.75rem, 2vh, 1.25rem);
 }
 
+.spectator-player-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+.spectator-player-photo {
+  width: clamp(40px, 6vh, 80px);
+  height: clamp(40px, 6vh, 80px);
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.spectator-player-avatar {
+  width: clamp(40px, 6vh, 80px);
+  height: clamp(40px, 6vh, 80px);
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 3vh, 2rem);
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 .spectator-player-name {
   font-size: clamp(1.25rem, 5vh, 3.5rem);
   font-weight: 500;
   color: rgba(230, 234, 242, 1);
   line-height: 1.2;
+  min-width: 0;
 }
 
 /* Scores - fixed width columns to prevent shifting when score changes */

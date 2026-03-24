@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
-import type { MatchState, GameMode } from '@/lib/types/match'
+import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
@@ -30,6 +30,15 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
   const [players, setPlayers] = useState<string[]>(['', '', '', ''])
+  const [tempMatchId] = useState(() => crypto.randomUUID())
+  const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
+
+  const handlePlayerPhotoChange = useCallback(
+    (key: keyof PlayerPhotosState, url: string | null) => {
+      setPlayerPhotos((prev) => ({ ...prev, [key]: url }))
+    },
+    []
+  )
 
   useEffect(() => {
     if (!courtId) return
@@ -144,6 +153,10 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       if (players[1]?.trim()) body.team_a_player_2 = players[1].trim()
       if (players[2]?.trim()) body.team_b_player_1 = players[2].trim()
       if (players[3]?.trim()) body.team_b_player_2 = players[3].trim()
+      body.team_a_player_1_photo = playerPhotos.team_a_player_1_photo
+      body.team_a_player_2_photo = playerPhotos.team_a_player_2_photo
+      body.team_b_player_1_photo = playerPhotos.team_b_player_1_photo
+      body.team_b_player_2_photo = playerPhotos.team_b_player_2_photo
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
@@ -249,6 +262,9 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
         players={players}
         onPlayerChange={handlePlayerChange}
         onRandomize={handleRandomize}
+        tempMatchId={tempMatchId}
+        playerPhotos={playerPhotos}
+        onPlayerPhotoChange={handlePlayerPhotoChange}
         sideSwapEnabled={sideSwapEnabled}
         setSideSwapEnabled={setSideSwapEnabled}
         endGameInTiebreak={endGameInTiebreak}

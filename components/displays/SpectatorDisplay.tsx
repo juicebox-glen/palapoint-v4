@@ -11,6 +11,70 @@ interface SpectatorDisplayProps {
   branding?: VenueBranding | null
 }
 
+/** Columns needed for spectator UI (includes player headshot URLs on `live_matches`). */
+const SPECTATOR_LIVE_MATCH_SELECT = [
+  'id',
+  'court_id',
+  'version',
+  'game_mode',
+  'sets_to_win',
+  'tiebreak_at',
+  'status',
+  'current_set',
+  'is_tiebreak',
+  'team_a_points',
+  'team_b_points',
+  'team_a_games',
+  'team_b_games',
+  'set_scores',
+  'tiebreak_scores',
+  'tiebreak_starting_server',
+  'deuce_count',
+  'serving_team',
+  'team_a_player_1',
+  'team_a_player_2',
+  'team_b_player_1',
+  'team_b_player_2',
+  'team_a_player_1_photo',
+  'team_a_player_2_photo',
+  'team_b_player_1_photo',
+  'team_b_player_2_photo',
+  'winner',
+  'started_at',
+  'completed_at',
+  'side_swap_enabled',
+  'session_id',
+  'created_at',
+].join(',')
+
+function PlayerRow({
+  name,
+  photoUrl,
+  nameFallback = 'Player',
+}: {
+  name: string | null | undefined
+  photoUrl?: string | null
+  nameFallback?: string
+}) {
+  const display = name?.trim() ? name.trim() : nameFallback
+  const initial = name?.trim()
+    ? name.trim().charAt(0).toUpperCase()
+    : '?'
+
+  return (
+    <div className="spectator-player-row">
+      {photoUrl ? (
+        <img src={photoUrl} alt={display} className="spectator-player-photo" />
+      ) : (
+        <div className="spectator-player-avatar" aria-hidden>
+          {initial}
+        </div>
+      )}
+      <span className="spectator-player-name">{display}</span>
+    </div>
+  )
+}
+
 function getGameModeText(mode: string): string {
   switch (mode) {
     case 'golden_point':
@@ -130,7 +194,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
       try {
         const { data, error: fetchError } = await supabase
           .from('live_matches')
-          .select('*')
+          .select(SPECTATOR_LIVE_MATCH_SELECT)
           .eq('court_id', courtId)
           .in('status', ['in_progress', 'completed', 'abandoned'])
           .order('created_at', { ascending: false })
@@ -180,13 +244,13 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
     const interval = setInterval(async () => {
       const { data } = await supabase
         .from('live_matches')
-        .select('*')
+        .select(SPECTATOR_LIVE_MATCH_SELECT)
         .eq('court_id', courtId)
         .in('status', ['in_progress', 'completed', 'abandoned'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
-      if (data) setMatch(data as MatchState)
+      if (data) setMatch(data as unknown as MatchState)
     }, 5000)
     return () => clearInterval(interval)
   }, [courtId, match])
@@ -262,12 +326,16 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
       <div className="spectator-cards">
         <div className="spectator-card spectator-card-team-a">
           <div className="spectator-card-names">
-            <span className="spectator-player-name">
-              {match.team_a_player_1 || 'Player 1'}
-            </span>
-            <span className="spectator-player-name">
-              {match.team_a_player_2 || 'Player 2'}
-            </span>
+            <PlayerRow
+              name={match.team_a_player_1}
+              photoUrl={match.team_a_player_1_photo}
+              nameFallback="Player 1"
+            />
+            <PlayerRow
+              name={match.team_a_player_2}
+              photoUrl={match.team_a_player_2_photo}
+              nameFallback="Player 2"
+            />
           </div>
           <div className="spectator-card-scores">
             {!isMatchComplete && match.serving_team === 'a' && (
@@ -286,12 +354,16 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
 
         <div className="spectator-card spectator-card-team-b">
           <div className="spectator-card-names">
-            <span className="spectator-player-name">
-              {match.team_b_player_1 || 'Player 1'}
-            </span>
-            <span className="spectator-player-name">
-              {match.team_b_player_2 || 'Player 2'}
-            </span>
+            <PlayerRow
+              name={match.team_b_player_1}
+              photoUrl={match.team_b_player_1_photo}
+              nameFallback="Player 1"
+            />
+            <PlayerRow
+              name={match.team_b_player_2}
+              photoUrl={match.team_b_player_2_photo}
+              nameFallback="Player 2"
+            />
           </div>
           <div className="spectator-card-scores">
             {!isMatchComplete && match.serving_team === 'b' && (

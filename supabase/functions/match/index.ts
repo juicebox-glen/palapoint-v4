@@ -24,6 +24,10 @@ interface CreateRequest {
   team_a_player_2?: string;
   team_b_player_1?: string;
   team_b_player_2?: string;
+  team_a_player_1_photo?: string | null;
+  team_a_player_2_photo?: string | null;
+  team_b_player_1_photo?: string | null;
+  team_b_player_2_photo?: string | null;
   serving_team?: 'a' | 'b';
   side_swap_enabled?: boolean;
 }
@@ -113,6 +117,10 @@ function dbRowToMatchState(row: any): MatchState {
     completed_at: row.completed_at || null,
     side_swap_enabled: row.side_swap_enabled ?? true,
     session_id: row.session_id || null,
+    team_a_player_1_photo: row.team_a_player_1_photo ?? null,
+    team_a_player_2_photo: row.team_a_player_2_photo ?? null,
+    team_b_player_1_photo: row.team_b_player_1_photo ?? null,
+    team_b_player_2_photo: row.team_b_player_2_photo ?? null,
   };
 }
 
@@ -228,6 +236,11 @@ Deno.serve(async (req) => {
 
         // Add session_id from request
         dbRow.session_id = createReq.session_id || null;
+
+        dbRow.team_a_player_1_photo = createReq.team_a_player_1_photo ?? null;
+        dbRow.team_a_player_2_photo = createReq.team_a_player_2_photo ?? null;
+        dbRow.team_b_player_1_photo = createReq.team_b_player_1_photo ?? null;
+        dbRow.team_b_player_2_photo = createReq.team_b_player_2_photo ?? null;
 
         // Explicitly null - set on first FLIC press (score API acknowledge), not at creation
         dbRow.started_at = null;
