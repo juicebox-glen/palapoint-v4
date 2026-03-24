@@ -8,6 +8,7 @@ import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosS
 import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
+import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
 
@@ -128,12 +129,12 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   function handleRandomize() {
-    const copy = [...players]
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[copy[i], copy[j]] = [copy[j], copy[i]]
-    }
-    setPlayers(copy)
+    const { players: nextPlayers, playerPhotos: nextPhotos } = shufflePlayersWithPhotos(
+      players,
+      playerPhotos
+    )
+    setPlayers(nextPlayers)
+    setPlayerPhotos(nextPhotos)
   }
 
   async function createMatch() {

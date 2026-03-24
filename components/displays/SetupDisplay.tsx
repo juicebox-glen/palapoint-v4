@@ -8,6 +8,7 @@ import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
+import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import type { VenueBranding } from '@/lib/venue'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -219,12 +220,12 @@ export default function SetupDisplay({
   }
 
   function handleRandomize() {
-    const copy = [...players]
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[copy[i], copy[j]] = [copy[j], copy[i]]
-    }
-    setPlayers(copy)
+    const { players: nextPlayers, playerPhotos: nextPhotos } = shufflePlayersWithPhotos(
+      players,
+      playerPhotos
+    )
+    setPlayers(nextPlayers)
+    setPlayerPhotos(nextPhotos)
   }
 
   async function handleStartGame() {
