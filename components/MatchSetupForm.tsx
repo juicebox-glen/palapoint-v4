@@ -167,15 +167,14 @@ export default function MatchSetupForm({
               TEAM A
             </h2>
             <div className="setup-inputs">
-              <div className="player-input-row">
+              <div className="setup-player-row">
                 <PlayerPhotoCapture
                   playerId="team_a_player_1"
                   matchId={tempMatchId}
                   currentPhotoUrl={playerPhotos.team_a_player_1_photo}
                   onPhotoChange={(url) => onPlayerPhotoChange('team_a_player_1_photo', url)}
                 />
-                <label className="setup-input-wrap">
-                  <span className="setup-input-icon" aria-hidden />
+                <div className="setup-input-wrap setup-input-wrap--player-name">
                   <input
                     type="text"
                     className="setup-input"
@@ -183,17 +182,16 @@ export default function MatchSetupForm({
                     value={players[0] ?? ''}
                     onChange={(e) => onPlayerChange(0, e.target.value)}
                   />
-                </label>
+                </div>
               </div>
-              <div className="player-input-row">
+              <div className="setup-player-row">
                 <PlayerPhotoCapture
                   playerId="team_a_player_2"
                   matchId={tempMatchId}
                   currentPhotoUrl={playerPhotos.team_a_player_2_photo}
                   onPhotoChange={(url) => onPlayerPhotoChange('team_a_player_2_photo', url)}
                 />
-                <label className="setup-input-wrap">
-                  <span className="setup-input-icon" aria-hidden />
+                <div className="setup-input-wrap setup-input-wrap--player-name">
                   <input
                     type="text"
                     className="setup-input"
@@ -201,7 +199,7 @@ export default function MatchSetupForm({
                     value={players[1] ?? ''}
                     onChange={(e) => onPlayerChange(1, e.target.value)}
                   />
-                </label>
+                </div>
               </div>
             </div>
 
@@ -225,15 +223,14 @@ export default function MatchSetupForm({
               TEAM B
             </h2>
             <div className="setup-inputs">
-              <div className="player-input-row">
+              <div className="setup-player-row">
                 <PlayerPhotoCapture
                   playerId="team_b_player_1"
                   matchId={tempMatchId}
                   currentPhotoUrl={playerPhotos.team_b_player_1_photo}
                   onPhotoChange={(url) => onPlayerPhotoChange('team_b_player_1_photo', url)}
                 />
-                <label className="setup-input-wrap">
-                  <span className="setup-input-icon" aria-hidden />
+                <div className="setup-input-wrap setup-input-wrap--player-name">
                   <input
                     type="text"
                     className="setup-input"
@@ -241,17 +238,16 @@ export default function MatchSetupForm({
                     value={players[2] ?? ''}
                     onChange={(e) => onPlayerChange(2, e.target.value)}
                   />
-                </label>
+                </div>
               </div>
-              <div className="player-input-row">
+              <div className="setup-player-row">
                 <PlayerPhotoCapture
                   playerId="team_b_player_2"
                   matchId={tempMatchId}
                   currentPhotoUrl={playerPhotos.team_b_player_2_photo}
                   onPhotoChange={(url) => onPlayerPhotoChange('team_b_player_2_photo', url)}
                 />
-                <label className="setup-input-wrap">
-                  <span className="setup-input-icon" aria-hidden />
+                <div className="setup-input-wrap setup-input-wrap--player-name">
                   <input
                     type="text"
                     className="setup-input"
@@ -259,7 +255,7 @@ export default function MatchSetupForm({
                     value={players[3] ?? ''}
                     onChange={(e) => onPlayerChange(3, e.target.value)}
                   />
-                </label>
+                </div>
               </div>
             </div>
           </section>

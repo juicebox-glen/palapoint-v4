@@ -1,6 +1,5 @@
 @import './styles/fonts.css';
 @import './styles/tokens/index.css';
-@import './styles/components/player-photo.css';
 @import './styles/court-display.css';
 @import './styles/playing.css';
 @import './styles/spectator.css';
