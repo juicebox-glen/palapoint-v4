@@ -513,6 +513,11 @@
   flex: 1;
 }
 
+.control-container--endgame {
+  min-height: 0;
+  flex: 1;
+}
+
 .control-preview {
   display: flex;
   flex-direction: column;
@@ -804,6 +809,9 @@
   align-items: center;
   padding: 2rem 1rem;
   gap: 2rem;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .endgame-header {
@@ -912,5 +920,11 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+/* Endgame uses same CTA styles as matchup preview */
+.control-endgame .preview-btn {
+  max-width: 100%;
 }

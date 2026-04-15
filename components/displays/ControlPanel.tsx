@@ -322,9 +322,9 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
     setEndGameInTiebreak((m.tiebreak_at ?? 6) === 6)
   }
 
-  async function handlePlayAgain() {
+  async function handleRematch() {
     if (!courtId || !match) return
-    setActionLoading('play-again')
+    setActionLoading('rematch')
     setError(null)
     try {
       const body: Record<string, unknown> = {
@@ -357,45 +357,17 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
         setStage('preview')
       }
     } catch (err) {
-      console.error('Error in play again:', err)
+      console.error('Error in rematch:', err)
       setError('Failed to create match')
     }
     setActionLoading(null)
   }
 
-  function handleEditAndPlayAgain() {
+  function handleEditMatch() {
     if (!match) return
     prefillFormFromMatch(match)
     setMatch(null)
     setStage('setup')
-  }
-
-  async function handleClearCompletedMatch() {
-    if (!courtId || !match) return
-    setActionLoading('clear')
-    setError(null)
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'clear_match',
-          match_id: match.id,
-          court_id: courtId,
-        }),
-      })
-      const data = await response.json()
-      if (!data.success) {
-        setError(data.error || 'Failed to clear match')
-      } else {
-        setMatch(null)
-        setStage('setup')
-      }
-    } catch (err) {
-      console.error('Error clearing match:', err)
-      setError('Failed to clear match')
-    }
-    setActionLoading(null)
   }
 
   const renderSetupForm = () => (
@@ -458,7 +430,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
     const endgameSets = getEndgameSetScores(match)
     return (
       <div className="control-panel">
-        <div className="control-container">
+        <div className="control-container control-container--endgame">
           <SetupScreenHeader branding={branding} />
           {error && <div className="control-error-message">{error}</div>}
 
@@ -542,27 +514,19 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
             <div className="endgame-actions">
               <button
                 type="button"
-                className="control-button control-button-primary"
-                onClick={() => void handlePlayAgain()}
+                className="preview-btn preview-btn-secondary"
+                onClick={handleEditMatch}
                 disabled={!!actionLoading}
               >
-                {actionLoading === 'play-again' ? '…' : 'Play Again'}
+                EDIT MATCH
               </button>
               <button
                 type="button"
-                className="control-button"
-                onClick={handleEditAndPlayAgain}
+                className="preview-btn preview-btn-primary"
+                onClick={() => void handleRematch()}
                 disabled={!!actionLoading}
               >
-                Edit &amp; Play Again
-              </button>
-              <button
-                type="button"
-                className="control-button control-button-danger"
-                onClick={() => void handleClearCompletedMatch()}
-                disabled={!!actionLoading}
-              >
-                {actionLoading === 'clear' ? '…' : 'End'}
+                {actionLoading === 'rematch' ? '…' : 'REMATCH'}
               </button>
             </div>
           </div>
