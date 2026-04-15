@@ -576,9 +576,9 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       return (
         <ControlMatchPreview
           match={match}
-          branding={branding}
-          onBack={handleBackToEdit}
-          onStart={handleStartMatch}
+          courtName={branding?.courtName ?? 'Court 1'}
+          onBackToEdit={handleBackToEdit}
+          onStartMatch={handleStartMatch}
           loading={actionLoading === 'start'}
           error={error}
         />
