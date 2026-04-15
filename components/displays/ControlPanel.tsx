@@ -576,6 +576,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       return (
         <ControlMatchPreview
           match={match}
+          branding={branding}
           courtName={branding?.courtName ?? 'Court 1'}
           onBackToEdit={handleBackToEdit}
           onStartMatch={handleStartMatch}

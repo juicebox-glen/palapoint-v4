@@ -1,6 +1,8 @@
 'use client'
 
+import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState } from '@/lib/types/match'
+import type { VenueBranding } from '@/lib/venue'
 
 function formatName(fullName: string | null | undefined): string {
   if (!fullName?.trim()) return 'Player'
@@ -57,6 +59,7 @@ function modeBadgeLabel(mode: MatchState['game_mode']): string {
 
 interface ControlMatchPreviewProps {
   match: MatchState
+  branding?: VenueBranding | null
   courtName: string
   onBackToEdit: () => void
   onStartMatch: () => void
@@ -66,6 +69,7 @@ interface ControlMatchPreviewProps {
 
 export default function ControlMatchPreview({
   match,
+  branding,
   courtName,
   onBackToEdit,
   onStartMatch,
@@ -76,6 +80,8 @@ export default function ControlMatchPreview({
     <div className="control-panel">
       <div className="control-container control-container--preview">
         <div className="control-preview">
+          <SetupScreenHeader branding={branding} />
+
           <div className="preview-header">
             <div className="preview-status">
               <span className="preview-status-dot" aria-hidden />
@@ -107,7 +113,9 @@ export default function ControlMatchPreview({
                 </div>
               </div>
 
-              <div className="preview-vs">VS</div>
+              <div className="preview-vs-column">
+                <span className="preview-vs">VS</span>
+              </div>
 
               <div className="preview-team preview-team-b">
                 <div className="preview-team-avatars">
