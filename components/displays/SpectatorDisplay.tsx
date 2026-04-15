@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { MatchState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay } from '@/lib/utils/score-format'
+import GradientWaveDrift from '@/components/backgrounds/GradientWaveDrift'
 
 interface SpectatorDisplayProps {
   courtId: string
@@ -161,6 +162,32 @@ function getEndgameSetScores(m: MatchState) {
   return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
 }
 
+function getSurname(fullName: string | null | undefined): string {
+  if (!fullName?.trim()) return 'PLAYER'
+  const parts = fullName.trim().split(/\s+/)
+  return parts[parts.length - 1].toUpperCase()
+}
+
+function getPregameInitials(name: string | null | undefined): string {
+  if (!name?.trim()) return '??'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) {
+    const w = parts[0]
+    return w.length >= 2 ? w.substring(0, 2).toUpperCase() : (w.charAt(0) + w.charAt(0)).toUpperCase()
+  }
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
+function pregameSetsLabel(setsToWin: number | null | undefined): string {
+  return (setsToWin ?? 1) > 1 ? '3 SETS' : '1 SET'
+}
+
+function pregameModeLabel(mode: MatchState['game_mode']): string {
+  if (mode === 'golden_point') return 'GOLDEN'
+  if (mode === 'silver_point') return 'SILVER'
+  return 'TRADITIONAL'
+}
+
 function LogoContent({ branding }: { branding: VenueBranding | null }) {
   if (!branding) {
     return (
@@ -298,102 +325,100 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
   }
 
   if (match.status === 'setup') {
-    const setsToWin = match.sets_to_win ?? 1
+    const courtLabel = (branding?.courtName ?? 'Court 1').toUpperCase()
+    const pregameBrandingStyle =
+      branding != null
+        ? ({
+            '--team-a': branding.primaryColor,
+            '--team-b': branding.secondaryColor,
+          } as React.CSSProperties)
+        : undefined
     return (
-      <div className="spectator-container spectator-container--pregame">
+      <div
+        className="spectator-container spectator-container--pregame"
+        style={pregameBrandingStyle}
+      >
+        <GradientWaveDrift />
         <div className="spectator-header">
           <div className="spectator-logo">
             <LogoContent branding={branding ?? null} />
           </div>
-          <div className="spectator-header-right">
-            <div className="spectator-pregame-badge">
-              <span className="spectator-pregame-dot" aria-hidden />
-              <span>COMING UP</span>
+          <div className="spectator-header-badges">
+            <div className="spectator-ready-badge">
+              <span className="spectator-ready-dot" aria-hidden />
+              <span>READY</span>
             </div>
+            <div className="spectator-court-badge">{courtLabel}</div>
           </div>
         </div>
 
-        <div className="spectator-pregame">
-          <div className="spectator-pregame-team spectator-pregame-team-a">
-            <div className="spectator-pregame-players">
-              <div className="spectator-pregame-player">
-                {match.team_a_player_1_photo ? (
-                  <img
-                    src={match.team_a_player_1_photo}
-                    alt=""
-                    className="spectator-pregame-photo"
-                  />
-                ) : (
-                  <div className="spectator-pregame-avatar" aria-hidden>
-                    {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-                <span className="spectator-pregame-name">
-                  {match.team_a_player_1?.trim() || 'Player 1'}
-                </span>
+        <div className="spectator-pregame-broadcast">
+          <div className="spectator-pregame-side spectator-pregame-side-a">
+            <div className="spectator-pregame-side-inner">
+              <div className="spectator-pregame-photos">
+                <div className="spectator-pregame-photo-wrap spectator-pregame-photo-a">
+                  {match.team_a_player_1_photo ? (
+                    <img src={match.team_a_player_1_photo} alt="" />
+                  ) : (
+                    <span className="spectator-pregame-initials">
+                      {getPregameInitials(match.team_a_player_1)}
+                    </span>
+                  )}
+                </div>
+                <div className="spectator-pregame-photo-wrap spectator-pregame-photo-a">
+                  {match.team_a_player_2_photo ? (
+                    <img src={match.team_a_player_2_photo} alt="" />
+                  ) : (
+                    <span className="spectator-pregame-initials">
+                      {getPregameInitials(match.team_a_player_2)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="spectator-pregame-player">
-                {match.team_a_player_2_photo ? (
-                  <img
-                    src={match.team_a_player_2_photo}
-                    alt=""
-                    className="spectator-pregame-photo"
-                  />
-                ) : (
-                  <div className="spectator-pregame-avatar" aria-hidden>
-                    {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-                <span className="spectator-pregame-name">
-                  {match.team_a_player_2?.trim() || 'Player 2'}
-                </span>
+              <div className="spectator-pregame-names spectator-pregame-names-a">
+                <span>{getSurname(match.team_a_player_1)}</span>
+                <span>{getSurname(match.team_a_player_2)}</span>
+                <div className="spectator-pregame-names-divider" aria-hidden />
               </div>
             </div>
           </div>
 
           <div className="spectator-pregame-vs">VS</div>
 
-          <div className="spectator-pregame-team spectator-pregame-team-b">
-            <div className="spectator-pregame-players">
-              <div className="spectator-pregame-player">
-                {match.team_b_player_1_photo ? (
-                  <img
-                    src={match.team_b_player_1_photo}
-                    alt=""
-                    className="spectator-pregame-photo"
-                  />
-                ) : (
-                  <div className="spectator-pregame-avatar" aria-hidden>
-                    {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-                <span className="spectator-pregame-name">
-                  {match.team_b_player_1?.trim() || 'Player 1'}
-                </span>
+          <div className="spectator-pregame-side spectator-pregame-side-b">
+            <div className="spectator-pregame-side-inner">
+              <div className="spectator-pregame-photos">
+                <div className="spectator-pregame-photo-wrap spectator-pregame-photo-b">
+                  {match.team_b_player_1_photo ? (
+                    <img src={match.team_b_player_1_photo} alt="" />
+                  ) : (
+                    <span className="spectator-pregame-initials">
+                      {getPregameInitials(match.team_b_player_1)}
+                    </span>
+                  )}
+                </div>
+                <div className="spectator-pregame-photo-wrap spectator-pregame-photo-b">
+                  {match.team_b_player_2_photo ? (
+                    <img src={match.team_b_player_2_photo} alt="" />
+                  ) : (
+                    <span className="spectator-pregame-initials">
+                      {getPregameInitials(match.team_b_player_2)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="spectator-pregame-player">
-                {match.team_b_player_2_photo ? (
-                  <img
-                    src={match.team_b_player_2_photo}
-                    alt=""
-                    className="spectator-pregame-photo"
-                  />
-                ) : (
-                  <div className="spectator-pregame-avatar" aria-hidden>
-                    {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-                <span className="spectator-pregame-name">
-                  {match.team_b_player_2?.trim() || 'Player 2'}
-                </span>
+              <div className="spectator-pregame-names spectator-pregame-names-b">
+                <div className="spectator-pregame-names-divider" aria-hidden />
+                <span>{getSurname(match.team_b_player_1)}</span>
+                <span>{getSurname(match.team_b_player_2)}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="spectator-pregame-mode">
-          {getGameModeText(match.game_mode)}
-          {setsToWin > 1 && ` • BEST OF ${setsToWin * 2 - 1}`}
+        <div className="spectator-pregame-badges">
+          <span className="spectator-pregame-badge">{pregameSetsLabel(match.sets_to_win)}</span>
+          <span className="spectator-pregame-badge">{pregameModeLabel(match.game_mode)}</span>
         </div>
       </div>
     )
@@ -407,7 +432,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
   if (showSpectatorEndgame) {
     const endgameSets = getEndgameSetScores(match)
     return (
-      <div className="spectator-container spectator-container--endgame">
+      <div className="spectator-container spectator-container--endgame spectator-container--split-field">
         <div className="spectator-header">
           <div className="spectator-logo">
             <LogoContent branding={branding ?? null} />
@@ -545,7 +570,7 @@ export default function SpectatorDisplay({ courtId, branding }: SpectatorDisplay
   }
 
   return (
-    <div className="spectator-container">
+    <div className="spectator-container spectator-container--split-field">
       <div className="spectator-header">
         <div className="spectator-logo">
           <LogoContent branding={branding ?? null} />

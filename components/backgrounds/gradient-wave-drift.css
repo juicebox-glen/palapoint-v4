@@ -1,0 +1,135 @@
+/* ============================================================
+   GradientWaveDrift — Ambient Glow Background
+   ============================================================ */
+
+.gwd-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0e1116;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Base blob styles */
+.gwd-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Blue team orb — left side */
+.gwd-blob-blue {
+  width: 60vw;
+  height: 60vh;
+  left: -10%;
+  top: 20%;
+  background: radial-gradient(
+    circle at center,
+    var(--team-a, #3a5ff9) 0%,
+    transparent 70%
+  );
+  opacity: 0.18;
+  animation: gwd-drift-blue 28s ease-in-out infinite;
+}
+
+/* Pink team orb — right side */
+.gwd-blob-pink {
+  width: 55vw;
+  height: 55vh;
+  right: -10%;
+  top: 25%;
+  background: radial-gradient(
+    circle at center,
+    var(--team-b, #ff4da6) 0%,
+    transparent 70%
+  );
+  opacity: 0.14;
+  animation: gwd-drift-pink 32s ease-in-out infinite;
+}
+
+/* Subtle center warmth bridge */
+.gwd-blob-center {
+  width: 50vw;
+  height: 50vh;
+  left: 25%;
+  top: 30%;
+  background: radial-gradient(
+    circle at center,
+    #5a6fff 0%,
+    transparent 70%
+  );
+  opacity: 0.06;
+  animation: gwd-drift-center 24s ease-in-out infinite;
+}
+
+/* Edge-darkening vignette */
+.gwd-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    transparent 30%,
+    rgba(14, 17, 22, 0.5) 100%
+  );
+  pointer-events: none;
+}
+
+/* ============================================================
+   Drift Animations — GPU-only transforms
+   ============================================================ */
+
+@keyframes gwd-drift-blue {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(3%, -2%) scale(1.05);
+  }
+  50% {
+    transform: translate(-2%, 3%) scale(0.98);
+  }
+  75% {
+    transform: translate(2%, 1%) scale(1.03);
+  }
+}
+
+@keyframes gwd-drift-pink {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-3%, 2%) scale(1.03);
+  }
+  50% {
+    transform: translate(2%, -2%) scale(1.06);
+  }
+  75% {
+    transform: translate(-1%, 3%) scale(0.97);
+  }
+}
+
+@keyframes gwd-drift-center {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(2%, 2%) scale(1.04);
+  }
+  66% {
+    transform: translate(-2%, -1%) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gwd-blob-blue,
+  .gwd-blob-pink,
+  .gwd-blob-center {
+    animation: none !important;
+  }
+}

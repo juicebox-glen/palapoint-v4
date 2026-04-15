@@ -4,6 +4,7 @@
    ============================================ */
 
 .spectator-container {
+  position: relative;
   min-height: 100vh;
   height: 100vh;
   background: var(--bg-primary);
@@ -258,129 +259,381 @@
 }
 
 /* ================================================
-   PRE-GAME STATE - Match setup, not started
+   PRE-GAME BROADCAST — setup, not started
    ================================================ */
 
-.spectator-container--pregame {
-  position: relative;
+/* Split field — team A lane (left) / team B lane (right), matches live scoreboard */
+.spectator-container--split-field {
+  background: linear-gradient(
+    to right,
+    #13151b 0%,
+    #13151b 50%,
+    #181b22 50%,
+    #181b22 100%
+  );
 }
 
-.spectator-pregame {
+.spectator-container--pregame {
+  background: transparent;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.spectator-container--pregame .spectator-header {
+  margin-bottom: clamp(0.3rem, 0.85vh, 0.85rem);
+}
+
+.spectator-container--pregame .spectator-header,
+.spectator-container--pregame .spectator-pregame-broadcast,
+.spectator-container--pregame .spectator-pregame-badges {
+  position: relative;
+  z-index: 1;
+}
+
+/* Soft glow behind team columns */
+.spectator-pregame-side-a::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(91, 108, 255, 0.06) 0%,
+    transparent 60%
+  );
+  z-index: -1;
+  pointer-events: none;
+  animation: spectator-glow-pulse 8s ease-in-out infinite;
+}
+
+.spectator-pregame-side-b::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(232, 74, 138, 0.06) 0%,
+    transparent 60%
+  );
+  z-index: -1;
+  pointer-events: none;
+  animation: spectator-glow-pulse 8s ease-in-out infinite 4s;
+}
+
+@keyframes spectator-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spectator-pregame-side-a::before,
+  .spectator-pregame-side-b::before,
+  .spectator-pregame-vs {
+    animation: none !important;
+  }
+
+  .spectator-pregame-photo-a,
+  .spectator-pregame-photo-b {
+    animation: none !important;
+  }
+}
+
+/* Header badges */
+.spectator-header-badges {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+.spectator-ready-badge {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 0.8vw, 0.6rem);
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--color-success);
+  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: var(--radius-full);
+  font-size: clamp(0.75rem, 1.8vh, 1.1rem);
+  font-weight: 600;
+  color: var(--color-success);
+  letter-spacing: 0.05em;
+}
+
+.spectator-ready-dot {
+  width: clamp(8px, 1.2vh, 12px);
+  height: clamp(8px, 1.2vh, 12px);
+  background: var(--color-success);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.spectator-court-badge {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: var(--radius-full);
+  font-size: clamp(0.75rem, 1.8vh, 1.1rem);
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+/* Main broadcast layout */
+.spectator-pregame-broadcast {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(2rem, 6vw, 6rem);
+  gap: clamp(1.5rem, 4vw, 5rem);
+  padding: clamp(0.1rem, 0.5vh, 0.5rem) 0 clamp(0.5rem, 1.25vh, 1.25rem);
+  margin-top: clamp(-0.75rem, -2vh, -0.25rem);
   min-height: 0;
 }
 
-.spectator-pregame-team {
+/* Each team column — inner stack aligns photos + names to one shared width */
+.spectator-pregame-side {
+  position: relative;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 0;
 }
 
-.spectator-pregame-team-a {
-  padding-right: clamp(2rem, 4vw, 4rem);
-  border-right: clamp(4px, 0.5vh, 8px) solid var(--team-a);
-}
-
-.spectator-pregame-team-b {
-  padding-left: clamp(2rem, 4vw, 4rem);
-  border-left: clamp(4px, 0.5vh, 8px) solid var(--team-b);
-}
-
-.spectator-pregame-players {
+.spectator-pregame-side-inner {
   display: flex;
   flex-direction: column;
-  gap: clamp(1rem, 3vh, 2rem);
+  align-items: stretch;
+  gap: clamp(1.35rem, 4vh, 2.75rem);
+  width: max-content;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.spectator-pregame-player {
+.spectator-pregame-side-a .spectator-pregame-side-inner {
+  align-self: flex-end;
+}
+
+.spectator-pregame-side-b .spectator-pregame-side-inner {
+  align-self: flex-start;
+}
+
+/* Photos — horizontal row; shared width with names block below */
+.spectator-pregame-photos {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1.5vh, 1rem);
+  gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
-.spectator-pregame-photo {
-  width: clamp(80px, 15vh, 160px);
-  height: clamp(80px, 15vh, 160px);
-  border-radius: 50%;
-  object-fit: cover;
+.spectator-pregame-side-a .spectator-pregame-photos {
+  justify-content: flex-end;
 }
 
-.spectator-pregame-avatar {
-  width: clamp(80px, 15vh, 160px);
-  height: clamp(80px, 15vh, 160px);
-  border-radius: 50%;
-  background: var(--bg-tertiary);
+.spectator-pregame-side-b .spectator-pregame-photos {
+  justify-content: flex-start;
+}
+
+/* Portrait tiles — 4:5, team-colored border + glow (overflow visible so shadow isn’t clipped) */
+.spectator-pregame-photo-wrap {
+  --spectator-pregame-photo-radius: clamp(8px, 1.2vw, 16px);
+  width: clamp(100px, 16vw, 280px);
+  aspect-ratio: 4 / 5;
+  height: auto;
+  border-radius: var(--spectator-pregame-photo-radius);
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(2rem, 6vh, 5rem);
-  font-weight: 600;
-  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: clamp(1px, 0.1vw, 1.5px) solid transparent;
+  flex-shrink: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.spectator-pregame-name {
-  font-size: clamp(1rem, 3vh, 2rem);
+.spectator-pregame-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--spectator-pregame-photo-radius);
+}
+
+.spectator-pregame-photo-a {
+  border-color: var(--team-a);
+  box-shadow:
+    0 0 16px rgba(91, 108, 255, 0.12),
+    0 0 32px rgba(91, 108, 255, 0.06),
+    0 0 48px rgba(91, 108, 255, 0.035);
+  animation: spectator-photo-glow-a 8s ease-in-out infinite;
+}
+
+.spectator-pregame-photo-b {
+  border-color: var(--team-b);
+  box-shadow:
+    0 0 16px rgba(232, 74, 138, 0.12),
+    0 0 32px rgba(232, 74, 138, 0.06),
+    0 0 48px rgba(232, 74, 138, 0.035);
+  animation: spectator-photo-glow-b 8s ease-in-out infinite 4s;
+}
+
+@keyframes spectator-photo-glow-a {
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(91, 108, 255, 0.12),
+      0 0 32px rgba(91, 108, 255, 0.06),
+      0 0 48px rgba(91, 108, 255, 0.035);
+  }
+  50% {
+    box-shadow:
+      0 0 22px rgba(91, 108, 255, 0.16),
+      0 0 40px rgba(91, 108, 255, 0.09),
+      0 0 56px rgba(91, 108, 255, 0.05);
+  }
+}
+
+@keyframes spectator-photo-glow-b {
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(232, 74, 138, 0.12),
+      0 0 32px rgba(232, 74, 138, 0.06),
+      0 0 48px rgba(232, 74, 138, 0.035);
+  }
+  50% {
+    box-shadow:
+      0 0 22px rgba(232, 74, 138, 0.16),
+      0 0 40px rgba(232, 74, 138, 0.09),
+      0 0 56px rgba(232, 74, 138, 0.05);
+  }
+}
+
+.spectator-pregame-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: var(--spectator-pregame-photo-radius, clamp(8px, 1.2vw, 16px));
+  font-size: clamp(2rem, 5.5vw, 5rem);
+  font-weight: 700;
+}
+
+.spectator-pregame-photo-a .spectator-pregame-initials {
+  color: var(--team-a);
+}
+
+.spectator-pregame-photo-b .spectator-pregame-initials {
+  color: var(--team-b);
+}
+
+/* Names — same width as photo row (via side-inner stretch) */
+.spectator-pregame-names {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.05rem, 0.25vh, 0.2rem);
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.spectator-pregame-names span {
+  font-family: 'Space Grotesk', var(--font-family);
+  font-size: clamp(2rem, 5.75vw, 5.25rem);
   font-weight: 500;
-  color: var(--text-primary);
-  text-align: center;
+  color: #cbccce;
+  letter-spacing: 0.02em;
+  line-height: 1.02;
+}
+
+.spectator-pregame-names-a {
+  align-items: flex-end;
+  text-align: right;
+  padding-right: clamp(1.35rem, 2.75vw, 2.75rem);
+}
+
+.spectator-pregame-names-a .spectator-pregame-names-divider {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(3px, 0.4vw, 6px);
+  background: var(--team-a);
+  border-radius: 2px;
+}
+
+.spectator-pregame-names-b {
+  align-items: flex-start;
+  text-align: left;
+  padding-left: clamp(1.35rem, 2.75vw, 2.75rem);
+}
+
+.spectator-pregame-names-b .spectator-pregame-names-divider {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(3px, 0.4vw, 6px);
+  background: var(--team-b);
+  border-radius: 2px;
 }
 
 .spectator-pregame-vs {
-  font-size: clamp(2rem, 6vh, 5rem);
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: clamp(1.75rem, 4.5vw, 4.5rem);
+  font-weight: 500;
+  color: #cbccce;
+  letter-spacing: 0.05em;
   flex-shrink: 0;
+  align-self: center;
+  animation: spectator-vs-pulse 4s ease-in-out infinite;
 }
 
-.spectator-pregame-mode {
+@keyframes spectator-vs-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Bottom left — mode / sets */
+.spectator-pregame-badges {
   position: absolute;
-  bottom: clamp(2rem, 5vh, 4rem);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(1.5rem, 3vw, 3rem);
-  border-radius: var(--radius-lg);
-  font-size: clamp(0.875rem, 2vh, 1.25rem);
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-  max-width: calc(100% - 2rem);
-  text-align: center;
+  bottom: clamp(1.5rem, 4vh, 3rem);
+  left: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1vw, 1rem);
 }
 
 .spectator-pregame-badge {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1vh, 0.75rem);
-  font-size: clamp(1rem, 2.5vh, 1.5rem);
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.spectator-pregame-dot {
-  width: clamp(10px, 2vh, 16px);
-  height: clamp(10px, 2vh, 16px);
-  background: var(--color-warning);
-  border-radius: 50%;
-  flex-shrink: 0;
-  animation: pulse-pregame 2s ease-in-out infinite;
-}
-
-@keyframes pulse-pregame {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  background: var(--bg-tertiary);
+  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 1.5vw, 1.2rem);
+  border-radius: var(--radius-full);
+  font-size: clamp(0.7rem, 1.5vh, 1rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
 }
 
 /* ================================================
