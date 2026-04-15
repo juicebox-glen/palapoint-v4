@@ -562,13 +562,14 @@
   letter-spacing: 0.05em;
 }
 
-/* Matchup card — extra top/bottom breathing room; sides match grid balance */
+/* Matchup card — overflow clips rounded corners; avatars sized to stay inside */
 .preview-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: 1.875rem 1.25rem;
-  overflow: visible;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .preview-matchup {
@@ -588,12 +589,25 @@
 }
 
 .preview-team-avatars {
+  --preview-avatar-gap: 0.625rem;
+  container-type: inline-size;
   display: flex;
-  gap: 0.625rem;
+  gap: var(--preview-avatar-gap);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
+/* Two per row: each ≤ half of row minus gap; cap at 4rem — scales down when narrow */
 .preview-avatar {
-  width: 64px;
+  width: min(
+    4rem,
+    calc((100% - var(--preview-avatar-gap)) / 2)
+  );
+  max-width: min(
+    4rem,
+    calc((100% - var(--preview-avatar-gap)) / 2)
+  );
   aspect-ratio: 4 / 5;
   height: auto;
   border-radius: var(--radius-md);
@@ -603,7 +617,9 @@
   justify-content: center;
   background: var(--bg-tertiary);
   border: 2px solid transparent;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .preview-avatar img {
@@ -622,6 +638,7 @@
 
 .preview-avatar-initials {
   font-size: 1.25rem;
+  font-size: clamp(0.75rem, 6cqi + 0.35rem, 1.25rem);
   font-weight: 700;
   color: var(--text-secondary);
 }
@@ -650,15 +667,15 @@
   white-space: nowrap;
 }
 
-/* Dead-centre axis: wider column + padded VS chip = less visible line, more air vs photos */
+/* Dead-centre axis: narrower gutter so team columns get more width for avatars */
 .preview-vs-column {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  min-width: 4.5rem;
-  padding: 0 1.125rem;
+  min-width: 2.75rem;
+  padding: 0 0.5rem;
   flex-shrink: 0;
 }
 
@@ -677,10 +694,10 @@
 .preview-vs {
   position: relative;
   z-index: 1;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-muted);
-  padding: 0.45rem 0.85rem;
+  padding: 0.4rem 0.65rem;
   line-height: 1.2;
   background: var(--bg-secondary);
   border-radius: var(--radius-sm);
