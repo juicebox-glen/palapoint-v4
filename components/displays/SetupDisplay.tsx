@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
-import ScoreDisplay from '@/components/ScoreDisplay'
 import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
@@ -12,22 +11,6 @@ import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import type { VenueBranding } from '@/lib/venue'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-
-function formatTimeAgo(dateString: string | null): string {
-  if (!dateString) return 'Unknown'
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  if (diffMins < 1) return 'Just started'
-  if (diffMins === 1) return 'Started 1 minute ago'
-  if (diffMins < 60) return `Started ${diffMins} minutes ago`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours === 1) return 'Started 1 hour ago'
-  if (diffHours < 24) return `Started ${diffHours} hours ago`
-  const diffDays = Math.floor(diffHours / 24)
-  return `Started ${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-}
 
 /** Design-system preview: skips session + match API and submit navigation. */
 export type SetupDisplayPreviewScreen = 'form' | 'review'
@@ -53,6 +36,17 @@ function initialPlayersFromPreview(preview: SetupDisplayPreviewConfig | undefine
   return preview.screen === 'review' ? [...PREVIEW_REVIEW_PLAYERS] : [...PREVIEW_FORM_PLAYERS]
 }
 
+async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | null> {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'status', court_id: courtId }),
+  })
+  const data = await response.json()
+  if (data.success && data.match) return data.match as MatchState
+  return null
+}
+
 export default function SetupDisplay({
   courtId,
   courtSlug,
@@ -73,6 +67,7 @@ export default function SetupDisplay({
     games_count?: number
   } | null>(null)
   const [showProtectionPrompt, setShowProtectionPrompt] = useState(false)
+  const [showActiveMatchJoinPrompt, setShowActiveMatchJoinPrompt] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
   const [gameMode, setGameMode] = useState<GameMode>('traditional')
@@ -97,9 +92,22 @@ export default function SetupDisplay({
       return
     }
     async function loadData() {
-      try {
-        const storageKey = `setup_session_id_${courtSlug}`
+      const storageKey = `setup_session_id_${courtSlug}`
 
+      try {
+        const existing = await fetchActiveMatchForCourt(courtId)
+        if (existing) {
+          setActiveMatch(existing)
+          setShowActiveMatchJoinPrompt(true)
+          setSessionLoading(false)
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        console.error('Error loading match:', err)
+      }
+
+      try {
         let hasValidStoredSession = false
         if (typeof window !== 'undefined') {
           const existingSessionId = sessionStorage.getItem(storageKey)
@@ -136,47 +144,41 @@ export default function SetupDisplay({
       }
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'status', court_id: courtId }),
-        })
-        const data = await response.json()
-        if (data.success && data.match) {
-          setActiveMatch(data.match)
-        } else {
-          setShowSetupForm(true)
-          if (typeof window !== 'undefined') {
-            const savedPlayers = sessionStorage.getItem(`setup_players_${courtId}`)
-            const savedGameMode = sessionStorage.getItem(`setup_game_mode_${courtId}`)
-            const savedSets = sessionStorage.getItem(`setup_sets_${courtId}`)
-            const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtId}`)
-            const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtId}`)
-            const savedPhotos = sessionStorage.getItem(`setup_photos_${courtId}`)
-            if (savedPlayers) {
-              try {
-                const parsed = JSON.parse(savedPlayers)
-                if (Array.isArray(parsed) && parsed.length === 4) setPlayers(parsed)
-              } catch {}
+        setShowSetupForm(true)
+        if (typeof window !== 'undefined') {
+          const savedPlayers = sessionStorage.getItem(`setup_players_${courtId}`)
+          const savedGameMode = sessionStorage.getItem(`setup_game_mode_${courtId}`)
+          const savedSets = sessionStorage.getItem(`setup_sets_${courtId}`)
+          const savedSideSwap = sessionStorage.getItem(`setup_side_swap_${courtId}`)
+          const savedTiebreak = sessionStorage.getItem(`setup_tiebreak_${courtId}`)
+          const savedPhotos = sessionStorage.getItem(`setup_photos_${courtId}`)
+          if (savedPlayers) {
+            try {
+              const parsed = JSON.parse(savedPlayers)
+              if (Array.isArray(parsed) && parsed.length === 4) setPlayers(parsed)
+            } catch {
+              /* ignore */
             }
-            if (savedPhotos) {
-              try {
-                const parsed = JSON.parse(savedPhotos) as Partial<PlayerPhotosState>
-                if (parsed && typeof parsed === 'object') {
-                  setPlayerPhotos({ ...EMPTY_PLAYER_PHOTOS, ...parsed })
-                }
-              } catch {}
-            }
-            if (savedGameMode && ['golden_point', 'silver_point', 'traditional'].includes(savedGameMode)) {
-              setGameMode(savedGameMode as GameMode)
-            }
-            if (savedSets) setSetsToWin(Number(savedSets) as 1 | 2)
-            if (savedSideSwap) setSideSwapEnabled(JSON.parse(savedSideSwap))
-            if (savedTiebreak !== null) setEndGameInTiebreak(JSON.parse(savedTiebreak))
           }
+          if (savedPhotos) {
+            try {
+              const parsed = JSON.parse(savedPhotos) as Partial<PlayerPhotosState>
+              if (parsed && typeof parsed === 'object') {
+                setPlayerPhotos({ ...EMPTY_PLAYER_PHOTOS, ...parsed })
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+          if (savedGameMode && ['golden_point', 'silver_point', 'traditional'].includes(savedGameMode)) {
+            setGameMode(savedGameMode as GameMode)
+          }
+          if (savedSets) setSetsToWin(Number(savedSets) as 1 | 2)
+          if (savedSideSwap) setSideSwapEnabled(JSON.parse(savedSideSwap))
+          if (savedTiebreak !== null) setEndGameInTiebreak(JSON.parse(savedTiebreak))
         }
       } catch (err) {
-        console.error('Error loading match:', err)
+        console.error('Error restoring setup form:', err)
       } finally {
         setLoading(false)
       }
@@ -188,6 +190,38 @@ export default function SetupDisplay({
   const handleCancelSetup = () => {
     if (isPreview) return
     window.history.back()
+  }
+
+  const handleJoinExistingMatch = async () => {
+    if (isPreview) return
+    if (!courtId || !activeMatch) return
+    setActionLoading('join-match')
+    setError(null)
+    const storageKey = `setup_session_id_${courtSlug}`
+    try {
+      let sid = activeMatch.session_id ?? currentSessionId
+      if (!sid) {
+        const created = await createSession(courtId)
+        if (created.success && created.session) {
+          sid = created.session.id
+          setCurrentSessionId(sid)
+          if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
+        } else {
+          setError(created.error || 'Could not start a session for this court.')
+          return
+        }
+      } else {
+        setCurrentSessionId(sid)
+        if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
+      }
+      setShowActiveMatchJoinPrompt(false)
+      router.push(`/playing/${courtSlug}`)
+    } catch (err) {
+      console.error('Error joining match:', err)
+      setError('Could not open the player view for this match.')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleTakeover = async () => {
@@ -212,32 +246,6 @@ export default function SetupDisplay({
     } catch (err) {
       console.error('Error taking over session:', err)
       setError('Failed to take over session')
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  async function handleEndMatch() {
-    if (isPreview) return
-    if (!courtId) return
-    setActionLoading('end')
-    setError(null)
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'end', court_id: courtId }),
-      })
-      const data = await response.json()
-      if (!data.success) {
-        setError(data.error || 'Failed to end match')
-      } else {
-        setActiveMatch(null)
-        setShowSetupForm(true)
-      }
-    } catch (err) {
-      console.error('Error ending match:', err)
-      setError('Failed to end match')
     } finally {
       setActionLoading(null)
     }
@@ -298,7 +306,18 @@ export default function SetupDisplay({
       })
       const data = await response.json()
       if (!data.success) {
-        setError(data.error || 'Failed to create match')
+        if (data.error === 'active_match_exists') {
+          const m = await fetchActiveMatchForCourt(courtId)
+          if (m) {
+            setActiveMatch(m)
+            setShowActiveMatchJoinPrompt(true)
+            setError(null)
+          } else {
+            setError('A match is already in progress on this court. Try Take Over to join it.')
+          }
+        } else {
+          setError(typeof data.error === 'string' ? data.error : 'Failed to create match')
+        }
       } else {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(`setup_players_${courtId}`)
@@ -331,9 +350,23 @@ export default function SetupDisplay({
     )
   }
 
+  if (showActiveMatchJoinPrompt && activeMatch) {
+    return (
+      <SessionProtectionPrompt
+        title="Match in progress"
+        warning="A match is already in progress on this court. Do you want to take over?"
+        takeOverLabel="Take Over"
+        takeOverLoading={actionLoading === 'join-match'}
+        onCancel={handleCancelSetup}
+        onTakeover={handleJoinExistingMatch}
+      />
+    )
+  }
+
   if (showProtectionPrompt && activeSession) {
     return (
       <SessionProtectionPrompt
+        takeOverLoading={actionLoading === 'takeover'}
         onCancel={handleCancelSetup}
         onTakeover={handleTakeover}
       />
@@ -347,89 +380,6 @@ export default function SetupDisplay({
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
         </div>
-      </div>
-    )
-  }
-
-  if (activeMatch && !showSetupForm) {
-    return (
-      <div className="setup-page">
-        <div className="setup-container">
-          <h1 className="setup-title">Match in Progress</h1>
-          {error && <div className="setup-error-message">{error}</div>}
-          <div className="setup-match-info">
-            <div className="setup-match-time">
-              {formatTimeAgo(activeMatch.started_at ?? null)}
-            </div>
-            <div className="setup-match-score">
-              <ScoreDisplay match={activeMatch} variant="spectator" />
-            </div>
-          </div>
-          <div className="setup-actions">
-            <button
-              type="button"
-              className="btn btn-primary btn-block"
-              onClick={handleEndMatch}
-              disabled={!!actionLoading}
-            >
-              {actionLoading === 'end' ? 'Ending...' : 'End & Start New'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary btn-block"
-              onClick={() => router.push(`/court/${courtSlug}`)}
-              disabled={!!actionLoading}
-            >
-              View Match
-            </button>
-          </div>
-        </div>
-        <style jsx>{`
-          .setup-page {
-            min-height: 100vh;
-            background: #1a1a2e;
-            color: #E6EAF2;
-            padding: 2rem 1rem;
-          }
-          .setup-container {
-            max-width: 600px;
-            margin: 0 auto;
-          }
-          .setup-title {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-          }
-          .setup-error-message {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-          }
-          .setup-match-info {
-            margin-bottom: 2rem;
-          }
-          .setup-match-time {
-            text-align: center;
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 1.5rem;
-          }
-          .setup-match-score {
-            margin-bottom: 2rem;
-            color: #E6EAF2;
-          }
-          .setup-match-score * {
-            color: #E6EAF2;
-          }
-          .setup-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-          }
-        `}</style>
       </div>
     )
   }
