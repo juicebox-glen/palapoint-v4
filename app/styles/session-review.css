@@ -46,7 +46,7 @@
 
 .review-game-card {
   background: var(--bg-secondary, #1E1E1F);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 1rem;
 }
 
@@ -111,7 +111,7 @@
   background: var(--team-a, #03a97c);
   color: white;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

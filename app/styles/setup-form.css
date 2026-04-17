@@ -171,7 +171,7 @@
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   margin-bottom: 1rem;
   font-size: 0.875rem;
   font-weight: 400;
@@ -194,7 +194,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-image: none;
   box-shadow: 0 8px 32px hsl(0 0% 0% / 0.3);
-  border-radius: 1rem; /* rounded-2xl in spec, 1rem for glass-card */
+  border-radius: var(--radius-xl); /* glass section cards */
   padding: 1.25rem; /* p-5 */
 }
 
@@ -229,7 +229,7 @@
   justify-content: center;
   height: fit-content;
   padding: 6px 0.5rem 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: none;
   background: #2A3140;
   color: var(--secondary-foreground);
@@ -291,7 +291,7 @@
 .setup-sets-pill {
   flex: 1;
   padding: 0.75rem 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: none;
   background: rgba(42, 49, 64, 1);
   color: var(--secondary-foreground);
@@ -335,7 +335,7 @@
 .setup-switch {
   width: 50px;
   height: 28px;
-  border-radius: 14px;
+  border-radius: var(--radius-full);
   border: none;
   background: rgba(48, 56, 71, 1);
   cursor: pointer;
@@ -407,7 +407,7 @@
   gap: 0.75rem;
   background: rgba(30, 37, 50, 1);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 0 1rem;
   min-height: 48px;
   transition: box-shadow 0.2s;
@@ -421,7 +421,7 @@
   flex: 1;
   min-width: 0;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   min-height: var(--setup-photo-circle-size, 48px);
 }
 
@@ -476,7 +476,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--secondary);
   color: var(--muted-foreground);
@@ -523,7 +523,7 @@
   width: 100%;
   margin-top: 0.25rem;
   padding: 1rem 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   border: none;
   background: rgba(57, 95, 249, 1);
   background-image: none;
@@ -597,7 +597,7 @@
   text-align: center;
   letter-spacing: 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--input);
   color: var(--foreground);
   font-weight: 600;
@@ -617,7 +617,7 @@
 .setup-pin-btn {
   width: 100%;
   padding: 1rem 1.5rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   border: none;
   background: linear-gradient(135deg, hsl(228 94% 65%), hsl(228 94% 55%));
   box-shadow: 0 0 40px var(--primary-glow);
@@ -643,7 +643,7 @@
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   margin-bottom: 1rem;
   font-size: 0.875rem;
   text-align: center;
@@ -836,7 +836,7 @@
   max-width: 28rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   padding: 1rem 1rem 1.25rem;
   color: var(--text-primary);
   font-family: var(--font-family);
@@ -859,7 +859,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
   background: rgba(30, 37, 50, 1);
   color: var(--text-primary);
@@ -905,7 +905,7 @@
   letter-spacing: 0.02em;
   cursor: pointer;
   font-family: var(--font-family);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition: background 0.2s;
 }
 
@@ -924,7 +924,7 @@
   font-weight: 500;
   cursor: pointer;
   font-family: var(--font-family);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   transition: background 0.2s, color 0.2s;
 }
 

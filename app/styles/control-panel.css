@@ -765,7 +765,7 @@
 .preview-btn {
   width: 100%;
   padding: 1rem;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   border: none;

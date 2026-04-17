@@ -190,7 +190,7 @@
 .playing-btn {
   width: 100%;
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
