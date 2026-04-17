@@ -13,10 +13,17 @@ import type { VenueBranding } from '@/lib/venue'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 /** Design-system preview: skips session + match API and submit navigation. */
-export type SetupDisplayPreviewScreen = 'form' | 'review'
+export type SetupDisplayPreviewScreen =
+  | 'form'
+  | 'review'
+  | 'match_join_prompt'
+  | 'session_prompt'
 
 export interface SetupDisplayPreviewConfig {
-  /** `form`: empty fields; `review`: names filled as if ready to start */
+  /**
+   * `form` / `review`: `MatchSetupForm` states.
+   * `match_join_prompt` / `session_prompt`: same modals as production (`SessionProtectionPrompt`).
+   */
   screen: SetupDisplayPreviewScreen
 }
 
@@ -345,6 +352,22 @@ export default function SetupDisplay({
       setError('Failed to create match')
     } finally {
       setActionLoading(null)
+    }
+  }
+
+  if (isPreview && preview) {
+    if (preview.screen === 'match_join_prompt') {
+      return (
+        <SessionProtectionPrompt
+          title="Match in progress"
+          warning="A match is already in progress on this court. Do you want to take over?"
+          onCancel={() => {}}
+          onTakeover={() => {}}
+        />
+      )
+    }
+    if (preview.screen === 'session_prompt') {
+      return <SessionProtectionPrompt onCancel={() => {}} onTakeover={() => {}} />
     }
   }
 

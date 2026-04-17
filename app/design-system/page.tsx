@@ -61,10 +61,7 @@ export default function DesignSystemHome() {
               <Link href="/design-system/screens/control">Staff Control (Mobile/Tablet)</Link>
             </li>
             <li>
-              <Link href="/design-system/screens/setup">Player Setup (Mobile)</Link>
-            </li>
-            <li>
-              <Link href="/design-system/screens/playing">Player Playing (Mobile)</Link>
+              <Link href="/design-system/screens/player-mobile">Player mobile (Setup &amp; Playing)</Link>
             </li>
           </ul>
         </section>

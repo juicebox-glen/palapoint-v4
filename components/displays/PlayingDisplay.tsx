@@ -36,6 +36,42 @@ interface MatchState {
   is_tiebreak?: boolean
 }
 
+/** Design-system preview only — mirrors production `PlayingDisplay` states without Supabase. */
+export type PlayingDisplayPreviewScreen =
+  | 'no_session'
+  | 'session_ended'
+  | 'session_ended_inactivity'
+  | 'ready'
+  | 'live'
+  | 'postgame_win'
+  | 'postgame_abandoned'
+
+export interface PlayingDisplayPreviewConfig {
+  screen: PlayingDisplayPreviewScreen
+}
+
+function buildPreviewMatch(overrides: Partial<MatchState> = {}): MatchState {
+  return {
+    id: 'preview-match',
+    status: 'in_progress',
+    team_a_points: 0,
+    team_b_points: 0,
+    team_a_games: 0,
+    team_b_games: 0,
+    set_scores: [],
+    winner: null,
+    session_id: 'preview-session',
+    game_mode: 'traditional',
+    sets_to_win: 1,
+    side_swap_enabled: true,
+    team_a_player_1: 'Glen Noble',
+    team_a_player_2: 'Rob Anderson',
+    team_b_player_1: 'Julian Waters',
+    team_b_player_2: 'Carl Pettit',
+    ...overrides,
+  }
+}
+
 interface SessionState {
   valid: boolean
   reason?: string
@@ -202,6 +238,8 @@ interface PlayingDisplayProps {
   courtSlug: string
   courtName: string
   branding?: VenueBranding | null
+  /** Skips Supabase; renders a fixed screen for `/design-system/preview/playing`. */
+  preview?: PlayingDisplayPreviewConfig
 }
 
 export default function PlayingDisplay({
@@ -209,14 +247,79 @@ export default function PlayingDisplay({
   courtSlug,
   courtName,
   branding,
+  preview,
 }: PlayingDisplayProps) {
+  const isPreview = Boolean(preview)
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !isPreview)
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isPreview && preview) {
+      setLoading(false)
+      setSessionId(null)
+      setSessionState(null)
+      setMatch(null)
+      switch (preview.screen) {
+        case 'no_session':
+          break
+        case 'session_ended':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: false, reason: 'ended' })
+          break
+        case 'session_ended_inactivity':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: false, reason: 'expired_inactivity' })
+          break
+        case 'ready':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(buildPreviewMatch({ status: 'in_progress' }))
+          break
+        case 'live':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(
+            buildPreviewMatch({
+              team_a_points: 30,
+              team_b_points: 15,
+              team_a_games: 2,
+              team_b_games: 1,
+            })
+          )
+          break
+        case 'postgame_win':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(
+            buildPreviewMatch({
+              status: 'completed',
+              winner: 'a',
+              team_a_games: 6,
+              team_b_games: 4,
+              set_scores: [{ team_a_games: 6, team_b_games: 4 }],
+            })
+          )
+          break
+        case 'postgame_abandoned':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(
+            buildPreviewMatch({
+              status: 'abandoned',
+              team_a_games: 3,
+              team_b_games: 2,
+            })
+          )
+          break
+        default:
+          break
+      }
+      return
+    }
+
     async function loadData() {
       const storedSessionId =
         typeof window !== 'undefined'
@@ -247,10 +350,10 @@ export default function PlayingDisplay({
     }
 
     loadData()
-  }, [courtId, courtSlug])
+  }, [courtId, courtSlug, isPreview, preview])
 
   useEffect(() => {
-    if (!courtId) return
+    if (isPreview || !courtId) return
     const ch = supabase.channel(`playing-${courtId}`)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel
     ;(ch as any).on(
@@ -273,16 +376,16 @@ export default function PlayingDisplay({
     return () => {
       void supabase.removeChannel(ch)
     }
-  }, [courtId])
+  }, [courtId, isPreview])
 
   useEffect(() => {
-    if (!sessionId) return
+    if (isPreview || !sessionId) return
     const interval = setInterval(async () => {
       const validation = await validateSession(sessionId)
       setSessionState(validation)
     }, 60000)
     return () => clearInterval(interval)
-  }, [sessionId])
+  }, [sessionId, isPreview])
 
   const handlePlayAgain = async () => {
     if (!match || !sessionId || !courtId) return

@@ -4,12 +4,15 @@ import type { CSSProperties } from 'react'
 import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 
+import PlayingDisplay from '@/components/displays/PlayingDisplay'
+
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
-import { FinishedState, LiveState } from './playing-illustrated'
+import { getPlayingPreviewConfig } from './playing-preview-config'
 
 function PlayingPreviewContent() {
   const searchParams = useSearchParams()
   const state = searchParams.get('state') || 'live'
+  const preview = useMemo(() => getPlayingPreviewConfig(state), [state])
 
   const brandingStyles = useMemo(
     () =>
@@ -21,20 +24,16 @@ function PlayingPreviewContent() {
     []
   )
 
-  const view = state === 'finished' ? 'finished' : 'live'
-
   return (
-    <div
-      className="page"
-      style={{
-        minHeight: '100vh',
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
-        ...brandingStyles,
-      }}
-    >
-      {view === 'live' && <LiveState branding={designSystemSquareOneBranding} />}
-      {view === 'finished' && <FinishedState branding={designSystemSquareOneBranding} />}
+    <div style={{ minHeight: '100vh', ...brandingStyles }}>
+      <PlayingDisplay
+        key={state}
+        courtId="mock-court-id"
+        courtSlug="squareone/ashford/1"
+        courtName={designSystemSquareOneBranding.courtName}
+        branding={designSystemSquareOneBranding}
+        preview={preview}
+      />
     </div>
   )
 }
