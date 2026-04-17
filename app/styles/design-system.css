@@ -1,0 +1,785 @@
+/* ============================================================
+   DESIGN SYSTEM SHOWCASE STYLES
+   Scoped aliases map showcase token names → app tokens
+   ============================================================ */
+
+.ds-layout {
+  /* Typography aliases (typography page uses --font-primary, --text-*, etc.) */
+  --font-primary: var(--font-family);
+  --font-display: 'Space Grotesk', var(--font-family);
+  --text-xs: var(--ui-font-xs);
+  --text-sm: var(--ui-font-sm);
+  --text-base: var(--ui-font-base);
+  --text-lg: var(--ui-font-lg);
+  --text-xl: var(--ui-font-xl);
+  --text-2xl: var(--ui-font-2xl);
+  --text-3xl: var(--ui-font-3xl);
+  --text-4xl: 2.5rem;
+
+  /* Spacing aliases (tokens page uses --space-*) */
+  --space-xs: var(--ui-space-xs);
+  --space-sm: var(--ui-space-sm);
+  --space-md: var(--ui-space-md);
+  --space-lg: var(--ui-space-lg);
+  --space-xl: var(--ui-space-xl);
+  --space-2xl: var(--ui-space-2xl);
+
+  /* Border alias */
+  --border-subtle: var(--border-light);
+
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Home page */
+.ds-home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.ds-header {
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.ds-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.ds-header p {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.ds-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.ds-nav-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.ds-nav-section h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.ds-nav-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ds-nav-section li {
+  margin-bottom: 0.5rem;
+}
+
+.ds-nav-section a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.ds-nav-section a:hover {
+  color: var(--team-a);
+}
+
+/* Page layout */
+.ds-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.ds-page-header {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.ds-page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.ds-page-header p {
+  color: var(--text-secondary);
+}
+
+.ds-section {
+  margin-bottom: 4rem;
+}
+
+.ds-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.ds-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 2rem 0 1rem;
+}
+
+/* Token grids */
+.ds-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.ds-color-token {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.ds-color-swatch {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.ds-token-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ds-token-info code {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ds-token-info span {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Spacing tokens */
+.ds-spacing-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-end;
+}
+
+.ds-spacing-token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ds-spacing-bar {
+  background: var(--team-a);
+  border-radius: var(--radius-sm);
+}
+
+.ds-spacing-token code {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Radius tokens */
+.ds-radius-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.ds-radius-token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ds-radius-box {
+  width: 64px;
+  height: 64px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--team-a);
+}
+
+.ds-radius-token code {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Typography */
+.ds-type-sample {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.ds-type-sample h3 {
+  margin-top: 0;
+}
+
+.ds-type-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ds-type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.ds-type-row code {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+.ds-type-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.ds-weight-samples {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.ds-score-samples,
+.ds-name-samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+}
+
+.ds-score-sample,
+.ds-name-samples > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ds-score-sample code,
+.ds-name-samples code {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Placeholder sub-pages */
+.ds-placeholder {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+}
+
+.ds-back {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  color: var(--team-a);
+  text-decoration: none;
+}
+
+.ds-back:hover {
+  text-decoration: underline;
+}
+
+/* Component demos */
+.ds-component-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ds-component-demo {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.ds-component-demo--dark {
+  background: var(--bg-primary);
+}
+
+.ds-code-block {
+  background: var(--bg-tertiary);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.ds-code-block code {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.ds-guidelines {
+  list-style: none;
+  padding: 0;
+}
+
+.ds-guidelines li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.ds-guidelines li:last-child {
+  border-bottom: none;
+}
+
+.ds-guidelines code {
+  background: var(--bg-tertiary);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.ds-note {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Viewport demos */
+.ds-viewport-demo {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.ds-viewport-demo--tv {
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.ds-viewport-demo--mobile {
+  max-width: 375px;
+}
+
+.ds-viewport-demo--tablet {
+  max-width: 768px;
+}
+
+/* Tables */
+.ds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ds-table th,
+.ds-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.ds-table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.ds-table code {
+  background: var(--bg-tertiary);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+}
+
+/* Screen previews */
+.ds-page--wide {
+  max-width: 1400px;
+}
+
+.ds-preview-fallback {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.ds-screen-preview {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+}
+
+.ds-screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.ds-screen-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.ds-screen-header p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.ds-screen-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ds-viewport-label {
+  background: var(--bg-tertiary);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.ds-viewport-size {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.ds-state-switcher {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.ds-state-btn {
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ds-state-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.ds-state-btn--active {
+  background: var(--team-a);
+  border-color: var(--team-a);
+  color: white;
+}
+
+.ds-screen-frame {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.ds-screen-frame iframe {
+  display: block;
+}
+
+.ds-screen-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.ds-open-link {
+  font-size: 0.875rem;
+  color: var(--team-a);
+  text-decoration: none;
+}
+
+.ds-open-link:hover {
+  text-decoration: underline;
+}
+
+.ds-component-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ds-component-list li {
+  background: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+.ds-component-list a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.ds-component-list a:hover {
+  color: var(--team-a);
+}
+
+/* Layout diagrams */
+.ds-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.ds-layout-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.ds-layout-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.ds-layout-card > p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0 0 1rem 0;
+}
+
+.ds-layout-diagram {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ds-layout-diagram--tv {
+  aspect-ratio: 16 / 9;
+}
+
+.ds-layout-diagram--mobile {
+  aspect-ratio: 9 / 16;
+  max-width: 150px;
+}
+
+.ds-layout-zone {
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  font-size: 0.625rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.ds-layout-zone--header {
+  background: rgba(91, 108, 255, 0.1);
+  border-color: var(--team-a);
+}
+
+.ds-layout-zone--main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-layout-zone--footer,
+.ds-layout-zone--actions {
+  background: rgba(232, 74, 138, 0.1);
+  border-color: var(--team-b);
+}
+
+.ds-layout-zone--status {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: var(--success);
+}
+
+.ds-layout-zone--card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-layout-zone--badges {
+  background: var(--bg-tertiary);
+}
+
+.ds-layout-specs {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.ds-layout-specs p {
+  margin: 0.25rem 0;
+}
+
+.ds-layout-specs strong {
+  color: var(--text-primary);
+}
+
+/* Opportunities */
+.ds-opportunity-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-opportunity {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.ds-opportunity h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.ds-opportunity p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0;
+}
+
+.ds-opportunity code {
+  background: var(--bg-tertiary);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+}
+
+.ds-code-block--pre pre {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.ds-note-block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--info);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.5rem;
+}
+
+.ds-note-block p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.ds-note-block p:first-child {
+  margin-top: 0;
+}
+
+.ds-note-block p:last-child {
+  margin-bottom: 0;
+}
+
+.ds-note-block strong {
+  color: var(--text-primary);
+}
+
+/* Screen docs: typography & color alignment tables */
+.ds-token-intro {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.25rem 0;
+  max-width: 52rem;
+  line-height: 1.5;
+}
+
+.ds-token-intro code {
+  font-size: 0.8125rem;
+}
+
+.ds-token-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem 0;
+  color: var(--text-primary);
+}
+
+.ds-token-heading:first-of-type {
+  margin-top: 0;
+}
+
+.ds-token-table td {
+  vertical-align: top;
+}
+
+.ds-token-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.ds-token-file-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.ds-token-file-list li {
+  margin: 0.35rem 0;
+}

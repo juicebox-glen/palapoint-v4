@@ -2,6 +2,11 @@
  * Shared score display formatting for match state.
  */
 
+/** Re-exported from `./player-names` (single implementation; kept here for existing imports). */
+import { abbreviateSurname } from './player-names'
+
+export { abbreviateSurname }
+
 export function formatPointDisplay(
   points: number,
   opponentPoints: number,
@@ -38,14 +43,6 @@ export function buildTeamName(
   if (names.length === 0) return fallback
   if (names.length === 1) return names[0]
   return `${names[0]} / ${names[1]}`
-}
-
-/** First 3 letters of surname (uppercase) for display on control panel. */
-export function abbreviateSurname(name: string | null | undefined): string {
-  if (!name?.trim()) return '---'
-  const parts = name.trim().split(/\s+/)
-  const lastName = parts[parts.length - 1]
-  return lastName.substring(0, 3).toUpperCase()
 }
 
 /** Team name built from abbreviated surnames only (e.g. "SMI / DOE"). */

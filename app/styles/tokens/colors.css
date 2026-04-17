@@ -1,6 +1,10 @@
 /* ============================================
    PALAPOINT DESIGN TOKENS - COLORS
    Single source of truth for all colors
+
+   Naming: surfaces/text use --bg-*, --text-*; status uses --success, --error,
+   --warning, --info (with -dark / -bg variants). Court view uses --court-*.
+   Legacy --color-* aliases were removed in April 2026 — use the tokens above.
    ============================================ */
 
 :root {
@@ -56,23 +60,23 @@
   --border-focus: var(--brand-primary);
   
   /* ----------------------------------------
-     SEMANTIC COLORS
+     SEMANTIC (status / feedback)
      ---------------------------------------- */
-  --color-success: #22C55E;
-  --color-success-dark: #16A34A;
-  --color-success-bg: rgba(34, 197, 94, 0.15);
+  --success: #22C55E;
+  --success-dark: #16A34A;
+  --success-bg: rgba(34, 197, 94, 0.15);
   
-  --color-error: #EF4444;
-  --color-error-dark: #DC2626;
-  --color-error-bg: rgba(239, 68, 68, 0.15);
+  --error: #EF4444;
+  --error-dark: #DC2626;
+  --error-bg: rgba(239, 68, 68, 0.15);
   
-  --color-warning: #F59E0B;
-  --color-warning-dark: #D97706;
-  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --warning: #F59E0B;
+  --warning-dark: #D97706;
+  --warning-bg: rgba(245, 158, 11, 0.15);
   
-  --color-info: #3B82F6;
-  --color-info-dark: #2563EB;
-  --color-info-bg: rgba(59, 130, 246, 0.15);
+  --info: #3B82F6;
+  --info-dark: #2563EB;
+  --info-bg: rgba(59, 130, 246, 0.15);
   
   /* ----------------------------------------
      OVERLAYS
@@ -89,20 +93,5 @@
   --court-bg: #0A0A0B;
   --court-accent: #BDF33F;        /* Lime green for accents */
   --court-ball: #D0FF14;          /* Ball color */
-  
-  /* ----------------------------------------
-     LEGACY ALIASES
-     Map old variable names to new system
-     Remove these once all files are updated
-     ---------------------------------------- */
-  --color-team-a: var(--team-a);
-  --color-team-b: var(--team-b);
-  --color-bg-primary: var(--bg-primary);
-  --color-bg-secondary: var(--bg-secondary);
-  --color-bg-tertiary: var(--bg-tertiary);
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-overlay-dark: var(--overlay-dark);
-  --color-overlay-darker: var(--overlay-darker);
+  --court-ball-border: #B8E000;
 }

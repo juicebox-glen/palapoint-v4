@@ -3,26 +3,7 @@
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-
-function formatName(fullName: string | null | undefined): string {
-  if (!fullName?.trim()) return 'Player'
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length === 1) return fullName.trim()
-  const firstInitial = parts[0].charAt(0).toUpperCase()
-  const surname = parts.slice(1).join(' ')
-  return `${firstInitial}. ${surname}`
-}
-
-/** Two-letter initials: "Glen Noble" -> "GN"; single word "Robert" -> "RO" */
-function getInitials(name: string | null | undefined): string {
-  if (!name?.trim()) return '??'
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) {
-    const w = parts[0]
-    return w.length >= 2 ? w.substring(0, 2).toUpperCase() : (w.charAt(0) + w.charAt(0)).toUpperCase()
-  }
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
-}
+import { formatNameAbbreviated, getPlayerInitials } from '@/lib/utils/player-names'
 
 function PreviewAvatar({
   photo,
@@ -33,7 +14,7 @@ function PreviewAvatar({
   name?: string | null
   team: 'a' | 'b'
 }) {
-  const initials = getInitials(name)
+  const initials = getPlayerInitials(name)
 
   return (
     <div className={`preview-avatar preview-avatar-${team}`}>
@@ -108,8 +89,8 @@ export default function ControlMatchPreview({
                   />
                 </div>
                 <div className="preview-team-names">
-                  <span>{formatName(match.team_a_player_1)}</span>
-                  <span>{formatName(match.team_a_player_2)}</span>
+                  <span>{formatNameAbbreviated(match.team_a_player_1)}</span>
+                  <span>{formatNameAbbreviated(match.team_a_player_2)}</span>
                 </div>
               </div>
 
@@ -131,8 +112,8 @@ export default function ControlMatchPreview({
                   />
                 </div>
                 <div className="preview-team-names">
-                  <span>{formatName(match.team_b_player_1)}</span>
-                  <span>{formatName(match.team_b_player_2)}</span>
+                  <span>{formatNameAbbreviated(match.team_b_player_1)}</span>
+                  <span>{formatNameAbbreviated(match.team_b_player_2)}</span>
                 </div>
               </div>
             </div>

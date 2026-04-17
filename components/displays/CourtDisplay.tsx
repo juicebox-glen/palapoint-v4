@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { QRCodeSVG } from 'qrcode.react'
 import type { MatchState } from '@/lib/types/match'
@@ -11,13 +11,36 @@ import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import { buildTeamNameAbbreviated } from '@/lib/utils/score-format'
+import { abbreviateSurname } from '@/lib/utils/player-names'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+
+/** Design-system / static preview: disables network and forces a specific screen. */
+export type CourtDisplayPreviewUI =
+  | 'idle'
+  | 'ready'
+  | 'server_announcement'
+  | 'scoreboard'
+  | 'side_swap'
+  | 'set_win'
+  | 'match_complete'
+
+export interface CourtDisplayPreviewConfig {
+  match: MatchState | null
+  ui: CourtDisplayPreviewUI
+  setWin?: {
+    winningTeam: 'a' | 'b'
+    setNumber: number
+    score: { teamA: number; teamB: number }
+  }
+}
 
 interface CourtDisplayProps {
   courtId: string
   setupSlug: string
   branding?: VenueBranding | null
+  /** When set, skips Supabase/realtime and uses injected match + UI mode (e.g. design system previews). */
+  preview?: CourtDisplayPreviewConfig
 }
 
 function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean): string {
@@ -69,9 +92,17 @@ function IdleLogo({ branding }: { branding?: VenueBranding | null }) {
   )
 }
 
-export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisplayProps) {
-  const [match, setMatch] = useState<MatchState | null>(null)
-  const [loading, setLoading] = useState(true)
+export default function CourtDisplay({
+  courtId,
+  setupSlug,
+  branding,
+  preview,
+}: CourtDisplayProps) {
+  const isPreview = Boolean(preview)
+  const [match, setMatch] = useState<MatchState | null>(() =>
+    preview?.ui === 'idle' ? null : preview?.match ?? null
+  )
+  const [loading, setLoading] = useState(() => !isPreview)
   const [showSideSwap, setShowSideSwap] = useState(false)
   const [showSetWin, setShowSetWin] = useState(false)
   const [showServerAnnouncement, setShowServerAnnouncement] = useState(false)
@@ -94,7 +125,49 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
   awaitingButtonPressRef.current = awaitingButtonPress
   showServerAnnouncementRef.current = showServerAnnouncement
 
+  useLayoutEffect(() => {
+    if (!preview) return
+    const { match: m, ui, setWin } = preview
+    setMatch(m)
+    setAwaitingButtonPress(false)
+    setShowServerAnnouncement(false)
+    setShowSideSwap(false)
+    setShowSetWin(false)
+    setSetWinData(null)
+
+    if (ui === 'idle' || !m) {
+      return
+    }
+    switch (ui) {
+      case 'ready':
+        setAwaitingButtonPress(true)
+        break
+      case 'server_announcement':
+        setShowServerAnnouncement(true)
+        break
+      case 'side_swap':
+        setShowSideSwap(true)
+        break
+      case 'set_win':
+        setSetWinData(
+          setWin ?? {
+            winningTeam: 'a',
+            setNumber: 1,
+            score: { teamA: 6, teamB: 4 },
+          }
+        )
+        setShowSetWin(true)
+        break
+      default:
+        break
+    }
+  }, [preview])
+
   useEffect(() => {
+    if (isPreview) {
+      setLoading(false)
+      return
+    }
     if (!courtId) return
     async function loadMatch() {
       const { data } = await supabase
@@ -107,9 +180,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       setLoading(false)
     }
     loadMatch()
-  }, [courtId])
+  }, [courtId, isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (typeof window === 'undefined') return
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT || '4001'
     const wsUrl = `ws://${window.location.hostname}:${wsPort}`
@@ -142,9 +216,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       if (retry) clearTimeout(retry)
       ws?.close()
     }
-  }, [])
+  }, [isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (!courtId) return
     const ch = supabase.channel(`court-display-${courtId}`)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel overload
@@ -183,9 +258,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
     return () => {
       supabase.removeChannel(ch)
     }
-  }, [courtId])
+  }, [courtId, isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (!courtId) return
     const ch = supabase.channel(`court-session-${courtId}`)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel overload
@@ -220,9 +296,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
     return () => {
       supabase.removeChannel(ch)
     }
-  }, [courtId])
+  }, [courtId, isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (!match) {
       announcementShownRef.current = null
       setShowServerAnnouncement(false)
@@ -252,9 +329,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       setAwaitingButtonPress(false)
       setShowServerAnnouncement(true)
     }
-  }, [match, awaitingButtonPress])
+  }, [match, awaitingButtonPress, isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (!match || showSideSwap || match.side_swap_enabled === false) return
     const setScores = match.set_scores || []
     let totalGames = 0
@@ -278,10 +356,11 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       prevTotalGamesRef.current = totalGames
       prevTiebreakPointsRef.current = 0
     }
-  }, [match, showSideSwap])
+  }, [match, showSideSwap, isPreview])
 
   const handleScore = useCallback(
     async (team: 'a' | 'b', source: 'button_a' | 'button_b' | 'control_panel' = 'control_panel') => {
+      if (isPreview) return
       if (!courtId) return
       try {
         await fetch(`${SUPABASE_URL}/functions/v1/score`, {
@@ -293,11 +372,12 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
         console.error('Error scoring point:', err)
       }
     },
-    [courtId]
+    [courtId, isPreview]
   )
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isPreview) return
       const key = e.key.toLowerCase()
       if (!['q', 'p', ' ', 'a', 'r'].includes(key)) return
       if (e.repeat) return
@@ -344,12 +424,13 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [match, showSetWin, showSideSwap, handleScore, courtId])
+  }, [match, showSetWin, showSideSwap, handleScore, courtId, isPreview])
 
   const handleSideSwapComplete = () => setShowSideSwap(false)
   const handleServerAnnouncementComplete = () => setShowServerAnnouncement(false)
 
   useEffect(() => {
+    if (isPreview) return
     if (!match || showSetWin) return
     const setScores = match.set_scores || []
     const totalSetsCompleted = setScores.length
@@ -366,9 +447,10 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       }
     }
     prevSetsRef.current = totalSetsCompleted
-  }, [match, showSetWin])
+  }, [match, showSetWin, isPreview])
 
   useEffect(() => {
+    if (isPreview) return
     if (!match || showSetWin || showSideSwap || showServerAnnouncement) return
     const pa = match.team_a_points
     const pb = match.team_b_points
@@ -395,13 +477,23 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
     }
     prevTeamAPointsRef.current = pa
     prevTeamBPointsRef.current = pb
-  }, [match?.team_a_points, match?.team_b_points, match, showSetWin, showSideSwap, showServerAnnouncement])
+  }, [
+    match?.team_a_points,
+    match?.team_b_points,
+    match,
+    showSetWin,
+    showSideSwap,
+    showServerAnnouncement,
+    isPreview,
+  ])
 
   const handleSetWinComplete = () => {
     setShowSetWin(false)
     setSetWinData(null)
   }
-  const handleMatchWinComplete = () => setMatch(null)
+  const handleMatchWinComplete = () => {
+    if (!isPreview) setMatch(null)
+  }
 
   if (loading) {
     return (
@@ -438,25 +530,19 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
   }
 
   if (awaitingButtonPress && match) {
-    const abbreviate = (name: string | null | undefined): string => {
-      if (!name) return '---'
-      const parts = name.trim().split(' ')
-      const lastName = parts[parts.length - 1]
-      return lastName.substring(0, 3).toUpperCase()
-    }
     return (
       <div className="court-ready-screen">
         <div className="court-ready-half court-ready-team-a">
           <div className="court-ready-names">
-            <span className="court-ready-name">{abbreviate(match.team_a_player_1)}</span>
-            <span className="court-ready-name">{abbreviate(match.team_a_player_2)}</span>
+            <span className="court-ready-name">{abbreviateSurname(match.team_a_player_1)}</span>
+            <span className="court-ready-name">{abbreviateSurname(match.team_a_player_2)}</span>
           </div>
         </div>
         <div className="court-ready-vs">VS</div>
         <div className="court-ready-half court-ready-team-b">
           <div className="court-ready-names">
-            <span className="court-ready-name">{abbreviate(match.team_b_player_1)}</span>
-            <span className="court-ready-name">{abbreviate(match.team_b_player_2)}</span>
+            <span className="court-ready-name">{abbreviateSurname(match.team_b_player_1)}</span>
+            <span className="court-ready-name">{abbreviateSurname(match.team_b_player_2)}</span>
           </div>
         </div>
         <div className="court-ready-instruction">PRESS BUTTON TO START</div>
@@ -589,7 +675,7 @@ export default function CourtDisplay({ courtId, setupSlug, branding }: CourtDisp
       ? 'left'
       : 'right'
   const servingBorderColor =
-    servingTeam === 'a' ? 'var(--color-team-a)' : 'var(--color-team-b)'
+    servingTeam === 'a' ? 'var(--team-a)' : 'var(--team-b)'
   const setsToWin = match.sets_to_win || 1
   const setDotsCount = setsToWin === 1 ? 1 : 2
   const pointSituation = getPointSituation(match)

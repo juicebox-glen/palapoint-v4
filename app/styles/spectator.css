@@ -1,7 +1,11 @@
-/* ============================================
-   SPECTATOR DISPLAY - TV/Large Screen View
-   Scales based on viewport to fill the screen
-   ============================================ */
+/* ============================================================
+   SPECTATOR DISPLAY - TV / large screen
+   Scales with viewport to fill the screen
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   SHARED / BASE
+   ------------------------------------------------------------ */
 
 .spectator-container {
   position: relative;
@@ -16,7 +20,10 @@
   overflow: hidden;
 }
 
-/* Header */
+/* ------------------------------------------------------------
+   HEADER
+   ------------------------------------------------------------ */
+
 .spectator-header {
   display: flex;
   align-items: center;
@@ -66,10 +73,6 @@
   letter-spacing: 0.05em;
 }
 
-.spectator-divider {
-  color: var(--text-muted);
-}
-
 .spectator-live-badge {
   display: flex;
   align-items: center;
@@ -79,15 +82,6 @@
   color: var(--text-primary);
 }
 
-.spectator-live-dot {
-  width: clamp(10px, 2vh, 20px);
-  height: clamp(10px, 2vh, 20px);
-  background: var(--brand-primary);
-  border-radius: 50%;
-  flex-shrink: 0;
-  animation: pulse-live 2s ease-in-out infinite;
-}
-
 .spectator-offline-dot {
   width: clamp(10px, 2vh, 20px);
   height: clamp(10px, 2vh, 20px);
@@ -95,13 +89,42 @@
   border-radius: 50%;
 }
 
-/* Final/Completed state - green dot, no animation */
+/* Endgame header: green dot (no pulse) */
 .spectator-final-dot {
   width: clamp(10px, 2vh, 20px);
   height: clamp(10px, 2vh, 20px);
-  background: var(--color-success);
+  background: var(--success);
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* READY + LIVE: shared green broadcast pill */
+.spectator-ready-badge,
+.spectator-container--live .spectator-live-badge {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 0.8vw, 0.6rem);
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: var(--radius-full);
+  font-size: clamp(0.75rem, 1.8vh, 1.1rem);
+  font-weight: 600;
+  color: var(--success);
+  letter-spacing: 0.05em;
+}
+
+.spectator-ready-dot,
+.spectator-container--live .spectator-live-dot {
+  width: clamp(8px, 1.2vh, 12px);
+  height: clamp(8px, 1.2vh, 12px);
+  background: var(--success);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.spectator-container--live .spectator-live-dot {
+  animation: pulse-live 2s ease-in-out infinite;
 }
 
 @keyframes pulse-live {
@@ -109,7 +132,10 @@
   50% { opacity: 0.5; }
 }
 
-/* No Match State */
+/* ------------------------------------------------------------
+   IDLE STATE (no match)
+   ------------------------------------------------------------ */
+
 .spectator-no-match {
   flex: 1;
   display: flex;
@@ -130,137 +156,282 @@
 }
 
 .spectator-error {
-  color: var(--color-error);
+  color: var(--error);
 }
 
-/* Score Cards - fill more vertical space, wider horizontally */
-.spectator-cards {
+/* ------------------------------------------------------------
+   LIVE STATE (in_progress)
+   ------------------------------------------------------------ */
+
+.spectator-container--live {
+  background: transparent;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.spectator-container--live .spectator-header {
+  margin-bottom: clamp(0.3rem, 0.85vh, 0.85rem);
+}
+
+.spectator-container--live .spectator-header,
+.spectator-container--live .spectator-live-cards,
+.spectator-container--live .spectator-pregame-badges {
+  position: relative;
+  z-index: 1;
+}
+
+.spectator-live-cards {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(1rem, 3vh, 2rem);
-  max-width: min(2200px, 98vw);
-  margin: 0 auto;
+  gap: clamp(0.85rem, 2vh, 1.65rem);
+  padding: clamp(0.5rem, 2vw, 2rem) 0;
+  min-height: 0;
   width: 100%;
-  padding: 0 clamp(1rem, 2vw, 3rem);
-}
-
-.spectator-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: clamp(12px, 2vh, 24px);
-  padding: clamp(1rem, 3.5vh, 2.5rem) clamp(2rem, 4vw, 5rem);
-  border-left: clamp(5px, 1vh, 10px) solid;
-  min-height: clamp(120px, 30vh, 280px);
-}
-
-.spectator-card-team-a {
-  border-left-color: var(--team-a);
-}
-
-.spectator-card-team-b {
-  border-left-color: var(--team-b);
-}
-
-/* Player Names - bigger */
-.spectator-card-names {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.75rem, 2vh, 1.25rem);
-}
-
-.spectator-player-row {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1.5vw, 1rem);
-}
-
-.spectator-player-photo {
-  width: clamp(40px, 6vh, 80px);
-  height: clamp(40px, 6vh, 80px);
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.spectator-player-avatar {
-  width: clamp(40px, 6vh, 80px);
-  height: clamp(40px, 6vh, 80px);
-  border-radius: 50%;
-  background: var(--bg-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1rem, 3vh, 2rem);
-  font-weight: 600;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.spectator-player-name {
-  font-size: clamp(1.25rem, 5vh, 3.5rem);
-  font-weight: 500;
-  color: rgba(230, 234, 242, 1);
-  line-height: 1.2;
-  min-width: 0;
-}
-
-/* Scores - fixed width columns to prevent shifting when score changes */
-.spectator-card-scores {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: clamp(3.6rem, 8vw, 8rem);
-  padding-right: clamp(2rem, 5vw, 6rem);
-}
-
-.spectator-score {
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  font-size: clamp(3rem, 15vh, 20rem);
-  width: clamp(4rem, 12vh, 10rem);
-  min-width: clamp(4rem, 12vh, 10rem);
-  flex-shrink: 0;
+  max-width: min(1320px, 92vw);
+  margin-inline: auto;
   box-sizing: border-box;
 }
 
-.spectator-score-past-set {
-  color: var(--text-muted);
+.spectator-live-card {
+  background: var(--bg-secondary);
+  border-radius: clamp(12px, 1.5vw, 24px);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
 }
 
-.spectator-score-games {
-  color: var(--text-secondary);
+.spectator-live-card-inner {
+  /* Wide enough for two tabular digits + padding at max font-size (points) */
+  --spectator-live-score-col-width: clamp(6.75rem, 14vw, 10.5rem);
+  --spectator-live-inner-pad-y: clamp(0.65rem, 1.35vh, 1.1rem);
+  --spectator-live-inner-pad-x: clamp(0.85rem, 1.5vw, 1.35rem);
+  --spectator-live-inner-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  display: flex;
+  align-items: stretch;
+  padding: var(--spectator-live-inner-pad-y) var(--spectator-live-inner-pad-x);
+  gap: var(--spectator-live-inner-gap);
 }
 
-.spectator-score-points {
+.spectator-live-photos {
+  display: flex;
+  gap: clamp(0.55rem, 1.1vw, 1.1rem);
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.spectator-live-photo {
+  width: clamp(52px, 8vw, 118px);
+  aspect-ratio: 4 / 5;
+  height: auto;
+  border-radius: clamp(6px, 0.8vw, 12px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: clamp(1px, 0.15vw, 2px) solid transparent;
+  box-sizing: border-box;
+}
+
+.spectator-live-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spectator-live-photo-a {
+  border-color: var(--team-a);
+  box-shadow:
+    0 0 20px rgba(91, 108, 255, 0.25),
+    0 0 40px rgba(91, 108, 255, 0.1);
+}
+
+.spectator-live-photo-b {
+  border-color: var(--team-b);
+  box-shadow:
+    0 0 20px rgba(232, 74, 138, 0.25),
+    0 0 40px rgba(232, 74, 138, 0.1);
+}
+
+.spectator-live-initials {
+  font-size: clamp(0.95rem, 2.25vw, 2rem);
+  font-weight: 700;
+}
+
+.spectator-live-photo-a .spectator-live-initials {
+  color: var(--team-a);
+}
+
+.spectator-live-photo-b .spectator-live-initials {
+  color: var(--team-b);
+}
+
+.spectator-live-names {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.125rem, 0.3vh, 0.25rem);
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
+.spectator-live-name-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 1rem);
+}
+
+.spectator-live-name-row span:first-child {
+  font-family: 'Space Grotesk', var(--font-family);
+  font-size: clamp(1.35rem, 3.75vw, 3.25rem);
+  font-weight: 500;
   color: var(--text-primary);
-  width: clamp(5rem, 16vh, 14rem);
-  min-width: clamp(5rem, 16vh, 14rem);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }
 
-/* Winning team's final set score */
-.spectator-score-winner {
-  color: #E6EAF2;
-}
-
-.spectator-serving-dot {
-  width: clamp(16px, 4vh, 40px);
-  height: clamp(16px, 4vh, 40px);
-  background: var(--court-ball);
+.spectator-live-serve {
+  width: clamp(12px, 2vw, 24px);
+  height: clamp(12px, 2vw, 24px);
+  background: #d0ff14;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 clamp(8px, 2vh, 20px) rgba(208, 255, 20, 0.5);
-  margin-right: clamp(0.5rem, 1vw, 1rem);
+  box-shadow:
+    0 0 10px rgba(208, 255, 20, 0.6),
+    0 0 20px rgba(208, 255, 20, 0.3);
+  animation: spectator-serve-pulse 1.5s ease-in-out infinite;
 }
 
-/* ================================================
-   PRE-GAME BROADCAST — setup, not started
-   ================================================ */
+@keyframes spectator-serve-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(208, 255, 20, 0.6),
+      0 0 20px rgba(208, 255, 20, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(208, 255, 20, 0.8),
+      0 0 30px rgba(208, 255, 20, 0.4);
+  }
+}
+
+.spectator-live-sets {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.6vh, 8px);
+  padding: 0 clamp(0.5rem, 1.5vw, 1.5rem);
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spectator-live-set-dot {
+  width: clamp(10px, 1.5vw, 18px);
+  height: clamp(10px, 1.5vw, 18px);
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.spectator-live-set-won-a {
+  background: var(--team-a);
+  border-color: var(--team-a);
+}
+
+.spectator-live-set-won-b {
+  background: var(--team-b);
+  border-color: var(--team-b);
+}
+
+.spectator-live-set-lost {
+  background: transparent;
+  border-color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.spectator-live-set-pending {
+  background: transparent;
+  border-color: var(--text-muted);
+  opacity: 0.35;
+}
+
+.spectator-live-games {
+  flex: 0 0 var(--spectator-live-score-col-width);
+  width: var(--spectator-live-score-col-width);
+  min-width: var(--spectator-live-score-col-width);
+  max-width: var(--spectator-live-score-col-width);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  font-size: clamp(2.25rem, 7vw, 6.25rem);
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  padding: clamp(0.65rem, 2.25vh, 1.35rem) clamp(0.45rem, 1vw, 0.75rem);
+  /* Bleed to card edges; cancel flex gap before points */
+  margin-top: calc(-1 * var(--spectator-live-inner-pad-y));
+  margin-bottom: calc(-1 * var(--spectator-live-inner-pad-y));
+  margin-right: calc(-1 * var(--spectator-live-inner-gap));
+  background: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
+  border-right: none;
+  border-radius: 0;
+}
+
+.spectator-live-points {
+  flex: 0 0 var(--spectator-live-score-col-width);
+  width: var(--spectator-live-score-col-width);
+  min-width: var(--spectator-live-score-col-width);
+  max-width: var(--spectator-live-score-col-width);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  /* Cap max size so two digits (15, 30, 40) stay inside --spectator-live-score-col-width */
+  font-size: clamp(2.25rem, 7vw, 6.25rem);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  padding: clamp(0.65rem, 2.25vh, 1.35rem) clamp(0.45rem, 1vw, 0.75rem);
+  /* Full height + flush to right inner edge of card (inside the 1px card border) */
+  margin-top: calc(-1 * var(--spectator-live-inner-pad-y));
+  margin-bottom: calc(-1 * var(--spectator-live-inner-pad-y));
+  margin-right: calc(-1 * var(--spectator-live-inner-pad-x));
+  background: var(--bg-tertiary);
+  border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
+  border-left: none;
+  /* Outer edge is the card stroke — no second border line */
+  border-right: none;
+  border-radius: 0;
+}
+
+@supports not (background: color-mix(in srgb, black 50%, white)) {
+  .spectator-live-games {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spectator-container--live .spectator-live-dot,
+  .spectator-live-serve {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------
+   PREGAME STATE (setup)
+   ------------------------------------------------------------ */
 
 /* Split field — team A lane (left) / team B lane (right), matches live scoreboard */
 .spectator-container--split-field {
@@ -352,33 +523,10 @@
   }
 }
 
-/* Header badges */
 .spectator-header-badges {
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 1.5vw, 1rem);
-}
-
-.spectator-ready-badge {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.4rem, 0.8vw, 0.6rem);
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid var(--color-success);
-  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
-  border-radius: var(--radius-full);
-  font-size: clamp(0.75rem, 1.8vh, 1.1rem);
-  font-weight: 600;
-  color: var(--color-success);
-  letter-spacing: 0.05em;
-}
-
-.spectator-ready-dot {
-  width: clamp(8px, 1.2vh, 12px);
-  height: clamp(8px, 1.2vh, 12px);
-  background: var(--color-success);
-  border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .spectator-court-badge {
@@ -636,9 +784,9 @@
   letter-spacing: 0.05em;
 }
 
-/* ================================================
-   END GAME STATE - Match completed
-   ================================================ */
+/* ------------------------------------------------------------
+   ENDGAME STATE (completed / abandoned)
+   ------------------------------------------------------------ */
 
 .spectator-container--endgame {
   flex: 1;
@@ -675,7 +823,7 @@
 
 .spectator-endgame-winner {
   background: var(--bg-tertiary);
-  border: clamp(2px, 0.4vh, 4px) solid var(--color-success);
+  border: clamp(2px, 0.4vh, 4px) solid var(--success);
 }
 
 .spectator-endgame-players {
@@ -721,7 +869,7 @@
 .spectator-endgame-winner-label {
   font-size: clamp(0.75rem, 1.5vh, 1rem);
   font-weight: 700;
-  color: var(--color-success);
+  color: var(--success);
   letter-spacing: 0.15em;
 }
 

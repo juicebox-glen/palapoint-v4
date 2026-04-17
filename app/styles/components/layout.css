@@ -65,7 +65,7 @@
 }
 
 .status-badge.live .status-badge-dot {
-  background: var(--color-success);
+  background: var(--success);
 }
 
 .status-badge.ready .status-badge-dot {
@@ -77,7 +77,7 @@
 }
 
 .status-badge.complete .status-badge-dot {
-  background: var(--color-success);
+  background: var(--success);
 }
 
 /* Divider */

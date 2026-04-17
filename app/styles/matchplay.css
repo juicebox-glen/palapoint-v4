@@ -441,7 +441,7 @@
 }
 
 .matchplay-players-remove:hover {
-  color: var(--color-error);
+  color: var(--error);
 }
 
 .matchplay-players-footer {
@@ -791,7 +791,7 @@
 }
 
 .matchplay-player-remove:hover {
-  color: var(--color-error);
+  color: var(--error);
 }
 
 .matchplay-player-remove:disabled {
@@ -924,7 +924,7 @@
 }
 
 .matchplay-round-tab.completed:not(.active) .matchplay-round-tab-check {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .matchplay-round-tab-num {
@@ -1030,12 +1030,12 @@
 
 .matchplay-round-status-pending {
   background: rgba(245, 158, 11, 0.25);
-  color: var(--color-warning);
+  color: var(--warning);
 }
 
 .matchplay-round-status-live {
   background: rgba(34, 197, 94, 0.25);
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .matchplay-round-status-completed {
@@ -1064,7 +1064,7 @@
 }
 
 .matchplay-match-card-completed {
-  border-left: 3px solid var(--color-success);
+  border-left: 3px solid var(--success);
 }
 
 .matchplay-match-header {
@@ -1081,7 +1081,7 @@
 }
 
 .matchplay-match-check {
-  color: var(--color-success);
+  color: var(--success);
   font-size: 1rem;
 }
 
@@ -1507,7 +1507,7 @@
 }
 
 .matchplay-event-round-check {
-  color: var(--color-success);
+  color: var(--success);
   font-size: 0.75rem;
 }
 
@@ -1628,7 +1628,7 @@
 }
 
 .matchplay-event-match-done {
-  color: var(--color-success);
+  color: var(--success);
   font-size: 1rem;
 }
 
@@ -1884,7 +1884,7 @@
 }
 
 .matchplay-event-player-remove:hover {
-  color: var(--color-error);
+  color: var(--error);
 }
 
 .matchplay-event-edit-teams {

@@ -45,8 +45,8 @@ export default function SetWinOverlay({
     : (teamBName || 'TEAM B')
 
   const borderColor = winningTeam === 'a'
-    ? 'var(--color-team-a)'
-    : 'var(--color-team-b)'
+    ? 'var(--team-a)'
+    : 'var(--team-b)'
 
   return (
     <div className="screen-wrapper">

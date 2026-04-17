@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { abbreviateSurname } from '@/lib/utils/player-names'
 import Header from '@/components/ui/Header'
 
 interface Game {
@@ -107,9 +108,7 @@ export default function SessionReviewPage() {
     fallback: string
   ): string => {
     if (!name?.trim()) return fallback
-    const parts = name.trim().split(' ')
-    const lastName = parts[parts.length - 1]
-    return lastName.substring(0, 3).toUpperCase()
+    return abbreviateSurname(name)
   }
 
   const totalMinutes =

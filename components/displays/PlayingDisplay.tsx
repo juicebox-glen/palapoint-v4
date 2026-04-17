@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
 import type { VenueBranding } from '@/lib/venue'
+import { abbreviateSurname } from '@/lib/utils/player-names'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -58,12 +59,6 @@ function TeamMatchupCard({
   subtitle,
   title = 'Match Ready',
 }: TeamMatchupCardProps) {
-  const abbreviate = (name: string | null | undefined): string => {
-    if (!name) return '---'
-    const parts = name.trim().split(' ')
-    const lastName = parts[parts.length - 1]
-    return lastName.substring(0, 3).toUpperCase()
-  }
   const hasTeamANames = !!(teamAPlayer1?.trim() || teamAPlayer2?.trim())
   const hasTeamBNames = !!(teamBPlayer1?.trim() || teamBPlayer2?.trim())
 
@@ -118,7 +113,7 @@ function TeamMatchupCard({
                   color: 'var(--text-primary)',
                 }}
               >
-                {abbreviate(teamAPlayer1)}
+                {abbreviateSurname(teamAPlayer1)}
               </span>
               <span
                 style={{
@@ -127,7 +122,7 @@ function TeamMatchupCard({
                   color: 'var(--text-primary)',
                 }}
               >
-                {abbreviate(teamAPlayer2)}
+                {abbreviateSurname(teamAPlayer2)}
               </span>
             </>
           ) : (
@@ -169,7 +164,7 @@ function TeamMatchupCard({
                   color: 'var(--text-primary)',
                 }}
               >
-                {abbreviate(teamBPlayer1)}
+                {abbreviateSurname(teamBPlayer1)}
               </span>
               <span
                 style={{
@@ -178,7 +173,7 @@ function TeamMatchupCard({
                   color: 'var(--text-primary)',
                 }}
               >
-                {abbreviate(teamBPlayer2)}
+                {abbreviateSurname(teamBPlayer2)}
               </span>
             </>
           ) : (

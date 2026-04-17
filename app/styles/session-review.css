@@ -1,8 +1,8 @@
 /* Session Review Page */
 .review-container {
   min-height: 100vh;
-  background: var(--color-bg-primary, #121212);
-  color: var(--color-text-primary, #fff);
+  background: var(--bg-primary, #121212);
+  color: var(--text-primary, #fff);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
 }
 
 .review-meta {
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary, #B3B3B3);
   font-size: 0.9rem;
 }
 
@@ -41,11 +41,11 @@
 
 .review-no-games {
   text-align: center;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary, #B3B3B3);
 }
 
 .review-game-card {
-  background: var(--color-bg-secondary, #1E1E1F);
+  background: var(--bg-secondary, #1E1E1F);
   border-radius: 0.75rem;
   padding: 1rem;
 }
@@ -58,14 +58,14 @@
 
 .review-game-number {
   font-size: 0.85rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary, #B3B3B3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .review-game-duration {
   font-size: 0.85rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary, #B3B3B3);
 }
 
 .review-game-result {
@@ -102,13 +102,13 @@
 
 .review-stat-label {
   font-size: 0.85rem;
-  color: var(--color-text-secondary, #B3B3B3);
+  color: var(--text-secondary, #B3B3B3);
 }
 
 .review-done-btn {
   width: 100%;
   padding: 1rem;
-  background: var(--color-team-a, #03a97c);
+  background: var(--team-a, #03a97c);
   color: white;
   border: none;
   border-radius: 0.75rem;

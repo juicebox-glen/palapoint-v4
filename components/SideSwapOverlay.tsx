@@ -39,11 +39,11 @@ export default function SideSwapOverlay({
   const teamAServing = servingTeam === 'a'
 
   // Serving team circle (top position)
-  const servingColor = teamAServing ? 'var(--color-team-a)' : 'var(--color-team-b)'
+  const servingColor = teamAServing ? 'var(--team-a)' : 'var(--team-b)'
   const servingOnLeft = (teamAServing && teamAOnLeft) || (!teamAServing && !teamAOnLeft)
 
   // Receiving team circle (bottom position)
-  const receivingColor = teamAServing ? 'var(--color-team-b)' : 'var(--color-team-a)'
+  const receivingColor = teamAServing ? 'var(--team-b)' : 'var(--team-a)'
   const receivingOnLeft = !servingOnLeft
 
   return (

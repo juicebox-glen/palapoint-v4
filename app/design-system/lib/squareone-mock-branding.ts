@@ -1,0 +1,19 @@
+import type { VenueBranding } from '@/lib/venue'
+
+/**
+ * Default venue branding for design-system previews so headers match production
+ * “Square One” courts: logo image, not text fallback when logoUrl is null.
+ */
+export const designSystemSquareOneBranding: VenueBranding = {
+  companyName: 'SquareOne Padel',
+  companySlug: 'squareone',
+  venueName: 'Ashford',
+  venueSlug: 'ashford',
+  courtNumber: 1,
+  courtName: 'Court 1',
+  courtId: 'mock-court-id',
+  isShowCourt: false,
+  primaryColor: '#5B6CFF',
+  secondaryColor: '#E84A8A',
+  logoUrl: '/images/squareone-logo.png',
+}

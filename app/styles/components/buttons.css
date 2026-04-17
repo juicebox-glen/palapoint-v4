@@ -56,12 +56,12 @@
 /* Danger button - destructive actions */
 .btn-danger {
   background: transparent;
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
+  color: var(--error);
+  border: 1px solid var(--error);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: var(--color-error-bg);
+  background: var(--error-bg);
 }
 
 /* Ghost button - minimal emphasis */

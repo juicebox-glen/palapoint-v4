@@ -5,11 +5,8 @@
 
 /* V3 compatibility: team-1/team-2 map to team-a/team-b */
 :root {
-  --color-team-1: var(--color-team-a);
-  --color-team-2: var(--color-team-b);
-  --color-accent: #BDF33F;
-  --color-ball: #D0FF14;
-  --color-ball-border: #B8E000;
+  --team-1: var(--team-a);
+  --team-2: var(--team-b);
   --font-size-large-title: 6vw;
   --padding-text-overlay: 4vw;
   --duration-medium: 0.6s;
@@ -21,7 +18,7 @@
   inset: 0;
   padding: 0.5vw;
   box-sizing: border-box;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
 }
 
 .screen-content {
@@ -107,7 +104,7 @@
   text-align: center;
   font-size: 3.7vw;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   opacity: 0.7;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -127,7 +124,7 @@
   font-size: 26vw;
   font-weight: 400;
   line-height: 1;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   text-align: center;
   width: 100%;
 }
@@ -137,7 +134,7 @@
   font-size: 18vw;
   font-weight: 400;
   line-height: 1;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   text-align: center;
   width: 100%;
 }
@@ -152,7 +149,7 @@
   justify-content: center;
   font-size: 7.4vw;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   z-index: 20;
 }
 
@@ -175,16 +172,16 @@
 }
 
 .game-set-dot-won-team-a {
-  background-color: var(--color-team-a);
+  background-color: var(--team-a);
 }
 
 .game-set-dot-won-team-b {
-  background-color: var(--color-team-b);
+  background-color: var(--team-b);
 }
 
 .game-set-dot-not-won {
   background-color: transparent;
-  border: 0.4vw solid var(--color-text-primary);
+  border: 0.4vw solid var(--text-primary);
   opacity: 0.7;
   box-sizing: border-box;
 }
@@ -250,7 +247,7 @@
 .point-situation-badge {
   font-size: 2.2vw;
   font-weight: 500;
-  color: var(--color-accent);
+  color: var(--court-accent);
   letter-spacing: 0.1em;
   text-shadow: 0 0 1vw rgba(189, 243, 63, 0.3);
   line-height: 1.3;
@@ -273,11 +270,11 @@
 
 /* Optional: color by team */
 .point-situation-badge.team-a {
-  border-left: 0.4vw solid var(--color-team-a);
+  border-left: 0.4vw solid var(--team-a);
 }
 
 .point-situation-badge.team-b {
-  border-left: 0.4vw solid var(--color-team-b);
+  border-left: 0.4vw solid var(--team-b);
 }
 
 /* ================================================
@@ -291,7 +288,7 @@
   justify-content: center;
   height: 100vh;
   gap: 3vw;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
 }
 
 .court-idle-main-text {
@@ -388,13 +385,13 @@
 /* Team A - Left side: darker background + blue border */
 .court-ready-team-a {
   background-color: #121212;
-  border-left: clamp(6px, 1vw, 12px) solid var(--color-team-a, #5B6CFF);
+  border-left: clamp(6px, 1vw, 12px) solid var(--team-a, #5B6CFF);
 }
 
 /* Team B - Right side: lighter background + pink border */
 .court-ready-team-b {
   background-color: #1E1E1F;
-  border-right: clamp(6px, 1vw, 12px) solid var(--color-team-b, #E84A8A);
+  border-right: clamp(6px, 1vw, 12px) solid var(--team-b, #E84A8A);
 }
 
 /* Player names container */
@@ -409,7 +406,7 @@
 .court-ready-name {
   font-size: clamp(3rem, 8vw, 10rem);
   font-weight: 500;
-  color: var(--color-text-primary, #FFFFFF);
+  color: var(--text-primary, #FFFFFF);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -422,7 +419,7 @@
   transform: translate(-50%, -50%);
   font-size: clamp(2rem, 5vw, 6rem);
   font-weight: 600;
-  color: var(--color-text-secondary, #606068);
+  color: var(--text-secondary, #606068);
   letter-spacing: 0.1em;
   z-index: 10;
 }
@@ -436,7 +433,7 @@
   font-size: 48px;
   font-weight: 600;
   white-space: nowrap;
-  color: var(--color-text-secondary, #A0A0A8);
+  color: var(--text-secondary, #A0A0A8);
   letter-spacing: 2px;
   text-align: center;
   text-transform: uppercase;
@@ -450,7 +447,7 @@
 .set-win-overlay {
   position: absolute;
   inset: 0;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -472,7 +469,7 @@
 }
 
 .set-win-text-overlay {
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   padding: var(--padding-text-overlay);
   text-align: center;
   display: inline-block;
@@ -483,7 +480,7 @@
 .set-win-title {
   font-size: 4.5vw;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.2;
@@ -500,14 +497,14 @@
 .set-win-score-value {
   font-size: 15vw;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .set-win-score-dash {
   font-size: 10vw;
   font-weight: 400;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   opacity: 0.7;
 }
 
@@ -518,7 +515,7 @@
 .side-swap-overlay {
   position: absolute;
   inset: 0;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   z-index: 100;
   overflow: hidden;
 }
@@ -625,7 +622,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   padding: var(--padding-text-overlay);
   text-align: center;
   display: inline-block;
@@ -636,7 +633,7 @@
 .side-swap-title {
   font-size: var(--font-size-large-title);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.2;
@@ -692,7 +689,7 @@
 .server-announcement-overlay {
   position: absolute;
   inset: 0;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -704,7 +701,7 @@
 .server-announcement-text-overlay {
   text-align: center;
   z-index: 10;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   padding: var(--padding-text-overlay);
   display: inline-block;
   animation: fadeInUp 0.5s ease-in-out;
@@ -713,7 +710,7 @@
 .server-announcement-title {
   font-size: var(--font-size-large-title);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.2;
@@ -777,8 +774,8 @@
   position: absolute;
   width: 3vw;
   height: 3vw;
-  background-color: var(--color-ball);
-  border: 2px solid var(--color-ball-border);
+  background-color: var(--court-ball);
+  border: 2px solid var(--court-ball-border);
   border-radius: 50%;
   box-shadow: 0 0 0.5vw rgba(208, 255, 20, 0.4);
   z-index: 20;
@@ -793,8 +790,8 @@
   position: absolute;
   width: 2.5vw;
   height: 2.5vw;
-  background-color: var(--color-ball);
-  border: 2px solid var(--color-ball-border);
+  background-color: var(--court-ball);
+  border: 2px solid var(--court-ball-border);
   border-radius: 50%;
   box-shadow: 0 0 1vw rgba(208, 255, 20, 0.6);
   z-index: 20;
@@ -816,8 +813,8 @@
   position: absolute;
   width: 3vw;
   height: 3vw;
-  background-color: var(--color-ball);
-  border: 0.3vw solid var(--color-ball-border);
+  background-color: var(--court-ball);
+  border: 0.3vw solid var(--court-ball-border);
   border-radius: 50%;
   box-shadow: 0 0 2vw rgba(208, 255, 20, 0.6);
   z-index: 5;
@@ -886,7 +883,7 @@
 .match-win-overlay {
   position: absolute;
   inset: 0;
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -895,7 +892,7 @@
 }
 
 .match-win-text-overlay {
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-primary);
   padding: var(--padding-text-overlay);
   text-align: center;
   display: inline-block;
@@ -906,7 +903,7 @@
 .match-win-title {
   font-size: 4.5vw;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   letter-spacing: 0.1em;
   text-align: center;
   margin: 0;
@@ -930,7 +927,7 @@
   gap: 1vw;
   font-size: 13vw;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   letter-spacing: 0.05em;
   position: relative;
 }
@@ -957,7 +954,7 @@
 
 .match-win-instruction {
   font-size: var(--font-size-large, 1.25rem);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   margin: 0;
   text-align: center;
 }

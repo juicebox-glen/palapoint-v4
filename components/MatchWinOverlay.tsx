@@ -48,10 +48,10 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
       : 'MATCH COMPLETE'
 
   const borderColor = winner === 'a'
-    ? 'var(--color-team-a)'
+    ? 'var(--team-a)'
     : winner === 'b'
-      ? 'var(--color-team-b)'
-      : 'var(--color-text-secondary)'
+      ? 'var(--team-b)'
+      : 'var(--text-secondary)'
 
   const title = match.status === 'abandoned'
     ? 'MATCH ABANDONED'

@@ -750,7 +750,7 @@
   padding: 0;
   border: 2px solid var(--bg-primary);
   border-radius: 50%;
-  background: var(--color-error);
+  background: var(--error);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
@@ -764,7 +764,7 @@
 }
 
 .setup-photo-remove:hover {
-  background: var(--color-error-dark);
+  background: var(--error-dark);
 }
 
 .setup-photo-remove:focus-visible {

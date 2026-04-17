@@ -93,7 +93,7 @@ export default function ServerAnnouncementOverlay({
     }
   }, [phase, handleComplete])
 
-  const teamColor = servingTeam === 'a' ? 'var(--color-team-a)' : 'var(--color-team-b)'
+  const teamColor = servingTeam === 'a' ? 'var(--team-a)' : 'var(--team-b)'
   const isTeamA = servingTeam === 'a'
   const teamName = servingTeam === 'a'
     ? (teamAName || 'TEAM A')

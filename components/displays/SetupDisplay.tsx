@@ -29,24 +29,44 @@ function formatTimeAgo(dateString: string | null): string {
   return `Started ${diffDays} day${diffDays > 1 ? 's' : ''} ago`
 }
 
+/** Design-system preview: skips session + match API and submit navigation. */
+export type SetupDisplayPreviewScreen = 'form' | 'review'
+
+export interface SetupDisplayPreviewConfig {
+  /** `form`: empty fields; `review`: names filled as if ready to start */
+  screen: SetupDisplayPreviewScreen
+}
+
 interface SetupDisplayProps {
   courtId: string
   courtSlug: string
   branding?: VenueBranding | null
+  /** When set, skips network/session loading for design system previews. */
+  preview?: SetupDisplayPreviewConfig
+}
+
+const PREVIEW_FORM_PLAYERS = ['', '', '', '']
+const PREVIEW_REVIEW_PLAYERS = ['Glen Noble', 'Rob Anderson', 'Julian Waters', 'Carl Pettit']
+
+function initialPlayersFromPreview(preview: SetupDisplayPreviewConfig | undefined): string[] {
+  if (!preview) return ['', '', '', '']
+  return preview.screen === 'review' ? [...PREVIEW_REVIEW_PLAYERS] : [...PREVIEW_FORM_PLAYERS]
 }
 
 export default function SetupDisplay({
   courtId,
   courtSlug,
   branding,
+  preview,
 }: SetupDisplayProps) {
+  const isPreview = Boolean(preview)
   const router = useRouter()
   const [activeMatch, setActiveMatch] = useState<MatchState | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !isPreview)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showSetupForm, setShowSetupForm] = useState(false)
-  const [sessionLoading, setSessionLoading] = useState(true)
+  const [sessionLoading, setSessionLoading] = useState(() => !isPreview)
   const [activeSession, setActiveSession] = useState<{
     minutes_active?: number
     minutes_since_activity?: number
@@ -57,7 +77,7 @@ export default function SetupDisplay({
 
   const [gameMode, setGameMode] = useState<GameMode>('traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
-  const [players, setPlayers] = useState<string[]>(['', '', '', ''])
+  const [players, setPlayers] = useState<string[]>(() => initialPlayersFromPreview(preview))
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
   const [tempMatchId] = useState(() => crypto.randomUUID())
@@ -71,6 +91,11 @@ export default function SetupDisplay({
   )
 
   useEffect(() => {
+    if (isPreview) {
+      setLoading(false)
+      setSessionLoading(false)
+      return
+    }
     async function loadData() {
       try {
         const storageKey = `setup_session_id_${courtSlug}`
@@ -158,11 +183,15 @@ export default function SetupDisplay({
     }
 
     loadData()
-  }, [courtId, courtSlug])
+  }, [courtId, courtSlug, isPreview])
 
-  const handleCancelSetup = () => window.history.back()
+  const handleCancelSetup = () => {
+    if (isPreview) return
+    window.history.back()
+  }
 
   const handleTakeover = async () => {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading('takeover')
     setError(null)
@@ -189,6 +218,7 @@ export default function SetupDisplay({
   }
 
   async function handleEndMatch() {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading('end')
     setError(null)
@@ -229,6 +259,7 @@ export default function SetupDisplay({
   }
 
   async function handleStartGame() {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading('create')
     setError(null)
@@ -314,7 +345,7 @@ export default function SetupDisplay({
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header branding={branding} />
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>{error}</p>
+          <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
         </div>
       </div>
     )

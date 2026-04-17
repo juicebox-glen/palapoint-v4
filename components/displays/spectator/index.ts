@@ -1,0 +1,6 @@
+export { default } from './SpectatorDisplay'
+export { SpectatorHeader } from './SpectatorHeader'
+export { SpectatorIdle } from './SpectatorIdle'
+export { SpectatorPregame } from './SpectatorPregame'
+export { SpectatorLive } from './SpectatorLive'
+export { SpectatorEndgame } from './SpectatorEndgame'

@@ -596,7 +596,7 @@ export default function MatchplayEventPage() {
   if (error && !event) {
     return (
       <div className="matchplay-event-page">
-        <p style={{ color: 'var(--color-error)' }}>{error}</p>
+        <p style={{ color: 'var(--error)' }}>{error}</p>
         <Link href="/matchplay" className="btn btn-secondary" style={{ marginTop: '1rem' }}>
           Back to list
         </Link>

@@ -17,9 +17,22 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 type ControlStage = 'setup' | 'preview' | 'live'
 
+/** Design-system preview: skips Supabase load/realtime and network actions. */
+export type ControlPanelPreviewScreen = 'setup' | 'preview' | 'live' | 'endgame'
+
+export interface ControlPanelPreviewConfig {
+  screen: ControlPanelPreviewScreen
+  /** Setup screen only: prefilled player names */
+  setupPlayers?: [string, string, string, string]
+  /** Preview / live / endgame: injected match */
+  match?: MatchState | null
+}
+
 interface ControlPanelProps {
   courtId: string
   branding?: VenueBranding | null
+  /** When set, skips Supabase/realtime and uses static data for design system previews. */
+  preview?: ControlPanelPreviewConfig
 }
 
 function getEndgameSetScores(m: MatchState) {
@@ -27,21 +40,64 @@ function getEndgameSetScores(m: MatchState) {
   return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
 }
 
-export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
-  const [match, setMatch] = useState<MatchState | null>(null)
-  const [loading, setLoading] = useState(true)
+function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
+  if (!preview) return ['', '', '', '']
+  if (preview.screen === 'setup' && preview.setupPlayers) {
+    return [...preview.setupPlayers]
+  }
+  if (preview.match) {
+    const m = preview.match
+    return [
+      m.team_a_player_1 ?? '',
+      m.team_a_player_2 ?? '',
+      m.team_b_player_1 ?? '',
+      m.team_b_player_2 ?? '',
+    ]
+  }
+  return ['Glen Noble', 'Rob Anderson', 'Julian Waters', 'Carl Pettit']
+}
+
+function initialStageFromPreview(preview: ControlPanelPreviewConfig | undefined): ControlStage {
+  if (!preview) return 'setup'
+  if (preview.screen === 'preview') return 'preview'
+  if (preview.screen === 'live') return 'live'
+  return 'setup'
+}
+
+function initialMatchFromPreview(preview: ControlPanelPreviewConfig | undefined): MatchState | null {
+  if (!preview || preview.screen === 'setup') return null
+  return preview.match ?? null
+}
+
+export default function ControlPanel({ courtId, branding, preview }: ControlPanelProps) {
+  const isPreview = Boolean(preview)
+  const [match, setMatch] = useState<MatchState | null>(() => initialMatchFromPreview(preview))
+  const [loading, setLoading] = useState(() => !isPreview)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
 
-  const [gameMode, setGameMode] = useState<GameMode>('traditional')
-  const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
-  const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
-  const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
-  const [players, setPlayers] = useState<string[]>(['', '', '', ''])
+  const [gameMode, setGameMode] = useState<GameMode>(() => preview?.match?.game_mode ?? 'traditional')
+  const [setsToWin, setSetsToWin] = useState<1 | 2>(() =>
+    preview?.match?.sets_to_win === 2 ? 2 : 1
+  )
+  const [sideSwapEnabled, setSideSwapEnabled] = useState(() => preview?.match?.side_swap_enabled ?? true)
+  const [endGameInTiebreak, setEndGameInTiebreak] = useState(
+    () => (preview?.match?.tiebreak_at ?? 6) === 6
+  )
+  const [players, setPlayers] = useState<string[]>(() => initialPlayersFromPreview(preview))
   const [tempMatchId] = useState(() => crypto.randomUUID())
-  const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
-  const [stage, setStage] = useState<ControlStage>('setup')
+  const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(() =>
+    preview?.match
+      ? {
+          team_a_player_1_photo: preview.match.team_a_player_1_photo ?? null,
+          team_a_player_2_photo: preview.match.team_a_player_2_photo ?? null,
+          team_b_player_1_photo: preview.match.team_b_player_1_photo ?? null,
+          team_b_player_2_photo: preview.match.team_b_player_2_photo ?? null,
+        }
+      : EMPTY_PLAYER_PHOTOS
+  )
+  const [stage, setStage] = useState<ControlStage>(() => initialStageFromPreview(preview))
 
   const handlePlayerPhotoChange = useCallback(
     (key: keyof PlayerPhotosState, url: string | null) => {
@@ -51,6 +107,10 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   )
 
   useEffect(() => {
+    if (isPreview) {
+      setLoading(false)
+      return
+    }
     if (!courtId) return
 
     let channel: ReturnType<typeof supabase.channel> | null = null
@@ -146,7 +206,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       document.removeEventListener('visibilitychange', onVisibility)
       if (channel) supabase.removeChannel(channel)
     }
-  }, [courtId])
+  }, [courtId, isPreview])
 
   function handlePlayerChange(index: number, value: string) {
     const next = [...players]
@@ -164,6 +224,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   async function handleContinue() {
+    if (isPreview) return
     if (!courtId) return
     const updating = !!match && match.status === 'setup'
     setActionLoading('continue')
@@ -212,12 +273,14 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   function handleBackToEdit() {
+    if (isPreview) return
     if (!match || match.status !== 'setup') return
     prefillFormFromMatch(match)
     setStage('setup')
   }
 
   async function handleStartMatch() {
+    if (isPreview) return
     if (!match || match.status !== 'setup') return
     setActionLoading('start')
     setError(null)
@@ -246,6 +309,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   async function scorePoint(team: 'a' | 'b') {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading(`score-${team}`)
     setError(null)
@@ -265,6 +329,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   async function undoLastPoint() {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading('undo')
     setError(null)
@@ -284,6 +349,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   async function endMatch() {
+    if (isPreview) return
     if (!courtId) return
     setActionLoading('end')
     setError(null)
@@ -323,6 +389,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   async function handleRematch() {
+    if (isPreview) return
     if (!courtId || !match) return
     setActionLoading('rematch')
     setError(null)
@@ -364,6 +431,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
   }
 
   function handleEditMatch() {
+    if (isPreview) return
     if (!match) return
     prefillFormFromMatch(match)
     setMatch(null)
@@ -411,7 +479,7 @@ export default function ControlPanel({ courtId, branding }: ControlPanelProps) {
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <SetupScreenHeader branding={branding} />
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--color-error)' }}>{error}</p>
+          <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
         </div>
       </div>
     )

@@ -102,11 +102,11 @@
 }
 
 .session-prompt-btn-takeover {
-  background: var(--color-error);
+  background: var(--error);
   color: var(--text-primary);
   border: none;
 }
 
 .session-prompt-btn-takeover:hover {
-  background: var(--color-error-dark);
+  background: var(--error-dark);
 }

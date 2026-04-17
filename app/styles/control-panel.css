@@ -246,10 +246,10 @@
 .control-point-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-success);
+  color: var(--success);
   text-align: center;
   padding: 0.35rem 0.6rem;
-  background: var(--color-success-bg);
+  background: var(--success-bg);
   border-radius: var(--radius-md);
   margin-top: 0.75rem;
   letter-spacing: 0.08em;
@@ -257,8 +257,8 @@
 
 /* ----- Error message ----- */
 .control-error-message {
-  background: var(--color-error-bg);
-  color: var(--color-error);
+  background: var(--error-bg);
+  color: var(--error);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
@@ -353,12 +353,12 @@
 }
 
 .control-button-danger {
-  border-color: var(--color-error);
-  color: var(--color-error);
+  border-color: var(--error);
+  color: var(--error);
 }
 
 .control-button-danger:not(:disabled):active {
-  background: var(--color-error-bg);
+  background: var(--error-bg);
 }
 
 .control-button-primary {
@@ -501,7 +501,7 @@
 }
 
 .control-panel .control-error {
-  color: var(--color-error);
+  color: var(--error);
 }
 
 /* ================================================
@@ -554,7 +554,7 @@
 .preview-status-dot {
   width: 10px;
   height: 10px;
-  background: var(--color-success);
+  background: var(--success);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -819,7 +819,7 @@
 }
 
 .endgame-badge {
-  background: var(--color-success);
+  background: var(--success);
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: var(--radius-full);
@@ -848,7 +848,7 @@
 
 .endgame-winner {
   background: var(--bg-tertiary);
-  border: 2px solid var(--color-success);
+  border: 2px solid var(--success);
 }
 
 .endgame-team-photos {
@@ -887,7 +887,7 @@
 .endgame-winner-badge {
   font-size: 0.625rem;
   font-weight: 700;
-  color: var(--color-success);
+  color: var(--success);
   letter-spacing: 0.1em;
 }
 
