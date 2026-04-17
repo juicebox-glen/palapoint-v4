@@ -3,7 +3,7 @@
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
-import { LIVE_MATCH_FULL_SELECT } from '@/lib/supabase/selects'
+import { LIVE_MATCH_FULL_SELECT } from '@/lib/live-match-select'
 import { SpectatorIdle } from './SpectatorIdle'
 import { SpectatorPregame } from './SpectatorPregame'
 import { SpectatorLive } from './SpectatorLive'

@@ -1,6 +1,9 @@
 /**
  * Reusable select field lists for `live_matches` queries.
  * Keeps spectator / control / court displays aligned.
+ *
+ * Lives at `lib/live-match-select.ts` (not under `lib/supabase/`) because `lib/supabase.ts`
+ * is a file — `@/lib/supabase/selects` cannot resolve to a sibling folder on all bundlers.
  */
 
 /** Full row — matches `MatchState` + fields used by SpectatorDisplay. */

@@ -9,7 +9,7 @@ import {
 } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { LIVE_MATCH_FULL_SELECT } from '@/lib/supabase/selects'
+import { LIVE_MATCH_FULL_SELECT } from '@/lib/live-match-select'
 
 const DEFAULT_STATUS_FILTER: string[] = [
   'setup',
