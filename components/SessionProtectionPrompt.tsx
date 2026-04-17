@@ -9,6 +9,7 @@ export default function SessionProtectionPrompt({
   warning = "There's an active session on this court. Taking over will end the current session.",
   takeOverLabel = 'Take Over',
   takeOverLoading = false,
+  error = null,
 }: {
   onCancel: () => void
   onTakeover: () => void
@@ -17,6 +18,7 @@ export default function SessionProtectionPrompt({
   warning?: string
   takeOverLabel?: string
   takeOverLoading?: boolean
+  error?: string | null
 }) {
   const busy = takeOverLoading
   return (
@@ -25,6 +27,16 @@ export default function SessionProtectionPrompt({
         <h2 className="session-prompt-title">{title}</h2>
 
         <p className="session-prompt-warning">{warning}</p>
+
+        {error ? (
+          <p
+            className="session-prompt-warning"
+            style={{ color: 'var(--error)', marginTop: '0.5rem', fontSize: '0.875rem' }}
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
 
         <div className="session-prompt-actions">
           <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={busy}>

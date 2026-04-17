@@ -199,21 +199,32 @@ export default function SetupDisplay({
     setError(null)
     const storageKey = `setup_session_id_${courtSlug}`
     try {
-      let sid = activeMatch.session_id ?? currentSessionId
+      let sid: string | null | undefined =
+        activeMatch.session_id ?? currentSessionId ?? undefined
+
+      // Match row may omit session_id; staff may already hold the court session — we skipped
+      // session setup in load when a match exists, so resolve the active session explicitly.
+      if (!sid) {
+        const check = await checkSession(courtId)
+        if (check.has_active_session && check.session) {
+          sid = check.session.id
+        }
+      }
+
       if (!sid) {
         const created = await createSession(courtId)
         if (created.success && created.session) {
           sid = created.session.id
-          setCurrentSessionId(sid)
-          if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
+        } else if (created.error === 'active_session_exists' && created.session_id) {
+          sid = created.session_id
         } else {
           setError(created.error || 'Could not start a session for this court.')
           return
         }
-      } else {
-        setCurrentSessionId(sid)
-        if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
       }
+
+      setCurrentSessionId(sid)
+      if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
       setShowActiveMatchJoinPrompt(false)
       router.push(`/playing/${courtSlug}`)
     } catch (err) {
@@ -357,6 +368,7 @@ export default function SetupDisplay({
         warning="A match is already in progress on this court. Do you want to take over?"
         takeOverLabel="Take Over"
         takeOverLoading={actionLoading === 'join-match'}
+        error={error}
         onCancel={handleCancelSetup}
         onTakeover={handleJoinExistingMatch}
       />

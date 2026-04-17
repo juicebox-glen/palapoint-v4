@@ -37,6 +37,8 @@ interface CreateSessionResponse {
   success: boolean
   session?: Session
   error?: string
+  /** Present when error is `active_session_exists` (409) */
+  session_id?: string
 }
 
 interface EndSessionResponse {
