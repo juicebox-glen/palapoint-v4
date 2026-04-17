@@ -64,6 +64,22 @@
   background: var(--error-bg);
 }
 
+/** Solid destructive CTA (e.g. session takeover) — use with `.btn` */
+.btn-danger-fill {
+  background: var(--error);
+  color: var(--text-primary);
+  border: none;
+  box-shadow: none;
+}
+
+.btn-danger-fill:hover:not(:disabled) {
+  background: var(--error-dark);
+}
+
+.btn-danger-fill:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 /* Ghost button - minimal emphasis */
 .btn-ghost {
   background: transparent;

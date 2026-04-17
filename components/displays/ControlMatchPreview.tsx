@@ -127,7 +127,7 @@ export default function ControlMatchPreview({
           <div className="preview-actions">
             <button
               type="button"
-              className="preview-btn preview-btn-secondary"
+              className="btn btn-secondary btn-block"
               onClick={onBackToEdit}
               disabled={!!loading}
             >
@@ -135,7 +135,7 @@ export default function ControlMatchPreview({
             </button>
             <button
               type="button"
-              className="preview-btn preview-btn-primary"
+              className="btn btn-primary btn-block"
               onClick={onStartMatch}
               disabled={!!loading}
             >

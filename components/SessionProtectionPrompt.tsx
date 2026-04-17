@@ -20,16 +20,10 @@ export default function SessionProtectionPrompt({
         </p>
 
         <div className="session-prompt-actions">
-          <button
-            className="session-prompt-btn session-prompt-btn-cancel"
-            onClick={onCancel}
-          >
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
             Cancel
           </button>
-          <button
-            className="session-prompt-btn session-prompt-btn-takeover"
-            onClick={onTakeover}
-          >
+          <button type="button" className="btn btn-danger-fill" onClick={onTakeover}>
             Take Over
           </button>
         </div>

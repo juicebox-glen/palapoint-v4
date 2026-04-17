@@ -20,7 +20,7 @@ export default function ControlScreensPage() {
 
       <ScreenPreview
         title="Staff Control"
-        description="Match setup, preview, live scoring controls, and end-of-game actions"
+        description="Embedded previews use the real ControlPanel in preview mode (setup → preview → live → endgame)"
         viewport="mobile"
         states={[
           { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
@@ -52,11 +52,47 @@ export default function ControlScreensPage() {
         stylesheets={[
           'app/styles/control-panel.css',
           'app/styles/setup-form.css',
+          'app/styles/components/buttons.css',
           'app/styles/tokens/colors.css',
           'app/styles/tokens/typography.css',
         ]}
-        note="Setup and preview states reuse `MatchSetupForm` styles from `setup-form.css` (mixed local hsl + `--font-family`)."
+        note="Setup and preview reuse `MatchSetupForm` / shared `.btn` styles. Preview iframe loads `/design-system/preview/control?state=…` (real components, network disabled)."
       />
+
+      <section className="ds-section">
+        <h2>User flow</h2>
+        <div className="ds-flow-diagram">
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">1</span>
+            <span className="ds-flow-label">Setup</span>
+            <span className="ds-flow-desc">Enter players, select mode</span>
+          </div>
+          <div className="ds-flow-arrow" aria-hidden>
+            →
+          </div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">2</span>
+            <span className="ds-flow-label">Preview</span>
+            <span className="ds-flow-desc">Confirm teams</span>
+          </div>
+          <div className="ds-flow-arrow" aria-hidden>
+            →
+          </div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">3</span>
+            <span className="ds-flow-label">Live</span>
+            <span className="ds-flow-desc">Score points</span>
+          </div>
+          <div className="ds-flow-arrow" aria-hidden>
+            →
+          </div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">4</span>
+            <span className="ds-flow-label">End Game</span>
+            <span className="ds-flow-desc">Rematch or edit</span>
+          </div>
+        </div>
+      </section>
 
       <section className="ds-section">
         <h2>States</h2>
@@ -65,32 +101,108 @@ export default function ControlScreensPage() {
             <tr>
               <th>State</th>
               <th>Trigger</th>
-              <th>Key Elements</th>
+              <th>Key elements</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Setup</td>
               <td>Initial load / after ending match</td>
-              <td>Player name inputs, photo capture, game mode selection, settings toggles</td>
+              <td>Game mode buttons, sets selector, toggles, player inputs with photo capture</td>
+              <td>Continue</td>
             </tr>
             <tr>
               <td>Preview</td>
-              <td>After clicking Continue from setup</td>
-              <td>READY badge, team preview, Edit/Start buttons</td>
+              <td>After clicking Continue</td>
+              <td>READY badge, team cards with initials, mode badges</td>
+              <td>Edit Match, Start Match</td>
             </tr>
             <tr>
               <td>Live</td>
               <td>After clicking Start Match</td>
-              <td>Score display, undo button, point controls</td>
+              <td>LIVE badge, score display, serving indicator, point situation badge when applicable</td>
+              <td>Team A point, Team B point, Undo, End Match</td>
             </tr>
             <tr>
               <td>End Game</td>
-              <td>Match completed</td>
-              <td>Final scores, Rematch/Edit buttons</td>
+              <td>Match completed (winner determined)</td>
+              <td>FINAL badge, winner highlight, final score</td>
+              <td>Edit Match, Rematch</td>
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section className="ds-section">
+        <h2>Form elements</h2>
+        <table className="ds-table">
+          <thead>
+            <tr>
+              <th>Element</th>
+              <th>Type</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Game mode</td>
+              <td>Button group</td>
+              <td>Traditional, Golden, Silver</td>
+            </tr>
+            <tr>
+              <td>Sets</td>
+              <td>Button group</td>
+              <td>1 Set, 3 Sets</td>
+            </tr>
+            <tr>
+              <td>Tiebreak</td>
+              <td>Toggle</td>
+              <td>On / Off</td>
+            </tr>
+            <tr>
+              <td>Side swap</td>
+              <td>Toggle</td>
+              <td>On / Off</td>
+            </tr>
+            <tr>
+              <td>Player name</td>
+              <td>Text input</td>
+              <td>Free text</td>
+            </tr>
+            <tr>
+              <td>Player photo</td>
+              <td>Photo capture</td>
+              <td>Camera / upload (sheet)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section className="ds-section">
+        <h2>Components used</h2>
+        <ul className="ds-component-list">
+          <li>
+            <Link href="/design-system/components/headers">SetupScreenHeader (centered logo)</Link>
+          </li>
+          <li>
+            <Link href="/design-system/components/buttons">Shared `.btn` (Continue, preview, endgame)</Link>
+          </li>
+          <li>
+            <Link href="/design-system/components/buttons">Control score buttons (`.control-score-button`)</Link>
+          </li>
+          <li>
+            <Link href="/design-system/components/badges">Status dots / LIVE label</Link>
+          </li>
+          <li>
+            <Link href="/design-system/components/photos">Player photo capture</Link>
+          </li>
+          <li>
+            <Link href="/design-system/components/cards">Match preview card (`ControlMatchPreview`)</Link>
+          </li>
+          <li>MatchSetupForm (mode cards, toggles, inputs)</li>
+          <li>Endgame layout (`.control-endgame`)</li>
+        </ul>
       </section>
     </div>
   )

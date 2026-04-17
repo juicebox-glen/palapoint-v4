@@ -762,42 +762,7 @@
   padding-top: 2rem;
 }
 
-.preview-btn {
-  width: 100%;
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: inherit;
-}
-
-.preview-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.preview-btn-secondary {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  color: var(--text-primary);
-}
-
-.preview-btn-primary {
-  background: var(--brand-primary, #5b6cff);
-  color: #fff;
-}
-
-.preview-btn-primary:not(:disabled):active {
-  filter: brightness(0.95);
-}
-
-.preview-btn-secondary:not(:disabled):active {
-  background: var(--bg-tertiary);
-}
+/* Preview / endgame CTAs use shared `.btn` from components/buttons.css */
 
 /* ================================================
    END GAME STATE
@@ -924,7 +889,3 @@
   padding-top: 2rem;
 }
 
-/* Endgame uses same CTA styles as matchup preview */
-.control-endgame .preview-btn {
-  max-width: 100%;
-}

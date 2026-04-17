@@ -17,7 +17,7 @@ function baseMatch(overrides: Partial<MatchState> = {}): MatchState {
     id: 'mock-control-match',
     court_id: 'mock-court-id',
     version: 1,
-    game_mode: 'traditional',
+    game_mode: 'golden_point',
     sets_to_win: 1,
     tiebreak_at: 6,
     status: 'setup',
@@ -60,6 +60,8 @@ export function getControlPreviewConfig(state: string): ControlPanelPreviewConfi
         screen: 'live',
         match: baseMatch({
           status: 'in_progress',
+          game_mode: 'golden_point',
+          sets_to_win: 1,
           team_a_points: 2,
           team_b_points: 1,
           team_a_games: 3,

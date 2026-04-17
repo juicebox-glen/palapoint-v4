@@ -582,7 +582,7 @@ export default function ControlPanel({ courtId, branding, preview }: ControlPane
             <div className="endgame-actions">
               <button
                 type="button"
-                className="preview-btn preview-btn-secondary"
+                className="btn btn-secondary btn-block"
                 onClick={handleEditMatch}
                 disabled={!!actionLoading}
               >
@@ -590,7 +590,7 @@ export default function ControlPanel({ courtId, branding, preview }: ControlPane
               </button>
               <button
                 type="button"
-                className="preview-btn preview-btn-primary"
+                className="btn btn-primary btn-block"
                 onClick={() => void handleRematch()}
                 disabled={!!actionLoading}
               >

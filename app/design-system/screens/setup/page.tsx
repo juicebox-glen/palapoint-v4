@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-import { ScreenDesignTokens } from '../../components/ScreenDesignTokens'
 import { ScreenPreview } from '../../components/ScreenPreview'
 
 export default function SetupScreensPage() {
@@ -12,76 +11,106 @@ export default function SetupScreensPage() {
 
       <header className="ds-page-header">
         <h1>Player Setup</h1>
-        <p>Mobile flow for players to join a match on court. Primary viewport: 375px.</p>
+        <p>
+          Mobile interface for players to join matches via QR code. Accessed at /setup/[company]/[venue]/[court]
+        </p>
       </header>
 
       <ScreenPreview
         title="Player Setup"
-        description="Enter names, capture photos, and confirm before the staff starts the match"
+        description="QR code join flow for players"
         viewport="mobile"
         states={[
-          { name: 'form', label: 'Form', url: '/design-system/preview/setup?state=form' },
-          { name: 'review', label: 'Review', url: '/design-system/preview/setup?state=review' },
+          { name: 'scan', label: 'QR Code', url: '/design-system/preview/setup?state=scan' },
+          { name: 'join', label: 'Join Form', url: '/design-system/preview/setup?state=join' },
+          { name: 'waiting', label: 'Waiting', url: '/design-system/preview/setup?state=waiting' },
+          { name: 'in_progress', label: 'In Progress', url: '/design-system/preview/setup?state=in_progress' },
         ]}
-      />
-
-      <ScreenDesignTokens
-        typography={[
-          {
-            token: "var(--font-family) ('Inter', …)",
-            usage: 'Documented as all-Inter in `setup-form.css`; section titles, inputs, mode cards.',
-          },
-          {
-            token: '--ui-font-* (via globals)',
-            usage: 'Not referenced directly in setup form — sizes are custom rem in the stylesheet.',
-          },
-        ]}
-        colors={[
-          {
-            token: '--background, --foreground, --primary, …',
-            usage: 'Scoped on `.setup-screen` (hsl literals) — approximates dark surfaces; migrate toward `--bg-*` / `--text-*` for parity.',
-          },
-          {
-            token: '--brand-primary (host)',
-            usage: 'Passed through header/logo when venue is configured.',
-          },
-          {
-            token: '--text-secondary, --error',
-            usage: 'Used in shared `Header` / error paths when linked from other flows.',
-          },
-        ]}
-        stylesheets={[
-          'app/styles/setup-form.css',
-          'app/styles/tokens/colors.css',
-          'app/styles/tokens/typography.css',
-        ]}
-        note="Player setup is the main place local `.setup-screen` variables diverge from global `--bg-primary` / `--text-primary`; align these when tightening the theme."
       />
 
       <section className="ds-section">
-        <h2>Notes</h2>
-        <p className="ds-note" style={{ marginBottom: '1rem' }}>
-          Embedded previews use the same <code>MatchSetupForm</code> as production with mock branding. Submit and
-          session calls are disabled in preview; use a real setup URL for end-to-end testing.
-        </p>
+        <h2>User Flow</h2>
+        <div className="ds-flow-diagram">
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">1</span>
+            <span className="ds-flow-label">Scan QR</span>
+            <span className="ds-flow-desc">On court display</span>
+          </div>
+          <div className="ds-flow-arrow">→</div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">2</span>
+            <span className="ds-flow-label">Join</span>
+            <span className="ds-flow-desc">Enter name, pick team</span>
+          </div>
+          <div className="ds-flow-arrow">→</div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">3</span>
+            <span className="ds-flow-label">Wait</span>
+            <span className="ds-flow-desc">Until match starts</span>
+          </div>
+          <div className="ds-flow-arrow">→</div>
+          <div className="ds-flow-step">
+            <span className="ds-flow-number">4</span>
+            <span className="ds-flow-label">Play</span>
+            <span className="ds-flow-desc">View live score</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="ds-section">
+        <h2>States</h2>
         <table className="ds-table">
           <thead>
             <tr>
               <th>State</th>
-              <th>Description</th>
+              <th>Trigger</th>
+              <th>Key Elements</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Form</td>
-              <td>Player rows, photos, validation</td>
+              <td>QR Code (Court Display)</td>
+              <td>Idle state on court</td>
+              <td>QR code linking to /setup route, instructions</td>
             </tr>
             <tr>
-              <td>Review</td>
-              <td>Confirm lineup before submitting to staff</td>
+              <td>Join Form</td>
+              <td>Player scans QR</td>
+              <td>Name input, team selector, optional photo</td>
+            </tr>
+            <tr>
+              <td>Waiting</td>
+              <td>Player joined, match not started</td>
+              <td>WAITING badge, team confirmation, player card</td>
+            </tr>
+            <tr>
+              <td>In Progress</td>
+              <td>Match started</td>
+              <td>LIVE badge, score display, watch message</td>
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section className="ds-section">
+        <h2>Notes</h2>
+        <div className="ds-note-block">
+          <p>
+            <strong>QR Code Generation:</strong> QR links to /setup/[company]/[venue]/[court]. The setup route checks
+            for active matches and shows appropriate state.
+          </p>
+          <p>
+            <strong>Team Selection:</strong> Players can join either Team A or Team B. Both slots must be filled or
+            staff can set names via control panel.
+          </p>
+          <p>
+            <strong>Photo Capture:</strong> Optional. Uses same PlayerPhotoCapture component as staff control panel.
+          </p>
+          <p>
+            <strong>Staff form preview:</strong> The live <code>MatchSetupForm</code> is still available at{' '}
+            <code>?state=form</code> and <code>?state=review</code> for production-parity testing.
+          </p>
+        </div>
       </section>
     </div>
   )

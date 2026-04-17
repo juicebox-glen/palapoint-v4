@@ -262,7 +262,7 @@ export default function MatchSetupForm({
 
           <button
             type="button"
-            className="setup-submit-btn"
+            className="btn btn-primary btn-block setup-form-submit"
             onClick={onSubmit}
             disabled={submitLoading}
           >

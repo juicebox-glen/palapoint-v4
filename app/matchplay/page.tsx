@@ -174,7 +174,7 @@ export default function MatchplayPage() {
           />
           <button
             type="button"
-            className="setup-pin-btn"
+            className="btn btn-primary btn-block"
             onClick={handlePinSubmit}
             disabled={pin.length !== 4 || pinLoading || !!error}
           >

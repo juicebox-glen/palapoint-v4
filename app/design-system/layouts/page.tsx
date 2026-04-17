@@ -149,7 +149,7 @@ export default function LayoutsPage() {
               <td>N/A</td>
               <td>Bottom, full-width buttons</td>
               <td>
-                <code>.preview-btn</code>
+                <code>.btn</code> + <code>.btn-block</code>
               </td>
             </tr>
             <tr>
@@ -232,12 +232,10 @@ export default function LayoutsPage() {
           </div>
 
           <div className="ds-opportunity">
-            <h4>🔄 Action Buttons</h4>
+            <h4>✓ Action Buttons</h4>
             <p>
-              Currently: <code>.btn</code>, <code>.preview-btn</code>, <code>.control-button</code>
-            </p>
-            <p>
-              Could consolidate into <code>.btn</code> with modifiers
+              Setup / control CTAs use <code>.btn</code> + variants; in-game control still uses{' '}
+              <code>.control-score-button</code> / <code>.control-button</code> for thumb-sized scoring UI.
             </p>
           </div>
 

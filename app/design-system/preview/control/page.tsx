@@ -1,5 +1,9 @@
 'use client'
 
+/**
+ * Design-system iframe target: real `ControlPanel` in preview mode (no Supabase actions).
+ * States: setup → preview → live → endgame via `?state=`. See `control-preview-config.ts` for mock data.
+ */
 import type { CSSProperties } from 'react'
 import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -21,12 +25,14 @@ function ControlPreviewContent() {
         '--brand-primary': designSystemSquareOneBranding.primaryColor,
         '--team-a': designSystemSquareOneBranding.primaryColor,
         '--team-b': designSystemSquareOneBranding.secondaryColor,
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
       }) as CSSProperties,
     []
   )
 
   return (
-    <div style={{ minHeight: '100vh', ...brandingStyles }}>
+    <div className="page control-ds-preview-root" style={{ minHeight: '100vh', ...brandingStyles }}>
       <ControlPanel
         key={state}
         courtId="mock-court-id"

@@ -367,14 +367,16 @@ export default function SetupDisplay({
           </div>
           <div className="setup-actions">
             <button
-              className="setup-button setup-button-primary"
+              type="button"
+              className="btn btn-primary btn-block"
               onClick={handleEndMatch}
               disabled={!!actionLoading}
             >
               {actionLoading === 'end' ? 'Ending...' : 'End & Start New'}
             </button>
             <button
-              className="setup-button setup-button-secondary"
+              type="button"
+              className="btn btn-secondary btn-block"
               onClick={() => router.push(`/court/${courtSlug}`)}
               disabled={!!actionLoading}
             >
@@ -426,36 +428,6 @@ export default function SetupDisplay({
             display: flex;
             flex-direction: column;
             gap: 1rem;
-          }
-          .setup-button {
-            min-height: 48px;
-            padding: 0.75rem 1.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .setup-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-          .setup-button-primary {
-            background: #22c55e;
-            color: #E6EAF2;
-          }
-          .setup-button-primary:not(:disabled):active {
-            background: #16a34a;
-            transform: scale(0.98);
-          }
-          .setup-button-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: #E6EAF2;
-          }
-          .setup-button-secondary:not(:disabled):active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0.98);
           }
         `}</style>
       </div>

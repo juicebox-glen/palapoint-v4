@@ -66,18 +66,34 @@ export default function ButtonsPage() {
       </section>
 
       <section className="ds-section">
-        <h2>Control Panel Buttons</h2>
-        <p>Full-width buttons used in staff control panel</p>
+        <h2>Full-width stack (control + setup)</h2>
+        <p>
+          Staff preview/endgame and player setup primary actions use the same <code>.btn</code> utilities with{' '}
+          <code>btn-block</code> for full width.
+        </p>
 
         <div className="ds-component-demo" style={{ maxWidth: '375px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button type="button" className="preview-btn preview-btn-secondary">
+            <button type="button" className="btn btn-secondary btn-block">
               EDIT MATCH
             </button>
-            <button type="button" className="preview-btn preview-btn-primary">
+            <button type="button" className="btn btn-primary btn-block">
               START MATCH
             </button>
           </div>
+        </div>
+      </section>
+
+      <section className="ds-section">
+        <h2>Solid danger</h2>
+        <p>
+          Session takeover and similar CTAs use <code>btn btn-danger-fill</code> (solid fill, not the outline{' '}
+          <code>btn-danger</code>).
+        </p>
+        <div className="ds-component-demo">
+          <button type="button" className="btn btn-danger-fill">
+            Take Over
+          </button>
         </div>
       </section>
 

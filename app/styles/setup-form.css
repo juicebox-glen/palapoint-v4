@@ -104,7 +104,7 @@
 .setup-form > .setup-section:nth-of-type(2) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 100ms; }
 .setup-form > .setup-section:nth-of-type(3) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 150ms; }
 .setup-form > .setup-section:nth-of-type(4) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 200ms; }
-.setup-form > .setup-submit-btn { animation: setup-slide-up 0.5s ease-out both; animation-delay: 250ms; }
+.setup-form > .setup-form-submit { animation: setup-slide-up 0.5s ease-out both; animation-delay: 250ms; }
 
 /* Header: SQUARE ONE */
 .setup-header {
@@ -518,61 +518,9 @@
   margin-top: 0.25rem;
 }
 
-/* Start Match button (.btn-start) */
-.setup-submit-btn {
-  width: 100%;
+/* Primary CTA uses shared `.btn.btn-primary.btn-block` from components/buttons.css */
+.setup-form-submit {
   margin-top: 0.25rem;
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius-lg);
-  border: none;
-  background: rgba(57, 95, 249, 1);
-  background-image: none;
-  box-shadow: 0 0 40px var(--primary-glow);
-  color: var(--primary-foreground);
-  font-family: var(--font-family);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Shine sweep on hover */
-.setup-submit-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    transparent 40%,
-    hsl(0 0% 100% / 0.15) 50%,
-    transparent 60%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  transition: transform 0.5s ease;
-  pointer-events: none;
-}
-
-.setup-submit-btn:hover:not(:disabled)::before {
-  transform: translateX(100%);
-}
-
-.setup-submit-btn:hover:not(:disabled) {
-  transform: scale(1.02);
-}
-
-.setup-submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.setup-submit-btn:not(:disabled):active {
-  transform: scale(0.98);
 }
 
 /* PIN screen (same design language) */
@@ -612,31 +560,6 @@
 
 .setup-pin-input::placeholder {
   color: var(--muted-foreground);
-}
-
-.setup-pin-btn {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  border-radius: var(--radius-xl);
-  border: none;
-  background: linear-gradient(135deg, hsl(228 94% 65%), hsl(228 94% 55%));
-  box-shadow: 0 0 40px var(--primary-glow);
-  color: var(--primary-foreground);
-  font-family: var(--font-family);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.setup-pin-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.setup-pin-btn:not(:disabled):active {
-  transform: scale(0.98);
 }
 
 .setup-pin-error {
