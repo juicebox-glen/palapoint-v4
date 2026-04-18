@@ -480,9 +480,9 @@
   border: 1px solid var(--border);
   background: var(--secondary);
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
@@ -519,8 +519,11 @@
 }
 
 /* Primary CTA uses shared `.btn.btn-primary.btn-block` from components/buttons.css */
-.setup-form-submit {
+.setup-form .setup-form-submit.btn {
   margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 /* PIN screen (same design language) */
