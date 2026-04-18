@@ -591,18 +591,19 @@
   margin: 0;
   border: none;
   border-radius: 50%;
-  background: var(--bg-tertiary);
+  /* Match `.setup-input-wrap` surface next to player name fields */
+  background: rgba(30, 37, 50, 1);
   cursor: pointer;
-  color: hsl(220 10% 55%);
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s, color 0.2s;
 }
 
 .setup-photo-trigger:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
+  background: rgba(38, 46, 62, 1);
+  color: var(--foreground);
 }
 
 .setup-photo-trigger:focus-visible {
