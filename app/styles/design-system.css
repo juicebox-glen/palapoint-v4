@@ -121,6 +121,12 @@
   color: var(--text-secondary);
 }
 
+/* Top-level flow switcher (e.g. staff vs player on design-system hub pages) */
+.ds-scope-tabs {
+  margin-top: -1rem;
+  margin-bottom: 2.5rem;
+}
+
 .ds-section {
   margin-bottom: 4rem;
 }
@@ -542,6 +548,11 @@
 
 .ds-open-link:hover {
   text-decoration: underline;
+}
+
+.ds-nav-route-hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .ds-component-list {

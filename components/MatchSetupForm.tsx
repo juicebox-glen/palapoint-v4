@@ -46,7 +46,7 @@ export default function MatchSetupForm({
   setEndGameInTiebreak,
   onSubmit,
   submitLoading,
-  submitLabel = 'START GAME',
+  submitLabel = 'CONTINUE',
   error,
   showHeader = true,
   branding,
@@ -266,7 +266,7 @@ export default function MatchSetupForm({
             onClick={onSubmit}
             disabled={submitLoading}
           >
-            {submitLoading ? 'Starting...' : submitLabel}
+            {submitLoading ? '…' : submitLabel}
           </button>
         </div>
       </div>

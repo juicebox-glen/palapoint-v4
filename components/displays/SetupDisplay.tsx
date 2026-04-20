@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
+import MatchConfirmation from '@/components/shared/MatchConfirmation'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import type { VenueBranding } from '@/lib/venue'
+import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -16,12 +18,14 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 export type SetupDisplayPreviewScreen =
   | 'form'
   | 'review'
+  | 'confirmation'
   | 'match_join_prompt'
   | 'session_prompt'
 
 export interface SetupDisplayPreviewConfig {
   /**
    * `form` / `review`: `MatchSetupForm` states.
+   * `confirmation`: shared pre-game confirmation (player flow).
    * `match_join_prompt` / `session_prompt`: same modals as production (`SessionProtectionPrompt`).
    */
   screen: SetupDisplayPreviewScreen
@@ -30,6 +34,8 @@ export interface SetupDisplayPreviewConfig {
 interface SetupDisplayProps {
   courtId: string
   courtSlug: string
+  /** Display label for confirmation header (falls back to branding court name). */
+  courtName?: string
   branding?: VenueBranding | null
   /** When set, skips network/session loading for design system previews. */
   preview?: SetupDisplayPreviewConfig
@@ -41,6 +47,35 @@ const PREVIEW_REVIEW_PLAYERS = ['Glen Noble', 'Rob Anderson', 'Julian Waters', '
 function initialPlayersFromPreview(preview: SetupDisplayPreviewConfig | undefined): string[] {
   if (!preview) return ['', '', '', '']
   return preview.screen === 'review' ? [...PREVIEW_REVIEW_PLAYERS] : [...PREVIEW_FORM_PLAYERS]
+}
+
+function previewConfirmationMatch(): MatchState {
+  return {
+    id: 'preview-match',
+    court_id: 'preview-court',
+    version: 1,
+    game_mode: 'golden_point',
+    sets_to_win: 1,
+    tiebreak_at: 6,
+    status: 'setup',
+    current_set: 1,
+    is_tiebreak: false,
+    team_a_points: 0,
+    team_b_points: 0,
+    team_a_games: 0,
+    team_b_games: 0,
+    set_scores: [],
+    deuce_count: 0,
+    serving_team: 'a',
+    team_a_player_1: PREVIEW_REVIEW_PLAYERS[0],
+    team_a_player_2: PREVIEW_REVIEW_PLAYERS[1],
+    team_b_player_1: PREVIEW_REVIEW_PLAYERS[2],
+    team_b_player_2: PREVIEW_REVIEW_PLAYERS[3],
+    winner: null,
+    started_at: null,
+    side_swap_enabled: true,
+    session_id: 'preview-session',
+  }
 }
 
 async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | null> {
@@ -57,11 +92,14 @@ async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | n
 export default function SetupDisplay({
   courtId,
   courtSlug,
+  courtName: courtNameProp,
   branding,
   preview,
 }: SetupDisplayProps) {
   const isPreview = Boolean(preview)
   const router = useRouter()
+  const displayCourtName = courtNameProp ?? branding?.courtName ?? 'Court 1'
+
   const [activeMatch, setActiveMatch] = useState<MatchState | null>(null)
   const [loading, setLoading] = useState(() => !isPreview)
   const [error, setError] = useState<string | null>(null)
@@ -77,6 +115,10 @@ export default function SetupDisplay({
   const [showActiveMatchJoinPrompt, setShowActiveMatchJoinPrompt] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
+  const [confirmationMatch, setConfirmationMatch] = useState<MatchState | null>(null)
+  /** When set, next submit uses `update_setup` for this match id (after create or edit from confirmation). */
+  const [playerSetupMatchId, setPlayerSetupMatchId] = useState<string | null>(null)
+
   const [gameMode, setGameMode] = useState<GameMode>('traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(1)
   const [players, setPlayers] = useState<string[]>(() => initialPlayersFromPreview(preview))
@@ -85,12 +127,25 @@ export default function SetupDisplay({
   const [tempMatchId] = useState(() => crypto.randomUUID())
   const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
 
+  const { match: liveCourtMatch } = useLiveMatch<MatchState>(isPreview ? null : courtId, {
+    enablePolling: false,
+  })
+
   const handlePlayerPhotoChange = useCallback(
     (key: keyof PlayerPhotosState, url: string | null) => {
       setPlayerPhotos((prev) => ({ ...prev, [key]: url }))
     },
     []
   )
+
+  useEffect(() => {
+    if (isPreview || !confirmationMatch) return
+    const id = confirmationMatch.id
+    const row = liveCourtMatch
+    if (row && row.id === id && row.status === 'in_progress') {
+      router.push(`/playing/${courtSlug}`)
+    }
+  }, [isPreview, confirmationMatch, liveCourtMatch, courtSlug, router])
 
   useEffect(() => {
     if (isPreview) {
@@ -194,6 +249,25 @@ export default function SetupDisplay({
     loadData()
   }, [courtId, courtSlug, isPreview])
 
+  const prefillFromMatch = useCallback((m: MatchState) => {
+    setPlayers([
+      m.team_a_player_1 ?? '',
+      m.team_a_player_2 ?? '',
+      m.team_b_player_1 ?? '',
+      m.team_b_player_2 ?? '',
+    ])
+    setPlayerPhotos({
+      team_a_player_1_photo: m.team_a_player_1_photo ?? null,
+      team_a_player_2_photo: m.team_a_player_2_photo ?? null,
+      team_b_player_1_photo: m.team_b_player_1_photo ?? null,
+      team_b_player_2_photo: m.team_b_player_2_photo ?? null,
+    })
+    setGameMode(m.game_mode)
+    setSetsToWin((m.sets_to_win === 2 ? 2 : 1) as 1 | 2)
+    setSideSwapEnabled(m.side_swap_enabled ?? true)
+    setEndGameInTiebreak((m.tiebreak_at ?? 6) === 6)
+  }, [])
+
   const handleCancelSetup = () => {
     if (isPreview) return
     window.history.back()
@@ -209,8 +283,6 @@ export default function SetupDisplay({
       let sid: string | null | undefined =
         activeMatch.session_id ?? currentSessionId ?? undefined
 
-      // Match row may omit session_id; staff may already hold the court session — we skipped
-      // session setup in load when a match exists, so resolve the active session explicitly.
       if (!sid) {
         const check = await checkSession(courtId)
         if (check.has_active_session && check.session) {
@@ -284,7 +356,17 @@ export default function SetupDisplay({
     setPlayerPhotos(nextPhotos)
   }
 
-  async function handleStartGame() {
+  const handleEditFromConfirmation = () => {
+    if (isPreview) return
+    if (!confirmationMatch) return
+    prefillFromMatch(confirmationMatch)
+    setPlayerSetupMatchId(confirmationMatch.id)
+    setConfirmationMatch(null)
+    setShowSetupForm(true)
+    setError(null)
+  }
+
+  async function handleContinueFromForm() {
     if (isPreview) return
     if (!courtId) return
     setActionLoading('create')
@@ -298,25 +380,33 @@ export default function SetupDisplay({
       sessionStorage.setItem(`setup_photos_${courtId}`, JSON.stringify(playerPhotos))
       sessionStorage.setItem(`setup_session_id_${courtSlug}`, currentSessionId || '')
     }
-    try {
-      const body: Record<string, unknown> = {
-        action: 'create',
-        court_id: courtId,
-        session_id: currentSessionId || undefined,
-        game_mode: gameMode,
-        sets_to_win: setsToWin,
-        side_swap_enabled: sideSwapEnabled,
-        tiebreak_at: endGameInTiebreak ? 6 : 6,
-      }
-      if (players[0]?.trim()) body.team_a_player_1 = players[0].trim()
-      if (players[1]?.trim()) body.team_a_player_2 = players[1].trim()
-      if (players[2]?.trim()) body.team_b_player_1 = players[2].trim()
-      if (players[3]?.trim()) body.team_b_player_2 = players[3].trim()
-      body.team_a_player_1_photo = playerPhotos.team_a_player_1_photo
-      body.team_a_player_2_photo = playerPhotos.team_a_player_2_photo
-      body.team_b_player_1_photo = playerPhotos.team_b_player_1_photo
-      body.team_b_player_2_photo = playerPhotos.team_b_player_2_photo
 
+    const updating = !!playerSetupMatchId
+    const body: Record<string, unknown> = {
+      court_id: courtId,
+      game_mode: gameMode,
+      sets_to_win: setsToWin,
+      side_swap_enabled: sideSwapEnabled,
+      tiebreak_at: endGameInTiebreak ? 6 : 6,
+    }
+    if (players[0]?.trim()) body.team_a_player_1 = players[0].trim()
+    if (players[1]?.trim()) body.team_a_player_2 = players[1].trim()
+    if (players[2]?.trim()) body.team_b_player_1 = players[2].trim()
+    if (players[3]?.trim()) body.team_b_player_2 = players[3].trim()
+    body.team_a_player_1_photo = playerPhotos.team_a_player_1_photo
+    body.team_a_player_2_photo = playerPhotos.team_a_player_2_photo
+    body.team_b_player_1_photo = playerPhotos.team_b_player_1_photo
+    body.team_b_player_2_photo = playerPhotos.team_b_player_2_photo
+
+    if (updating) {
+      body.action = 'update_setup'
+      body.match_id = playerSetupMatchId
+    } else {
+      body.action = 'create'
+      body.session_id = currentSessionId || undefined
+    }
+
+    try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -334,9 +424,11 @@ export default function SetupDisplay({
             setError('A match is already in progress on this court. Try Take Over to join it.')
           }
         } else {
-          setError(typeof data.error === 'string' ? data.error : 'Failed to create match')
+          setError(typeof data.error === 'string' ? data.error : 'Failed to save match')
         }
-      } else {
+      } else if (data.match) {
+        const m = data.match as MatchState
+        setPlayerSetupMatchId(m.id)
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(`setup_players_${courtId}`)
           sessionStorage.removeItem(`setup_game_mode_${courtId}`)
@@ -345,11 +437,12 @@ export default function SetupDisplay({
           sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
           sessionStorage.removeItem(`setup_photos_${courtId}`)
         }
-        router.push(`/playing/${courtSlug}`)
+        setConfirmationMatch(m)
+        setError(null)
       }
     } catch (err) {
-      console.error('Error creating match:', err)
-      setError('Failed to create match')
+      console.error('Error saving match:', err)
+      setError('Failed to save match')
     } finally {
       setActionLoading(null)
     }
@@ -368,6 +461,23 @@ export default function SetupDisplay({
     }
     if (preview.screen === 'session_prompt') {
       return <SessionProtectionPrompt onCancel={() => {}} onTakeover={() => {}} />
+    }
+    if (preview.screen === 'confirmation') {
+      return (
+        <MatchConfirmation
+          match={previewConfirmationMatch()}
+          branding={branding ?? null}
+          courtName={displayCourtName}
+          actions={
+            <>
+              <button type="button" className="btn btn-secondary btn-block" disabled>
+                EDIT MATCH
+              </button>
+              <p className="preview-passive-hint">Press button on court to start</p>
+            </>
+          }
+        />
+      )
     }
   }
 
@@ -408,7 +518,7 @@ export default function SetupDisplay({
     )
   }
 
-  if (error && !activeMatch && !showSetupForm) {
+  if (error && !activeMatch && !showSetupForm && !confirmationMatch) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header branding={branding} />
@@ -416,6 +526,30 @@ export default function SetupDisplay({
           <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
         </div>
       </div>
+    )
+  }
+
+  if (confirmationMatch) {
+    return (
+      <MatchConfirmation
+        match={confirmationMatch}
+        branding={branding ?? null}
+        courtName={displayCourtName}
+        error={error}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary btn-block"
+              onClick={handleEditFromConfirmation}
+              disabled={!!actionLoading}
+            >
+              EDIT MATCH
+            </button>
+            <p className="preview-passive-hint">Press button on court to start</p>
+          </>
+        }
+      />
     )
   }
 
@@ -435,9 +569,8 @@ export default function SetupDisplay({
       setSideSwapEnabled={setSideSwapEnabled}
       endGameInTiebreak={endGameInTiebreak}
       setEndGameInTiebreak={setEndGameInTiebreak}
-      onSubmit={handleStartGame}
+      onSubmit={handleContinueFromForm}
       submitLoading={actionLoading === 'create'}
-      submitLabel="START GAME"
       error={error}
       showHeader
       branding={branding}

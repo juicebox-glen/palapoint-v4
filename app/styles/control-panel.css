@@ -762,6 +762,15 @@
   padding-top: 2rem;
 }
 
+.preview-passive-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 /* Preview / endgame CTAs use shared `.btn` from components/buttons.css */
 
 /* ================================================

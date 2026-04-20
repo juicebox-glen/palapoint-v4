@@ -8,7 +8,7 @@ export default function SetupPage() {
   const params = useParams()
   const segments = (params.segments as string[] | undefined) ?? []
 
-  const { courtId, branding, courtSlug, isLoading, error } =
+  const { courtId, branding, courtSlug, courtName, isLoading, error } =
     useCourtRoute(segments)
 
   if (isLoading) {
@@ -44,10 +44,22 @@ export default function SetupPage() {
           } as React.CSSProperties
         }
       >
-        <SetupDisplay courtId={courtId} courtSlug={courtSlug} branding={branding} />
+        <SetupDisplay
+          courtId={courtId}
+          courtSlug={courtSlug}
+          courtName={courtName}
+          branding={branding}
+        />
       </div>
     )
   }
 
-  return <SetupDisplay courtId={courtId} courtSlug={courtSlug} branding={null} />
+  return (
+    <SetupDisplay
+      courtId={courtId}
+      courtSlug={courtSlug}
+      courtName={courtName}
+      branding={null}
+    />
+  )
 }

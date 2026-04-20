@@ -58,10 +58,8 @@ export default function DesignSystemHome() {
               <Link href="/design-system/screens/court">Court Display (TV)</Link>
             </li>
             <li>
-              <Link href="/design-system/screens/control">Staff Control (Mobile/Tablet)</Link>
-            </li>
-            <li>
-              <Link href="/design-system/screens/player-mobile">Player mobile (Setup &amp; Playing)</Link>
+              <Link href="/design-system/screens/player-mobile">Staff &amp; player control</Link>
+              <span className="ds-nav-route-hint"> — /control, /setup, /playing</span>
             </li>
           </ul>
         </section>
