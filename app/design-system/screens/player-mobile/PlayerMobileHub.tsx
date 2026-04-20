@@ -284,10 +284,10 @@ export function PlayerMobileHub() {
                   <td>Pre-game confirmation</td>
                   <td>After Continue with a saved setup row</td>
                   <td>
-                    Same layout as staff preview: READY, matchup, badges. Prominent status banner: press button on
-                    court to start (not tappable). <strong>Edit match</strong> is a small ghost button below — returns
-                    to the form (<code>update_setup</code> on next continue). When the match becomes{' '}
-                    <code>in_progress</code>, navigate to <code>/playing</code>.
+                    Same layout as staff preview: READY, matchup, badges. Large centred headline: press button on
+                    court to start; full-width <strong>Edit match</strong> (<code>btn-secondary</code>) returns to the
+                    form (<code>update_setup</code> on next continue). When the match becomes <code>in_progress</code>,
+                    navigate to <code>/playing</code>.
                   </td>
                 </tr>
                 <tr>
