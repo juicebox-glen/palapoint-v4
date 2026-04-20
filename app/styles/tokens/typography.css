@@ -23,6 +23,11 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+
+  /* Buttons: shared label style for .btn and all variants (primary, secondary, danger, ghost, team) */
+  --btn-font-size: var(--ui-font-sm);
+  --btn-font-weight: var(--font-weight-medium);
+  --btn-letter-spacing: 0.02em;
   
   /* Line heights */
   --line-height-tight: 1;
