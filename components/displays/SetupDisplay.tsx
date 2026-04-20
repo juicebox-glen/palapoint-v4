@@ -470,10 +470,13 @@ export default function SetupDisplay({
           courtName={displayCourtName}
           actions={
             <>
-              <button type="button" className="btn btn-secondary btn-block" disabled>
+              <div className="preview-ready-status-banner" role="status" aria-live="polite">
+                <span className="preview-ready-status-dot" aria-hidden />
+                <p className="preview-ready-status-text">Press button on court to start</p>
+              </div>
+              <button type="button" className="btn btn-ghost preview-player-edit-match-btn" disabled>
                 EDIT MATCH
               </button>
-              <p className="preview-passive-hint">Press button on court to start</p>
             </>
           }
         />
@@ -538,15 +541,18 @@ export default function SetupDisplay({
         error={error}
         actions={
           <>
+            <div className="preview-ready-status-banner" role="status" aria-live="polite">
+              <span className="preview-ready-status-dot" aria-hidden />
+              <p className="preview-ready-status-text">Press button on court to start</p>
+            </div>
             <button
               type="button"
-              className="btn btn-secondary btn-block"
+              className="btn btn-ghost preview-player-edit-match-btn"
               onClick={handleEditFromConfirmation}
               disabled={!!actionLoading}
             >
               EDIT MATCH
             </button>
-            <p className="preview-passive-hint">Press button on court to start</p>
           </>
         }
       />

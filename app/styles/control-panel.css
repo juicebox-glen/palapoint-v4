@@ -762,13 +762,59 @@
   padding-top: 2rem;
 }
 
-.preview-passive-hint {
+/* Player pre-game: primary status (court ready) — not interactive */
+.preview-ready-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem;
+  background: linear-gradient(145deg, var(--bg-tertiary) 0%, var(--bg-secondary) 55%, #121820 100%);
+  border: 1px solid var(--border-default);
+  border-left: 4px solid var(--ready-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  user-select: none;
+}
+
+.preview-ready-status-dot {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ready-accent);
+  box-shadow: 0 0 14px rgba(76, 198, 68, 0.55);
+}
+
+.preview-ready-status-text {
   margin: 0;
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 500;
+  flex: 1;
+  color: var(--text-primary);
+  font-size: clamp(1rem, 3.8vw, 1.125rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+/* Secondary: edit from confirmation — narrow ghost, not a primary block */
+.preview-actions .preview-player-edit-match-btn {
+  align-self: center;
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0.45rem 1.125rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--text-muted);
-  line-height: 1.4;
+  border-color: var(--border-default);
+  background: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.preview-actions .preview-player-edit-match-btn:hover:not(:disabled) {
+  color: var(--text-secondary);
+  border-color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 /* Preview / endgame CTAs use shared `.btn` from components/buttons.css */
