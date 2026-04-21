@@ -158,12 +158,16 @@ export default function SetupDisplay({
 
       try {
         const existing = await fetchActiveMatchForCourt(courtId)
-        if (existing) {
+        if (existing?.status === 'in_progress') {
           setActiveMatch(existing)
           setShowActiveMatchJoinPrompt(true)
           setSessionLoading(false)
           setLoading(false)
           return
+        }
+        if (existing?.status === 'setup') {
+          setPlayerSetupMatchId(existing.id)
+          setConfirmationMatch(existing)
         }
       } catch (err) {
         console.error('Error loading match:', err)
@@ -416,7 +420,13 @@ export default function SetupDisplay({
       if (!data.success) {
         if (data.error === 'active_match_exists') {
           const m = await fetchActiveMatchForCourt(courtId)
-          if (m) {
+          if (m?.status === 'setup') {
+            setPlayerSetupMatchId(m.id)
+            setConfirmationMatch(m)
+            setActiveMatch(null)
+            setShowActiveMatchJoinPrompt(false)
+            setError(null)
+          } else if (m) {
             setActiveMatch(m)
             setShowActiveMatchJoinPrompt(true)
             setError(null)

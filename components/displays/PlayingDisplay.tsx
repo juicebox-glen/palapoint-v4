@@ -437,21 +437,22 @@ export default function PlayingDisplay({
     )
   }
 
-  if (match?.status === 'in_progress') {
+  if (match?.status === 'in_progress' || match?.status === 'setup') {
     const isScoreless =
       match.team_a_points === 0 &&
       match.team_b_points === 0 &&
       match.team_a_games === 0 &&
       match.team_b_games === 0
+    const showReady = match.status === 'setup' || isScoreless
 
     return (
       <MatchConfirmation
         match={match as unknown as MatchConfirmationMatch}
         branding={branding ?? null}
         courtName={courtName}
-        statusLabel={isScoreless ? 'READY' : 'LIVE'}
+        statusLabel={showReady ? 'READY' : 'LIVE'}
         primaryMessage={
-          isScoreless ? (
+          showReady ? (
             <p
               className="preview-court-start-headline"
               role="status"
