@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
@@ -89,6 +89,16 @@ async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | n
   return null
 }
 
+function storedSessionMatchesSetupMatch(
+  match: MatchState,
+  courtSlug: string
+): boolean {
+  if (match.status !== 'setup' || !match.session_id) return false
+  if (typeof window === 'undefined') return false
+  const stored = sessionStorage.getItem(`setup_session_id_${courtSlug}`)
+  return Boolean(stored && stored === match.session_id)
+}
+
 export default function SetupDisplay({
   courtId,
   courtSlug,
@@ -113,6 +123,11 @@ export default function SetupDisplay({
   } | null>(null)
   const [showProtectionPrompt, setShowProtectionPrompt] = useState(false)
   const [showActiveMatchJoinPrompt, setShowActiveMatchJoinPrompt] = useState(false)
+  /** Why the court take-over prompt is shown (drives abandon + fresh form vs abandon + retry create). */
+  const [courtTakeoverReason, setCourtTakeoverReason] = useState<
+    'load' | 'create_conflict' | null
+  >(null)
+  const pendingCreateBodyRef = useRef<Record<string, unknown> | null>(null)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
   const [confirmationMatch, setConfirmationMatch] = useState<MatchState | null>(null)
@@ -138,6 +153,72 @@ export default function SetupDisplay({
     []
   )
 
+  const clearSetupDraftStorage = useCallback(() => {
+    if (typeof window === 'undefined') return
+    sessionStorage.removeItem(`setup_players_${courtId}`)
+    sessionStorage.removeItem(`setup_game_mode_${courtId}`)
+    sessionStorage.removeItem(`setup_sets_${courtId}`)
+    sessionStorage.removeItem(`setup_side_swap_${courtId}`)
+    sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
+    sessionStorage.removeItem(`setup_photos_${courtId}`)
+  }, [courtId])
+
+  const resetFreshSetupFormState = useCallback(() => {
+    setPlayers(['', '', '', ''])
+    setPlayerPhotos({ ...EMPTY_PLAYER_PHOTOS })
+    setGameMode('traditional')
+    setSetsToWin(1)
+    setSideSwapEnabled(true)
+    setEndGameInTiebreak(true)
+    setPlayerSetupMatchId(null)
+    setConfirmationMatch(null)
+    setError(null)
+    clearSetupDraftStorage()
+  }, [clearSetupDraftStorage])
+
+  const finalizeMatchSaveSuccess = useCallback(
+    (m: MatchState) => {
+      setPlayerSetupMatchId(m.id)
+      clearSetupDraftStorage()
+      setConfirmationMatch(m)
+      setError(null)
+    },
+    [clearSetupDraftStorage]
+  )
+
+  const ensureSetupSession = useCallback(async () => {
+    const storageKey = `setup_session_id_${courtSlug}`
+    let hasValidStoredSession = false
+    if (typeof window !== 'undefined') {
+      const existingSessionId = sessionStorage.getItem(storageKey)
+      if (existingSessionId) {
+        const validation = await validateSession(existingSessionId)
+        if (validation.valid) {
+          setCurrentSessionId(existingSessionId)
+          hasValidStoredSession = true
+        } else {
+          sessionStorage.removeItem(storageKey)
+        }
+      }
+    }
+
+    if (!hasValidStoredSession) {
+      const result = await checkSession(courtId)
+      if (result.has_active_session && result.session) {
+        setActiveSession(result.session)
+        setShowProtectionPrompt(true)
+      } else {
+        const createResult = await createSession(courtId)
+        if (createResult.success && createResult.session) {
+          setCurrentSessionId(createResult.session.id)
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(storageKey, createResult.session.id)
+          }
+        }
+      }
+    }
+  }, [courtId, courtSlug])
+
   useEffect(() => {
     if (isPreview || !confirmationMatch) return
     const id = confirmationMatch.id
@@ -154,55 +235,30 @@ export default function SetupDisplay({
       return
     }
     async function loadData() {
-      const storageKey = `setup_session_id_${courtSlug}`
-
       try {
         const existing = await fetchActiveMatchForCourt(courtId)
-        if (existing?.status === 'in_progress') {
-          setActiveMatch(existing)
-          setShowActiveMatchJoinPrompt(true)
-          setSessionLoading(false)
-          setLoading(false)
-          return
-        }
-        if (existing?.status === 'setup') {
-          setPlayerSetupMatchId(existing.id)
-          setConfirmationMatch(existing)
+        const blocksSetup =
+          existing &&
+          (existing.status === 'setup' || existing.status === 'in_progress')
+        if (blocksSetup) {
+          if (storedSessionMatchesSetupMatch(existing, courtSlug)) {
+            setPlayerSetupMatchId(existing.id)
+            setConfirmationMatch(existing)
+          } else {
+            setActiveMatch(existing)
+            setCourtTakeoverReason('load')
+            setShowActiveMatchJoinPrompt(true)
+            setSessionLoading(false)
+            setLoading(false)
+            return
+          }
         }
       } catch (err) {
         console.error('Error loading match:', err)
       }
 
       try {
-        let hasValidStoredSession = false
-        if (typeof window !== 'undefined') {
-          const existingSessionId = sessionStorage.getItem(storageKey)
-          if (existingSessionId) {
-            const validation = await validateSession(existingSessionId)
-            if (validation.valid) {
-              setCurrentSessionId(existingSessionId)
-              hasValidStoredSession = true
-            } else {
-              sessionStorage.removeItem(storageKey)
-            }
-          }
-        }
-
-        if (!hasValidStoredSession) {
-          const result = await checkSession(courtId)
-          if (result.has_active_session && result.session) {
-            setActiveSession(result.session)
-            setShowProtectionPrompt(true)
-          } else {
-            const createResult = await createSession(courtId)
-            if (createResult.success && createResult.session) {
-              setCurrentSessionId(createResult.session.id)
-              if (typeof window !== 'undefined') {
-                sessionStorage.setItem(storageKey, createResult.session.id)
-              }
-            }
-          }
-        }
+        await ensureSetupSession()
       } catch (sessionErr) {
         console.error('Error checking session:', sessionErr)
       } finally {
@@ -251,7 +307,7 @@ export default function SetupDisplay({
     }
 
     loadData()
-  }, [courtId, courtSlug, isPreview])
+  }, [courtId, courtSlug, isPreview, ensureSetupSession])
 
   const prefillFromMatch = useCallback((m: MatchState) => {
     setPlayers([
@@ -274,45 +330,88 @@ export default function SetupDisplay({
 
   const handleCancelSetup = () => {
     if (isPreview) return
+    pendingCreateBodyRef.current = null
+    setCourtTakeoverReason(null)
     window.history.back()
   }
 
-  const handleJoinExistingMatch = async () => {
-    if (isPreview) return
-    if (!courtId || !activeMatch) return
-    setActionLoading('join-match')
+  const handleTakeOverCourtMatch = async () => {
+    if (isPreview || !courtId || !activeMatch) return
+    const reason = courtTakeoverReason
+    const bodyToRetry =
+      reason === 'create_conflict' && pendingCreateBodyRef.current
+        ? { ...pendingCreateBodyRef.current }
+        : null
+
+    setActionLoading('court-takeover')
     setError(null)
-    const storageKey = `setup_session_id_${courtSlug}`
     try {
-      let sid: string | null | undefined =
-        activeMatch.session_id ?? currentSessionId ?? undefined
-
-      if (!sid) {
-        const check = await checkSession(courtId)
-        if (check.has_active_session && check.session) {
-          sid = check.session.id
-        }
+      const endRes = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'end',
+          court_id: courtId,
+          reason: 'abandoned',
+        }),
+      })
+      const endData = await endRes.json()
+      if (!endData.success) {
+        setError(
+          typeof endData.error === 'string'
+            ? endData.error
+            : 'Could not clear the court.'
+        )
+        return
       }
 
-      if (!sid) {
-        const created = await createSession(courtId)
-        if (created.success && created.session) {
-          sid = created.session.id
-        } else if (created.error === 'active_session_exists' && created.session_id) {
-          sid = created.session_id
-        } else {
-          setError(created.error || 'Could not start a session for this court.')
-          return
-        }
+      if (reason === 'create_conflict') {
+        pendingCreateBodyRef.current = null
       }
 
-      setCurrentSessionId(sid)
-      if (typeof window !== 'undefined') sessionStorage.setItem(storageKey, sid)
       setShowActiveMatchJoinPrompt(false)
-      router.push(`/playing/${courtSlug}`)
+      setActiveMatch(null)
+      setCourtTakeoverReason(null)
+
+      if (bodyToRetry) {
+        setActionLoading('create')
+        const retryRes = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyToRetry),
+        })
+        const retryData = await retryRes.json()
+        if (retryData.success && retryData.match) {
+          finalizeMatchSaveSuccess(retryData.match as MatchState)
+        } else if (retryData.error === 'active_match_exists') {
+          const m = await fetchActiveMatchForCourt(courtId)
+          pendingCreateBodyRef.current = { ...bodyToRetry }
+          if (m) {
+            setActiveMatch(m)
+            setCourtTakeoverReason('create_conflict')
+            setShowActiveMatchJoinPrompt(true)
+          }
+          setError(
+            typeof retryData.error === 'string'
+              ? retryData.error
+              : 'Another match appeared on this court. Take over again to continue.'
+          )
+        } else {
+          setError(
+            typeof retryData.error === 'string'
+              ? retryData.error
+              : 'Could not create your match after taking over.'
+          )
+        }
+        return
+      }
+
+      resetFreshSetupFormState()
+      setShowSetupForm(true)
+      await ensureSetupSession()
     } catch (err) {
-      console.error('Error joining match:', err)
-      setError('Could not open the player view for this match.')
+      console.error('Error taking over court:', err)
+      setError('Could not take over this court.')
     } finally {
       setActionLoading(null)
     }
@@ -420,35 +519,32 @@ export default function SetupDisplay({
       if (!data.success) {
         if (data.error === 'active_match_exists') {
           const m = await fetchActiveMatchForCourt(courtId)
-          if (m?.status === 'setup') {
+          if (m && storedSessionMatchesSetupMatch(m, courtSlug)) {
             setPlayerSetupMatchId(m.id)
             setConfirmationMatch(m)
             setActiveMatch(null)
             setShowActiveMatchJoinPrompt(false)
+            setCourtTakeoverReason(null)
             setError(null)
           } else if (m) {
+            if (body.action === 'create') {
+              pendingCreateBodyRef.current = { ...body }
+              setCourtTakeoverReason('create_conflict')
+            } else {
+              pendingCreateBodyRef.current = null
+              setCourtTakeoverReason('load')
+            }
             setActiveMatch(m)
             setShowActiveMatchJoinPrompt(true)
             setError(null)
           } else {
-            setError('A match is already in progress on this court. Try Take Over to join it.')
+            setError('A match is already in progress on this court. Try Take Over to clear it.')
           }
         } else {
           setError(typeof data.error === 'string' ? data.error : 'Failed to save match')
         }
       } else if (data.match) {
-        const m = data.match as MatchState
-        setPlayerSetupMatchId(m.id)
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem(`setup_players_${courtId}`)
-          sessionStorage.removeItem(`setup_game_mode_${courtId}`)
-          sessionStorage.removeItem(`setup_sets_${courtId}`)
-          sessionStorage.removeItem(`setup_side_swap_${courtId}`)
-          sessionStorage.removeItem(`setup_tiebreak_${courtId}`)
-          sessionStorage.removeItem(`setup_photos_${courtId}`)
-        }
-        setConfirmationMatch(m)
-        setError(null)
+        finalizeMatchSaveSuccess(data.match as MatchState)
       }
     } catch (err) {
       console.error('Error saving match:', err)
@@ -462,8 +558,8 @@ export default function SetupDisplay({
     if (preview.screen === 'match_join_prompt') {
       return (
         <SessionProtectionPrompt
-          title="Match in progress"
-          warning="A match is already in progress on this court. Do you want to take over?"
+          title="Court in Use"
+          warning="Another match is using this court. Take over to start fresh."
           onCancel={() => {}}
           onTakeover={() => {}}
         />
@@ -515,13 +611,13 @@ export default function SetupDisplay({
   if (showActiveMatchJoinPrompt && activeMatch) {
     return (
       <SessionProtectionPrompt
-        title="Match in progress"
-        warning="A match is already in progress on this court. Do you want to take over?"
+        title="Court in Use"
+        warning="Another match is using this court. Take over to clear it and continue."
         takeOverLabel="Take Over"
-        takeOverLoading={actionLoading === 'join-match'}
+        takeOverLoading={actionLoading === 'court-takeover' || actionLoading === 'create'}
         error={error}
         onCancel={handleCancelSetup}
-        onTakeover={handleJoinExistingMatch}
+        onTakeover={handleTakeOverCourtMatch}
       />
     )
   }
