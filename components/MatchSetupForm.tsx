@@ -59,6 +59,7 @@ export default function MatchSetupForm({
         {error && <div className="setup-error">{error}</div>}
 
         <div className="setup-form">
+          <div className="setup-form-body">
           <section className="setup-section">
             <h2 className="setup-section-title">POINT MODE</h2>
             <div className="setup-mode-cards">
@@ -259,6 +260,7 @@ export default function MatchSetupForm({
               </div>
             </div>
           </section>
+          </div>
 
           <button
             type="button"

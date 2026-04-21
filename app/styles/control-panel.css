@@ -860,3 +860,9 @@
 
 /* Preview / finished CTAs use shared `.btn` from components/buttons.css */
 
+@media (prefers-reduced-motion: reduce) {
+  .control-score-button,
+  .control-button {
+    transition: none !important;
+  }
+}

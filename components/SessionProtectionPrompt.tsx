@@ -24,26 +24,28 @@ export default function SessionProtectionPrompt({
   return (
     <div className="session-prompt-overlay">
       <div className="session-prompt-card">
-        <h2 className="session-prompt-title">{title}</h2>
+        <div className="session-prompt-body">
+          <h2 className="session-prompt-title">{title}</h2>
 
-        <p className="session-prompt-warning">{warning}</p>
+          <p className="session-prompt-warning">{warning}</p>
 
-        {error ? (
-          <p
-            className="session-prompt-warning"
-            style={{ color: 'var(--error)', marginTop: '0.5rem', fontSize: '0.875rem' }}
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
+          {error ? (
+            <p
+              className="session-prompt-warning"
+              style={{ color: 'var(--error)', marginTop: '0.5rem', fontSize: '0.875rem' }}
+              role="alert"
+            >
+              {error}
+            </p>
+          ) : null}
+        </div>
 
         <div className="session-prompt-actions">
-          <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={busy}>
-            Cancel
-          </button>
-          <button type="button" className="btn btn-danger-fill" onClick={onTakeover} disabled={busy}>
+          <button type="button" className="btn btn-primary btn-block" onClick={onTakeover} disabled={busy}>
             {busy ? '…' : takeOverLabel}
+          </button>
+          <button type="button" className="btn btn-ghost btn-block" onClick={onCancel} disabled={busy}>
+            Cancel
           </button>
         </div>
       </div>

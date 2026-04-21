@@ -18,24 +18,34 @@
   --input: hsl(220 15% 15%);
 }
 
-/* Page */
+/* Page — column layout so primary CTA can stay above home indicator / thumb zone */
 .setup-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
   padding: 2rem 1rem; /* py-8 px-4 */
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
   font-family: var(--font-family);
+  display: flex;
+  flex-direction: column;
 }
 
 .setup-screen-inner {
   max-width: min(28rem, 100%); /* phone; widened on tablet below */
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
 }
 
 /* Tablet / iPad: use horizontal space without stretching to full desktop width */
 @media (min-width: 600px) {
   .setup-screen {
     padding: 2rem clamp(1.25rem, 5vw, 3rem);
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
   }
 
   .setup-screen-inner {
@@ -100,10 +110,10 @@
   animation-delay: 0ms;
 }
 
-.setup-form > .setup-section:nth-of-type(1) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 50ms; }
-.setup-form > .setup-section:nth-of-type(2) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 100ms; }
-.setup-form > .setup-section:nth-of-type(3) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 150ms; }
-.setup-form > .setup-section:nth-of-type(4) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 200ms; }
+.setup-form-body > .setup-section:nth-of-type(1) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 50ms; }
+.setup-form-body > .setup-section:nth-of-type(2) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 100ms; }
+.setup-form-body > .setup-section:nth-of-type(3) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 150ms; }
+.setup-form-body > .setup-section:nth-of-type(4) { animation: setup-slide-up 0.5s ease-out both; animation-delay: 200ms; }
 .setup-form > .setup-form-submit { animation: setup-slide-up 0.5s ease-out both; animation-delay: 250ms; }
 
 /* Header: SQUARE ONE */
@@ -178,11 +188,24 @@
   text-align: center;
 }
 
-/* Form layout — space-y-6 between cards */
+/* Form layout — body scrolls; submit stays in thumb zone when viewport is tall */
 .setup-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* space-y-6 */
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+
+.setup-form-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 0.25rem;
 }
 
 /* Glass card wrapper for each section */
@@ -520,7 +543,8 @@
 
 /* Primary CTA uses shared `.btn.btn-primary.btn-block` from components/buttons.css */
 .setup-form .setup-form-submit.btn {
-  margin-top: 0.25rem;
+  flex-shrink: 0;
+  margin-top: 0.75rem;
 }
 
 /* PIN screen (same design language) */
@@ -855,4 +879,29 @@
 .setup-photo-sheet-cancel:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup-header,
+  .setup-form-body > .setup-section,
+  .setup-form > .setup-form-submit,
+  .setup-slide-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .setup-photo-sheet-backdrop,
+  .setup-photo-sheet {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .setup-photo-sheet-option,
+  .setup-photo-sheet-remove,
+  .setup-photo-sheet-cancel {
+    transition: none !important;
+  }
 }
