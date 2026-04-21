@@ -468,15 +468,21 @@ export default function SetupDisplay({
           match={previewConfirmationMatch()}
           branding={branding ?? null}
           courtName={displayCourtName}
+          primaryMessage={
+            <p
+              className="preview-court-start-headline"
+              role="status"
+              aria-label="Press button on court to start"
+            >
+              Press button on
+              <br />
+              court to start
+            </p>
+          }
           actions={
-            <>
-              <p className="preview-court-start-headline" role="status">
-                Press button on court to start
-              </p>
-              <button type="button" className="btn btn-secondary btn-block" disabled>
-                EDIT MATCH
-              </button>
-            </>
+            <button type="button" className="btn btn-secondary btn-block" disabled>
+              EDIT MATCH
+            </button>
           }
         />
       )
@@ -538,20 +544,27 @@ export default function SetupDisplay({
         branding={branding ?? null}
         courtName={displayCourtName}
         error={error}
+        primaryMessage={
+          <p
+            className="preview-court-start-headline"
+            role="status"
+            aria-live="polite"
+            aria-label="Press button on court to start"
+          >
+            Press button on
+            <br />
+            court to start
+          </p>
+        }
         actions={
-          <>
-            <p className="preview-court-start-headline" role="status" aria-live="polite">
-              Press button on court to start
-            </p>
-            <button
-              type="button"
-              className="btn btn-secondary btn-block"
-              onClick={handleEditFromConfirmation}
-              disabled={!!actionLoading}
-            >
-              EDIT MATCH
-            </button>
-          </>
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            onClick={handleEditFromConfirmation}
+            disabled={!!actionLoading}
+          >
+            EDIT MATCH
+          </button>
         }
       />
     )

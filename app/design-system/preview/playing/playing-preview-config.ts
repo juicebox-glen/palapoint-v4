@@ -13,6 +13,10 @@ export function getPlayingPreviewConfig(state: string): PlayingDisplayPreviewCon
       return { screen: 'ready' }
     case 'postgame_win':
       return { screen: 'postgame_win' }
+    case 'postgame_win_3sweep':
+      return { screen: 'postgame_win_3sweep' }
+    case 'postgame_win_3split':
+      return { screen: 'postgame_win_3split' }
     case 'postgame_abandoned':
       return { screen: 'postgame_abandoned' }
     case 'live':

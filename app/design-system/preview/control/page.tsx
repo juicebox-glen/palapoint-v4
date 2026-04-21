@@ -37,6 +37,7 @@ function ControlPreviewContent() {
         key={state}
         courtId="mock-court-id"
         branding={designSystemSquareOneBranding}
+        courtName={designSystemSquareOneBranding.courtName}
         preview={preview}
       />
     </div>

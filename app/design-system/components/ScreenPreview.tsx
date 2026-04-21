@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 
+export interface ScreenPreviewState {
+  name: string
+  label: string
+  url: string
+  /** When set, overrides the default `viewport` for this tab only (e.g. TV for venue “show”). */
+  viewport?: 'mobile' | 'tablet' | 'tv'
+}
+
 interface ScreenPreviewProps {
   title: string
   description: string
   viewport: 'mobile' | 'tablet' | 'tv'
-  states: {
-    name: string
-    label: string
-    url: string
-  }[]
+  states: ScreenPreviewState[]
 }
 
 const viewportSizes = {
@@ -21,9 +25,11 @@ const viewportSizes = {
 
 export function ScreenPreview({ title, description, viewport, states }: ScreenPreviewProps) {
   const [activeState, setActiveState] = useState(states[0]?.name || '')
-  const size = viewportSizes[viewport]
+  const active = states.find((s) => s.name === activeState) ?? states[0]
+  const effectiveViewport = active?.viewport ?? viewport
+  const size = viewportSizes[effectiveViewport]
 
-  const activeUrl = states.find((s) => s.name === activeState)?.url || ''
+  const activeUrl = active?.url ?? ''
 
   return (
     <div className="ds-screen-preview">
@@ -33,7 +39,7 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
           <p>{description}</p>
         </div>
         <div className="ds-screen-meta">
-          <span className="ds-viewport-label">{viewport.toUpperCase()}</span>
+          <span className="ds-viewport-label">{effectiveViewport.toUpperCase()}</span>
           <span className="ds-viewport-size">
             {size.width} × {size.height}
           </span>
@@ -63,6 +69,7 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
         }}
       >
         <iframe
+          key={`${activeUrl}-${effectiveViewport}`}
           src={activeUrl}
           title={`${title} - ${activeState}`}
           style={{

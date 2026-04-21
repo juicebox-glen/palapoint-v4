@@ -2,49 +2,41 @@
 
 import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
-import type { MatchState } from '@/lib/types/match'
+import type { MatchState, PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-import { formatNameAbbreviated, getPlayerInitials } from '@/lib/utils/player-names'
+import { formatNameAbbreviated } from '@/lib/utils/player-names'
+import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import '@/app/styles/control-panel.css'
 
-function PreviewAvatar({
-  photo,
-  name,
-  team,
-}: {
-  photo?: string | null
-  name?: string | null
-  team: 'a' | 'b'
-}) {
-  const initials = getPlayerInitials(name)
-
-  return (
-    <div className={`preview-avatar preview-avatar-${team}`}>
-      {photo ? (
-        <img src={photo} alt={name?.trim() || 'Player'} />
-      ) : (
-        <span className="preview-avatar-initials">{initials}</span>
-      )}
-    </div>
-  )
-}
-
-function setsBadgeLabel(setsToWin: number | null | undefined): string {
+export function matchPreviewSetsBadgeLabel(setsToWin: number | null | undefined): string {
   const n = setsToWin ?? 1
   return n > 1 ? '3 SETS' : '1 SET'
 }
 
-function modeBadgeLabel(mode: MatchState['game_mode']): string {
+export function matchPreviewModeBadgeLabel(mode: MatchState['game_mode']): string {
   if (mode === 'golden_point') return 'GOLDEN'
   if (mode === 'silver_point') return 'SILVER'
   return 'TRADITIONAL'
 }
 
+/** Minimal match fields for the confirmation / live playing preview layout. */
+export type MatchConfirmationMatch = Pick<MatchState, 'game_mode' | 'sets_to_win'> &
+  Partial<PlayerPhotosState> & {
+    team_a_player_1?: string | null
+    team_a_player_2?: string | null
+    team_b_player_1?: string | null
+    team_b_player_2?: string | null
+  }
+
 export interface MatchConfirmationProps {
-  match: MatchState
+  match: MatchConfirmationMatch
   branding?: VenueBranding | null
   courtName: string
   error?: string | null
+  /** Status row label next to the green dot (e.g. READY, LIVE). */
+  statusLabel?: string
+  /** Rendered after setting badges, before the action buttons. */
+  primaryMessage?: ReactNode
   /** Bottom CTA area (wrapped in `.preview-actions`). */
   actions: ReactNode
 }
@@ -54,6 +46,8 @@ export default function MatchConfirmation({
   branding,
   courtName,
   error,
+  statusLabel = 'READY',
+  primaryMessage,
   actions,
 }: MatchConfirmationProps) {
   return (
@@ -65,7 +59,7 @@ export default function MatchConfirmation({
           <div className="preview-header">
             <div className="preview-status">
               <span className="preview-status-dot" aria-hidden />
-              <span>READY</span>
+              <span>{statusLabel}</span>
             </div>
             <div className="preview-court">{courtName}</div>
           </div>
@@ -76,12 +70,12 @@ export default function MatchConfirmation({
             <div className="preview-matchup">
               <div className="preview-team preview-team-a">
                 <div className="preview-team-avatars">
-                  <PreviewAvatar
+                  <MatchPreviewAvatar
                     photo={match.team_a_player_1_photo}
                     name={match.team_a_player_1}
                     team="a"
                   />
-                  <PreviewAvatar
+                  <MatchPreviewAvatar
                     photo={match.team_a_player_2_photo}
                     name={match.team_a_player_2}
                     team="a"
@@ -99,12 +93,12 @@ export default function MatchConfirmation({
 
               <div className="preview-team preview-team-b">
                 <div className="preview-team-avatars">
-                  <PreviewAvatar
+                  <MatchPreviewAvatar
                     photo={match.team_b_player_1_photo}
                     name={match.team_b_player_1}
                     team="b"
                   />
-                  <PreviewAvatar
+                  <MatchPreviewAvatar
                     photo={match.team_b_player_2_photo}
                     name={match.team_b_player_2}
                     team="b"
@@ -119,11 +113,16 @@ export default function MatchConfirmation({
           </div>
 
           <div className="preview-badges">
-            <span className="preview-badge">{setsBadgeLabel(match.sets_to_win)}</span>
-            <span className="preview-badge">{modeBadgeLabel(match.game_mode)}</span>
+            <span className="preview-badge">{matchPreviewSetsBadgeLabel(match.sets_to_win)}</span>
+            <span className="preview-badge">{matchPreviewModeBadgeLabel(match.game_mode)}</span>
           </div>
 
-          <div className="preview-actions">{actions}</div>
+          <div className="preview-footer">
+            {primaryMessage != null && primaryMessage !== false && (
+              <div className="preview-primary-message">{primaryMessage}</div>
+            )}
+            <div className="preview-actions">{actions}</div>
+          </div>
         </div>
       </div>
     </div>

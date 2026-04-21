@@ -5,6 +5,11 @@ import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import ControlMatchPreview from '@/components/displays/ControlMatchPreview'
+import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
+import {
+  matchPreviewModeBadgeLabel,
+  matchPreviewSetsBadgeLabel,
+} from '@/components/shared/MatchConfirmation'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
@@ -31,13 +36,10 @@ export interface ControlPanelPreviewConfig {
 interface ControlPanelProps {
   courtId: string
   branding?: VenueBranding | null
+  /** Same label as player flow (e.g. COURT 1). */
+  courtName?: string
   /** When set, skips Supabase/realtime and uses static data for design system previews. */
   preview?: ControlPanelPreviewConfig
-}
-
-function getEndgameSetScores(m: MatchState) {
-  if (m.set_scores && m.set_scores.length > 0) return m.set_scores
-  return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -69,7 +71,13 @@ function initialMatchFromPreview(preview: ControlPanelPreviewConfig | undefined)
   return preview.match ?? null
 }
 
-export default function ControlPanel({ courtId, branding, preview }: ControlPanelProps) {
+export default function ControlPanel({
+  courtId,
+  branding,
+  courtName,
+  preview,
+}: ControlPanelProps) {
+  const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const isPreview = Boolean(preview)
   const [match, setMatch] = useState<MatchState | null>(() => initialMatchFromPreview(preview))
   const [loading, setLoading] = useState(() => !isPreview)
@@ -495,111 +503,33 @@ export default function ControlPanel({ courtId, branding, preview }: ControlPane
     (match.winner != null && match.status !== 'setup' && match.status !== 'in_progress')
 
   if (showEndgame) {
-    const endgameSets = getEndgameSetScores(match)
     return (
-      <div className="control-panel">
-        <div className="control-container control-container--endgame">
-          <SetupScreenHeader branding={branding} />
-          {error && <div className="control-error-message">{error}</div>}
-
-          <div className="control-endgame">
-            <div className="endgame-header">
-              <span className="endgame-badge">FINAL</span>
-            </div>
-
-            <div className="endgame-result">
-              <div
-                className={`endgame-team ${match.winner === 'a' ? 'endgame-winner' : ''}`}
-              >
-                <div className="endgame-team-photos">
-                  {match.team_a_player_1_photo ? (
-                    <img src={match.team_a_player_1_photo} alt="" className="endgame-photo" />
-                  ) : (
-                    <div className="endgame-avatar" aria-hidden>
-                      {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  {match.team_a_player_2_photo ? (
-                    <img src={match.team_a_player_2_photo} alt="" className="endgame-photo" />
-                  ) : (
-                    <div className="endgame-avatar" aria-hidden>
-                      {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                </div>
-                <div className="endgame-names">
-                  <span>{match.team_a_player_1?.trim() || '—'}</span>
-                  <span>{match.team_a_player_2?.trim() || '—'}</span>
-                </div>
-                {match.winner === 'a' && (
-                  <span className="endgame-winner-badge">WINNER</span>
-                )}
-              </div>
-
-              <div className="endgame-score">
-                {endgameSets.map((set, i) => {
-                  const a = set.team_a ?? (set as { team_a_games?: number }).team_a_games ?? 0
-                  const b = set.team_b ?? (set as { team_b_games?: number }).team_b_games ?? 0
-                  return (
-                    <div key={i} className="endgame-set">
-                      <span className={match.winner === 'a' ? 'endgame-set-winner' : ''}>{a}</span>
-                      <span className="endgame-set-divider">-</span>
-                      <span className={match.winner === 'b' ? 'endgame-set-winner' : ''}>{b}</span>
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div
-                className={`endgame-team ${match.winner === 'b' ? 'endgame-winner' : ''}`}
-              >
-                <div className="endgame-team-photos">
-                  {match.team_b_player_1_photo ? (
-                    <img src={match.team_b_player_1_photo} alt="" className="endgame-photo" />
-                  ) : (
-                    <div className="endgame-avatar" aria-hidden>
-                      {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  {match.team_b_player_2_photo ? (
-                    <img src={match.team_b_player_2_photo} alt="" className="endgame-photo" />
-                  ) : (
-                    <div className="endgame-avatar" aria-hidden>
-                      {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                </div>
-                <div className="endgame-names">
-                  <span>{match.team_b_player_1?.trim() || '—'}</span>
-                  <span>{match.team_b_player_2?.trim() || '—'}</span>
-                </div>
-                {match.winner === 'b' && (
-                  <span className="endgame-winner-badge">WINNER</span>
-                )}
-              </div>
-            </div>
-
-            <div className="endgame-actions">
-              <button
-                type="button"
-                className="btn btn-secondary btn-block"
-                onClick={handleEditMatch}
-                disabled={!!actionLoading}
-              >
-                EDIT MATCH
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-block"
-                onClick={() => void handleRematch()}
-                disabled={!!actionLoading}
-              >
-                {actionLoading === 'rematch' ? '…' : 'REMATCH'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MatchFinishedPanel
+        match={match}
+        branding={branding ?? null}
+        courtName={displayCourtName}
+        error={error}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary btn-block"
+              onClick={handleEditMatch}
+              disabled={!!actionLoading}
+            >
+              EDIT MATCH
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => void handleRematch()}
+              disabled={!!actionLoading}
+            >
+              {actionLoading === 'rematch' ? '…' : 'REMATCH'}
+            </button>
+          </>
+        }
+      />
     )
   }
 
@@ -609,7 +539,7 @@ export default function ControlPanel({ courtId, branding, preview }: ControlPane
         <ControlMatchPreview
           match={match}
           branding={branding}
-          courtName={branding?.courtName ?? 'Court 1'}
+          courtName={displayCourtName}
           onBackToEdit={handleBackToEdit}
           onStartMatch={handleStartMatch}
           loading={actionLoading === 'start'}
@@ -641,108 +571,116 @@ export default function ControlPanel({ courtId, branding, preview }: ControlPane
   const matchSetsToWin = match.sets_to_win ?? 1
   const setsWonA = (match.set_scores ?? []).filter((s) => s.team_a > s.team_b).length
   const setsWonB = (match.set_scores ?? []).filter((s) => s.team_b > s.team_a).length
-  const gameModeLabel =
-    match.game_mode === 'traditional'
-      ? 'Standard'
-      : match.game_mode === 'golden_point'
-        ? 'Golden Point'
-        : 'Silver Point'
   const pointSituation = getPointSituation(match)
 
   return (
     <div className="control-panel">
-      <div className="control-container">
-        <SetupScreenHeader branding={branding} />
-        <header className="control-header">
-          <span className="control-live">
-            <span className="control-live-dot" aria-hidden />
-            LIVE
-          </span>
-          <span className="control-game-mode">{gameModeLabel}</span>
-        </header>
+      <div className="control-container control-container--preview">
+        <div className="control-preview">
+          <SetupScreenHeader branding={branding} />
 
-        {error && <div className="control-error-message">{error}</div>}
-
-        <div className="control-scoreboard">
-          <div className="control-scoreboard-cols">
-            <div className="control-scoreboard-col">
-              {match.serving_team === 'a' && (
-                <div className="control-server-bar control-server-bar-a" aria-hidden />
-              )}
-              <div className="control-scoreboard-name">{teamAName}</div>
-              <div className="control-scoreboard-point">{pointsA}</div>
+          <div className="preview-header">
+            <div className="preview-status">
+              <span className="preview-status-dot" aria-hidden />
+              <span>LIVE</span>
             </div>
-            <div className="control-scoreboard-col">
-              {match.serving_team === 'b' && (
-                <div className="control-server-bar control-server-bar-b" aria-hidden />
-              )}
-              <div className="control-scoreboard-name">{teamBName}</div>
-              <div className="control-scoreboard-point">{pointsB}</div>
+            <div className="preview-court">{displayCourtName}</div>
+          </div>
+
+          {error && <div className="control-error-message">{error}</div>}
+
+          <div className="control-scoreboard">
+            <div className="control-scoreboard-cols">
+              <div className="control-scoreboard-col">
+                {match.serving_team === 'a' && (
+                  <div className="control-server-bar control-server-bar-a" aria-hidden />
+                )}
+                <div className="control-scoreboard-name">{teamAName}</div>
+                <div className="control-scoreboard-point">{pointsA}</div>
+              </div>
+              <div className="control-scoreboard-col">
+                {match.serving_team === 'b' && (
+                  <div className="control-server-bar control-server-bar-b" aria-hidden />
+                )}
+                <div className="control-scoreboard-name">{teamBName}</div>
+                <div className="control-scoreboard-point">{pointsB}</div>
+              </div>
+            </div>
+            <div className="control-scoreboard-sets-row">
+              <div className="control-scoreboard-sets">
+                {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`control-scoreboard-set-dot team-a ${i < setsWonA ? 'won' : ''}`}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+              <div className="control-scoreboard-games">
+                {match.team_a_games} – {match.team_b_games}
+              </div>
+              <div className="control-scoreboard-sets">
+                {Array.from({ length: matchSetsToWin }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`control-scoreboard-set-dot team-b ${i < setsWonB ? 'won' : ''}`}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+            </div>
+            {match.is_tiebreak && (
+              <div className="control-scoreboard-tiebreak">Tiebreak</div>
+            )}
+            {pointSituation && (
+              <div className="control-point-badge">{pointSituation.type}</div>
+            )}
+          </div>
+
+          <div className="preview-badges">
+            <span className="preview-badge">{matchPreviewSetsBadgeLabel(match.sets_to_win)}</span>
+            <span className="preview-badge">{matchPreviewModeBadgeLabel(match.game_mode)}</span>
+          </div>
+
+          <div className="control-live-thumb-zone">
+            <div className="control-score-buttons">
+              <button
+                type="button"
+                className={`control-score-button control-score-button-a ${actionLoading === 'score-a' ? 'loading' : ''}`}
+                onClick={() => scorePoint('a')}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'score-a' ? '...' : `+ ${teamAName}`}
+              </button>
+              <button
+                type="button"
+                className={`control-score-button control-score-button-b ${actionLoading === 'score-b' ? 'loading' : ''}`}
+                onClick={() => scorePoint('b')}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'score-b' ? '...' : `+ ${teamBName}`}
+              </button>
+            </div>
+
+            <div className="control-actions">
+              <button
+                type="button"
+                className="control-button"
+                onClick={undoLastPoint}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === 'undo' ? 'Undoing...' : 'UNDO'}
+              </button>
+              <button
+                type="button"
+                className="control-button control-button-danger"
+                onClick={() => setShowEndConfirm(true)}
+                disabled={!!actionLoading}
+              >
+                END MATCH
+              </button>
             </div>
           </div>
-          <div className="control-scoreboard-sets-row">
-            <div className="control-scoreboard-sets">
-              {Array.from({ length: matchSetsToWin }).map((_, i) => (
-                <span
-                  key={i}
-                  className={`control-scoreboard-set-dot team-a ${i < setsWonA ? 'won' : ''}`}
-                  aria-hidden
-                />
-              ))}
-            </div>
-            <div className="control-scoreboard-games">
-              {match.team_a_games} – {match.team_b_games}
-            </div>
-            <div className="control-scoreboard-sets">
-              {Array.from({ length: matchSetsToWin }).map((_, i) => (
-                <span
-                  key={i}
-                  className={`control-scoreboard-set-dot team-b ${i < setsWonB ? 'won' : ''}`}
-                  aria-hidden
-                />
-              ))}
-            </div>
-          </div>
-          {match.is_tiebreak && (
-            <div className="control-scoreboard-tiebreak">Tiebreak</div>
-          )}
-          {pointSituation && (
-            <div className="control-point-badge">{pointSituation.type}</div>
-          )}
-        </div>
-
-        <div className="control-score-buttons">
-          <button
-            className={`control-score-button control-score-button-a ${actionLoading === 'score-a' ? 'loading' : ''}`}
-            onClick={() => scorePoint('a')}
-            disabled={!!actionLoading}
-          >
-            {actionLoading === 'score-a' ? '...' : `+ ${teamAName}`}
-          </button>
-          <button
-            className={`control-score-button control-score-button-b ${actionLoading === 'score-b' ? 'loading' : ''}`}
-            onClick={() => scorePoint('b')}
-            disabled={!!actionLoading}
-          >
-            {actionLoading === 'score-b' ? '...' : `+ ${teamBName}`}
-          </button>
-        </div>
-
-        <div className="control-actions">
-          <button
-            className="control-button"
-            onClick={undoLastPoint}
-            disabled={!!actionLoading}
-          >
-            {actionLoading === 'undo' ? 'Undoing...' : 'UNDO'}
-          </button>
-          <button
-            className="control-button control-button-danger"
-            onClick={() => setShowEndConfirm(true)}
-            disabled={!!actionLoading}
-          >
-            END MATCH
-          </button>
         </div>
       </div>
 

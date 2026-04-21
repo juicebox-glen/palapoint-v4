@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
 import Header from '@/components/ui/Header'
+import MatchConfirmation, {
+  type MatchConfirmationMatch,
+} from '@/components/shared/MatchConfirmation'
 import type { VenueBranding } from '@/lib/venue'
-import { abbreviateSurname } from '@/lib/utils/player-names'
+import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -29,6 +32,10 @@ interface MatchState {
   team_a_player_2: string | null
   team_b_player_1: string | null
   team_b_player_2: string | null
+  team_a_player_1_photo?: string | null
+  team_a_player_2_photo?: string | null
+  team_b_player_1_photo?: string | null
+  team_b_player_2_photo?: string | null
   session_id: string | null
   game_mode: string
   sets_to_win: number
@@ -44,6 +51,10 @@ export type PlayingDisplayPreviewScreen =
   | 'ready'
   | 'live'
   | 'postgame_win'
+  /** Best-of-3, 2–0 (two set rows). */
+  | 'postgame_win_3sweep'
+  /** Best-of-3, 2–1 (three set rows). */
+  | 'postgame_win_3split'
   | 'postgame_abandoned'
 
 export interface PlayingDisplayPreviewConfig {
@@ -76,161 +87,6 @@ interface SessionState {
   valid: boolean
   reason?: string
   session?: unknown
-}
-
-interface TeamMatchupCardProps {
-  teamAPlayer1?: string | null
-  teamAPlayer2?: string | null
-  teamBPlayer1?: string | null
-  teamBPlayer2?: string | null
-  subtitle: string
-  title?: string
-}
-
-function TeamMatchupCard({
-  teamAPlayer1,
-  teamAPlayer2,
-  teamBPlayer1,
-  teamBPlayer2,
-  subtitle,
-  title = 'Match Ready',
-}: TeamMatchupCardProps) {
-  const hasTeamANames = !!(teamAPlayer1?.trim() || teamAPlayer2?.trim())
-  const hasTeamBNames = !!(teamBPlayer1?.trim() || teamBPlayer2?.trim())
-
-  return (
-    <div
-      style={{
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '1.25rem',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: '1.125rem',
-          fontWeight: 600,
-          textAlign: 'center',
-          marginBottom: '1rem',
-          color: 'var(--text-primary)',
-        }}
-      >
-        {title}
-      </h2>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          background: 'var(--bg-tertiary)',
-          borderRadius: 'var(--radius-lg)',
-          overflow: 'hidden',
-          minHeight: '5rem',
-        }}
-      >
-        <div
-          style={{
-            flex: 1,
-            padding: '1rem',
-            borderLeft: '3px solid var(--team-a)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.25rem',
-          }}
-        >
-          {hasTeamANames ? (
-            <>
-              <span
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {abbreviateSurname(teamAPlayer1)}
-              </span>
-              <span
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {abbreviateSurname(teamAPlayer2)}
-              </span>
-            </>
-          ) : (
-            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Team A
-            </span>
-          )}
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 1rem',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-          }}
-        >
-          VS
-        </div>
-        <div
-          style={{
-            flex: 1,
-            padding: '1rem',
-            borderRight: '3px solid var(--team-b)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.25rem',
-          }}
-        >
-          {hasTeamBNames ? (
-            <>
-              <span
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {abbreviateSurname(teamBPlayer1)}
-              </span>
-              <span
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {abbreviateSurname(teamBPlayer2)}
-              </span>
-            </>
-          ) : (
-            <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Team B
-            </span>
-          )}
-        </div>
-      </div>
-      <p
-        style={{
-          color: 'var(--text-secondary)',
-          fontSize: '0.875rem',
-          textAlign: 'center',
-          marginTop: '1rem',
-        }}
-      >
-        {subtitle}
-      </p>
-    </div>
-  )
 }
 
 interface PlayingDisplayProps {
@@ -303,14 +159,54 @@ export default function PlayingDisplay({
             })
           )
           break
+        case 'postgame_win_3sweep':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(
+            buildPreviewMatch({
+              status: 'completed',
+              winner: 'a',
+              sets_to_win: 3,
+              team_a_games: 2,
+              team_b_games: 0,
+              set_scores: [
+                { team_a: 6, team_b: 2 },
+                { team_a: 6, team_b: 4 },
+              ],
+            })
+          )
+          break
+        case 'postgame_win_3split':
+          setSessionId('preview-session-id')
+          setSessionState({ valid: true })
+          setMatch(
+            buildPreviewMatch({
+              status: 'completed',
+              winner: 'a',
+              sets_to_win: 3,
+              team_a_games: 2,
+              team_b_games: 1,
+              set_scores: [
+                { team_a: 6, team_b: 4 },
+                { team_a: 4, team_b: 6 },
+                { team_a: 6, team_b: 3 },
+              ],
+            })
+          )
+          break
         case 'postgame_abandoned':
           setSessionId('preview-session-id')
           setSessionState({ valid: true })
           setMatch(
             buildPreviewMatch({
               status: 'abandoned',
-              team_a_games: 3,
-              team_b_games: 2,
+              sets_to_win: 3,
+              team_a_games: 1,
+              team_b_games: 1,
+              set_scores: [
+                { team_a: 6, team_b: 4 },
+                { team_a: 3, team_b: 6 },
+              ],
             })
           )
           break
@@ -460,15 +356,6 @@ export default function PlayingDisplay({
     }
   }
 
-  const formatTeamName = (
-    player1: string | null,
-    player2: string | null,
-    fallback: string
-  ) => {
-    const names = [player1, player2].filter(Boolean)
-    return names.length > 0 ? names.join(' / ') : fallback
-  }
-
   if (loading) {
     return (
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
@@ -522,128 +409,75 @@ export default function PlayingDisplay({
     )
   }
 
-  const isMatchReady =
-    match &&
-    match.status === 'in_progress' &&
-    match.team_a_points === 0 &&
-    match.team_b_points === 0 &&
-    match.team_a_games === 0 &&
-    match.team_b_games === 0
-
-  if (isMatchReady && match) {
-    return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header status="ready" statusText="READY" courtName={courtName} branding={branding} />
-        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <TeamMatchupCard
-            teamAPlayer1={match.team_a_player_1}
-            teamAPlayer2={match.team_a_player_2}
-            teamBPlayer1={match.team_b_player_1}
-            teamBPlayer2={match.team_b_player_2}
-            title="Match Ready"
-            subtitle="Press a button on court to begin"
-          />
-        </div>
-        <div style={{ paddingTop: '1rem' }}>
-          <button className="btn btn-danger btn-block" onClick={handleEndGame}>
-            End Game
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   const showPostGame =
     match &&
     (match.status === 'completed' || match.status === 'abandoned' || !!match.winner)
 
   if (showPostGame && match) {
-    const isAbandoned = match.status === 'abandoned'
-    const hasWinner = match.winner && !isAbandoned
-    const winnerName = hasWinner
-      ? match.winner === 'a'
-        ? formatTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
-        : formatTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
-      : null
-    const finalScore =
-      match.set_scores && match.set_scores.length > 0
-        ? match.set_scores
-            .map(
-              (s: { team_a?: number; team_b?: number; team_a_games?: number; team_b_games?: number }) =>
-                `${s.team_a_games ?? s.team_a ?? 0}-${s.team_b_games ?? s.team_b ?? 0}`
-            )
-            .join(', ')
-        : `${match.team_a_games}-${match.team_b_games}`
-    const winnerTeam = match.winner === 'a' ? 'team-a' : 'team-b'
+    return (
+      <MatchFinishedPanel
+        match={match}
+        branding={branding ?? null}
+        courtName={courtName}
+        actions={
+          <>
+            <button type="button" className="btn btn-secondary btn-block" onClick={handleNewGame}>
+              EDIT MATCH
+            </button>
+            <button type="button" className="btn btn-primary btn-block" onClick={handlePlayAgain}>
+              REMATCH
+            </button>
+            <div className="divider" />
+            <button type="button" className="btn btn-danger btn-block" onClick={handleEndSession}>
+              END SESSION
+            </button>
+          </>
+        }
+      />
+    )
+  }
+
+  if (match?.status === 'in_progress') {
+    const isScoreless =
+      match.team_a_points === 0 &&
+      match.team_b_points === 0 &&
+      match.team_a_games === 0 &&
+      match.team_b_games === 0
 
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header
-          status="finished"
-          statusText={isAbandoned ? 'GAME ENDED' : 'GAME FINISHED'}
-          courtName={courtName}
-          branding={branding}
-        />
-        <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <div
-            className={`card-result ${hasWinner ? `${winnerTeam}-winner` : ''}`}
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-default)',
-              ...(hasWinner && { borderTop: `3px solid var(--${winnerTeam})` }),
-              borderRadius: 'var(--radius-xl)',
-              padding: '1.5rem',
-              textAlign: 'center',
-            }}
-          >
-            {hasWinner && winnerName && (
-              <p
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  color: 'var(--text-secondary)',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                {winnerName} WIN
-              </p>
-            )}
+      <MatchConfirmation
+        match={match as unknown as MatchConfirmationMatch}
+        branding={branding ?? null}
+        courtName={courtName}
+        statusLabel={isScoreless ? 'READY' : 'LIVE'}
+        primaryMessage={
+          isScoreless ? (
             <p
-              style={{
-                fontSize: '3rem',
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                color: 'var(--text-primary)',
-              }}
+              className="preview-court-start-headline"
+              role="status"
+              aria-label="Press button on court to start"
             >
-              {finalScore.replace(', ', ' - ')}
+              Press button on
+              <br />
+              court to start
             </p>
-            {isAbandoned && (
-              <p
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '0.875rem',
-                  marginTop: '0.5rem',
-                }}
-              >
-                Match was ended early
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="stack" style={{ paddingTop: '1rem' }}>
-          <button className="btn btn-primary btn-block" onClick={handlePlayAgain}>
-            Rematch
+          ) : undefined
+        }
+        actions={
+          <button type="button" className="btn btn-danger btn-block" onClick={handleEndGame}>
+            END GAME
           </button>
-          <button className="btn btn-secondary btn-block" onClick={handleNewGame}>
-            Edit Match
-          </button>
-          <div className="divider"></div>
-          <button className="btn btn-danger btn-block" onClick={handleEndSession}>
-            End Session
-          </button>
+        }
+      />
+    )
+  }
+
+  if (!match) {
+    return (
+      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+        <Header branding={branding} />
+        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>Loading match…</p>
         </div>
       </div>
     )
@@ -651,21 +485,9 @@ export default function PlayingDisplay({
 
   return (
     <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-      <Header status="live" statusText="LIVE" courtName={courtName} branding={branding} />
-      <div style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-        <TeamMatchupCard
-          teamAPlayer1={match?.team_a_player_1}
-          teamAPlayer2={match?.team_a_player_2}
-          teamBPlayer1={match?.team_b_player_1}
-          teamBPlayer2={match?.team_b_player_2}
-          title="Game in Progress"
-          subtitle="Use the court buttons to score"
-        />
-      </div>
-      <div style={{ paddingTop: '1rem' }}>
-        <button className="btn btn-danger btn-block" onClick={handleEndGame}>
-          End Game
-        </button>
+      <Header branding={branding} />
+      <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>Waiting for match to start…</p>
       </div>
     </div>
   )

@@ -5,9 +5,24 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
 import { ScreenDesignTokens } from '../../components/ScreenDesignTokens'
-import { ScreenPreview } from '../../components/ScreenPreview'
+import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenPreview'
 
 type FlowTab = 'staff' | 'player'
+
+/** Same four tabs on staff and player: setup → preview → live → end game. */
+const STAFF_MATCH_FLOW_TABS: ScreenPreviewState[] = [
+  { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
+  { name: 'preview', label: 'Preview', url: '/design-system/preview/control?state=preview' },
+  { name: 'live', label: 'Live', url: '/design-system/preview/control?state=live' },
+  { name: 'endgame', label: 'End game', url: '/design-system/preview/control?state=endgame' },
+]
+
+const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
+  { name: 'setup', label: 'Setup', url: '/design-system/preview/setup?state=form' },
+  { name: 'preview', label: 'Preview', url: '/design-system/preview/setup?state=confirmation' },
+  { name: 'live', label: 'Live', url: '/design-system/preview/playing?state=live' },
+  { name: 'endgame', label: 'End game', url: '/design-system/preview/playing?state=postgame_win' },
+]
 
 export function PlayerMobileHub() {
   const router = useRouter()
@@ -78,15 +93,10 @@ export function PlayerMobileHub() {
             </p>
 
             <ScreenPreview
-              title="ControlPanel"
-              description="Real ControlPanel in preview mode: setup → preview (MatchConfirmation) → live → endgame."
+              title="Staff flow"
+              description="Same stages as player: ControlPanel for setup → preview (MatchConfirmation) → live → end game."
               viewport="mobile"
-              states={[
-                { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
-                { name: 'preview', label: 'Preview', url: '/design-system/preview/control?state=preview' },
-                { name: 'live', label: 'Live', url: '/design-system/preview/control?state=live' },
-                { name: 'endgame', label: 'End game', url: '/design-system/preview/control?state=endgame' },
-              ]}
+              states={STAFF_MATCH_FLOW_TABS}
             />
 
             <ScreenDesignTokens
@@ -118,43 +128,54 @@ export function PlayerMobileHub() {
               note="Setup and preview reuse `MatchSetupForm` / shared `.btn` styles. Preview iframe loads `/design-system/preview/control?state=…` (real components, network disabled)."
             />
 
-            <h3>States</h3>
+            <h3>Stages (tabs)</h3>
             <table className="ds-table">
               <thead>
                 <tr>
-                  <th>State</th>
-                  <th>Trigger</th>
-                  <th>Key elements</th>
-                  <th>Actions</th>
+                  <th>Stage</th>
+                  <th>Preview</th>
+                  <th>What it is</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Setup</td>
-                  <td>Initial load / after ending match</td>
-                  <td>Game mode buttons, sets selector, toggles, player inputs with photo capture</td>
-                  <td>Continue</td>
+                  <td>
+                    <code>/preview/control?state=setup</code>
+                  </td>
+                  <td>Game mode, sets, toggles, players, photos — Continue saves row</td>
                 </tr>
                 <tr>
                   <td>Preview</td>
-                  <td>After Continue (creates or updates <code>live_matches</code> in <code>setup</code>)</td>
-                  <td>READY badge, team cards, mode badges (<code>MatchConfirmation</code>)</td>
-                  <td>Edit match, Start match</td>
+                  <td>
+                    <code>/preview/control?state=preview</code>
+                  </td>
+                  <td>READY, matchup, badges (<code>MatchConfirmation</code>) — Start match</td>
                 </tr>
                 <tr>
                   <td>Live</td>
-                  <td>After Start match</td>
-                  <td>LIVE badge, score display, serving indicator, point situation when applicable</td>
-                  <td>Team A / B point, Undo, End match</td>
+                  <td>
+                    <code>/preview/control?state=live</code>
+                  </td>
+                  <td>LIVE scoreboard, points, Undo, End match</td>
                 </tr>
                 <tr>
                   <td>End game</td>
-                  <td>Match completed (winner determined)</td>
-                  <td>FINAL badge, winner highlight, final score</td>
-                  <td>Edit match, Rematch</td>
+                  <td>
+                    <code>/preview/control?state=endgame</code>
+                  </td>
+                  <td>FINAL, winner, Rematch / Edit match</td>
                 </tr>
               </tbody>
             </table>
+
+            <h3>Additional previews</h3>
+            <p className="ds-token-intro">
+              Venue displays:{' '}
+              <Link href="/design-system/preview/court">/design-system/preview/court</Link> ·{' '}
+              <Link href="/design-system/preview/spectator">/design-system/preview/spectator</Link> (
+              <code>idle</code>, <code>pregame</code>, <code>live</code>, <code>endgame</code>).
+            </p>
 
             <h3>Form elements</h3>
             <table className="ds-table">
@@ -220,197 +241,125 @@ export function PlayerMobileHub() {
                 <Link href="/design-system/components/cards">Match confirmation (<code>MatchConfirmation</code>)</Link>
               </li>
               <li>MatchSetupForm (mode cards, toggles, inputs)</li>
-              <li>Endgame layout (`.control-endgame`)</li>
+              <li>Finished layout (<code>MatchFinishedPanel</code> — same as player /playing)</li>
             </ul>
           </section>
         </>
       )}
 
       {flow === 'player' && (
-        <>
-          <section className="ds-section" id="setup-route">
-            <h2>/setup — Player setup</h2>
-            <p>
-              Implemented by <code>SetupDisplay</code>: resolves a <strong>session</strong> (create, stored id, or
-              takeover), then either <strong>SessionProtectionPrompt</strong> variants, <strong>MatchSetupForm</strong>,
-              or the shared <strong>MatchConfirmation</strong> pre-game screen after the match row exists. Scoring stays
-              on the court / staff control — not on the phone.
-            </p>
+        <section className="ds-section" id="player-control">
+          <h2>/setup + /playing — Player control</h2>
+          <p>
+            Same tab names as staff: <code>SetupDisplay</code> for <strong>Setup</strong> and{' '}
+            <strong>Preview</strong> (<code>MatchConfirmation</code>), then <code>PlayingDisplay</code> for{' '}
+            <strong>Live</strong> and <strong>End game</strong>. Session / match gate screens are under{' '}
+            <em>Additional preview states</em> below.
+          </p>
 
-            <ScreenPreview
-              title="SetupDisplay"
-              description="Production components in preview mode (no Supabase session/match API; form submit is a no-op in preview)."
-              viewport="mobile"
-              states={[
-                { name: 'form', label: 'Match setup form', url: '/design-system/preview/setup?state=form' },
-                { name: 'review', label: 'Form (names filled)', url: '/design-system/preview/setup?state=review' },
-                {
-                  name: 'confirmation',
-                  label: 'Pre-game confirmation',
-                  url: '/design-system/preview/setup?state=confirmation',
-                },
-                {
-                  name: 'match_join',
-                  label: 'Match in progress',
-                  url: '/design-system/preview/setup?state=match_join',
-                },
-                {
-                  name: 'session_prompt',
-                  label: 'Court in use (session)',
-                  url: '/design-system/preview/setup?state=session_prompt',
-                },
-              ]}
-            />
+          <ScreenPreview
+            title="Player flow"
+            description="Phone previews: setup form, pre-game confirmation, playing live, post-game."
+            viewport="mobile"
+            states={PLAYER_MATCH_FLOW_TABS}
+          />
 
-            <table className="ds-table" style={{ marginTop: '1.5rem' }}>
-              <thead>
-                <tr>
-                  <th>Screen</th>
-                  <th>When</th>
-                  <th>What happens</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Match setup form</td>
-                  <td>No blocking match / session conflict</td>
-                  <td>
-                    <code>MatchSetupForm</code> — players, photos, mode. <strong>Continue</strong> creates{' '}
-                    <code>live_matches</code> in <code>setup</code> (with <code>session_id</code>); stays on{' '}
-                    <code>/setup</code> and shows confirmation (production).
-                  </td>
-                </tr>
-                <tr>
-                  <td>Pre-game confirmation</td>
-                  <td>After Continue with a saved setup row</td>
-                  <td>
-                    Same layout as staff preview: READY, matchup, badges. Large centred headline: press button on
-                    court to start; full-width <strong>Edit match</strong> (<code>btn-secondary</code>) returns to the
-                    form (<code>update_setup</code> on next continue). When the match becomes <code>in_progress</code>,
-                    navigate to <code>/playing</code>.
-                  </td>
-                </tr>
-                <tr>
-                  <td>Match in progress</td>
-                  <td>
-                    Active <code>live_matches</code> row (<code>setup</code> or <code>in_progress</code>)
-                  </td>
-                  <td>
-                    Take over stores session id and opens <code>/playing</code>; Cancel goes back
-                  </td>
-                </tr>
-                <tr>
-                  <td>Court in use</td>
-                  <td>Another active session on the court, no join path</td>
-                  <td>
-                    Take over calls <code>takeoverSession</code> (ends prior session) then new setup
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+          <h3>Stages (tabs)</h3>
+          <table className="ds-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>Preview</th>
+                <th>Production</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Setup</td>
+                <td>
+                  <code>/preview/setup?state=form</code>
+                </td>
+                <td>
+                  <code>MatchSetupForm</code> on <code>/setup</code> — Continue creates <code>setup</code> row
+                </td>
+              </tr>
+              <tr>
+                <td>Preview</td>
+                <td>
+                  <code>/preview/setup?state=confirmation</code>
+                </td>
+                <td>
+                  <code>MatchConfirmation</code> — court CTA + Edit match; then <code>in_progress</code> →{' '}
+                  <code>/playing</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Live</td>
+                <td>
+                  <code>/preview/playing?state=live</code>
+                </td>
+                <td>
+                  <code>PlayingDisplay</code> — read-only scoring copy; End game
+                </td>
+              </tr>
+              <tr>
+                <td>End game</td>
+                <td>
+                  <code>/preview/playing?state=postgame_win</code>
+                </td>
+                <td>Rematch, Edit match, End session</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <section className="ds-section" id="playing-route">
-            <h2>/playing — Companion during &amp; after the match</h2>
-            <p>
-              Implemented by <code>PlayingDisplay</code>: requires <code>sessionStorage</code> session id (from setup).
-              Loads <code>live_matches</code> for the court with realtime updates. Phone is{' '}
-              <strong>read-only for scoring</strong> — players use court hardware to score.
-            </p>
-
-            <ScreenPreview
-              title="PlayingDisplay"
-              description="Live UI; preview uses fixed mock match/session data."
-              viewport="mobile"
-              states={[
-                { name: 'no_session', label: 'No session', url: '/design-system/preview/playing?state=no_session' },
-                {
-                  name: 'session_ended',
-                  label: 'Session ended',
-                  url: '/design-system/preview/playing?state=session_ended',
-                },
-                {
-                  name: 'session_ended_inactivity',
-                  label: 'Session timeout',
-                  url: '/design-system/preview/playing?state=session_ended_inactivity',
-                },
-                { name: 'ready', label: 'Pre-game (ready)', url: '/design-system/preview/playing?state=ready' },
-                { name: 'live', label: 'In game', url: '/design-system/preview/playing?state=live' },
-                {
-                  name: 'postgame_win',
-                  label: 'Post-game (winner)',
-                  url: '/design-system/preview/playing?state=postgame_win',
-                },
-                {
-                  name: 'postgame_abandoned',
-                  label: 'Post-game (abandoned)',
-                  url: '/design-system/preview/playing?state=postgame_abandoned',
-                },
-              ]}
-            />
-
-            <table className="ds-table" style={{ marginTop: '1.5rem' }}>
-              <thead>
-                <tr>
-                  <th>Phase</th>
-                  <th>Condition</th>
-                  <th>UI</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>No session</td>
-                  <td>Missing session id in storage</td>
-                  <td>Prompt to return to <code>/setup</code></td>
-                </tr>
-                <tr>
-                  <td>Session ended</td>
-                  <td>
-                    <code>validateSession</code> fails (ended or inactivity)
-                  </td>
-                  <td>Message + Start new session → <code>/setup</code></td>
-                </tr>
-                <tr>
-                  <td>Pre-game (ready)</td>
-                  <td>
-                    Match <code>in_progress</code>, score still 0–0 points and 0–0 games
-                  </td>
-                  <td>
-                    READY header, matchup card, “Press a button on court to begin”, End game
-                  </td>
-                </tr>
-                <tr>
-                  <td>In game</td>
-                  <td>Match in progress, play has started</td>
-                  <td>LIVE header, matchup card, “Use the court buttons to score”, End game</td>
-                </tr>
-                <tr>
-                  <td>Post-game</td>
-                  <td>Match completed, abandoned, or has a winner</td>
-                  <td>Final score, Rematch, Edit match → setup, End session → session review</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
-        </>
+          <h3>Additional preview states</h3>
+          <p className="ds-token-intro" style={{ marginBottom: '0.75rem' }}>
+            Gates and edge cases (not in the four tabs above):
+          </p>
+          <ul className="ds-component-list">
+            <li>
+              <strong>Setup:</strong>{' '}
+              <code>?state=review</code> (filled form), <code>match_join</code>, <code>session_prompt</code>
+            </li>
+            <li>
+              <strong>Playing:</strong>{' '}
+              <code>no_session</code>, <code>session_ended</code>, <code>session_ended_inactivity</code>,{' '}
+              <code>ready</code>, <code>postgame_abandoned</code>
+            </li>
+            <li>
+              <strong>Court / spectator:</strong>{' '}
+              <Link href="/design-system/preview/court">/preview/court</Link>,{' '}
+              <Link href="/design-system/preview/spectator">/preview/spectator</Link>
+            </li>
+          </ul>
+        </section>
       )}
 
       <section className="ds-section">
         <h2>Preview URLs</h2>
         <div className="ds-note-block">
           <p>
-            <strong>Staff:</strong> <code>/design-system/preview/control?state=</code>
+            <strong>Shared hub tabs (staff &amp; player):</strong> <strong>Setup</strong>, <strong>Preview</strong>,{' '}
+            <strong>Live</strong>, <strong>End game</strong> — staff:{' '}
+            <code>/preview/control?state=setup|preview|live|endgame</code> · player:{' '}
+            <code>/preview/setup?state=form|confirmation</code>, <code>/preview/playing?state=live|postgame_win</code>
+          </p>
+          <p>
+            <strong>Staff only:</strong> <code>/preview/control?state=</code>
             <code>setup</code> | <code>preview</code> | <code>live</code> | <code>endgame</code>
           </p>
           <p>
-            <strong>Player setup:</strong> <code>/design-system/preview/setup?state=</code>
-            <code>form</code> | <code>review</code> | <code>confirmation</code> | <code>match_join</code> |{' '}
-            <code>session_prompt</code>
+            <strong>Player setup (extra):</strong> <code>/preview/setup?state=</code>
+            <code>review</code> | <code>match_join</code> | <code>session_prompt</code>
           </p>
           <p>
-            <strong>Player playing:</strong> <code>/design-system/preview/playing?state=</code>
+            <strong>Player playing (extra):</strong> <code>/preview/playing?state=</code>
             <code>no_session</code> | <code>session_ended</code> | <code>session_ended_inactivity</code> |{' '}
-            <code>ready</code> | <code>live</code> | <code>postgame_win</code> | <code>postgame_abandoned</code>
+            <code>ready</code> | <code>postgame_abandoned</code>
+          </p>
+          <p>
+            <strong>Spectator:</strong> <code>/preview/spectator?state=</code>
+            <code>idle</code> | <code>pregame</code> | <code>live</code> | <code>endgame</code>
           </p>
           <p>
             The same <code>live_matches</code> row is edited from <code>/control</code>, shown on <code>/court</code>{' '}

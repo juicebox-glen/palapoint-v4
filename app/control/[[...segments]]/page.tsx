@@ -8,7 +8,7 @@ export default function ControlPage() {
   const params = useParams()
   const segments = (params.segments as string[] | undefined) ?? []
 
-  const { courtId, branding, isLoading, error } = useCourtRoute(segments)
+  const { courtId, branding, courtName, isLoading, error } = useCourtRoute(segments)
 
   if (isLoading) {
     return (
@@ -42,7 +42,7 @@ export default function ControlPage() {
         } as React.CSSProperties
       }
     >
-      <ControlPanel courtId={courtId} branding={branding} />
+      <ControlPanel courtId={courtId} branding={branding} courtName={courtName} />
     </div>
   )
 }
