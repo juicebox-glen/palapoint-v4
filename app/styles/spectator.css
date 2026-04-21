@@ -892,11 +892,18 @@
   color: var(--text-primary);
 }
 
-.spectator-endgame-set > span:not(.spectator-endgame-set-winner):not(.spectator-endgame-set-divider) {
+.spectator-endgame-set > span:not(.spectator-endgame-set-winner):not(.spectator-endgame-set-sep) {
   color: var(--text-muted);
 }
 
-.spectator-endgame-set-divider {
+.spectator-endgame-set-sep {
   color: var(--text-muted);
-  font-size: clamp(2rem, 6vh, 5rem);
+  opacity: 0.9;
+  line-height: 0;
+}
+
+.spectator-endgame-set-sep .score-sep-bar {
+  width: clamp(0.65rem, 1.8vw, 1.25rem);
+  height: clamp(2px, 0.45vh, 8px);
+  min-height: 2px;
 }

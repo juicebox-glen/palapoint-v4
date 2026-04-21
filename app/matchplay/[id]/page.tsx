@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -751,7 +752,13 @@ export default function MatchplayEventPage() {
                 <div key={match.id} className="matchplay-event-match-card matchplay-event-match-card-completed">
                   <span className="matchplay-event-match-court">{match.court_label}</span>
                   <span className="matchplay-event-match-summary">
-                    {teamANames} {(match.team_a_score ?? 0)}-{(match.team_b_score ?? 0)} {teamBNames}
+                    {teamANames}{' '}
+                    <span className="matchplay-event-match-summary-score">
+                      <span>{match.team_a_score ?? 0}</span>
+                      <ScoreSepBar className="matchplay-event-match-summary-sep" />
+                      <span>{match.team_b_score ?? 0}</span>
+                    </span>{' '}
+                    {teamBNames}
                   </span>
                   <span className="matchplay-event-match-done">✓</span>
                 </div>

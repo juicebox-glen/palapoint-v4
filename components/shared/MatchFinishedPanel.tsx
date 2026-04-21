@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import type { VenueBranding } from '@/lib/venue'
 import { formatNameAbbreviated, getSurnameUppercase } from '@/lib/utils/player-names'
@@ -56,16 +57,38 @@ function winnerSurnamesUpper(p1: string | null | undefined, p2: string | null | 
 export function MatchFinishedScoresSection({
   setsToWin,
   rows,
+  winnerSide,
 }: {
   setsToWin: number
   rows: { a: number; b: number }[]
+  /** Single-set headline: mute losing side + dash (multi-set rows infer per set). */
+  winnerSide?: 'a' | 'b' | null
 }) {
   const multiRow = setsToWin > 1
   if (!multiRow) {
     const r = rows[0] ?? { a: 0, b: 0 }
+    if (winnerSide === 'a' || winnerSide === 'b') {
+      const aWins = winnerSide === 'a'
+      return (
+        <p className="playing-finished-score-large playing-finished-score-large--split" aria-label={`Score ${r.a} to ${r.b}`}>
+          <span className={aWins ? 'playing-finished-score-num--win' : 'playing-finished-score-num--lose'}>
+            {r.a}
+          </span>
+          <ScoreSepBar className="playing-finished-score-sep" />
+          <span className={aWins ? 'playing-finished-score-num--lose' : 'playing-finished-score-num--win'}>
+            {r.b}
+          </span>
+        </p>
+      )
+    }
     return (
-      <p className="playing-finished-score-large">
-        {r.a} - {r.b}
+      <p
+        className="playing-finished-score-large playing-finished-score-large--split playing-finished-score-large--neutral"
+        aria-label={`Score ${r.a} to ${r.b}`}
+      >
+        <span className="playing-finished-score-num--neutral">{r.a}</span>
+        <ScoreSepBar className="playing-finished-score-sep playing-finished-score-sep--neutral" />
+        <span className="playing-finished-score-num--neutral">{r.b}</span>
       </p>
     )
   }
@@ -90,7 +113,9 @@ export function MatchFinishedScoresSection({
             <span className="playing-finished-set-label">SET {i + 1}</span>
             <div className="playing-finished-set-scores">
               <span className={classA}>{r.a}</span>
-              <span className="playing-finished-set-score--lose"> - </span>
+              <ScoreSepBar
+                className={tie ? 'playing-finished-set-sep playing-finished-set-sep--tie' : 'playing-finished-set-sep'}
+              />
               <span className={classB}>{r.b}</span>
             </div>
           </div>
@@ -177,7 +202,11 @@ export default function MatchFinishedPanel({
                     ? `${winnerSurnamesUpper(match.team_a_player_1, match.team_a_player_2, 'TEAM A')} WIN`
                     : `${winnerSurnamesUpper(match.team_b_player_1, match.team_b_player_2, 'TEAM B')} WIN`}
                 </p>
-                <MatchFinishedScoresSection setsToWin={match.sets_to_win} rows={scoreRows} />
+                <MatchFinishedScoresSection
+                  setsToWin={match.sets_to_win}
+                  rows={scoreRows}
+                  winnerSide={winnerTeam}
+                />
               </>
             ) : (
               <>

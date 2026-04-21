@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 interface SetWinOverlayProps {
   winningTeam: 'a' | 'b'
@@ -60,7 +61,7 @@ export default function SetWinOverlay({
             </h1>
             <div className="set-win-score">
               <span className="set-win-score-value">{score.teamA}</span>
-              <span className="set-win-score-dash">-</span>
+              <ScoreSepBar className="set-win-score-sep" />
               <span className="set-win-score-value">{score.teamB}</span>
             </div>
           </div>

@@ -1,0 +1,26 @@
+/**
+ * Compact rule between paired scores (e.g. 6–4, games 2–1).
+ * Sits in a flex row with numbers; use currentColor so parent opacity / color applies.
+ */
+.score-sep-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+  /* Horizontal breathing room; scales with parent font-size */
+  padding: 0 0.18em;
+  line-height: 0;
+}
+
+/* Short rectangular rule; scales with surrounding score typography (em). */
+.score-sep-bar {
+  display: block;
+  width: clamp(0.45rem, 0.42em, 1.2rem);
+  min-width: clamp(0.45rem, 0.42em, 1.2rem);
+  height: clamp(2px, 0.075em, 1.25rem);
+  min-height: 2px;
+  background: currentColor;
+  border-radius: 0;
+  flex-shrink: 0;
+}

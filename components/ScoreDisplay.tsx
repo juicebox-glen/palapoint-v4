@@ -2,6 +2,7 @@
 
 import type { MatchState } from '@/lib/types/match'
 import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 interface ScoreDisplayProps {
   match: MatchState
@@ -60,7 +61,9 @@ export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisp
           <div className="spectator-sets-scores">
             {match.set_scores.map((set, idx) => (
               <div key={idx} className="spectator-set-score">
-                {set.team_a} - {set.team_b}
+                <span>{set.team_a}</span>
+                <ScoreSepBar className="spectator-set-score-sep" />
+                <span>{set.team_b}</span>
               </div>
             ))}
           </div>
@@ -173,9 +176,19 @@ export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisp
         }
         
         .spectator-set-score {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.35rem;
           padding: 0.5rem 1rem;
           background: rgba(255, 255, 255, 0.1);
           border-radius: 0.5rem;
+          line-height: 1;
+        }
+
+        .spectator-set-score-sep {
+          color: rgba(255, 255, 255, 0.55);
+          line-height: 0;
         }
         
         .spectator-game-mode {

@@ -9,7 +9,7 @@ import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenP
 
 type FlowTab = 'staff' | 'player'
 
-/** Same four tabs on staff and player: setup → preview → live → end game. */
+/** Staff: four tabs. Player: same flow plus session summary after End session. */
 const STAFF_MATCH_FLOW_TABS: ScreenPreviewState[] = [
   { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
   { name: 'preview', label: 'Preview', url: '/design-system/preview/control?state=preview' },
@@ -21,7 +21,17 @@ const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
   { name: 'setup', label: 'Setup', url: '/design-system/preview/setup?state=form' },
   { name: 'preview', label: 'Preview', url: '/design-system/preview/setup?state=confirmation' },
   { name: 'live', label: 'Live', url: '/design-system/preview/playing?state=live' },
-  { name: 'endgame', label: 'End game', url: '/design-system/preview/playing?state=postgame_win' },
+  { name: 'endgame', label: 'End', url: '/design-system/preview/playing?state=postgame_win' },
+  {
+    name: 'end_multi',
+    label: 'End Multi',
+    url: '/design-system/preview/playing?state=postgame_win_3split',
+  },
+  {
+    name: 'session_review',
+    label: 'Session',
+    url: '/design-system/preview/session-review',
+  },
 ]
 
 export function PlayerMobileHub() {
@@ -51,9 +61,9 @@ export function PlayerMobileHub() {
       <header className="ds-page-header">
         <h1>Staff &amp; player control</h1>
         <p>
-          Production routes: <code>/control/[courtSlug]</code> (staff), <code>/setup/[courtSlug]</code> and{' '}
-          <code>/playing/[courtSlug]</code> (player companion). Previews use real components in design-system preview
-          mode (no Supabase writes).
+          Production routes: <code>/control/[courtSlug]</code> (staff), <code>/setup/[courtSlug]</code>,{' '}
+          <code>/playing/[courtSlug]</code>, and <code>/session-review/[sessionId]</code> (player companion). Previews use
+          real components in design-system preview mode (no Supabase writes).
         </p>
       </header>
 
@@ -259,7 +269,7 @@ export function PlayerMobileHub() {
 
           <ScreenPreview
             title="Player flow"
-            description="Phone previews: setup form, pre-game confirmation, playing live, post-game."
+            description="Phone previews: setup → confirmation → live → finished (1 set) → finished best-of-3 (three set rows) → session summary with three sample games."
             viewport="mobile"
             states={PLAYER_MATCH_FLOW_TABS}
           />
@@ -303,18 +313,37 @@ export function PlayerMobileHub() {
                 </td>
               </tr>
               <tr>
-                <td>End game</td>
+                <td>End</td>
                 <td>
                   <code>/preview/playing?state=postgame_win</code>
                 </td>
-                <td>Rematch, Edit match, End session</td>
+                <td>
+                  <code>MatchFinishedPanel</code> — single-set score; Rematch, Edit match, End session
+                </td>
+              </tr>
+              <tr>
+                <td>End Multi</td>
+                <td>
+                  <code>/preview/playing?state=postgame_win_3split</code>
+                </td>
+                <td>Same panel — best-of-3 decider (three set rows). Extra: <code>postgame_win_3sweep</code> (2–0)</td>
+              </tr>
+              <tr>
+                <td>Session complete</td>
+                <td>
+                  <code>/preview/session-review</code>
+                </td>
+                <td>
+                  <code>SessionReviewDisplay</code> after <strong>End session</strong> →{' '}
+                  <code>/session-review/[sessionId]</code>
+                </td>
               </tr>
             </tbody>
           </table>
 
           <h3>Additional preview states</h3>
           <p className="ds-token-intro" style={{ marginBottom: '0.75rem' }}>
-            Gates and edge cases (not in the four tabs above):
+            Gates and edge cases (URL variants not in the primary tab strip, or staff-only):
           </p>
           <ul className="ds-component-list">
             <li>
@@ -339,10 +368,10 @@ export function PlayerMobileHub() {
         <h2>Preview URLs</h2>
         <div className="ds-note-block">
           <p>
-            <strong>Shared hub tabs (staff &amp; player):</strong> <strong>Setup</strong>, <strong>Preview</strong>,{' '}
-            <strong>Live</strong>, <strong>End game</strong> — staff:{' '}
+            <strong>Shared hub tabs (staff &amp; player):</strong> staff:{' '}
             <code>/preview/control?state=setup|preview|live|endgame</code> · player:{' '}
-            <code>/preview/setup?state=form|confirmation</code>, <code>/preview/playing?state=live|postgame_win</code>
+            <code>/preview/setup?state=form|confirmation</code>, <code>/preview/playing?state=live|postgame_win|postgame_win_3split</code>,{' '}
+            <code>/preview/session-review</code>
           </p>
           <p>
             <strong>Staff only:</strong> <code>/preview/control?state=</code>
@@ -355,7 +384,10 @@ export function PlayerMobileHub() {
           <p>
             <strong>Player playing (extra):</strong> <code>/preview/playing?state=</code>
             <code>no_session</code> | <code>session_ended</code> | <code>session_ended_inactivity</code> |{' '}
-            <code>ready</code> | <code>postgame_abandoned</code>
+            <code>ready</code> | <code>postgame_abandoned</code> | <code>postgame_win_3sweep</code>
+          </p>
+          <p>
+            <strong>Player session review:</strong> <code>/preview/session-review</code> (after End session)
           </p>
           <p>
             <strong>Spectator:</strong> <code>/preview/spectator?state=</code>

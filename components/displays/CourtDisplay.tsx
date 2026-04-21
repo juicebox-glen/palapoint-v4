@@ -12,6 +12,7 @@ import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import { buildTeamNameAbbreviated } from '@/lib/utils/score-format'
 import { abbreviateSurname } from '@/lib/utils/player-names'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -737,9 +738,9 @@ export default function CourtDisplay({
           </div>
         </div>
         <div className="game-games-center">
-          <div>
-            {leftTeamData.games} - {rightTeamData.games}
-          </div>
+          <span>{leftTeamData.games}</span>
+          <ScoreSepBar className="game-games-center-sep" />
+          <span>{rightTeamData.games}</span>
         </div>
         {pointSituation && (
           <div className="point-situation-overlay">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import type { MatchState } from '@/lib/types/match'
 import { buildTeamNameAbbreviated } from '@/lib/utils/score-format'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 interface MatchWinOverlayProps {
   match: MatchState
@@ -80,7 +81,7 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
                       className={`match-win-set-score ${isThreeSets ? 'three-sets' : ''}`}
                     >
                       <span className="match-win-score-value">{scoreA}</span>
-                      <span className="match-win-score-dash">-</span>
+                      <ScoreSepBar className="match-win-score-sep" />
                       <span className="match-win-score-value">{scoreB}</span>
                     </div>
                   )

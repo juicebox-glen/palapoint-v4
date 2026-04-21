@@ -321,6 +321,15 @@ Deno.serve(async (req) => {
           (now.getTime() - lastActivity.getTime()) / 1000 / 60;
 
         if (minutesSinceActivity > 30) {
+          await supabase
+            .from('live_matches')
+            .update({
+              status: 'abandoned',
+              completed_at: now.toISOString(),
+            })
+            .eq('session_id', session_id)
+            .in('status', ['setup', 'in_progress']);
+
           // Auto-expire the session
           await supabase
             .from('sessions')

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import ControlMatchPreview from '@/components/displays/ControlMatchPreview'
 import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
 import {
@@ -617,7 +618,9 @@ export default function ControlPanel({
                 ))}
               </div>
               <div className="control-scoreboard-games">
-                {match.team_a_games} – {match.team_b_games}
+                <span>{match.team_a_games}</span>
+                <ScoreSepBar className="control-scoreboard-games-sep" />
+                <span>{match.team_b_games}</span>
               </div>
               <div className="control-scoreboard-sets">
                 {Array.from({ length: matchSetsToWin }).map((_, i) => (

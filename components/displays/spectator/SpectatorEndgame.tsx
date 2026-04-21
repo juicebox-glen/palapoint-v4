@@ -1,5 +1,6 @@
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
+import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { SpectatorHeader } from './SpectatorHeader'
 import { getEndgameSetScores, getGameModeText } from './utils'
 
@@ -89,7 +90,7 @@ export function SpectatorEndgame({
                 >
                   {a}
                 </span>
-                <span className="spectator-endgame-set-divider">-</span>
+                <ScoreSepBar className="spectator-endgame-set-sep" />
                 <span
                   className={
                     match.winner === 'b' ? 'spectator-endgame-set-winner' : ''
