@@ -188,7 +188,8 @@ export default function MatchplayPage() {
   // State B: Active event in progress
   if (loading) {
     return (
-      <div className="matchplay-launcher">
+      <div className="matchplay-launcher matchplay-launcher--compact">
+        <SetupScreenHeader />
         <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
@@ -224,7 +225,8 @@ export default function MatchplayPage() {
 
   // State A: No active event — game mode cards
   return (
-    <div className="matchplay-launcher">
+    <div className="matchplay-launcher matchplay-launcher--compact">
+      <SetupScreenHeader />
       <h1 className="matchplay-launcher-title">Matchplay</h1>
 
       <div className="matchplay-mode-cards">

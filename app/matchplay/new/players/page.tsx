@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { getMatchplayVenueId } from '@/lib/supabase'
 import '@/app/styles/setup-form.css'
 
@@ -145,6 +146,7 @@ export default function MatchplayNewPlayersPage() {
   if (loading) {
     return (
       <div className="matchplay-players-page">
+        <SetupScreenHeader />
         <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
@@ -154,6 +156,7 @@ export default function MatchplayNewPlayersPage() {
 
   return (
     <div className="matchplay-players-page">
+      <SetupScreenHeader />
       <div className="matchplay-players-header">
         <Link href="/matchplay/new" className="matchplay-players-back">
           ← Back

@@ -19,6 +19,14 @@
   margin-bottom: var(--ui-space-xl);
 }
 
+/* PIN + launcher setup: centered phone-width column (matches design-system mobile preview) */
+.matchplay-launcher--compact {
+  box-sizing: border-box;
+  max-width: min(28rem, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .matchplay-mode-cards {
   display: flex;
   flex-direction: column;
@@ -197,6 +205,20 @@
   padding: var(--ui-space-lg);
   font-family: var(--font-family);
   padding-bottom: 6rem;
+}
+
+.matchplay-format-page > .setup-header,
+.matchplay-players-page > .setup-header {
+  margin-bottom: var(--ui-space-md);
+}
+
+/* Format + players: same max width as staff PIN / control setup */
+.matchplay-format-page,
+.matchplay-players-page {
+  box-sizing: border-box;
+  max-width: min(28rem, 100%);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .matchplay-format-header {

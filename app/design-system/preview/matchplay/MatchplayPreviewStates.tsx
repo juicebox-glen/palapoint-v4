@@ -3,6 +3,7 @@
 import '@/app/styles/matchplay.css'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
+import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 /** Map legacy ?state= values to current preview keys. */
@@ -23,7 +24,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
   if (s === 'launcher') {
     return (
-      <div className="matchplay-launcher" style={{ minHeight: '100vh' }}>
+      <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
+        <SetupScreenHeader />
         <h1 className="matchplay-launcher-title">Matchplay</h1>
         <div className="matchplay-mode-cards">
           <div className="matchplay-mode-card matchplay-mode-card-active">
@@ -62,6 +64,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'format') {
     return (
       <div className="matchplay-format-page" style={{ minHeight: '100vh' }}>
+        <SetupScreenHeader />
         <div className="matchplay-format-header">
           <span className="matchplay-format-back">← Back</span>
           <h1 className="matchplay-format-title">Format Setup</h1>
@@ -124,6 +127,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     const names = ['Glen Noble', 'Rob Anderson', 'Julian Waters', 'Carl Pettit', 'Sam Wilson', 'Jake Thomas']
     return (
       <div className="matchplay-players-page" style={{ minHeight: '100vh' }}>
+        <SetupScreenHeader />
         <div className="matchplay-players-header">
           <span className="matchplay-players-back">← Back</span>
           <h1 className="matchplay-players-title">Players</h1>
@@ -519,7 +523,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   }
 
   return (
-    <div className="matchplay-launcher" style={{ minHeight: '100vh' }}>
+    <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
+      <SetupScreenHeader />
       <h1 className="matchplay-launcher-title">Matchplay</h1>
       <p className="matchplay-loading-text" style={{ padding: '0 var(--ui-space-lg)' }}>
         Unknown preview state &quot;{state}&quot; — showing launcher. Try{' '}

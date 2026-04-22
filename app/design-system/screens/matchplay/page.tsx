@@ -5,10 +5,10 @@ import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenP
 const MATCHPLAY_PREVIEW_BASE = '/design-system/preview/matchplay'
 
 const STAFF_STATES: ScreenPreviewState[] = [
-  { name: 'launcher', label: 'Launcher', url: `${MATCHPLAY_PREVIEW_BASE}?state=launcher` },
-  { name: 'format', label: 'Format Setup', url: `${MATCHPLAY_PREVIEW_BASE}?state=format` },
-  { name: 'players', label: 'Player Entry', url: `${MATCHPLAY_PREVIEW_BASE}?state=players` },
-  { name: 'event', label: 'Event Hub', url: `${MATCHPLAY_PREVIEW_BASE}?state=event` },
+  { name: 'launcher', label: 'Launcher', url: `${MATCHPLAY_PREVIEW_BASE}?state=launcher`, viewport: 'mobile' },
+  { name: 'format', label: 'Format Setup', url: `${MATCHPLAY_PREVIEW_BASE}?state=format`, viewport: 'mobile' },
+  { name: 'players', label: 'Player Entry', url: `${MATCHPLAY_PREVIEW_BASE}?state=players`, viewport: 'mobile' },
+  { name: 'event', label: 'Event Hub', url: `${MATCHPLAY_PREVIEW_BASE}?state=event`, viewport: 'tablet' },
 ]
 
 const TV_BOARD_STATES: ScreenPreviewState[] = [
@@ -26,15 +26,15 @@ export default function MatchplayScreensPage() {
 
       <header className="ds-page-header">
         <h1>Social Matchplay</h1>
-        <p>Staff tablet flows and venue TV board — static previews with production CSS.</p>
+        <p>Match setup (launcher, format, players) uses the same header as PIN — phone-width column; event hub stays tablet; TV board unchanged.</p>
       </header>
 
       <section className="ds-section">
-        <h2>Staff (tablet)</h2>
+        <h2>Staff</h2>
         <ScreenPreview
           title="Staff Matchplay"
-          description="Launcher, format, players, event hub."
-          viewport="tablet"
+          description="Launcher, format, and players: mobile frame + SetupScreenHeader. Event hub: tablet."
+          viewport="mobile"
           states={STAFF_STATES}
         />
       </section>
