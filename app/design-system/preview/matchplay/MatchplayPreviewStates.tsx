@@ -4,6 +4,7 @@ import '@/app/styles/matchplay.css'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
+import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 /** Map legacy ?state= values to current preview keys. */
@@ -26,37 +27,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     return (
       <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
         <SetupScreenHeader />
-        <h1 className="matchplay-launcher-title">Matchplay</h1>
-        <div className="matchplay-mode-cards">
-          <div className="matchplay-mode-card matchplay-mode-card-active">
-            <div className="matchplay-mode-card-content">
-              <h2 className="matchplay-mode-name">Americano</h2>
-              <p className="matchplay-mode-desc">Everyone plays with everyone once</p>
-              <span className="matchplay-mode-badge">Points-based scoring · auto-generated pairings</span>
-            </div>
-          </div>
-          <div className="matchplay-mode-card matchplay-mode-card-coming">
-            <span className="matchplay-coming-badge">COMING SOON</span>
-            <div className="matchplay-mode-card-content">
-              <h2 className="matchplay-mode-name">King of the Court</h2>
-              <p className="matchplay-mode-desc">Elimination-style rotation</p>
-            </div>
-          </div>
-          <div className="matchplay-mode-card matchplay-mode-card-coming">
-            <span className="matchplay-coming-badge">COMING SOON</span>
-            <div className="matchplay-mode-card-content">
-              <h2 className="matchplay-mode-name">Matchplay</h2>
-              <p className="matchplay-mode-desc">Curated social play with manual pairings</p>
-            </div>
-          </div>
-          <div className="matchplay-mode-card matchplay-mode-card-coming">
-            <span className="matchplay-coming-badge">COMING SOON</span>
-            <div className="matchplay-mode-card-content">
-              <h2 className="matchplay-mode-name">Mexicano</h2>
-              <p className="matchplay-mode-desc">Coming soon</p>
-            </div>
-          </div>
-        </div>
+        <MatchplayLauncherModePicker />
       </div>
     )
   }
@@ -525,19 +496,11 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   return (
     <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
       <SetupScreenHeader />
-      <h1 className="matchplay-launcher-title">Matchplay</h1>
-      <p className="matchplay-loading-text" style={{ padding: '0 var(--ui-space-lg)' }}>
+      <p className="matchplay-loading-text" style={{ marginBottom: 'var(--ui-space-md)' }}>
         Unknown preview state &quot;{state}&quot; — showing launcher. Try{' '}
         <code>?state=launcher|format|players|event|board_setup|board_live|board_completed</code>.
       </p>
-      <div className="matchplay-mode-cards">
-        <div className="matchplay-mode-card matchplay-mode-card-active">
-          <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Americano</h2>
-            <p className="matchplay-mode-desc">Everyone plays with everyone once</p>
-          </div>
-        </div>
-      </div>
+      <MatchplayLauncherModePicker />
     </div>
   )
 }

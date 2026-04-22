@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase, getMatchplayVenueId, getFirstCourtForVenue, validateControlPin } from '@/lib/supabase'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
+import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -223,45 +224,11 @@ export default function MatchplayPage() {
     )
   }
 
-  // State A: No active event — game mode cards
+  // State A: No active event — game mode list (setup-section + session-review rows)
   return (
     <div className="matchplay-launcher matchplay-launcher--compact">
       <SetupScreenHeader />
-      <h1 className="matchplay-launcher-title">Matchplay</h1>
-
-      <div className="matchplay-mode-cards">
-        <Link href="/matchplay/new" className="matchplay-mode-card matchplay-mode-card-active">
-          <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Americano</h2>
-            <p className="matchplay-mode-desc">Everyone plays with everyone once</p>
-            <span className="matchplay-mode-badge">Points-based scoring · auto-generated pairings</span>
-          </div>
-        </Link>
-
-        <div className="matchplay-mode-card matchplay-mode-card-coming">
-          <span className="matchplay-coming-badge">COMING SOON</span>
-          <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">King of the Court</h2>
-            <p className="matchplay-mode-desc">Elimination-style rotation</p>
-          </div>
-        </div>
-
-        <div className="matchplay-mode-card matchplay-mode-card-coming">
-          <span className="matchplay-coming-badge">COMING SOON</span>
-          <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Matchplay</h2>
-            <p className="matchplay-mode-desc">Curated social play with manual pairings</p>
-          </div>
-        </div>
-
-        <div className="matchplay-mode-card matchplay-mode-card-coming">
-          <span className="matchplay-coming-badge">COMING SOON</span>
-          <div className="matchplay-mode-card-content">
-            <h2 className="matchplay-mode-name">Mexicano</h2>
-            <p className="matchplay-mode-desc">Coming soon</p>
-          </div>
-        </div>
-      </div>
+      <MatchplayLauncherModePicker />
 
       {pastEvents.length > 0 && (
         <div className="matchplay-past-events">
