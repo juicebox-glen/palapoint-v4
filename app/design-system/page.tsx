@@ -65,10 +65,10 @@ export default function DesignSystemHome() {
         </section>
 
         <section className="ds-nav-section">
-          <h2>Matchplay</h2>
+          <h2>Match play</h2>
           <ul>
             <li>
-              <Link href="/design-system/screens/matchplay">Social Matchplay</Link>
+              <Link href="/design-system/screens/matchplay">Setup &amp; spectator</Link>
             </li>
           </ul>
         </section>

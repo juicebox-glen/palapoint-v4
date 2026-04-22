@@ -1,7 +1,28 @@
 import Link from 'next/link'
 
 import { ScreenDesignTokens } from '../../components/ScreenDesignTokens'
-import { ScreenPreview } from '../../components/ScreenPreview'
+import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenPreview'
+
+const MATCHPLAY_PREVIEW_BASE = '/design-system/preview/matchplay'
+const SPECTATOR_PREVIEW_BASE = '/design-system/preview/spectator'
+
+/** Tablet / matchplay hub — static markup, same classes as production. */
+const MATCHPLAY_SETUP_TABS: ScreenPreviewState[] = [
+  { name: 'launcher', label: 'Launcher', url: `${MATCHPLAY_PREVIEW_BASE}?state=launcher` },
+  { name: 'format', label: 'Format', url: `${MATCHPLAY_PREVIEW_BASE}?state=setup` },
+  { name: 'players', label: 'Players', url: `${MATCHPLAY_PREVIEW_BASE}?state=players` },
+  { name: 'fixtures', label: 'Rounds', url: `${MATCHPLAY_PREVIEW_BASE}?state=fixtures` },
+  { name: 'scoring', label: 'Scoring', url: `${MATCHPLAY_PREVIEW_BASE}?state=scoring` },
+  { name: 'standings', label: 'Standings', url: `${MATCHPLAY_PREVIEW_BASE}?state=standings` },
+]
+
+/** Venue TV — real spectator components (same as court match TV; 1920×1080). */
+const MATCHPLAY_SPECTATOR_TABS: ScreenPreviewState[] = [
+  { name: 'idle', label: 'Idle', url: `${SPECTATOR_PREVIEW_BASE}?state=idle` },
+  { name: 'pregame', label: 'Pre-game', url: `${SPECTATOR_PREVIEW_BASE}?state=pregame` },
+  { name: 'live', label: 'Live', url: `${SPECTATOR_PREVIEW_BASE}?state=live` },
+  { name: 'endgame', label: 'End game', url: `${SPECTATOR_PREVIEW_BASE}?state=endgame` },
+]
 
 export default function MatchplayScreensPage() {
   return (
@@ -11,10 +32,14 @@ export default function MatchplayScreensPage() {
       </Link>
 
       <header className="ds-page-header">
-        <h1>Social Matchplay</h1>
+        <h1>Match play</h1>
         <p>
-          Venue social sessions (Americano today): launcher → format → players → event hub for rounds &amp; scoring →
-          optional TV board. Production routes live under <code>/matchplay</code> (see table below).
+          Social matchplay (Americano today): <strong>Setup</strong> is the tablet flow from PIN through the event hub
+          (static previews). <strong>Spectator display</strong> is the venue TV experience for a match — same
+          components as the general spectator screen, shown here for matchplay context. Production:{' '}
+          <code>/matchplay</code> and related routes; TV board with fixtures/standings lives at{' '}
+          <code>/matchplay/[id]/board</code> (separate static preview:{' '}
+          <a href={`${MATCHPLAY_PREVIEW_BASE}?state=standings_tv`}>standings_tv</a>).
         </p>
       </header>
 
@@ -58,76 +83,75 @@ export default function MatchplayScreensPage() {
               <td>Round tabs, match cards, score entry, standings modal</td>
             </tr>
             <tr>
-              <td>TV board</td>
+              <td>TV board (fixtures)</td>
               <td>
                 <code>/matchplay/[id]/board</code>
               </td>
-              <td>Leaderboard + round fixtures + activity feed</td>
+              <td>Leaderboard + round fixtures + activity feed (static preview: matchplay <code>?state=standings_tv</code>)</td>
+            </tr>
+            <tr>
+              <td>Spectator TV (match)</td>
+              <td>
+                <code>/live/[courtSlug]</code>
+              </td>
+              <td>
+                <code>SpectatorDisplay</code> — same UI as the Spectator display tabs below (venue lounge / bar TV)
+              </td>
             </tr>
           </tbody>
         </table>
       </section>
 
-      <ScreenPreview
-        title="Launcher"
-        description="Entry after PIN — format cards (Americano active). Matches /matchplay home when authenticated."
-        viewport="tablet"
-        states={[{ name: 'launcher', label: 'Launcher', url: '/design-system/preview/matchplay?state=launcher' }]}
-      />
+      <section className="ds-section" id="matchplay-setup">
+        <h2>Setup</h2>
+        <p>
+          Launcher after PIN → format → players → event hub (rounds, live scoring, standings modal). Previews use{' '}
+          <code>/design-system/preview/matchplay</code> with <code>?state=</code>.
+        </p>
+        <ScreenPreview
+          title="Setup (preview)"
+          description="Static HTML with production class names — no Supabase."
+          viewport="tablet"
+          states={MATCHPLAY_SETUP_TABS}
+        />
+      </section>
 
-      <ScreenPreview
-        title="Format setup"
-        description="Courts, points per match, rounds — same UI as /matchplay/new."
-        viewport="tablet"
-        states={[{ name: 'setup', label: 'Format', url: '/design-system/preview/matchplay?state=setup' }]}
-      />
-
-      <ScreenPreview
-        title="Player entry"
-        description="Add players before START EVENT — same UI as /matchplay/new/players."
-        viewport="tablet"
-        states={[{ name: 'players', label: 'Players', url: '/design-system/preview/matchplay?state=players' }]}
-      />
-
-      <ScreenPreview
-        title="Fixtures / rounds"
-        description="Round tabs and setup match cards — same patterns as /matchplay/[id] during setup."
-        viewport="tablet"
-        states={[{ name: 'fixtures', label: 'Rounds', url: '/design-system/preview/matchplay?state=fixtures' }]}
-      />
-
-      <ScreenPreview
-        title="Score entry"
-        description="Expanded score card with steppers and confirm — same patterns as live /matchplay/[id]."
-        viewport="tablet"
-        states={[{ name: 'scoring', label: 'Scoring', url: '/design-system/preview/matchplay?state=scoring' }]}
-      />
-
-      <ScreenPreview
-        title="Standings (tablet)"
-        description="Standings modal on the event page — same table classes as /matchplay/[id]."
-        viewport="tablet"
-        states={[{ name: 'standings', label: 'Standings', url: '/design-system/preview/matchplay?state=standings' }]}
-      />
-
-      <ScreenPreview
-        title="TV board — live"
-        description="Leaderboard + round fixtures + ticker — same layout as /matchplay/[id]/board in progress."
-        viewport="tv"
-        states={[{ name: 'board', label: 'Live board', url: '/design-system/preview/matchplay?state=standings_tv' }]}
-      />
+      <section className="ds-section" id="matchplay-spectator">
+        <h2>Spectator display</h2>
+        <p>
+          TV-sized spectator flow: idle → pre-game → live → end game. Uses real <code>Spectator*</code> components; open{' '}
+          <code>/design-system/preview/spectator?state=…</code> (same as the standalone{' '}
+          <Link href="/design-system/screens/spectator">Spectator Display (TV)</Link> page).
+        </p>
+        <ScreenPreview
+          title="Spectator display (preview)"
+          description="1920×1080 viewport — same surfaces as venue match TV alongside matchplay."
+          viewport="tv"
+          states={MATCHPLAY_SPECTATOR_TABS}
+        />
+      </section>
 
       <ScreenDesignTokens
         typography={[
-          { token: 'var(--font-family)', usage: 'Matchplay launcher, format, players, and event hub (Inter).' },
-          { token: 'clamp() in matchplay-board.css', usage: 'TV board typography scaling.' },
+          { token: 'var(--font-family)', usage: 'Matchplay setup hub and spectator body text (Inter).' },
+          { token: 'clamp() in matchplay-board.css', usage: 'Matchplay event board (fixtures TV) typography scaling.' },
+          {
+            token: "'Space Grotesk' + clamp / vh",
+            usage: 'Spectator large names and TV-scale headers (`spectator.css`).',
+          },
         ]}
         colors={[
-          { token: '--text-primary, --text-secondary', usage: 'Headers and body on matchplay flows.' },
-          { token: '--brand-primary / matchplay pills', usage: 'Active format card, primary CTAs.' },
+          { token: '--text-primary, --text-secondary', usage: 'Matchplay setup flows and spectator labels.' },
+          { token: '--brand-primary / matchplay pills', usage: 'Active format card, primary CTAs on setup.' },
+          { token: '--team-a, --team-b', usage: 'Spectator team-tinted cards and accents.' },
         ]}
-        stylesheets={['app/styles/matchplay.css', 'app/styles/matchplay-board.css', 'app/styles/setup-form.css']}
-        note="Previews are static markup with production class names; no Supabase. Query /design-system/preview/matchplay?state= for each iframe URL."
+        stylesheets={[
+          'app/styles/matchplay.css',
+          'app/styles/matchplay-board.css',
+          'app/styles/setup-form.css',
+          'app/styles/spectator.css',
+        ]}
+        note="Setup: use the Setup tabs or /design-system/preview/matchplay?state=…. Spectator: use Spectator display tabs or /design-system/preview/spectator?state=…. Event fixtures board only: matchplay ?state=standings_tv."
       />
 
       <section className="ds-section">
@@ -195,8 +219,12 @@ export default function MatchplayScreensPage() {
           <li>Player list rows (player entry)</li>
           <li>Round tabs &amp; match cards (event page)</li>
           <li>Score steppers &amp; confirm (event page)</li>
-          <li>Standings table (modal + TV board)</li>
-          <li>Board fixture list &amp; activity feed (TV)</li>
+          <li>Standings table (modal + fixtures board)</li>
+          <li>Board fixture list &amp; activity feed (<code>/matchplay/[id]/board</code> static preview)</li>
+          <li>
+            Spectator TV: <code>SpectatorIdle</code>, <code>SpectatorPregame</code>, <code>SpectatorLive</code>,{' '}
+            <code>SpectatorEndgame</code> (<code>/live/[courtSlug]</code>)
+          </li>
         </ul>
       </section>
     </div>
