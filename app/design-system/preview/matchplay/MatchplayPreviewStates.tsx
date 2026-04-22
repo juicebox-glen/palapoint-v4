@@ -104,16 +104,56 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           <h1 className="matchplay-players-title">Players</h1>
           <span className="matchplay-players-count">{names.length} added</span>
         </div>
-        <div className="matchplay-players-input-wrap">
-          <input type="text" className="input matchplay-players-input" placeholder="Enter name..." readOnly />
-          <span className="btn btn-primary matchplay-players-add" style={{ pointerEvents: 'none' }}>
-            ADD
-          </span>
-        </div>
-        <div className="matchplay-players-list">
+        <div className="setup-inputs matchplay-players-list">
+          <div className="setup-player-row">
+            <div className="setup-photo-circle-wrap" aria-hidden>
+              <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="setup-photo-trigger-svg"
+                  aria-hidden
+                >
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </div>
+            </div>
+            <div className="setup-input-wrap setup-input-wrap--player-name">
+              <input type="text" className="setup-input" placeholder="Enter name..." readOnly />
+            </div>
+            <span className="btn btn-primary matchplay-players-add" style={{ pointerEvents: 'none' }}>
+              ADD
+            </span>
+          </div>
           {names.map((name) => (
-            <div key={name} className="matchplay-players-row">
-              <span className="matchplay-players-name">{name}</span>
+            <div key={name} className="setup-player-row">
+              <div className="setup-photo-circle-wrap" aria-hidden>
+                <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="setup-photo-trigger-svg"
+                    aria-hidden
+                  >
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </div>
+              </div>
+              <div className="setup-input-wrap setup-input-wrap--player-name">
+                <input type="text" className="setup-input" readOnly value={name} aria-label={name} />
+              </div>
               <span className="matchplay-players-remove" aria-hidden>
                 ✕
               </span>

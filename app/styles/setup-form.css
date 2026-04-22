@@ -644,6 +644,21 @@
   opacity: 0.65;
 }
 
+/* Decorative circle matching `.setup-photo-trigger` (no capture, e.g. matchplay roster) */
+.setup-photo-trigger--static {
+  pointer-events: none;
+  cursor: default;
+}
+
+.setup-photo-trigger.setup-photo-trigger--static:hover {
+  background: rgba(30, 37, 50, 1);
+  color: var(--muted-foreground);
+}
+
+.setup-photo-trigger.setup-photo-trigger--static:active {
+  transform: none;
+}
+
 .setup-photo-trigger-svg {
   display: block;
   width: 22px;

@@ -477,6 +477,10 @@
   padding: var(--ui-space-lg);
   font-family: var(--font-family);
   padding-bottom: 6rem;
+  /* Align setup-form player row tokens (normally scoped to `.setup-screen`) */
+  --foreground: var(--text-primary);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-default);
 }
 
 .matchplay-players-header {
@@ -512,55 +516,39 @@
   color: var(--text-secondary);
 }
 
-.matchplay-players-input-wrap {
-  display: flex;
-  gap: var(--ui-space-sm);
-  margin-bottom: var(--ui-space-lg);
-}
-
-.matchplay-players-input {
-  flex: 1;
-}
-
 .matchplay-players-add {
+  flex-shrink: 0;
   min-width: 80px;
   min-height: var(--touch-target-min);
 }
 
 .matchplay-players-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-sm);
-}
-
-.matchplay-players-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem var(--ui-space-lg);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-}
-
-.matchplay-players-name {
-  font-size: var(--ui-font-base);
-  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--ui-space-lg);
 }
 
 .matchplay-players-remove {
-  padding: var(--ui-space-sm);
-  min-width: var(--touch-target-min);
-  min-height: var(--touch-target-min);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  padding: 0;
   border: none;
   background: transparent;
   color: var(--text-muted);
+  font-size: 1.125rem;
+  line-height: 1;
   cursor: pointer;
   border-radius: var(--radius-md);
 }
 
 .matchplay-players-remove:hover {
   color: var(--error);
+}
+
+.matchplay-players-page .setup-input:read-only {
+  cursor: default;
 }
 
 .matchplay-players-footer {

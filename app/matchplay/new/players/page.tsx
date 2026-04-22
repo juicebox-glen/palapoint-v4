@@ -7,6 +7,25 @@ import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { getMatchplayVenueId } from '@/lib/supabase'
 import '@/app/styles/setup-form.css'
 
+function SetupPhotoSlotIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="setup-photo-trigger-svg"
+      aria-hidden
+    >
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  )
+}
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const SETTINGS_KEY = 'palapoint_matchplay_settings'
@@ -165,30 +184,44 @@ export default function MatchplayNewPlayersPage() {
         <span className="matchplay-players-count">{players.length} added</span>
       </div>
 
-      <div className="matchplay-players-input-wrap">
-        <input
-          ref={inputRef}
-          type="text"
-          className="input matchplay-players-input"
-          placeholder="Enter name..."
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-        />
-        <button
-          type="button"
-          className="btn btn-primary matchplay-players-add"
-          onClick={handleAdd}
-          disabled={!newName.trim()}
-        >
-          ADD
-        </button>
-      </div>
+      <div className="setup-inputs matchplay-players-list">
+        <div className="setup-player-row">
+          <div className="setup-photo-circle-wrap" aria-hidden>
+            <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
+              <SetupPhotoSlotIcon />
+            </div>
+          </div>
+          <div className="setup-input-wrap setup-input-wrap--player-name">
+            <input
+              ref={inputRef}
+              type="text"
+              className="setup-input"
+              placeholder="Enter name..."
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary matchplay-players-add"
+            onClick={handleAdd}
+            disabled={!newName.trim()}
+          >
+            ADD
+          </button>
+        </div>
 
-      <div className="matchplay-players-list">
         {players.map((name, i) => (
-          <div key={`${name}-${i}`} className="matchplay-players-row">
-            <span className="matchplay-players-name">{name}</span>
+          <div key={`${name}-${i}`} className="setup-player-row">
+            <div className="setup-photo-circle-wrap" aria-hidden>
+              <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
+                <SetupPhotoSlotIcon />
+              </div>
+            </div>
+            <div className="setup-input-wrap setup-input-wrap--player-name">
+              <input type="text" className="setup-input" readOnly value={name} aria-label={name} />
+            </div>
             <button
               type="button"
               className="matchplay-players-remove"
