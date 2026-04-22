@@ -145,7 +145,7 @@ export default function MatchplayNewPlayersPage() {
   if (loading) {
     return (
       <div className="matchplay-players-page">
-        <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
   }
@@ -198,7 +198,7 @@ export default function MatchplayNewPlayersPage() {
         ))}
       </div>
 
-      {error && <div className="setup-error" style={{ marginTop: '1rem' }}>{error}</div>}
+      {error && <div className="setup-error matchplay-error-text">{error}</div>}
 
       <div className="matchplay-players-footer">
         <button

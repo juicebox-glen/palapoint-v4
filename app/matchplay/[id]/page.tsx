@@ -589,7 +589,7 @@ export default function MatchplayEventPage() {
   if (loading && !event) {
     return (
       <div className="matchplay-event-page">
-        <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
   }
@@ -597,10 +597,12 @@ export default function MatchplayEventPage() {
   if (error && !event) {
     return (
       <div className="matchplay-event-page">
-        <p style={{ color: 'var(--error)' }}>{error}</p>
-        <Link href="/matchplay" className="btn btn-secondary" style={{ marginTop: '1rem' }}>
-          Back to list
-        </Link>
+        <p className="matchplay-error-text">{error}</p>
+        <div className="matchplay-modal-actions">
+          <Link href="/matchplay" className="btn btn-secondary">
+            Back to list
+          </Link>
+        </div>
       </div>
     )
   }
@@ -1028,7 +1030,7 @@ export default function MatchplayEventPage() {
               </button>
             </div>
             <div className="matchplay-event-modal-body">
-              <div style={{ overflowX: 'auto' }}>
+              <div className="matchplay-table-scroll">
                 <table className="matchplay-standings">
                   <thead>
                     <tr>
@@ -1102,7 +1104,7 @@ export default function MatchplayEventPage() {
               </button>
             </div>
             <div className="matchplay-event-modal-body">
-              {error && <div className="setup-error" style={{ marginBottom: '1rem' }}>{error}</div>}
+              {error && <div className="setup-error">{error}</div>}
               <div className="matchplay-event-edit-teams">
                 <div className="matchplay-event-edit-team">
                   <label>Team A</label>
@@ -1179,7 +1181,7 @@ export default function MatchplayEventPage() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+              <div className="matchplay-modal-actions">
                 <button type="button" className="btn btn-primary" onClick={handleEditMatchSave} disabled={!!actionLoading || !editMatchAssignments.a1 || !editMatchAssignments.a2 || !editMatchAssignments.b1 || !editMatchAssignments.b2}>
                   Save
                 </button>

@@ -189,7 +189,7 @@ export default function MatchplayPage() {
   if (loading) {
     return (
       <div className="matchplay-launcher">
-        <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
   }

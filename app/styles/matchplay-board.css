@@ -1,3 +1,4 @@
+/* TODO: Consider adding GradientWaveDrift background for visual consistency with SpectatorDisplay */
 /* ============================================================
    MATCHPLAY TV BOARD - Public leaderboard display
    Full-screen, vh-based scaling, readable from distance
@@ -10,8 +11,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #0E1116;
-  color: #FFFFFF;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--font-family);
 }
 
@@ -39,8 +40,8 @@
   justify-content: space-between;
   padding: clamp(0.75rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 3rem);
   flex-shrink: 0;
-  background: #151A22;
-  border-bottom: 1px solid #2A3140;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .board-header-title {
@@ -53,7 +54,7 @@
 .board-round-indicator {
   font-size: clamp(0.9rem, 2vh, 1.4rem);
   font-weight: 600;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
   margin: 0 clamp(1rem, 2vw, 2rem);
 }
@@ -75,12 +76,12 @@
 }
 
 .board-badge-dot-live {
-  background: #22C55E;
+  background: var(--success);
   animation: board-pulse 2s ease-in-out infinite;
 }
 
 .board-badge-dot-final {
-  background: #A0A0A8;
+  background: var(--text-secondary);
 }
 
 @keyframes board-pulse {
@@ -116,7 +117,7 @@
 .board-leaderboard {
   flex: 0 0 60%;
   min-width: 0;
-  border-right: 1px solid #2A3140;
+  border-right: 1px solid var(--border-default);
 }
 
 .board-fixtures {
@@ -128,7 +129,7 @@
   font-size: clamp(1rem, 2.2vh, 1.5rem);
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
 }
 
@@ -146,19 +147,19 @@
 .board-standings td {
   padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 1rem);
   text-align: left;
-  border-bottom: 1px solid #2A3140;
+  border-bottom: 1px solid var(--border-default);
 }
 
 .board-standings th {
   font-weight: 600;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: clamp(0.7rem, 1.4vh, 1rem);
 }
 
 .board-standings td {
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
 .board-th-rank,
@@ -192,10 +193,10 @@
 }
 
 .board-td-pts {
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
-/* Top 3 rank accents */
+/* Podium medal colors — no design tokens; keep as decorative exception */
 .board-rank-1 .board-td-rank {
   color: #FFD700;
   font-weight: 700;
@@ -234,9 +235,9 @@
 }
 
 .board-fixture {
-  background: #151A22;
-  border: 1px solid #2A3140;
-  border-radius: clamp(8px, 1.5vh, 12px);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
   padding: clamp(0.75rem, 2vh, 1.25rem);
   position: relative;
 }
@@ -244,7 +245,7 @@
 .board-fixture-court {
   font-size: clamp(0.8rem, 1.6vh, 1.1rem);
   font-weight: 600;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(0.5rem, 1.5vh, 0.75rem);
 }
 
@@ -263,13 +264,13 @@
 }
 
 .board-fixture-team-winner {
-  color: #FFFFFF;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .board-fixture-vs {
   font-size: clamp(0.75rem, 1.6vh, 1rem);
-  color: #606068;
+  color: var(--text-muted);
   padding: clamp(0.25rem, 0.8vh, 0.5rem) 0;
 }
 
@@ -285,14 +286,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: clamp(0.75rem, 1.6vh, 1rem);
-  color: #22C55E;
+  color: var(--success);
   margin-top: clamp(0.5rem, 1.5vh, 0.75rem);
 }
 
 .board-fixture-status-dot {
   width: 8px;
   height: 8px;
-  background: #22C55E;
+  background: var(--success);
   border-radius: 50%;
   animation: board-pulse 2s ease-in-out infinite;
 }
@@ -301,7 +302,7 @@
   position: absolute;
   top: clamp(0.75rem, 2vh, 1.25rem);
   right: clamp(0.75rem, 2vh, 1.25rem);
-  color: #22C55E;
+  color: var(--success);
   font-size: clamp(1rem, 2.5vh, 1.5rem);
 }
 
@@ -309,7 +310,7 @@
   padding: clamp(2rem, 5vh, 3rem);
   text-align: center;
   font-size: clamp(1rem, 2.2vh, 1.4rem);
-  color: #606068;
+  color: var(--text-muted);
 }
 
 /* ============================================================
@@ -320,9 +321,9 @@
   flex-shrink: 0;
   padding: clamp(0.5rem, 1.5vh, 1rem) clamp(1.5rem, 4vw, 3rem);
   font-size: clamp(0.7rem, 1.4vh, 1rem);
-  color: #606068;
-  background: #151A22;
-  border-top: 1px solid #2A3140;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-default);
 }
 
 /* ============================================================
@@ -347,7 +348,7 @@
   font-size: clamp(1.5rem, 4vh, 2.5rem);
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(1rem, 3vh, 2rem);
 }
 
@@ -360,7 +361,7 @@
 
 .board-event-date {
   font-size: clamp(1rem, 2.5vh, 1.5rem);
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
 }
 
@@ -372,21 +373,22 @@
   font-size: clamp(1rem, 2.5vh, 1.5rem);
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #22C55E;
+  color: var(--success);
   margin-bottom: clamp(2rem, 5vh, 3rem);
 }
 
 .board-pulse-dot {
   width: clamp(12px, 2.5vh, 20px);
   height: clamp(12px, 2.5vh, 20px);
-  background: #22C55E;
+  background: var(--success);
   border-radius: 50%;
   animation: board-pulse 2s ease-in-out infinite;
 }
 
 .board-players-card {
-  background: #151A22;
-  border: 1px solid #2A3140;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  /* Slightly larger radius than token max — keep responsive clamp */
   border-radius: clamp(12px, 2vh, 20px);
   padding: clamp(1.5rem, 4vh, 2.5rem);
   width: 100%;
@@ -397,7 +399,7 @@
   font-size: clamp(1rem, 2.2vh, 1.4rem);
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(1rem, 2.5vh, 1.5rem);
 }
 
@@ -415,7 +417,7 @@
 
 .board-players-count {
   font-size: clamp(0.9rem, 2vh, 1.2rem);
-  color: #606068;
+  color: var(--text-muted);
 }
 
 /* ============================================================
@@ -451,7 +453,7 @@
 
 .board-winner-points {
   font-size: clamp(1.25rem, 3vh, 1.75rem);
-  color: #A0A0A8;
+  color: var(--text-secondary);
   text-align: center;
   margin-bottom: clamp(1rem, 3vh, 1.5rem);
 }
@@ -460,25 +462,25 @@
   font-size: clamp(1rem, 2.5vh, 1.5rem);
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
 }
 
 .board-winner-card {
   background: rgba(255, 215, 0, 0.1);
   border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: clamp(8px, 1.5vh, 12px);
+  border-radius: var(--radius-lg);
   padding: clamp(1rem, 2.5vh, 1.5rem);
   margin-bottom: clamp(1.5rem, 4vh, 2rem);
 }
 
 .board-winner-stats {
   font-size: clamp(0.9rem, 2vh, 1.2rem);
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-top: 0.5rem;
 }
 
-/* Podium */
+/* Podium — medal gradients and platform fills: decorative, no tokens */
 .board-podium {
   display: flex;
   align-items: flex-end;
@@ -492,26 +494,26 @@
   flex-direction: column;
   align-items: center;
   padding: clamp(0.75rem, 2vh, 1.25rem);
-  border-radius: clamp(8px, 1.5vh, 12px) clamp(8px, 1.5vh, 12px) 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   min-width: clamp(80px, 15vw, 140px);
 }
 
 .board-podium-2nd {
   height: clamp(80px, 18vh, 120px);
   background: linear-gradient(180deg, #C0C0C0 0%, #A0A0A0 100%);
-  color: #1a1a1a;
+  color: var(--bg-primary);
 }
 
 .board-podium-1st {
   height: clamp(120px, 25vh, 180px);
   background: linear-gradient(180deg, #FFD700 0%, #E6C200 100%);
-  color: #1a1a1a;
+  color: var(--bg-primary);
 }
 
 .board-podium-3rd {
   height: clamp(60px, 14vh, 100px);
   background: linear-gradient(180deg, #CD7F32 0%, #B87333 100%);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .board-podium-label {
@@ -568,9 +570,9 @@
   flex-shrink: 0;
   padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(1.5rem, 4vw, 3rem);
   font-size: clamp(0.75rem, 1.5vh, 1rem);
-  color: #606068;
-  background: #151A22;
-  border-top: 1px solid #2A3140;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -579,25 +581,25 @@
 .board-activity-dot {
   width: 6px;
   height: 6px;
-  background: #22C55E;
+  background: var(--success);
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 /* Tie connector */
 .board-tie-cont .board-td-rank-cell {
-  border-left: 2px solid #2A3140;
+  border-left: 2px solid var(--border-default);
   padding-left: 0.5rem;
 }
 
 .board-tie-connector {
-  color: #606068;
+  color: var(--text-muted);
   font-size: 0.875em;
 }
 
 .board-winner-divider {
   height: 1px;
-  background: #2A3140;
+  background: var(--border-default);
   margin: clamp(1rem, 2.5vh, 1.5rem) 0;
 }
 
@@ -605,6 +607,6 @@
   font-size: clamp(1rem, 2.2vh, 1.4rem);
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #A0A0A8;
+  color: var(--text-secondary);
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
 }

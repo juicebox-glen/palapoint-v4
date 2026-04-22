@@ -130,7 +130,7 @@ export default function MatchplayNewPage() {
   if (loading) {
     return (
       <div className="matchplay-format-page">
-        <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
   }
@@ -163,7 +163,7 @@ export default function MatchplayNewPage() {
 
         <div className="matchplay-format-section">
           <label className="matchplay-format-label">Points per match</label>
-          <p className="matchplay-format-hint" style={{ marginBottom: '0.5rem' }}>
+          <p className="matchplay-format-hint matchplay-hint-text">
             Total points per match. Scores always sum to this number.
           </p>
           <div className="matchplay-pill-row">
