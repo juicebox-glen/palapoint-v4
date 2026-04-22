@@ -68,7 +68,7 @@ export default function DesignSystemHome() {
           <h2>Match play</h2>
           <ul>
             <li>
-              <Link href="/design-system/screens/matchplay">Setup &amp; spectator</Link>
+              <Link href="/design-system/screens/matchplay">Matchplay — staff &amp; TV board</Link>
             </li>
           </ul>
         </section>
