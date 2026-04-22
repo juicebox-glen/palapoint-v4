@@ -118,12 +118,6 @@
   line-height: 1.35;
 }
 
-.matchplay-launcher-mode-meta {
-  font-size: var(--ui-font-xs);
-  color: var(--text-muted);
-  line-height: 1.3;
-}
-
 .matchplay-mode-cards {
   display: flex;
   flex-direction: column;

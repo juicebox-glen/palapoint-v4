@@ -34,7 +34,6 @@ export function MatchplayLauncherModePicker() {
           <div className="matchplay-launcher-mode-copy">
             <span className="matchplay-launcher-mode-name">Americano</span>
             <span className="matchplay-launcher-mode-desc">Everyone plays with everyone once</span>
-            <span className="matchplay-launcher-mode-meta">Points-based scoring · auto-generated pairings</span>
           </div>
           <LauncherChevron />
         </Link>
