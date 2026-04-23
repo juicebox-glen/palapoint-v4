@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
+import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -127,6 +129,7 @@ function generateEventName(): string {
 
 export default function MatchplayPlayersPage() {
   const router = useRouter()
+  const branding = useMatchplaySetupBranding()
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeSlot, setActiveSlot] = useState<number | null>(null)
@@ -340,10 +343,18 @@ export default function MatchplayPlayersPage() {
     }
   }
 
+  const brandVars =
+    branding?.primaryColor != null
+      ? ({
+          '--brand-primary': branding.primaryColor,
+        } as CSSProperties)
+      : undefined
+
   if (!config) {
     return (
-      <div className="matchplay-page matchplay-page--stacked">
-        <p className="matchplay-loading">Loading...</p>
+      <div className="matchplay-page matchplay-page--setup" style={brandVars}>
+        <MatchplaySetupBrandHeader branding={branding} />
+        <p className="matchplay-loading">Loading…</p>
       </div>
     )
   }
@@ -409,69 +420,87 @@ export default function MatchplayPlayersPage() {
     )
 
   return (
-    <div className="matchplay-page matchplay-page--stacked">
-      <header className="matchplay-header matchplay-header--event-setup">
-        <div className="matchplay-header-side">
-          <button type="button" onClick={() => router.back()} className="matchplay-back">
-            ← Back
-          </button>
-        </div>
-        <h1 className="matchplay-header-title">Add Players</h1>
-        <div className="matchplay-header-side matchplay-header-side--end">
-          <span className="matchplay-header-count">
-            {filledCount} of {config.playerCount}
-          </span>
-        </div>
-      </header>
+    <div className="matchplay-page matchplay-page--setup" style={brandVars}>
+      <MatchplaySetupBrandHeader branding={branding} />
 
-      <div className="matchplay-players-content">
-        <div className="matchplay-players-list">
-          {players.map((player, index) => (
-            <div key={index} className="matchplay-player-slot">
-              <button type="button" className="matchplay-player-photo" onClick={() => openPhotoSheet(index)}>
-                {player.photoPreview ? (
-                  <img src={player.photoPreview} alt="" />
-                ) : player.name ? (
-                  <span className="matchplay-player-initials">
-                    {player.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </span>
-                ) : (
-                  <span className="matchplay-player-photo-icon" aria-hidden>
-                    <CameraIcon className="matchplay-player-photo-svg" />
-                  </span>
-                )}
-              </button>
-
-              <input
-                type="text"
-                className="matchplay-player-input"
-                placeholder={`Player ${index + 1}`}
-                value={player.name}
-                onChange={(e) => handleNameChange(index, e.target.value)}
-                autoComplete="name"
-              />
-
-              {player.name.trim() ? <span className="matchplay-player-check">✓</span> : null}
-            </div>
-          ))}
-        </div>
-
-        {error ? <p className="matchplay-error">{error}</p> : null}
+      <div className="matchplay-page-header">
+        <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
+          ← Back
+        </button>
+        <h1 className="matchplay-page-title">Players</h1>
+        <span className="matchplay-header-badge">
+          {filledCount} of {config.playerCount}
+        </span>
       </div>
 
-      <footer className="matchplay-setup-footer">
+      <div className="matchplay-setup-inner">
+        <div className="matchplay-players-content">
+          <div className="matchplay-card">
+            <div className="matchplay-players-grid">
+              {players.map((player, index) => (
+                <div key={index} className="matchplay-player-row">
+                  <button
+                    type="button"
+                    className={`matchplay-player-avatar ${player.photoPreview ? 'matchplay-player-avatar--has-photo' : ''}`}
+                    onClick={() => openPhotoSheet(index)}
+                    aria-label={player.photoPreview ? 'Change photo' : 'Add photo'}
+                  >
+                    {player.photoPreview ? (
+                      <img src={player.photoPreview} alt="" />
+                    ) : player.name ? (
+                      <span className="matchplay-player-initials">
+                        {player.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    ) : (
+                      <svg
+                        className="matchplay-player-camera-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden
+                      >
+                        <rect x="3" y="6" width="18" height="14" rx="2" />
+                        <circle cx="12" cy="13" r="4" />
+                        <path d="M9 3h6l1.5 3h-9z" />
+                      </svg>
+                    )}
+                  </button>
+
+                  <input
+                    type="text"
+                    className="matchplay-player-input"
+                    placeholder={`Player ${index + 1}`}
+                    value={player.name}
+                    onChange={(e) => handleNameChange(index, e.target.value)}
+                    autoComplete="name"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <p className="matchplay-card-hint matchplay-card-hint--center">
+              Americano works best with multiples of 4 (8, 12, 16 players)
+            </p>
+          </div>
+
+          {error ? <p className="matchplay-error">{error}</p> : null}
+        </div>
+      </div>
+
+      <footer className="matchplay-footer">
         <button
           type="button"
-          className="matchplay-btn matchplay-btn--primary"
+          className="matchplay-btn-primary"
           onClick={() => void handleStartEvent()}
           disabled={!canStart || isSubmitting}
         >
-          {isSubmitting ? 'Creating…' : 'Start Event'}
+          {isSubmitting ? 'Creating Event…' : 'Start Event'}
         </button>
       </footer>
 

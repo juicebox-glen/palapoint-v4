@@ -156,6 +156,61 @@ export async function getMatchplayVenueId(): Promise<string | null> {
   return data.id
 }
 
+/** Company branding for matchplay setup header (logo + colours from company config). */
+export interface MatchplayVenueHeaderBranding {
+  venueName: string
+  companyName: string
+  logoUrl: string | null
+  primaryColor: string | null
+  secondaryColor: string | null
+}
+
+function unwrapJoinedRow<T>(raw: unknown): T | null {
+  if (raw == null) return null
+  if (Array.isArray(raw)) return (raw[0] as T) ?? null
+  return raw as T
+}
+
+/**
+ * Load venue + company branding for the same venue used by matchplay (`getMatchplayVenueId`).
+ */
+export async function getMatchplayVenueHeaderBranding(): Promise<MatchplayVenueHeaderBranding | null> {
+  const venueId = await getMatchplayVenueId()
+  if (!venueId) return null
+
+  const { data, error } = await supabase
+    .from('venues')
+    .select(
+      `
+      id,
+      name,
+      companies (
+        name,
+        config
+      )
+    `
+    )
+    .eq('id', venueId)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const row = data as { name?: string; companies?: unknown }
+  const company = unwrapJoinedRow<{ name?: string; config?: unknown }>(row.companies)
+  const brandingCfg =
+    (company?.config as Record<string, unknown> | null | undefined)?.branding as
+      | Record<string, unknown>
+      | undefined
+
+  return {
+    venueName: String(row.name ?? ''),
+    companyName: String(company?.name ?? 'Venue'),
+    logoUrl: typeof brandingCfg?.logo_url === 'string' ? brandingCfg.logo_url : null,
+    primaryColor: typeof brandingCfg?.primary_color === 'string' ? brandingCfg.primary_color : null,
+    secondaryColor: typeof brandingCfg?.secondary_color === 'string' ? brandingCfg.secondary_color : null,
+  }
+}
+
 /**
  * Get first court for a venue (used for matchplay PIN validation)
  */

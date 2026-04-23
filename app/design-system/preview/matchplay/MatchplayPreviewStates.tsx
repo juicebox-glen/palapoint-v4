@@ -60,85 +60,91 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
   if (s === 'format') {
     return (
-      <div className="matchplay-page matchplay-page--stacked" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-header matchplay-header--event-setup">
-          <div className="matchplay-header-side">
-            <span className="matchplay-back">← Back</span>
-          </div>
-          <h1 className="matchplay-header-title">New Americano</h1>
-          <div className="matchplay-header-side matchplay-header-side--end" aria-hidden />
+      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
+        <header className="matchplay-brand-header">
+          <span className="matchplay-brand-text">PalaPoint</span>
         </header>
-
-        <div className="matchplay-setup-content">
-          <section className="matchplay-setup-section">
-            <h2 className="matchplay-setup-label">Players</h2>
-            <div className="matchplay-pill-group matchplay-pill-group--wide">
-              {[6, 8, 10, 12, 14, 16, 20].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 8 ? 'matchplay-pill--selected' : ''}`}>
-                  {n}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="matchplay-setup-section">
-            <h2 className="matchplay-setup-label">Courts</h2>
-            <div className="matchplay-pill-group">
-              {[1, 2, 3, 4].map((n) => (
-                <span
-                  key={n}
-                  className={`matchplay-pill matchplay-pill--toggle ${
-                    n === 1 || n === 2 ? 'matchplay-pill--selected' : ''
-                  }`}
-                >
-                  {n}
-                </span>
-              ))}
-            </div>
-            <p className="matchplay-setup-hint">8 players · 2 courts · 0 resting per round</p>
-          </section>
-
-          <section className="matchplay-setup-section">
-            <h2 className="matchplay-setup-label">Points per match</h2>
-            <div className="matchplay-pill-group">
-              {[16, 24, 32].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 32 ? 'matchplay-pill--selected' : ''}`}>
-                  {n}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="matchplay-setup-section">
-            <h2 className="matchplay-setup-label">Rounds</h2>
-            <div className="matchplay-pill-group matchplay-pill-group--wide">
-              {[3, 4, 5, 6, 7].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 5 ? 'matchplay-pill--selected' : ''}`}>
-                  {n}
-                </span>
-              ))}
-            </div>
-            <p className="matchplay-setup-hint">Full rotation = 7 rounds</p>
-          </section>
-
-          <section className="matchplay-setup-section matchplay-setup-overview">
-            <div className="matchplay-overview-row">
-              <span>Total matches</span>
-              <span className="matchplay-overview-value">10</span>
-            </div>
-            <div className="matchplay-overview-row">
-              <span>Matches per player</span>
-              <span className="matchplay-overview-value">~5</span>
-            </div>
-            <div className="matchplay-overview-row">
-              <span>Est. duration</span>
-              <span className="matchplay-overview-value">40m</span>
-            </div>
-          </section>
+        <div className="matchplay-page-header">
+          <span className="matchplay-back-btn">← Back</span>
+          <h1 className="matchplay-page-title">New Americano</h1>
+          <span className="matchplay-page-header-spacer" aria-hidden />
         </div>
 
-        <footer className="matchplay-setup-footer">
-          <span className="matchplay-btn matchplay-btn--primary" style={{ pointerEvents: 'none' }}>
+        <div className="matchplay-setup-inner">
+          <div className="matchplay-setup-content">
+            <div className="matchplay-card">
+              <span className="matchplay-card-label">Players</span>
+              <div className="matchplay-pill-bar">
+                {[6, 8, 10, 12, 14, 16, 20].map((n) => (
+                  <span key={n} className={`matchplay-pill-bar-item ${n === 8 ? 'matchplay-pill-bar-item--selected' : ''}`}>
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="matchplay-card">
+              <span className="matchplay-card-label">Courts</span>
+              <div className="matchplay-court-grid">
+                {[1, 2, 3, 4].map((n) => {
+                  const sel = n === 1 || n === 2
+                  return (
+                    <span
+                      key={n}
+                      className={`matchplay-court-btn ${sel ? 'matchplay-court-btn--selected' : ''}`}
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      <span className="matchplay-court-num">{n}</span>
+                      {sel ? <span className="matchplay-court-check">✓</span> : null}
+                    </span>
+                  )
+                })}
+              </div>
+              <p className="matchplay-card-hint">8 players · 2 courts · 0 resting per round</p>
+            </div>
+
+            <div className="matchplay-card">
+              <span className="matchplay-card-label">Points per match</span>
+              <div className="matchplay-pill-bar">
+                {[16, 24, 32].map((n) => (
+                  <span key={n} className={`matchplay-pill-bar-item ${n === 32 ? 'matchplay-pill-bar-item--selected' : ''}`}>
+                    {n}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="matchplay-card">
+              <span className="matchplay-card-label">Rounds</span>
+              <div className="matchplay-pill-bar">
+                {[3, 4, 5, 6, 7].map((n) => (
+                  <span key={n} className={`matchplay-pill-bar-item ${n === 5 ? 'matchplay-pill-bar-item--selected' : ''}`}>
+                    {n}
+                  </span>
+                ))}
+              </div>
+              <p className="matchplay-card-hint">Full rotation = 7 rounds</p>
+            </div>
+
+            <div className="matchplay-card matchplay-card--overview">
+              <div className="matchplay-overview-row">
+                <span className="matchplay-overview-label">Total matches</span>
+                <span className="matchplay-overview-value">10</span>
+              </div>
+              <div className="matchplay-overview-row">
+                <span className="matchplay-overview-label">Matches per player</span>
+                <span className="matchplay-overview-value">~5</span>
+              </div>
+              <div className="matchplay-overview-row">
+                <span className="matchplay-overview-label">Est. duration</span>
+                <span className="matchplay-overview-value">40m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer className="matchplay-footer">
+          <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
             Continue
           </span>
         </footer>
@@ -157,73 +163,77 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       { name: '' },
       { name: '' },
     ]
-    const filled = slots.filter((s) => s.name.trim()).length
+    const filled = slots.filter((row) => row.name.trim()).length
     return (
-      <div className="matchplay-page matchplay-page--stacked" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-header matchplay-header--event-setup">
-          <div className="matchplay-header-side">
-            <span className="matchplay-back">← Back</span>
-          </div>
-          <h1 className="matchplay-header-title">Add Players</h1>
-          <div className="matchplay-header-side matchplay-header-side--end">
-            <span className="matchplay-header-count">
-              {filled} of {slots.length}
-            </span>
-          </div>
+      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
+        <header className="matchplay-brand-header">
+          <span className="matchplay-brand-text">PalaPoint</span>
         </header>
-
-        <div className="matchplay-players-content">
-          <div className="matchplay-players-list">
-            {slots.map((slot, index) => (
-              <div key={index} className="matchplay-player-slot">
-                <span className="matchplay-player-photo" aria-hidden>
-                  {slot.photo === 'img' ? (
-                    <span className="matchplay-ds-photo-fake" />
-                  ) : slot.name ? (
-                    <span className="matchplay-player-initials">
-                      {slot.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </span>
-                  ) : (
-                    <span className="matchplay-player-photo-icon" aria-hidden>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="matchplay-player-photo-svg"
-                      >
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                    </span>
-                  )}
-                </span>
-                <input
-                  type="text"
-                  className="matchplay-player-input"
-                  placeholder={`Player ${index + 1}`}
-                  readOnly
-                  value={slot.name}
-                />
-                {slot.name.trim() ? <span className="matchplay-player-check">✓</span> : null}
-              </div>
-            ))}
-          </div>
-          <p className="matchplay-setup-hint" style={{ textAlign: 'center', marginTop: 'var(--ui-space-md)' }}>
-            Fixed slots from Event Setup · tap photo for camera / library (production)
-          </p>
+        <div className="matchplay-page-header">
+          <span className="matchplay-back-btn">← Back</span>
+          <h1 className="matchplay-page-title">Players</h1>
+          <span className="matchplay-header-badge">
+            {filled} of {slots.length}
+          </span>
         </div>
 
-        <footer className="matchplay-setup-footer">
-          <span className="matchplay-btn matchplay-btn--primary" style={{ pointerEvents: 'none', opacity: 0.5 }}>
+        <div className="matchplay-setup-inner">
+          <div className="matchplay-players-content">
+            <div className="matchplay-card">
+              <div className="matchplay-players-grid">
+                {slots.map((slot, index) => (
+                  <div key={index} className="matchplay-player-row">
+                    <span
+                      className={`matchplay-player-avatar ${slot.photo === 'img' ? 'matchplay-player-avatar--has-photo' : ''}`}
+                      aria-hidden
+                    >
+                      {slot.photo === 'img' ? (
+                        <span className="matchplay-ds-photo-fake" />
+                      ) : slot.name ? (
+                        <span className="matchplay-player-initials">
+                          {slot.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </span>
+                      ) : (
+                        <svg
+                          className="matchplay-player-camera-icon"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect x="3" y="6" width="18" height="14" rx="2" />
+                          <circle cx="12" cy="13" r="4" />
+                          <path d="M9 3h6l1.5 3h-9z" />
+                        </svg>
+                      )}
+                    </span>
+                    <input
+                      type="text"
+                      className="matchplay-player-input"
+                      placeholder={`Player ${index + 1}`}
+                      readOnly
+                      value={slot.name}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="matchplay-card-hint matchplay-card-hint--center">
+                Americano works best with multiples of 4 (8, 12, 16 players)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <footer className="matchplay-footer">
+          <span
+            className="matchplay-btn-primary"
+            style={{ pointerEvents: 'none', opacity: 0.5, display: 'block', textAlign: 'center' }}
+          >
             Start Event
           </span>
         </footer>

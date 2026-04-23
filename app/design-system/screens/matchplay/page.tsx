@@ -32,9 +32,9 @@ export default function MatchplayScreensPage() {
       <header className="ds-page-header">
         <h1>Social Matchplay</h1>
         <p>
-          Staff flow: launcher → combined Event Setup (player count, court toggles, points, rounds, overview) → fixed
-          player slots with optional photos → event hub. TV board previews mirror fixtures with team avatars and
-          standings with photo cells.
+          Staff flow: launcher → Event Setup → Add Players → event hub. Event Setup and Add Players use the same
+          card-based layout and pill bars as game setup (<code>setup-form.css</code> logo class + <code>matchplay.css</code>{' '}
+          setup tokens). TV board previews mirror fixtures with avatars and standings with photo cells.
         </p>
       </header>
 

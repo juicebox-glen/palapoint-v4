@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
+import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
+import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import '@/app/styles/matchplay.css'
+import '@/app/styles/setup-form.css'
 
 const PLAYER_OPTIONS = [6, 8, 10, 12, 14, 16, 20]
 const COURT_OPTIONS = [1, 2, 3, 4]
@@ -13,6 +16,7 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 export default function NewMatchplayPage() {
   const router = useRouter()
+  const branding = useMatchplaySetupBranding()
 
   const [playerCount, setPlayerCount] = useState(8)
   const [selectedCourts, setSelectedCourts] = useState<number[]>([1, 2])
@@ -75,113 +79,119 @@ export default function NewMatchplayPage() {
 
   const canContinue = selectedCourts.length >= 1
 
+  const brandVars =
+    branding?.primaryColor != null
+      ? ({
+          '--brand-primary': branding.primaryColor,
+        } as CSSProperties)
+      : undefined
+
   return (
-    <div className="matchplay-page matchplay-page--stacked">
-      <header className="matchplay-header matchplay-header--event-setup">
-        <div className="matchplay-header-side">
-          <button type="button" onClick={() => router.back()} className="matchplay-back">
-            ← Back
-          </button>
-        </div>
-        <h1 className="matchplay-header-title">New Americano</h1>
-        <div className="matchplay-header-side matchplay-header-side--end" aria-hidden />
-      </header>
+    <div className="matchplay-page matchplay-page--setup" style={brandVars}>
+      <MatchplaySetupBrandHeader branding={branding} />
 
-      <div className="matchplay-setup-content">
-        <section className="matchplay-setup-section">
-          <h2 className="matchplay-setup-label">Players</h2>
-          <div className="matchplay-pill-group matchplay-pill-group--wide">
-            {PLAYER_OPTIONS.map((count) => (
-              <button
-                key={count}
-                type="button"
-                className={`matchplay-pill ${playerCount === count ? 'matchplay-pill--selected' : ''}`}
-                onClick={() => setPlayerCount(count)}
-              >
-                {count}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="matchplay-setup-section">
-          <h2 className="matchplay-setup-label">Courts</h2>
-          <div className="matchplay-pill-group">
-            {COURT_OPTIONS.map((court) => (
-              <button
-                key={court}
-                type="button"
-                className={`matchplay-pill matchplay-pill--toggle ${
-                  selectedCourts.includes(court) ? 'matchplay-pill--selected' : ''
-                }`}
-                onClick={() => toggleCourt(court)}
-              >
-                {court}
-              </button>
-            ))}
-          </div>
-          <p className="matchplay-setup-hint">
-            {playerCount} players · {selectedCourts.length} court{selectedCourts.length !== 1 ? 's' : ''}
-            {restingPerRound > 0 ? ` · ${restingPerRound} resting per round` : ''}
-          </p>
-        </section>
-
-        <section className="matchplay-setup-section">
-          <h2 className="matchplay-setup-label">Points per match</h2>
-          <div className="matchplay-pill-group">
-            {POINTS_OPTIONS.map((points) => (
-              <button
-                key={points}
-                type="button"
-                className={`matchplay-pill ${pointsPerMatch === points ? 'matchplay-pill--selected' : ''}`}
-                onClick={() => setPointsPerMatch(points)}
-              >
-                {points}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="matchplay-setup-section">
-          <h2 className="matchplay-setup-label">Rounds</h2>
-          <div className="matchplay-pill-group matchplay-pill-group--wide">
-            {roundOptions.map((r) => (
-              <button
-                key={r}
-                type="button"
-                className={`matchplay-pill ${rounds === r ? 'matchplay-pill--selected' : ''}`}
-                onClick={() => setRounds(r)}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          <p className="matchplay-setup-hint">Full rotation = {fullRotation} rounds</p>
-        </section>
-
-        <section className="matchplay-setup-section matchplay-setup-overview">
-          <div className="matchplay-overview-row">
-            <span>Total matches</span>
-            <span className="matchplay-overview-value">{totalMatches}</span>
-          </div>
-          <div className="matchplay-overview-row">
-            <span>Matches per player</span>
-            <span className="matchplay-overview-value">~{matchesPerPlayer}</span>
-          </div>
-          <div className="matchplay-overview-row">
-            <span>Est. duration</span>
-            <span className="matchplay-overview-value">{estimatedDuration}</span>
-          </div>
-        </section>
+      <div className="matchplay-page-header">
+        <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
+          ← Back
+        </button>
+        <h1 className="matchplay-page-title">New Americano</h1>
+        <span className="matchplay-page-header-spacer" aria-hidden />
       </div>
 
-      <footer className="matchplay-setup-footer">
-        <button
-          type="button"
-          className="matchplay-btn matchplay-btn--primary"
-          onClick={handleContinue}
-          disabled={!canContinue}
-        >
+      <div className="matchplay-setup-inner">
+        <div className="matchplay-setup-content">
+          <div className="matchplay-card">
+            <span className="matchplay-card-label">Players</span>
+            <div className="matchplay-pill-bar">
+              {PLAYER_OPTIONS.map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  className={`matchplay-pill-bar-item ${playerCount === count ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  onClick={() => setPlayerCount(count)}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="matchplay-card">
+            <span className="matchplay-card-label">Courts</span>
+            <div className="matchplay-court-grid">
+              {COURT_OPTIONS.map((court) => {
+                const selected = selectedCourts.includes(court)
+                return (
+                  <button
+                    key={court}
+                    type="button"
+                    className={`matchplay-court-btn ${selected ? 'matchplay-court-btn--selected' : ''}`}
+                    onClick={() => toggleCourt(court)}
+                  >
+                    <span className="matchplay-court-num">{court}</span>
+                    {selected ? <span className="matchplay-court-check">✓</span> : null}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="matchplay-card-hint">
+              {playerCount} players · {selectedCourts.length} court{selectedCourts.length !== 1 ? 's' : ''}
+              {restingPerRound > 0 ? ` · ${restingPerRound} resting per round` : ''}
+            </p>
+          </div>
+
+          <div className="matchplay-card">
+            <span className="matchplay-card-label">Points per match</span>
+            <div className="matchplay-pill-bar">
+              {POINTS_OPTIONS.map((points) => (
+                <button
+                  key={points}
+                  type="button"
+                  className={`matchplay-pill-bar-item ${pointsPerMatch === points ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  onClick={() => setPointsPerMatch(points)}
+                >
+                  {points}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="matchplay-card">
+            <span className="matchplay-card-label">Rounds</span>
+            <div className="matchplay-pill-bar">
+              {roundOptions.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  className={`matchplay-pill-bar-item ${rounds === r ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  onClick={() => setRounds(r)}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <p className="matchplay-card-hint">Full rotation = {fullRotation} rounds</p>
+          </div>
+
+          <div className="matchplay-card matchplay-card--overview">
+            <div className="matchplay-overview-row">
+              <span className="matchplay-overview-label">Total matches</span>
+              <span className="matchplay-overview-value">{totalMatches}</span>
+            </div>
+            <div className="matchplay-overview-row">
+              <span className="matchplay-overview-label">Matches per player</span>
+              <span className="matchplay-overview-value">~{matchesPerPlayer}</span>
+            </div>
+            <div className="matchplay-overview-row">
+              <span className="matchplay-overview-label">Est. duration</span>
+              <span className="matchplay-overview-value">{estimatedDuration}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer className="matchplay-footer">
+        <button type="button" className="matchplay-btn-primary" onClick={handleContinue} disabled={!canContinue}>
           Continue
         </button>
       </footer>
