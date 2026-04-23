@@ -11,12 +11,38 @@ import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 function normalizeState(raw: string): string {
   const aliases: Record<string, string> = {
     setup: 'format',
+    event_setup: 'format',
     fixtures: 'event',
     scoring: 'event',
     standings: 'event',
     standings_tv: 'board_live',
   }
   return aliases[raw] ?? raw
+}
+
+function DsFixturePhoto({ initials }: { initials: string }) {
+  return (
+    <div className="board-player-photo board-player-photo--sm board-player-photo--initials" aria-hidden>
+      {initials}
+    </div>
+  )
+}
+
+function DsStandingsPlayerCell({ name }: { name: string }) {
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  return (
+    <div className="board-standings-player-cell">
+      <div className="board-player-photo board-player-photo--sm board-player-photo--initials" aria-hidden>
+        {initials}
+      </div>
+      <span className="board-standings-player-name">{name}</span>
+    </div>
+  )
 }
 
 /** Static previews using production class names — no Supabase. */
@@ -34,138 +60,173 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
   if (s === 'format') {
     return (
-      <div className="matchplay-format-page" style={{ minHeight: '100vh' }}>
-        <SetupScreenHeader />
-        <div className="matchplay-format-header">
-          <span className="matchplay-format-back">← Back</span>
-          <h1 className="matchplay-format-title">Format Setup</h1>
-        </div>
-        <div className="matchplay-format-form">
-          <div className="matchplay-format-section">
-            <label className="matchplay-format-label">Courts</label>
-            <div className="matchplay-pill-row">
+      <div className="matchplay-page matchplay-page--stacked" style={{ minHeight: '100vh' }}>
+        <header className="matchplay-header matchplay-header--event-setup">
+          <div className="matchplay-header-side">
+            <span className="matchplay-back">← Back</span>
+          </div>
+          <h1 className="matchplay-header-title">New Americano</h1>
+          <div className="matchplay-header-side matchplay-header-side--end" aria-hidden />
+        </header>
+
+        <div className="matchplay-setup-content">
+          <section className="matchplay-setup-section">
+            <h2 className="matchplay-setup-label">Players</h2>
+            <div className="matchplay-pill-group matchplay-pill-group--wide">
+              {[6, 8, 10, 12, 14, 16, 20].map((n) => (
+                <span key={n} className={`matchplay-pill ${n === 8 ? 'matchplay-pill--selected' : ''}`}>
+                  {n}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          <section className="matchplay-setup-section">
+            <h2 className="matchplay-setup-label">Courts</h2>
+            <div className="matchplay-pill-group">
               {[1, 2, 3, 4].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 2 ? 'active' : ''}`}>
+                <span
+                  key={n}
+                  className={`matchplay-pill matchplay-pill--toggle ${
+                    n === 1 || n === 2 ? 'matchplay-pill--selected' : ''
+                  }`}
+                >
                   {n}
                 </span>
               ))}
             </div>
-          </div>
-          <div className="matchplay-format-section">
-            <label className="matchplay-format-label">Points per match</label>
-            <p className="matchplay-format-hint matchplay-hint-text">
-              Total points per match. Scores always sum to this number.
-            </p>
-            <div className="matchplay-pill-row">
+            <p className="matchplay-setup-hint">8 players · 2 courts · 0 resting per round</p>
+          </section>
+
+          <section className="matchplay-setup-section">
+            <h2 className="matchplay-setup-label">Points per match</h2>
+            <div className="matchplay-pill-group">
               {[16, 24, 32].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 32 ? 'active' : ''}`}>
+                <span key={n} className={`matchplay-pill ${n === 32 ? 'matchplay-pill--selected' : ''}`}>
                   {n}
                 </span>
               ))}
             </div>
-          </div>
-          <div className="matchplay-format-section">
-            <label className="matchplay-format-label">Rounds</label>
-            <div className="matchplay-pill-row">
-              {[3, 4, 5, 6].map((n) => (
-                <span key={n} className={`matchplay-pill ${n === 4 ? 'active' : ''}`}>
+          </section>
+
+          <section className="matchplay-setup-section">
+            <h2 className="matchplay-setup-label">Rounds</h2>
+            <div className="matchplay-pill-group matchplay-pill-group--wide">
+              {[3, 4, 5, 6, 7].map((n) => (
+                <span key={n} className={`matchplay-pill ${n === 5 ? 'matchplay-pill--selected' : ''}`}>
                   {n}
                 </span>
               ))}
             </div>
-            <p className="matchplay-format-hint">Guide — Americano generates rounds so everyone partners with everyone</p>
-          </div>
-          <div className="matchplay-format-section matchplay-event-summary">
-            <label className="matchplay-format-label">Event Summary</label>
-            <div className="matchplay-summary-panel">
-              <p>Matches per player: Add players to see full estimate</p>
-              <p>Total matches: 8</p>
-              <p>Estimated duration: ~1h 36m</p>
-              <p className="matchplay-summary-based">Based on 2 courts · 4 rounds · 32 pts per match</p>
+            <p className="matchplay-setup-hint">Full rotation = 7 rounds</p>
+          </section>
+
+          <section className="matchplay-setup-section matchplay-setup-overview">
+            <div className="matchplay-overview-row">
+              <span>Total matches</span>
+              <span className="matchplay-overview-value">10</span>
             </div>
-          </div>
+            <div className="matchplay-overview-row">
+              <span>Matches per player</span>
+              <span className="matchplay-overview-value">~5</span>
+            </div>
+            <div className="matchplay-overview-row">
+              <span>Est. duration</span>
+              <span className="matchplay-overview-value">40m</span>
+            </div>
+          </section>
         </div>
-        <div className="matchplay-format-footer">
-          <span className="btn btn-primary matchplay-format-continue" style={{ pointerEvents: 'none' }}>
+
+        <footer className="matchplay-setup-footer">
+          <span className="matchplay-btn matchplay-btn--primary" style={{ pointerEvents: 'none' }}>
             Continue
           </span>
-        </div>
+        </footer>
       </div>
     )
   }
 
   if (s === 'players') {
-    const names = ['Glen Noble', 'Rob Anderson', 'Julian Waters', 'Carl Pettit', 'Sam Wilson', 'Jake Thomas']
+    const slots: { name: string; photo?: 'initials' | 'img' }[] = [
+      { name: 'Glen Noble', photo: 'img' },
+      { name: 'Rob Anderson' },
+      { name: 'Julian Waters' },
+      { name: 'Carl Pettit' },
+      { name: 'Sam Wilson' },
+      { name: 'Jake Thomas' },
+      { name: '' },
+      { name: '' },
+    ]
+    const filled = slots.filter((s) => s.name.trim()).length
     return (
-      <div className="matchplay-players-page" style={{ minHeight: '100vh' }}>
-        <SetupScreenHeader />
-        <div className="matchplay-players-header">
-          <span className="matchplay-players-back">← Back</span>
-          <h1 className="matchplay-players-title">Players</h1>
-          <span className="matchplay-players-count">{names.length} added</span>
-        </div>
-        <div className="setup-inputs matchplay-players-list">
-          <div className="setup-player-row">
-            <div className="setup-photo-circle-wrap" aria-hidden>
-              <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="setup-photo-trigger-svg"
-                  aria-hidden
-                >
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-              </div>
-            </div>
-            <div className="setup-input-wrap setup-input-wrap--player-name">
-              <input type="text" className="setup-input" placeholder="Enter name..." readOnly />
-            </div>
-            <span className="btn btn-primary matchplay-players-add" style={{ pointerEvents: 'none' }}>
-              ADD
+      <div className="matchplay-page matchplay-page--stacked" style={{ minHeight: '100vh' }}>
+        <header className="matchplay-header matchplay-header--event-setup">
+          <div className="matchplay-header-side">
+            <span className="matchplay-back">← Back</span>
+          </div>
+          <h1 className="matchplay-header-title">Add Players</h1>
+          <div className="matchplay-header-side matchplay-header-side--end">
+            <span className="matchplay-header-count">
+              {filled} of {slots.length}
             </span>
           </div>
-          {names.map((name) => (
-            <div key={name} className="setup-player-row">
-              <div className="setup-photo-circle-wrap" aria-hidden>
-                <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="setup-photo-trigger-svg"
-                    aria-hidden
-                  >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                </div>
+        </header>
+
+        <div className="matchplay-players-content">
+          <div className="matchplay-players-list">
+            {slots.map((slot, index) => (
+              <div key={index} className="matchplay-player-slot">
+                <span className="matchplay-player-photo" aria-hidden>
+                  {slot.photo === 'img' ? (
+                    <span className="matchplay-ds-photo-fake" />
+                  ) : slot.name ? (
+                    <span className="matchplay-player-initials">
+                      {slot.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                  ) : (
+                    <span className="matchplay-player-photo-icon" aria-hidden>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="matchplay-player-photo-svg"
+                      >
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                    </span>
+                  )}
+                </span>
+                <input
+                  type="text"
+                  className="matchplay-player-input"
+                  placeholder={`Player ${index + 1}`}
+                  readOnly
+                  value={slot.name}
+                />
+                {slot.name.trim() ? <span className="matchplay-player-check">✓</span> : null}
               </div>
-              <div className="setup-input-wrap setup-input-wrap--player-name">
-                <input type="text" className="setup-input" readOnly value={name} aria-label={name} />
-              </div>
-              <span className="matchplay-players-remove" aria-hidden>
-                ✕
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
+          <p className="matchplay-setup-hint" style={{ textAlign: 'center', marginTop: 'var(--ui-space-md)' }}>
+            Fixed slots from Event Setup · tap photo for camera / library (production)
+          </p>
         </div>
-        <p className="matchplay-players-hint">Americano works best with multiples of 4 (8, 12, 16 players)</p>
-        <div className="matchplay-players-footer">
-          <span className="btn btn-primary matchplay-players-start" style={{ pointerEvents: 'none' }}>
-            START EVENT
+
+        <footer className="matchplay-setup-footer">
+          <span className="matchplay-btn matchplay-btn--primary" style={{ pointerEvents: 'none', opacity: 0.5 }}>
+            Start Event
           </span>
-        </div>
+        </footer>
       </div>
     )
   }
@@ -274,38 +335,87 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   }
 
   if (s === 'board_setup') {
-    const players = [
-      'Glen Noble',
-      'Rob Anderson',
-      'Julian Waters',
-      'Carl Pettit',
-      'Sam Wilson',
-      'Jake Thomas',
-      'Mike Brown',
-      'Tom Davis',
-    ]
     return (
-      <div className="board-container board-setup">
-        <div className="board-setup-content">
-          <div className="board-brand">PalaPoint</div>
-          <h1 className="board-event-name">Tue 22 Apr Americano</h1>
-          <p className="board-event-date">22 Apr 2026</p>
-          <div className="board-starting-soon">
-            <span className="board-pulse-dot" aria-hidden />
-            <span>STARTING SOON</span>
+      <div className="board-container board-live">
+        <header className="board-header">
+          <div className="board-header-logo">
+            <span className="board-venue-name">Padel4All</span>
           </div>
-          <div className="board-players-card">
-            <div className="board-players-title">PLAYERS</div>
-            <div className="board-players-grid">
-              {players.map((name) => (
-                <span key={name} className="board-player-name">
-                  {name}
-                </span>
-              ))}
+          <h1 className="board-header-title">Tue 22 Apr Americano</h1>
+          <div className="board-header-right">
+            <div className="board-round-indicator">ROUND 1 of 5</div>
+            <div className="board-badge board-badge-starting">
+              <span className="board-badge-dot board-badge-dot-starting" aria-hidden />
+              <span>STARTING SOON</span>
             </div>
-            <div className="board-players-count">{players.length} players registered</div>
+          </div>
+        </header>
+        <div className="board-main board-main-split">
+          <div className="board-panel board-fixtures">
+            <div className="board-panel-title">ROUND 1 FIXTURES</div>
+            <div className="board-fixture-list">
+              <div className="board-fixture">
+                <div className="board-fixture-court">Court 1</div>
+                <div className="board-fixture-teams">
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="GN" />
+                        <DsFixturePhoto initials="JW" />
+                      </div>
+                      <span className="board-fixture-names">Glen + Julian</span>
+                    </div>
+                  </div>
+                  <div className="board-fixture-vs">vs</div>
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="RA" />
+                        <DsFixturePhoto initials="CP" />
+                      </div>
+                      <span className="board-fixture-names">Rob + Carl</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="board-fixture">
+                <div className="board-fixture-court">Court 2</div>
+                <div className="board-fixture-teams">
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="SW" />
+                        <DsFixturePhoto initials="JT" />
+                      </div>
+                      <span className="board-fixture-names">Sam + Jake</span>
+                    </div>
+                  </div>
+                  <div className="board-fixture-vs">vs</div>
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="MB" />
+                        <DsFixturePhoto initials="TD" />
+                      </div>
+                      <span className="board-fixture-names">Mike + Tom</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="board-resting">Resting this round: Alex Chen</div>
+          </div>
+          <div className="board-panel board-standings">
+            <div className="board-panel-title">STANDINGS</div>
+            <div className="board-standings-empty">Standings will appear after Round 1</div>
           </div>
         </div>
+        <footer className="board-footer">
+          <div className="board-footer-left">Americano · 32 pts per match · 2 courts</div>
+          <div className="board-footer-right">
+            <span className="board-footer-credit">palapoint</span>
+          </div>
+        </footer>
       </div>
     )
   }
@@ -313,86 +423,46 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'board_live') {
     return (
       <div className="board-container board-live">
-        <div className="board-header">
+        <header className="board-header">
+          <div className="board-header-logo">
+            <span className="board-venue-name">Padel4All</span>
+          </div>
           <h1 className="board-header-title">Tue 22 Apr Americano</h1>
-          <div className="board-round-indicator">ROUND 2 of 5</div>
-          <div className="board-badge board-badge-live">
-            <span className="board-badge-dot board-badge-dot-live" aria-hidden />
-            <span>LIVE</span>
+          <div className="board-header-right">
+            <div className="board-round-indicator">ROUND 2 of 5</div>
+            <div className="board-badge board-badge-live">
+              <span className="board-badge-dot board-badge-dot-live" aria-hidden />
+              <span>LIVE</span>
+            </div>
           </div>
-        </div>
-        <div className="board-main">
-          <div className="board-panel board-leaderboard">
-            <div className="board-panel-title">LEADERBOARD</div>
-            <table className="board-standings">
-              <thead>
-                <tr>
-                  <th className="board-th-rank">#</th>
-                  <th className="board-th-player">Player</th>
-                  <th className="board-th-num">P</th>
-                  <th className="board-th-num">W</th>
-                  <th className="board-th-num">D</th>
-                  <th className="board-th-num">L</th>
-                  <th className="board-th-num">GD</th>
-                  <th className="board-th-pts">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="board-rank-1">
-                  <td className="board-td-rank board-td-rank-cell">🥇</td>
-                  <td className="board-td-player">Glen Noble</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">+12</td>
-                  <td className="board-td-pts">38</td>
-                </tr>
-                <tr className="board-rank-2">
-                  <td className="board-td-rank board-td-rank-cell">🥈</td>
-                  <td className="board-td-player">Julian Waters</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">+8</td>
-                  <td className="board-td-pts">35</td>
-                </tr>
-                <tr className="board-rank-3">
-                  <td className="board-td-rank board-td-rank-cell">🥉</td>
-                  <td className="board-td-player">Rob Anderson</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">+2</td>
-                  <td className="board-td-pts">30</td>
-                </tr>
-                <tr>
-                  <td className="board-td-rank board-td-rank-cell">4</td>
-                  <td className="board-td-player">Carl Pettit</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">−2</td>
-                  <td className="board-td-pts">28</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        </header>
+        <div className="board-main board-main-split">
           <div className="board-panel board-fixtures">
-            <div className="board-panel-title">ROUND 2</div>
+            <div className="board-panel-title">ROUND 2 FIXTURES</div>
             <div className="board-fixture-list">
               <div className="board-fixture">
                 <div className="board-fixture-court">Court 1</div>
                 <div className="board-fixture-teams">
                   <div className="board-fixture-team board-fixture-team-winner">
-                    Glen Noble + Julian Waters<span className="board-fixture-score">18</span>
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="GN" />
+                        <DsFixturePhoto initials="JW" />
+                      </div>
+                      <span className="board-fixture-names">Glen + Julian</span>
+                    </div>
+                    <span className="board-fixture-score">18</span>
                   </div>
                   <div className="board-fixture-vs">vs</div>
                   <div className="board-fixture-team">
-                    Rob Anderson + Carl Pettit<span className="board-fixture-score">14</span>
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="RA" />
+                        <DsFixturePhoto initials="CP" />
+                      </div>
+                      <span className="board-fixture-names">Rob + Carl</span>
+                    </div>
+                    <span className="board-fixture-score">14</span>
                   </div>
                 </div>
                 <span className="board-fixture-check">✓</span>
@@ -400,9 +470,25 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               <div className="board-fixture">
                 <div className="board-fixture-court">Court 2</div>
                 <div className="board-fixture-teams">
-                  <div className="board-fixture-team">Sam Wilson + Jake Thomas</div>
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="SW" />
+                        <DsFixturePhoto initials="JT" />
+                      </div>
+                      <span className="board-fixture-names">Sam + Jake</span>
+                    </div>
+                  </div>
                   <div className="board-fixture-vs">vs</div>
-                  <div className="board-fixture-team">Mike Brown + Tom Davis</div>
+                  <div className="board-fixture-team">
+                    <div className="board-fixture-team-main">
+                      <div className="board-fixture-photos">
+                        <DsFixturePhoto initials="MB" />
+                        <DsFixturePhoto initials="TD" />
+                      </div>
+                      <span className="board-fixture-names">Mike + Tom</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="board-fixture-status">
                   <span className="board-fixture-status-dot" aria-hidden />
@@ -410,13 +496,72 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 </div>
               </div>
             </div>
+            <div className="board-resting">Resting this round: Alex Chen</div>
+          </div>
+          <div className="board-panel board-standings">
+            <div className="board-panel-title">STANDINGS</div>
+            <table className="board-standings-table board-standings-table--live">
+              <thead>
+                <tr>
+                  <th className="board-th-rank">#</th>
+                  <th className="board-th-player">Player</th>
+                  <th className="board-th-points">P</th>
+                  <th className="board-th-diff">+/-</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="board-standings-row board-row-tied">
+                  <td className="board-td-rank board-td-rank-cell">1</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Glen Noble" />
+                  </td>
+                  <td className="board-td-points">38</td>
+                  <td className="board-td-diff">+12</td>
+                </tr>
+                <tr className="board-standings-row board-row-tied">
+                  <td className="board-td-rank board-td-rank-cell">1</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Julian Waters" />
+                  </td>
+                  <td className="board-td-points">38</td>
+                  <td className="board-td-diff">+12</td>
+                </tr>
+                <tr className="board-standings-row">
+                  <td className="board-td-rank board-td-rank-cell">3</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Rob Anderson" />
+                  </td>
+                  <td className="board-td-points">30</td>
+                  <td className="board-td-diff">+2</td>
+                </tr>
+                <tr className="board-standings-row">
+                  <td className="board-td-rank board-td-rank-cell">4</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Carl Pettit" />
+                  </td>
+                  <td className="board-td-points">28</td>
+                  <td className="board-td-diff">−2</td>
+                </tr>
+                <tr className="board-standings-row board-row-resting">
+                  <td className="board-td-rank board-td-rank-cell board-td-rank-resting" aria-hidden>
+                    ·
+                  </td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Alex Chen" />
+                  </td>
+                  <td className="board-td-points">0</td>
+                  <td className="board-td-diff">0</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div className="board-activity-feed">
-          <span className="board-activity-dot" aria-hidden />
-          Glen Noble + Julian Waters beat Rob Anderson + Carl Pettit 18–14 on Court 1 · just now
-        </div>
-        <div className="board-footer">Golden Point • First to 32 • Win 3 / Draw 1 / Loss 0</div>
+        <footer className="board-footer">
+          <div className="board-footer-left">Americano · 32 pts per match · 2 courts</div>
+          <div className="board-footer-right">
+            <span className="board-footer-credit">palapoint</span>
+          </div>
+        </footer>
       </div>
     )
   }
@@ -424,13 +569,18 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'board_completed') {
     return (
       <div className="board-container board-completed">
-        <div className="board-header">
-          <h1 className="board-header-title">Tue 22 Apr Americano</h1>
-          <div className="board-badge board-badge-final">
-            <span className="board-badge-dot board-badge-dot-final" aria-hidden />
-            <span>FINAL</span>
+        <header className="board-header">
+          <div className="board-header-logo">
+            <span className="board-venue-name">Padel4All</span>
           </div>
-        </div>
+          <h1 className="board-header-title">Tue 22 Apr Americano</h1>
+          <div className="board-header-right">
+            <div className="board-badge board-badge-final">
+              <span className="board-badge-dot board-badge-dot-final" aria-hidden />
+              <span>FINAL</span>
+            </div>
+          </div>
+        </header>
 
         <div className="board-main board-main-single board-podium-visible">
           <div className="board-winner-section">
@@ -469,7 +619,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
             <div className="board-winner-divider" />
             <div className="board-standings-title">FINAL STANDINGS</div>
-            <table className="board-standings">
+            <table className="board-standings-table">
               <thead>
                 <tr>
                   <th className="board-th-rank">#</th>
@@ -484,8 +634,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               </thead>
               <tbody>
                 <tr className="board-rank-1">
-                  <td className="board-td-rank board-td-rank-cell">🥇</td>
-                  <td className="board-td-player">Glen Noble</td>
+                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥇</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Glen Noble" />
+                  </td>
                   <td className="board-td-num">5</td>
                   <td className="board-td-num">5</td>
                   <td className="board-td-num">0</td>
@@ -494,8 +646,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                   <td className="board-td-pts">95</td>
                 </tr>
                 <tr className="board-rank-2">
-                  <td className="board-td-rank board-td-rank-cell">🥈</td>
-                  <td className="board-td-player">Julian Waters</td>
+                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥈</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Julian Waters" />
+                  </td>
                   <td className="board-td-num">5</td>
                   <td className="board-td-num">4</td>
                   <td className="board-td-num">0</td>
@@ -504,8 +658,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                   <td className="board-td-pts">82</td>
                 </tr>
                 <tr className="board-rank-3">
-                  <td className="board-td-rank board-td-rank-cell">🥉</td>
-                  <td className="board-td-player">Rob Anderson</td>
+                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥉</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Rob Anderson" />
+                  </td>
                   <td className="board-td-num">5</td>
                   <td className="board-td-num">3</td>
                   <td className="board-td-num">1</td>
@@ -515,7 +671,9 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 </tr>
                 <tr>
                   <td className="board-td-rank board-td-rank-cell">4</td>
-                  <td className="board-td-player">Carl Pettit</td>
+                  <td className="board-td-player">
+                    <DsStandingsPlayerCell name="Carl Pettit" />
+                  </td>
                   <td className="board-td-num">5</td>
                   <td className="board-td-num">2</td>
                   <td className="board-td-num">0</td>
@@ -528,7 +686,12 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           </div>
         </div>
 
-        <div className="board-footer">5 rounds • 8 players • Golden Point • First to 32</div>
+        <footer className="board-footer">
+          <div className="board-footer-left">Americano · 32 pts per match · 2 courts</div>
+          <div className="board-footer-right">
+            <span className="board-footer-credit">palapoint</span>
+          </div>
+        </footer>
       </div>
     )
   }
@@ -538,7 +701,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       <SetupScreenHeader />
       <p className="matchplay-loading-text" style={{ marginBottom: 'var(--ui-space-md)' }}>
         Unknown preview state &quot;{state}&quot; — showing launcher. Try{' '}
-        <code>?state=launcher|format|players|event|board_setup|board_live|board_completed</code>.
+        <code>
+          ?state=launcher|format|event_setup|players|event|board_setup|board_live|board_completed
+        </code>{' '}
+        (aliases: <code>setup</code> → Event Setup, <code>fixtures|scoring|standings</code> → Event Hub).
       </p>
       <MatchplayLauncherModePicker />
     </div>

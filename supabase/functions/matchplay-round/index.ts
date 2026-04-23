@@ -557,12 +557,15 @@ Deno.serve(async (req) => {
 
         const { data: players } = await supabase
           .from('matchplay_players')
-          .select('id, name')
+          .select('id, name, photo_url')
           .in('id', Array.from(playerIds));
 
         const nameMap = new Map<string, string>();
+        const photoMap = new Map<string, string | null>();
         for (const p of players ?? []) {
-          nameMap.set(p.id, p.name ?? '');
+          const row = p as { id: string; name?: string | null; photo_url?: string | null };
+          nameMap.set(row.id, row.name ?? '');
+          photoMap.set(row.id, row.photo_url ?? null);
         }
 
         const matchesWithNames = (matches ?? []).map((m: Record<string, unknown>) => {
@@ -573,6 +576,10 @@ Deno.serve(async (req) => {
             team_a_player_2_name: nameMap.get(match.team_a_player_2_id) ?? '',
             team_b_player_1_name: nameMap.get(match.team_b_player_1_id) ?? '',
             team_b_player_2_name: nameMap.get(match.team_b_player_2_id) ?? '',
+            team_a_player_1_photo_url: photoMap.get(match.team_a_player_1_id) ?? null,
+            team_a_player_2_photo_url: photoMap.get(match.team_a_player_2_id) ?? null,
+            team_b_player_1_photo_url: photoMap.get(match.team_b_player_1_id) ?? null,
+            team_b_player_2_photo_url: photoMap.get(match.team_b_player_2_id) ?? null,
           };
         });
 

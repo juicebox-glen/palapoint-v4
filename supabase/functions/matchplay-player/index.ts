@@ -32,7 +32,8 @@ interface RemoveInput {
 interface UpdateInput {
   action: 'update';
   player_id: string;
-  name: string;
+  name?: string;
+  photo_url?: string | null;
 }
 
 interface StandingsInput {
@@ -165,14 +166,28 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        const { player_id, name } = body as UpdateInput;
-        if (!player_id || !name?.trim()) {
-          return errorResponse('player_id and name are required');
+        const { player_id, name, photo_url } = body as UpdateInput;
+        if (!player_id) {
+          return errorResponse('player_id is required');
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (name !== undefined) {
+          if (!name?.trim()) {
+            return errorResponse('name cannot be empty');
+          }
+          updateData.name = name.trim();
+        }
+        if (photo_url !== undefined) {
+          updateData.photo_url = photo_url;
+        }
+        if (Object.keys(updateData).length === 0) {
+          return errorResponse('no_fields_to_update');
         }
 
         const { data, error } = await supabase
           .from('matchplay_players')
-          .update({ name: name.trim() })
+          .update(updateData)
           .eq('id', player_id)
           .select()
           .single();

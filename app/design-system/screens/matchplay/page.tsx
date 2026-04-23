@@ -6,9 +6,14 @@ const MATCHPLAY_PREVIEW_BASE = '/design-system/preview/matchplay'
 
 const STAFF_STATES: ScreenPreviewState[] = [
   { name: 'launcher', label: 'Launcher', url: `${MATCHPLAY_PREVIEW_BASE}?state=launcher`, viewport: 'mobile' },
-  { name: 'format', label: 'Format Setup', url: `${MATCHPLAY_PREVIEW_BASE}?state=format`, viewport: 'mobile' },
-  { name: 'players', label: 'Player Entry', url: `${MATCHPLAY_PREVIEW_BASE}?state=players`, viewport: 'mobile' },
-  { name: 'event', label: 'Event Hub', url: `${MATCHPLAY_PREVIEW_BASE}?state=event`, viewport: 'tablet' },
+  {
+    name: 'format',
+    label: 'Event Setup',
+    url: `${MATCHPLAY_PREVIEW_BASE}?state=format`,
+    viewport: 'mobile',
+  },
+  { name: 'players', label: 'Add Players', url: `${MATCHPLAY_PREVIEW_BASE}?state=players`, viewport: 'mobile' },
+  { name: 'event', label: 'Event Hub', url: `${MATCHPLAY_PREVIEW_BASE}?state=event`, viewport: 'mobile' },
 ]
 
 const TV_BOARD_STATES: ScreenPreviewState[] = [
@@ -26,14 +31,18 @@ export default function MatchplayScreensPage() {
 
       <header className="ds-page-header">
         <h1>Social Matchplay</h1>
-        <p>Match setup (launcher, format, players) uses the same header as PIN — phone-width column; event hub stays tablet; TV board unchanged.</p>
+        <p>
+          Staff flow: launcher → combined Event Setup (player count, court toggles, points, rounds, overview) → fixed
+          player slots with optional photos → event hub. TV board previews mirror fixtures with team avatars and
+          standings with photo cells.
+        </p>
       </header>
 
       <section className="ds-section">
         <h2>Staff</h2>
         <ScreenPreview
           title="Staff Matchplay"
-          description="Launcher, format, and players: mobile frame + SetupScreenHeader. Event hub: tablet."
+          description="Mobile frame for launcher, Event Setup, Add Players, and event hub. Launcher only uses SetupScreenHeader; setup screens match /matchplay/new."
           viewport="mobile"
           states={STAFF_STATES}
         />
@@ -43,7 +52,7 @@ export default function MatchplayScreensPage() {
         <h2>TV board</h2>
         <ScreenPreview
           title="Matchplay TV board"
-          description="Starting soon, live leaderboard + fixtures, completed podium."
+          description="Starting soon, live leaderboard + fixtures (team photos / initials), completed podium. Same markup classes as /matchplay/[id]/board."
           viewport="tv"
           states={TV_BOARD_STATES}
         />

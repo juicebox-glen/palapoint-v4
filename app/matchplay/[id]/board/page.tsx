@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+// TODO: Consider venue-scoped board route (/matchplay/[company]/[venue]/board) that auto-shows
+// the active event or idle state. Current route requires an event ID.
+
+import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import '@/app/styles/matchplay-board.css'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -21,12 +24,19 @@ interface MatchplayEvent {
   win_points?: number
   draw_points?: number
   loss_points?: number
+  court_count?: number
+  format?: string
+  venue?: {
+    name?: string
+    company?: { name?: string; branding?: { logo_url?: string | null } }
+  }
 }
 
 interface MatchplayPlayer {
   id: string
   event_id: string
   name: string
+  photo_url?: string | null
   total_points: number
   matches_played: number
   matches_won: number
@@ -51,24 +61,22 @@ interface MatchplayRound {
 interface MatchplayMatch {
   id: string
   court_label: string
+  team_a_player_1_id?: string
+  team_a_player_2_id?: string
+  team_b_player_1_id?: string
+  team_b_player_2_id?: string
   team_a_player_1_name?: string
   team_a_player_2_name?: string
   team_b_player_1_name?: string
   team_b_player_2_name?: string
+  team_a_player_1_photo_url?: string | null
+  team_a_player_2_photo_url?: string | null
+  team_b_player_1_photo_url?: string | null
+  team_b_player_2_photo_url?: string | null
   status: string
   team_a_score: number | null
   team_b_score: number | null
   updated_at?: string
-}
-
-interface ActivityFeedItem {
-  id: string
-  teamA: string
-  teamB: string
-  scoreA: number
-  scoreB: number
-  court: string
-  completedAt: number
 }
 
 async function fetchEdgeFunction(path: string, body: Record<string, unknown>) {
@@ -103,25 +111,6 @@ async function callMatchplayRound(body: Record<string, unknown>) {
   return fetchEdgeFunction('matchplay-round', body)
 }
 
-function formatEventDate(createdAt: string | undefined): string {
-  if (!createdAt) return ''
-  const d = new Date(createdAt)
-  return `${d.getDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]} ${d.getFullYear()}`
-}
-
-function getGameModeText(mode: string | undefined): string {
-  switch (mode) {
-    case 'golden_point':
-      return 'Golden Point'
-    case 'silver_point':
-      return 'Silver Point'
-    case 'traditional':
-      return 'Traditional'
-    default:
-      return mode ? mode.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : ''
-  }
-}
-
 function getMatchFormatText(event: MatchplayEvent): string {
   const format = event.match_format
   if (format === 'timed') {
@@ -135,28 +124,68 @@ function getMatchFormatText(event: MatchplayEvent): string {
   return format ? format.replace(/_/g, ' ') : ''
 }
 
-function getScoringText(event: MatchplayEvent): string {
-  const w = event.win_points ?? 3
-  const d = event.draw_points ?? 1
-  const l = event.loss_points ?? 0
-  return `Win ${w} / Draw ${d} / Loss ${l}`
-}
-
-function timeAgo(ms: number): string {
-  const sec = Math.floor((Date.now() - ms) / 1000)
-  if (sec < 60) return 'just now'
-  if (sec < 3600) return `${Math.floor(sec / 60)} min ago`
-  if (sec < 86400) return `${Math.floor(sec / 3600)} hr ago`
-  return `${Math.floor(sec / 86400)} days ago`
-}
-
-function formatFeedItem(item: ActivityFeedItem): string {
-  const score = `${item.scoreA}-${item.scoreB}`
-  const isDraw = item.scoreA === item.scoreB
-  if (isDraw) {
-    return `${item.teamA} drew with ${item.teamB} ${score} ${item.court}`
+function formatEventKindLabel(event: MatchplayEvent): string {
+  if (event.format?.trim()) {
+    return event.format.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   }
-  return `${item.teamA} beat ${item.teamB} ${score} ${item.court}`
+  return 'Americano'
+}
+
+function formatMatchPointsSummary(event: MatchplayEvent): string {
+  if (event.match_format === 'first_to_points') {
+    return `${event.match_target_score ?? 32} pts per match`
+  }
+  if (event.match_format === 'timed') {
+    return `${event.match_duration_minutes ?? 10} min per match`
+  }
+  const t = getMatchFormatText(event)
+  return t || '—'
+}
+
+function getCourtCountForBoard(event: MatchplayEvent, rounds: MatchplayRound[]): number {
+  if (event.court_count != null && event.court_count > 0) return event.court_count
+  const matches = rounds[0]?.matches ?? []
+  const labels = new Set(matches.map((m) => m.court_label).filter(Boolean))
+  if (labels.size > 0) return labels.size
+  return 1
+}
+
+function buildBoardFooterLeft(event: MatchplayEvent, rounds: MatchplayRound[]): string {
+  const kind = formatEventKindLabel(event)
+  const mid = formatMatchPointsSummary(event)
+  const n = getCourtCountForBoard(event, rounds)
+  const courts = `${n} court${n !== 1 ? 's' : ''}`
+  return `${kind} · ${mid} · ${courts}`
+}
+
+function BoardHeaderShell({ event, headerRight }: { event: MatchplayEvent; headerRight: ReactNode }) {
+  const logoUrl = event.venue?.company?.branding?.logo_url
+  const logoAlt = event.venue?.company?.name || event.venue?.name || 'Venue'
+
+  return (
+    <header className="board-header">
+      <div className="board-header-logo">
+        {logoUrl ? (
+          <img src={logoUrl} alt={logoAlt} className="board-venue-logo" />
+        ) : (
+          <span className="board-venue-name">{event.venue?.name || 'PalaPoint'}</span>
+        )}
+      </div>
+      <h1 className="board-header-title">{event.name}</h1>
+      <div className="board-header-right">{headerRight}</div>
+    </header>
+  )
+}
+
+function BoardFooterShell({ left }: { left: ReactNode }) {
+  return (
+    <footer className="board-footer">
+      <div className="board-footer-left">{left}</div>
+      <div className="board-footer-right">
+        <span className="board-footer-credit">palapoint</span>
+      </div>
+    </footer>
+  )
 }
 
 type GroupedStanding = { rank: number; isFirstInGroup: boolean; players: MatchplayPlayer[] }
@@ -182,6 +211,136 @@ function groupStandings(standings: MatchplayPlayer[]): GroupedStanding[] {
   return groups
 }
 
+type LiveStandingRow = { player: MatchplayPlayer; rank: number; tiedGroup: boolean }
+
+function flattenLiveStandingsRows(standings: MatchplayPlayer[]): LiveStandingRow[] {
+  const groups = groupStandings(standings)
+  const rows: LiveStandingRow[] = []
+  for (const g of groups) {
+    const tiedGroup = g.players.length > 1
+    for (const p of g.players) {
+      rows.push({ player: p, rank: g.rank, tiedGroup })
+    }
+  }
+  return rows
+}
+
+function formatGameDiff(gd: number): string {
+  if (gd > 0) return `+${gd}`
+  return String(gd)
+}
+
+function namesOnPitchForMatches(matches: MatchplayMatch[]): Set<string> {
+  const s = new Set<string>()
+  for (const m of matches) {
+    for (const n of [m.team_a_player_1_name, m.team_a_player_2_name, m.team_b_player_1_name, m.team_b_player_2_name]) {
+      const t = n?.trim()
+      if (t) s.add(t)
+    }
+  }
+  return s
+}
+
+function getRestingPlayers(players: MatchplayPlayer[], matches: MatchplayMatch[]): MatchplayPlayer[] {
+  if (players.length === 0) return []
+  const onPitch = namesOnPitchForMatches(matches)
+  return players.filter((p) => !onPitch.has(p.name.trim()))
+}
+
+function getRoundByNumber(rounds: MatchplayRound[], n: number): MatchplayRound | null {
+  return rounds.find((r) => r.round_number === n) ?? null
+}
+
+function boardPlayerFirstName(full: string | undefined): string {
+  if (!full?.trim()) return ''
+  return full.trim().split(/\s+/)[0] ?? ''
+}
+
+function BoardPlayerPhoto({
+  name,
+  photoUrl,
+  size = 'md',
+}: {
+  name: string
+  photoUrl?: string | null
+  size?: 'sm' | 'md' | 'lg'
+}) {
+  const sizeClass = `board-player-photo--${size}`
+  if (photoUrl) {
+    return <img src={photoUrl} alt="" className={`board-player-photo ${sizeClass}`} />
+  }
+  const initials = name
+    .split(/\s+/)
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  return (
+    <div className={`board-player-photo board-player-photo--initials ${sizeClass}`} aria-hidden>
+      {initials || '—'}
+    </div>
+  )
+}
+
+function BoardFixtureCard({ match }: { match: MatchplayMatch }) {
+  const teamAPlayers: { name?: string; photo?: string | null }[] = [
+    { name: match.team_a_player_1_name, photo: match.team_a_player_1_photo_url },
+    { name: match.team_a_player_2_name, photo: match.team_a_player_2_photo_url },
+  ].filter((p) => p.name?.trim())
+  const teamBPlayers: { name?: string; photo?: string | null }[] = [
+    { name: match.team_b_player_1_name, photo: match.team_b_player_1_photo_url },
+    { name: match.team_b_player_2_name, photo: match.team_b_player_2_photo_url },
+  ].filter((p) => p.name?.trim())
+
+  const teamA =
+    teamAPlayers.map((p) => boardPlayerFirstName(p.name)).filter(Boolean).join(' + ') || '—'
+  const teamB =
+    teamBPlayers.map((p) => boardPlayerFirstName(p.name)).filter(Boolean).join(' + ') || '—'
+  const isMatchCompleted = match.status === 'completed'
+  const scoreA = match.team_a_score ?? 0
+  const scoreB = match.team_b_score ?? 0
+  const teamAWins = scoreA > scoreB
+  const teamBWins = scoreB > scoreA
+
+  return (
+    <div className="board-fixture">
+      <div className="board-fixture-court">{match.court_label}</div>
+      <div className="board-fixture-teams">
+        <div className={`board-fixture-team ${teamAWins ? 'board-fixture-team-winner' : ''}`}>
+          <div className="board-fixture-team-main">
+            <div className="board-fixture-photos">
+              {teamAPlayers.map((p, i) => (
+                <BoardPlayerPhoto key={`a-${i}`} name={p.name ?? ''} photoUrl={p.photo} size="sm" />
+              ))}
+            </div>
+            <span className="board-fixture-names">{teamA}</span>
+          </div>
+          {isMatchCompleted ? <span className="board-fixture-score">{scoreA}</span> : null}
+        </div>
+        <div className="board-fixture-vs">vs</div>
+        <div className={`board-fixture-team ${teamBWins ? 'board-fixture-team-winner' : ''}`}>
+          <div className="board-fixture-team-main">
+            <div className="board-fixture-photos">
+              {teamBPlayers.map((p, i) => (
+                <BoardPlayerPhoto key={`b-${i}`} name={p.name ?? ''} photoUrl={p.photo} size="sm" />
+              ))}
+            </div>
+            <span className="board-fixture-names">{teamB}</span>
+          </div>
+          {isMatchCompleted ? <span className="board-fixture-score">{scoreB}</span> : null}
+        </div>
+      </div>
+      {!isMatchCompleted && (
+        <div className="board-fixture-status">
+          <span className="board-fixture-status-dot" aria-hidden />
+          In Progress
+        </div>
+      )}
+      {isMatchCompleted && <span className="board-fixture-check">✓</span>}
+    </div>
+  )
+}
+
 export default function MatchplayBoardPage() {
   const params = useParams()
   const eventId = params.id as string
@@ -193,17 +352,20 @@ export default function MatchplayBoardPage() {
   const [currentRound, setCurrentRound] = useState<MatchplayRound | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [lastUpdated, setLastUpdated] = useState<number>(Date.now())
-  const [activityFeed, setActivityFeed] = useState<ActivityFeedItem[]>([])
-  const [activityFeedIndex, setActivityFeedIndex] = useState(0)
   const [podiumAnimated, setPodiumAnimated] = useState(false)
-  const feedMatchIdsRef = useRef<Set<string>>(new Set())
+  const [flashingRowIds, setFlashingRowIds] = useState<Set<string>>(new Set())
+  const standingsSnapshotRef = useRef<Map<string, { tp: number; gd: number }> | null>(null)
 
   const loadEvent = useCallback(async () => {
     if (!eventId) return
     const result = await callMatchplayEvent({ action: 'get', event_id: eventId })
-    if (result.event) setEvent(result.event)
-    else setError('Event not found')
+    if (result.event) {
+      setEvent(result.event)
+      setError(null)
+    } else {
+      setEvent(null)
+      setError('Event not found')
+    }
   }, [eventId])
 
   const loadStandings = useCallback(async () => {
@@ -247,7 +409,6 @@ export default function MatchplayBoardPage() {
       await loadStandings()
       await loadPlayers()
       await loadRounds()
-      setLastUpdated(Date.now())
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load event data'
       setError(message.includes('fetch') ? 'Network error. Check your connection and that Supabase Edge Functions are reachable.' : message)
@@ -258,7 +419,8 @@ export default function MatchplayBoardPage() {
 
   useEffect(() => {
     if (!eventId) return
-    feedMatchIdsRef.current = new Set()
+    standingsSnapshotRef.current = null
+    setFlashingRowIds(new Set())
     loadAll()
   }, [eventId, loadAll])
 
@@ -273,7 +435,6 @@ export default function MatchplayBoardPage() {
       () => {
         loadStandings()
         loadPlayers()
-        setLastUpdated(Date.now())
       }
     )
     chPlayers.subscribe()
@@ -285,7 +446,6 @@ export default function MatchplayBoardPage() {
       () => {
         loadRounds()
         loadStandings()
-        setLastUpdated(Date.now())
       }
     )
     chMatches.subscribe()
@@ -297,7 +457,6 @@ export default function MatchplayBoardPage() {
       () => {
         loadEvent()
         loadRounds()
-        setLastUpdated(Date.now())
       }
     )
     chEvents.subscribe()
@@ -308,7 +467,6 @@ export default function MatchplayBoardPage() {
       { event: '*', schema: 'public', table: 'matchplay_rounds', filter: `event_id=eq.${eventId}` },
       () => {
         loadRounds()
-        setLastUpdated(Date.now())
       }
     )
     chRounds.subscribe()
@@ -324,7 +482,6 @@ export default function MatchplayBoardPage() {
   // Keep-alive: update document title every 30s to prevent TV sleep
   useEffect(() => {
     const interval = setInterval(() => {
-      setLastUpdated(Date.now())
       if (typeof document !== 'undefined') {
         document.title = event?.name ? `${event.name} - PalaPoint` : 'PalaPoint Matchplay'
       }
@@ -332,41 +489,45 @@ export default function MatchplayBoardPage() {
     return () => clearInterval(interval)
   }, [event?.name])
 
-  // Populate activity feed from completed matches
-  useEffect(() => {
-    const newItems: ActivityFeedItem[] = []
-    for (const round of rounds) {
-      for (const match of round.matches ?? []) {
-        if (match.status !== 'completed' || feedMatchIdsRef.current.has(match.id)) continue
-        const teamA = [match.team_a_player_1_name, match.team_a_player_2_name].filter(Boolean).join(' + ') || 'Team A'
-        const teamB = [match.team_b_player_1_name, match.team_b_player_2_name].filter(Boolean).join(' + ') || 'Team B'
-        const scoreA = match.team_a_score ?? 0
-        const scoreB = match.team_b_score ?? 0
-        const completedAt = match.updated_at ? new Date(match.updated_at).getTime() : Date.now()
-        feedMatchIdsRef.current.add(match.id)
-        newItems.push({ id: match.id, teamA, teamB, scoreA, scoreB, court: match.court_label, completedAt })
-      }
-    }
-    if (newItems.length > 0) {
-      setActivityFeed((prev) => [...newItems, ...prev].slice(0, 10))
-    }
-  }, [rounds])
-
-  // Cycle activity feed every 6 seconds
-  useEffect(() => {
-    if (activityFeed.length <= 1) return
-    const interval = setInterval(() => {
-      setActivityFeedIndex((i) => (i + 1) % activityFeed.length)
-    }, 6000)
-    return () => clearInterval(interval)
-  }, [activityFeed.length])
-
   // Podium animation when entering completed state
   useEffect(() => {
     if (event?.status === 'completed' && !podiumAnimated) {
       setPodiumAnimated(true)
     }
   }, [event?.status, podiumAnimated])
+
+  // In-play: flash standings rows when points, differential, or sort position changes (realtime)
+  useEffect(() => {
+    if (!event || event.status !== 'in_progress') {
+      if (standings.length > 0) {
+        standingsSnapshotRef.current = new Map(
+          standings.map((p) => [p.id, { tp: p.total_points, gd: p.game_difference }])
+        )
+      }
+      return
+    }
+
+    const prev = standingsSnapshotRef.current
+    const changed = new Set<string>()
+    if (prev && standings.length > 0) {
+      standings.forEach((p) => {
+        const old = prev.get(p.id)
+        if (old && (old.tp !== p.total_points || old.gd !== p.game_difference)) {
+          changed.add(p.id)
+        }
+      })
+    }
+
+    standingsSnapshotRef.current = new Map(
+      standings.map((p) => [p.id, { tp: p.total_points, gd: p.game_difference }])
+    )
+
+    if (changed.size === 0) return
+
+    setFlashingRowIds(changed)
+    const t = window.setTimeout(() => setFlashingRowIds(new Set()), 1000)
+    return () => window.clearTimeout(t)
+  }, [standings, event])
 
   if (loading && !event) {
     return (
@@ -376,46 +537,76 @@ export default function MatchplayBoardPage() {
     )
   }
 
-  if (error || !event) {
+  if (!loading && !event) {
     return (
-      <div className="board-container">
-        <p className="board-error">{error || 'Event not found'}</p>
+      <div className="board-container board-idle">
+        <div className="board-idle-content">
+          <div className="board-idle-logo">
+            <span className="board-idle-brand">PalaPoint</span>
+          </div>
+          <p className="board-idle-message">Next event coming soon</p>
+        </div>
       </div>
     )
   }
 
+  if (!event) {
+    return null
+  }
+
   const isSetup = event.status === 'setup'
   const isCompleted = event.status === 'completed'
-  const isLive = event.status === 'in_progress'
 
-  // Setup state
+  // Setup state — same two-column shell as live (V2 pre-start)
   if (isSetup) {
+    const round1 = getRoundByNumber(rounds, 1)
+    const round1Matches = round1?.matches ?? []
+    const restingSetup = getRestingPlayers(players, round1Matches)
+    const totalRoundsSetup = rounds.length
+
     return (
-      <div className="board-container board-setup">
-        <div className="board-setup-content">
-          <div className="board-brand">PalaPoint</div>
-          <h1 className="board-event-name">{event.name}</h1>
-          <p className="board-event-date">{formatEventDate(event.created_at)}</p>
-          <div className="board-starting-soon">
-            <span className="board-pulse-dot" aria-hidden />
-            <span>STARTING SOON</span>
+      <div className="board-container board-live">
+        <BoardHeaderShell
+          event={event}
+          headerRight={
+            <>
+              <div className="board-round-indicator">
+                ROUND 1 of {totalRoundsSetup > 0 ? totalRoundsSetup : 1}
+              </div>
+              <div className="board-badge board-badge-starting">
+                <span className="board-badge-dot board-badge-dot-starting" aria-hidden />
+                <span>STARTING SOON</span>
+              </div>
+            </>
+          }
+        />
+
+        <div className="board-main board-main-split">
+          <div className="board-panel board-fixtures">
+            <div className="board-panel-title">ROUND 1 FIXTURES</div>
+            <div className="board-fixture-list">
+              {round1Matches.length === 0 ? (
+                <div className="board-fixtures-empty">
+                  {rounds.length === 0 ? 'No fixtures yet — round 1 will appear when generated' : 'No matches in round 1'}
+                </div>
+              ) : (
+                round1Matches.map((match) => <BoardFixtureCard key={match.id} match={match} />)
+              )}
+            </div>
+            {restingSetup.length > 0 && (
+              <div className="board-resting">
+                Resting this round: {restingSetup.map((p) => p.name).join(', ')}
+              </div>
+            )}
           </div>
-          <div className="board-players-card">
-            <div className="board-players-title">PLAYERS</div>
-            <div className="board-players-grid">
-              {players
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((p) => (
-                  <span key={p.id} className="board-player-name">
-                    {p.name}
-                  </span>
-                ))}
-            </div>
-            <div className="board-players-count">
-              {players.length} player{players.length !== 1 ? 's' : ''} registered
-            </div>
+
+          <div className="board-panel board-standings">
+            <div className="board-panel-title">STANDINGS</div>
+            <div className="board-standings-empty">Standings will appear after Round 1</div>
           </div>
         </div>
+
+        <BoardFooterShell left={buildBoardFooterLeft(event, rounds)} />
       </div>
     )
   }
@@ -432,13 +623,15 @@ export default function MatchplayBoardPage() {
 
     return (
       <div className="board-container board-completed">
-        <div className="board-header">
-          <h1 className="board-header-title">{event.name}</h1>
-          <div className="board-badge board-badge-final">
-            <span className="board-badge-dot board-badge-dot-final" aria-hidden />
-            <span>FINAL</span>
-          </div>
-        </div>
+        <BoardHeaderShell
+          event={event}
+          headerRight={
+            <div className="board-badge board-badge-final">
+              <span className="board-badge-dot board-badge-dot-final" aria-hidden />
+              <span>FINAL</span>
+            </div>
+          }
+        />
 
         <div className={`board-main board-main-single ${podiumAnimated ? 'board-podium-visible' : ''}`}>
           <div className="board-winner-section">
@@ -491,7 +684,7 @@ export default function MatchplayBoardPage() {
             </div>
             <div className="board-winner-divider" />
             <div className="board-standings-title">FINAL STANDINGS</div>
-            <table className="board-standings">
+            <table className="board-standings-table">
               <thead>
                 <tr>
                   <th className="board-th-rank">#</th>
@@ -508,10 +701,17 @@ export default function MatchplayBoardPage() {
                 {groups.flatMap((g) =>
                   g.players.map((s, idx) => (
                     <tr key={s.id} className={`${g.rank <= 3 ? `board-rank-${g.rank}` : ''} ${idx > 0 ? 'board-tie-cont' : ''}`}>
-                      <td className="board-td-rank board-td-rank-cell">
+                      <td
+                        className={`board-td-rank board-td-rank-cell ${idx === 0 && g.rank <= 3 ? 'board-td-rank-medal' : ''}`}
+                      >
                         {idx === 0 ? (g.rank <= 3 ? ['🥇', '🥈', '🥉'][g.rank - 1] : g.rank) : <span className="board-tie-connector">└</span>}
                       </td>
-                      <td className="board-td-player">{s.name}</td>
+                      <td className="board-td-player">
+                        <div className="board-standings-player-cell">
+                          <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
+                          <span className="board-standings-player-name">{s.name}</span>
+                        </div>
+                      </td>
                       <td className="board-td-num">{s.matches_played ?? 0}</td>
                       <td className="board-td-num">{s.matches_won ?? 0}</td>
                       <td className="board-td-num">{s.matches_drawn ?? 0}</td>
@@ -526,10 +726,7 @@ export default function MatchplayBoardPage() {
           </div>
         </div>
 
-        <div className="board-footer">
-          {rounds.length} round{rounds.length !== 1 ? 's' : ''} • {players.length} players •{' '}
-          {getGameModeText(event.game_mode)} • {getMatchFormatText(event)}
-        </div>
+        <BoardFooterShell left={buildBoardFooterLeft(event, rounds)} />
       </div>
     )
   }
@@ -537,111 +734,99 @@ export default function MatchplayBoardPage() {
   // In Progress state
   const totalRounds = rounds.length
   const roundNum = currentRound?.round_number ?? 1
+  const liveMatches = currentRound?.matches ?? []
+  const restingLive = getRestingPlayers(players, liveMatches)
 
   return (
     <div className="board-container board-live">
-      <div className="board-header">
-        <h1 className="board-header-title">{event.name}</h1>
-        <div className="board-round-indicator">
-          ROUND {roundNum} of {totalRounds || 1}
-        </div>
-        <div className="board-badge board-badge-live">
-          <span className="board-badge-dot board-badge-dot-live" aria-hidden />
-          <span>LIVE</span>
-        </div>
-      </div>
+      <BoardHeaderShell
+        event={event}
+        headerRight={
+          <>
+            <div className="board-round-indicator">
+              ROUND {roundNum} of {totalRounds || 1}
+            </div>
+            <div className="board-badge board-badge-live">
+              <span className="board-badge-dot board-badge-dot-live" aria-hidden />
+              <span>LIVE</span>
+            </div>
+          </>
+        }
+      />
 
-      <div className="board-main">
-        <div className="board-panel board-leaderboard">
-          <div className="board-panel-title">LEADERBOARD</div>
-          <table className="board-standings">
+      <div className="board-main board-main-split">
+        <div className="board-panel board-fixtures">
+          <div className="board-panel-title">ROUND {roundNum} FIXTURES</div>
+          <div className="board-fixture-list">
+            {liveMatches.length === 0 ? (
+              <div className="board-fixtures-empty">
+                {rounds.length === 0 ? 'No rounds started yet' : 'No matches this round'}
+              </div>
+            ) : (
+              liveMatches.map((match) => <BoardFixtureCard key={match.id} match={match} />)
+            )}
+          </div>
+          {restingLive.length > 0 && (
+            <div className="board-resting">Resting this round: {restingLive.map((p) => p.name).join(', ')}</div>
+          )}
+        </div>
+
+        <div className="board-panel board-standings">
+          <div className="board-panel-title">STANDINGS</div>
+          <table className="board-standings-table board-standings-table--live">
             <thead>
               <tr>
                 <th className="board-th-rank">#</th>
                 <th className="board-th-player">Player</th>
-                <th className="board-th-num">P</th>
-                <th className="board-th-num">W</th>
-                <th className="board-th-num">D</th>
-                <th className="board-th-num">L</th>
-                <th className="board-th-num">GD</th>
-                <th className="board-th-pts">Pts</th>
+                <th className="board-th-points">P</th>
+                <th className="board-th-diff">+/-</th>
               </tr>
             </thead>
             <tbody>
-              {groupStandings(standings).flatMap((g) =>
-                g.players.map((s, idx) => (
-                  <tr key={s.id} className={`${g.rank <= 3 ? `board-rank-${g.rank}` : ''} ${idx > 0 ? 'board-tie-cont' : ''}`}>
-                    <td className="board-td-rank board-td-rank-cell">
-                      {idx === 0 ? (g.rank <= 3 ? ['🥇', '🥈', '🥉'][g.rank - 1] : g.rank) : <span className="board-tie-connector">└</span>}
+              {flattenLiveStandingsRows(standings).map(({ player: s, rank, tiedGroup }) => {
+                const flash = flashingRowIds.has(s.id)
+                const rowClass = ['board-standings-row', tiedGroup ? 'board-row-tied' : '', flash ? 'board-row-flash' : '']
+                  .filter(Boolean)
+                  .join(' ')
+                return (
+                  <tr key={s.id} className={rowClass}>
+                    <td className="board-td-rank board-td-rank-cell">{rank}</td>
+                    <td className="board-td-player">
+                      <div className="board-standings-player-cell">
+                        <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
+                        <span className="board-standings-player-name">{s.name}</span>
+                      </div>
                     </td>
-                    <td className="board-td-player">{s.name}</td>
-                    <td className="board-td-num">{s.matches_played ?? 0}</td>
-                    <td className="board-td-num">{s.matches_won ?? 0}</td>
-                    <td className="board-td-num">{s.matches_drawn ?? 0}</td>
-                    <td className="board-td-num">{s.matches_lost ?? 0}</td>
-                    <td className="board-td-num">{s.game_difference ?? 0}</td>
-                    <td className="board-td-pts">{s.total_points ?? 0}</td>
+                    <td className="board-td-points">{s.total_points ?? 0}</td>
+                    <td className="board-td-diff">{formatGameDiff(s.game_difference ?? 0)}</td>
                   </tr>
-                ))
-              )}
+                )
+              })}
+              {restingLive.map((p) => (
+                <tr
+                  key={`rest-standings-${p.id}`}
+                  className="board-standings-row board-row-resting"
+                  aria-label={`${p.name}, resting this round`}
+                >
+                  <td className="board-td-rank board-td-rank-cell board-td-rank-resting" aria-hidden>
+                    ·
+                  </td>
+                  <td className="board-td-player">
+                    <div className="board-standings-player-cell">
+                      <BoardPlayerPhoto name={p.name} photoUrl={p.photo_url} size="sm" />
+                      <span className="board-standings-player-name">{p.name}</span>
+                    </div>
+                  </td>
+                  <td className="board-td-points">0</td>
+                  <td className="board-td-diff">0</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-
-        <div className="board-panel board-fixtures">
-          <div className="board-panel-title">ROUND {roundNum}</div>
-          <div className="board-fixture-list">
-            {(currentRound?.matches ?? []).length === 0 ? (
-              <div className="board-fixtures-empty">
-                {rounds.length === 0 ? 'No rounds started yet' : 'No matches this round'}
-              </div>
-            ) : (currentRound?.matches ?? []).map((match) => {
-              const teamA = [match.team_a_player_1_name, match.team_a_player_2_name].filter(Boolean).join(' + ') || '—'
-              const teamB = [match.team_b_player_1_name, match.team_b_player_2_name].filter(Boolean).join(' + ') || '—'
-              const isCompleted = match.status === 'completed'
-              const scoreA = match.team_a_score ?? 0
-              const scoreB = match.team_b_score ?? 0
-              const teamAWins = scoreA > scoreB
-              const teamBWins = scoreB > scoreA
-
-              return (
-                <div key={match.id} className="board-fixture">
-                  <div className="board-fixture-court">{match.court_label}</div>
-                  <div className="board-fixture-teams">
-                    <div className={`board-fixture-team ${teamAWins ? 'board-fixture-team-winner' : ''}`}>
-                      {teamA}
-                      {isCompleted && <span className="board-fixture-score">{scoreA}</span>}
-                    </div>
-                    <div className="board-fixture-vs">vs</div>
-                    <div className={`board-fixture-team ${teamBWins ? 'board-fixture-team-winner' : ''}`}>
-                      {teamB}
-                      {isCompleted && <span className="board-fixture-score">{scoreB}</span>}
-                    </div>
-                  </div>
-                  {!isCompleted && (
-                    <div className="board-fixture-status">
-                      <span className="board-fixture-status-dot" aria-hidden />
-                      In Progress
-                    </div>
-                  )}
-                  {isCompleted && <span className="board-fixture-check">✓</span>}
-                </div>
-              )
-            })}
-          </div>
-        </div>
       </div>
 
-      {activityFeed.length > 0 && (
-        <div className="board-activity-feed">
-          <span className="board-activity-dot" aria-hidden />
-          {formatFeedItem(activityFeed[activityFeedIndex % activityFeed.length])} {timeAgo(activityFeed[activityFeedIndex % activityFeed.length].completedAt)}
-        </div>
-      )}
-
-      <div className="board-footer">
-        {getGameModeText(event.game_mode)} • {getMatchFormatText(event)} • {getScoringText(event)}
-      </div>
+      <BoardFooterShell left={buildBoardFooterLeft(event, rounds)} />
     </div>
   )
 }

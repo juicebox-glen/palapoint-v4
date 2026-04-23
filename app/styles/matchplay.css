@@ -2079,3 +2079,299 @@
 .matchplay-link:hover {
   color: var(--brand-primary-hover);
 }
+
+/* ==========================================================================
+   EVENT SETUP + PLAYERS (combined flow)
+   ========================================================================== */
+
+.matchplay-page--stacked {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 0;
+}
+
+.matchplay-header--event-setup {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-sm);
+  flex-shrink: 0;
+}
+
+.matchplay-header-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.matchplay-header-side--end {
+  justify-content: flex-end;
+}
+
+.matchplay-header-title {
+  flex: 0 1 auto;
+  margin: 0;
+  font-size: var(--ui-font-xl);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.matchplay-back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--ui-font-base);
+  cursor: pointer;
+  padding: var(--ui-space-xs) var(--ui-space-sm);
+}
+
+.matchplay-back:hover {
+  color: var(--text-primary);
+}
+
+.matchplay-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.matchplay-setup-content {
+  flex: 1;
+  padding: 0 var(--ui-space-lg) var(--ui-space-lg);
+  overflow-y: auto;
+}
+
+.matchplay-setup-section {
+  margin-bottom: var(--ui-space-xl);
+}
+
+.matchplay-setup-label {
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--ui-space-md);
+}
+
+.matchplay-setup-hint {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  margin-top: var(--ui-space-sm);
+}
+
+.matchplay-pill-group {
+  display: flex;
+  gap: var(--ui-space-sm);
+  flex-wrap: wrap;
+}
+
+.matchplay-pill-group--wide {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--ui-space-xs);
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.matchplay-pill {
+  padding: var(--ui-space-sm) var(--ui-space-lg);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  min-width: 48px;
+  text-align: center;
+}
+
+.matchplay-pill:hover {
+  color: var(--text-primary);
+}
+
+.matchplay-pill--selected {
+  background: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.matchplay-pill--toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+}
+
+.matchplay-pill--toggle.matchplay-pill--selected {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.matchplay-setup-overview {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--ui-space-lg);
+}
+
+.matchplay-overview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--ui-space-sm) 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.matchplay-overview-row:last-child {
+  border-bottom: none;
+}
+
+.matchplay-overview-value {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.matchplay-setup-footer {
+  flex-shrink: 0;
+  padding: var(--ui-space-lg);
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-primary);
+}
+
+.matchplay-btn {
+  width: 100%;
+  min-height: var(--touch-target-comfortable);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.matchplay-btn--primary {
+  background: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.matchplay-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.matchplay-header-count {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.matchplay-players-content {
+  flex: 1;
+  padding: 0 var(--ui-space-lg) var(--ui-space-lg);
+  overflow-y: auto;
+}
+
+.matchplay-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-sm);
+}
+
+.matchplay-player-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--ui-space-sm) var(--ui-space-md);
+}
+
+.matchplay-player-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 2px dashed var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast);
+  padding: 0;
+}
+
+.matchplay-player-photo:hover {
+  border-color: var(--brand-primary);
+}
+
+.matchplay-player-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Design-system preview: fake cropped “photo” inside slot */
+.matchplay-ds-photo-fake {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--bg-tertiary) 100%);
+}
+
+.matchplay-player-initials {
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.matchplay-player-photo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+}
+
+.matchplay-player-photo-svg {
+  width: 22px;
+  height: 22px;
+  color: var(--text-muted);
+}
+
+.matchplay-player-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  color: var(--text-primary);
+  font-size: var(--ui-font-base);
+}
+
+.matchplay-player-input::placeholder {
+  color: var(--text-muted);
+}
+
+.matchplay-player-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.matchplay-player-check {
+  color: var(--success);
+  font-size: var(--ui-font-lg);
+  flex-shrink: 0;
+}
+
+.matchplay-error {
+  color: var(--error);
+  font-size: var(--ui-font-sm);
+  margin-top: var(--ui-space-md);
+  text-align: center;
+}

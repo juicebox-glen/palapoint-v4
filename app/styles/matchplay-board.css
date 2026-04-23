@@ -31,40 +31,117 @@
 }
 
 /* ============================================================
-   HEADER (Live & Completed)
+   IDLE — no active event (invalid id / not found)
+   ============================================================ */
+
+.board-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.board-idle-content {
+  text-align: center;
+  padding: var(--ui-space-xl);
+}
+
+.board-idle-logo {
+  margin-bottom: var(--ui-space-2xl);
+}
+
+.board-idle-brand {
+  font-size: clamp(3rem, 6vh, 5rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.board-idle-message {
+  font-size: clamp(1.5rem, 3vh, 2.5rem);
+  color: var(--text-muted);
+  font-weight: var(--font-weight-normal);
+}
+
+/* ============================================================
+   HEADER — logo left, event name centre, round / badge right
    ============================================================ */
 
 .board-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(0.75rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 3rem);
+  gap: var(--ui-space-md);
+  padding: var(--ui-space-lg) var(--ui-space-xl);
   flex-shrink: 0;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-default);
 }
 
-.board-header-title {
-  font-size: clamp(1.2rem, 2.5vh, 2rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  flex: 1;
+.board-header-logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  max-width: min(28vw, 14rem);
+  min-width: 0;
 }
 
+.board-venue-logo {
+  height: clamp(2rem, 4vh, 3rem);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.board-venue-name {
+  font-size: clamp(1.25rem, 2vh, 1.75rem);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* V2 TV: event name min 48px (3rem), scales up — centred in shell */
+.board-header-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: clamp(3rem, 4vh, 3.5rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.board-header-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space-md);
+  max-width: min(40vw, 24rem);
+}
+
+/* V2 TV: round indicator min 32px (2rem) */
 .board-round-indicator {
-  font-size: clamp(0.9rem, 2vh, 1.4rem);
-  font-weight: 600;
+  font-size: clamp(2rem, 2.5vh, 2.25rem);
+  font-weight: var(--font-weight-normal);
   color: var(--text-secondary);
   letter-spacing: 0.05em;
-  margin: 0 clamp(1rem, 2vw, 2rem);
+  margin: 0;
+}
+
+.board-header-right .board-round-indicator {
+  text-align: right;
 }
 
 .board-badge {
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 1.5vh, 1rem);
-  font-size: clamp(1rem, 2.5vh, 1.6rem);
-  font-weight: 700;
+  font-size: clamp(1.5rem, 2.5vh, 2rem);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.05em;
 }
 
@@ -100,13 +177,18 @@
   min-height: 0;
 }
 
+/* V2 layout: fixtures dominant left, standings persistent right */
+.board-main-split {
+  gap: var(--ui-space-lg);
+}
+
 .board-main-single {
   flex-direction: column;
   overflow-y: auto;
 }
 
 /* ============================================================
-   LEADERBOARD PANEL (Live)
+   FIXTURES (left ~65%) & STANDINGS PANEL (right ~35%)
    ============================================================ */
 
 .board-panel {
@@ -114,43 +196,75 @@
   overflow: auto;
 }
 
-.board-leaderboard {
-  flex: 0 0 60%;
+.board-fixtures {
+  flex: 0 0 65%;
   min-width: 0;
   border-right: 1px solid var(--border-default);
 }
 
-.board-fixtures {
-  flex: 1;
+.board-standings {
+  flex: 0 0 35%;
   min-width: 0;
 }
 
-.board-panel-title {
-  font-size: clamp(1rem, 2.2vh, 1.5rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
+/* V2 TV: resting line min ~20px */
+.board-resting {
+  margin-top: var(--ui-space-lg);
+  padding: var(--ui-space-md) var(--ui-space-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: clamp(1.25rem, 1.75vh, 1.75rem);
+}
+
+.board-standings-empty {
+  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1rem, 2vw, 1.5rem);
+  text-align: center;
+  font-size: clamp(1.25rem, 2vh, 1.5rem);
   color: var(--text-secondary);
-  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+  line-height: 1.45;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.board-badge-starting {
+  color: var(--success);
+}
+
+.board-badge-dot-starting {
+  background: var(--success);
+  animation: board-pulse 2s ease-in-out infinite;
+}
+
+/* V2 TV: panel titles (ROUND N FIXTURES, STANDINGS) min ~24px */
+.board-panel-title {
+  font-size: clamp(1.5rem, 2vh, 2rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--ui-space-lg);
 }
 
 /* ============================================================
    STANDINGS TABLE
    ============================================================ */
 
-.board-standings {
+.board-standings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: clamp(0.8rem, 1.6vh, 1.2rem);
 }
 
-.board-standings th,
-.board-standings td {
+.board-standings-table th,
+.board-standings-table td {
   padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(0.5rem, 1vw, 1rem);
   text-align: left;
   border-bottom: 1px solid var(--border-default);
 }
 
-.board-standings th {
+.board-standings-table th {
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -158,8 +272,22 @@
   font-size: clamp(0.7rem, 1.4vh, 1rem);
 }
 
-.board-standings td {
+.board-standings-table td {
   color: var(--text-primary);
+}
+
+/* Final results table (full columns) — V2 readable at TV distance */
+.board-standings-table:not(.board-standings-table--live) th,
+.board-standings-table:not(.board-standings-table--live) td {
+  font-size: clamp(1.25rem, 1.75vh, 1.75rem);
+}
+
+.board-standings-table:not(.board-standings-table--live) th {
+  font-weight: var(--font-weight-semibold);
+}
+
+.board-standings-table:not(.board-standings-table--live) .board-td-rank-medal {
+  font-size: clamp(1.5rem, 2vh, 2rem);
 }
 
 .board-th-rank,
@@ -187,13 +315,131 @@
   width: 3em;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: clamp(1rem, 2vh, 1.4rem);
+  font-weight: var(--font-weight-bold);
+  font-size: clamp(1.25rem, 1.75vh, 1.85rem);
   color: var(--brand-primary);
 }
 
 .board-td-pts {
   color: var(--text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   In-play standings (V2): # / Player / P / +/-
+   -------------------------------------------------------------------------- */
+
+.board-standings-table--live .board-th-points {
+  background: var(--brand-primary);
+  color: var(--text-primary);
+  font-size: clamp(1.25rem, 1.5vh, 1.5rem);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-sm);
+  padding: var(--ui-space-xs) var(--ui-space-sm);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  border-bottom-color: transparent;
+}
+
+.board-standings-table--live .board-th-diff {
+  text-align: center;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* In-play standings body cells — V2 minimums (# 32px, name 28px, P 28px bold, +/- 24px) */
+.board-standings-table--live th {
+  font-size: clamp(1.25rem, 1.5vh, 1.5rem);
+  font-weight: var(--font-weight-semibold);
+}
+
+.board-standings-table--live .board-td-rank,
+.board-standings-table--live .board-td-rank-cell {
+  font-size: clamp(2rem, 2.5vh, 2.25rem);
+  font-weight: var(--font-weight-bold);
+}
+
+.board-standings-table--live .board-td-player {
+  font-size: clamp(1.75rem, 2vh, 2rem);
+  font-weight: var(--font-weight-normal);
+}
+
+.board-standings-table--live .board-td-points {
+  font-size: clamp(1.75rem, 2vh, 2rem);
+  font-weight: var(--font-weight-bold);
+}
+
+.board-standings-table--live .board-td-diff {
+  font-size: clamp(1.5rem, 1.75vh, 1.75rem);
+  font-weight: var(--font-weight-normal);
+}
+
+.board-td-points {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.board-td-diff {
+  width: 3.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.board-standings-row {
+  transition: background-color 0.2s ease;
+}
+
+.board-row-tied {
+  background: rgba(91, 108, 255, 0.08);
+}
+
+.board-row-flash {
+  animation: standings-flash 1s ease-out;
+}
+
+.board-standings-row.board-row-tied.board-row-flash {
+  animation: standings-flash-tied 1s ease-out;
+}
+
+@keyframes standings-flash {
+  0% {
+    background-color: color-mix(in srgb, var(--success) 45%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes standings-flash-tied {
+  0% {
+    background-color: color-mix(in srgb, var(--success) 45%, transparent);
+  }
+  100% {
+    background-color: rgba(91, 108, 255, 0.08);
+  }
+}
+
+.board-row-resting {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.board-standings-table--live .board-row-resting .board-td-rank-cell {
+  font-size: clamp(1.5rem, 2vh, 2rem);
+  font-weight: var(--font-weight-normal);
+  line-height: 1;
+}
+
+.board-row-resting .board-td-rank-resting {
+  color: var(--text-muted);
+}
+
+.board-row-resting .board-td-player,
+.board-row-resting .board-td-points,
+.board-row-resting .board-td-diff {
+  color: var(--text-muted);
 }
 
 /* Podium medal colors — no design tokens; keep as decorative exception */
@@ -242,9 +488,10 @@
   position: relative;
 }
 
+/* V2 TV: court label min 28px (1.75rem) bold */
 .board-fixture-court {
-  font-size: clamp(0.8rem, 1.6vh, 1.1rem);
-  font-weight: 600;
+  font-size: clamp(1.75rem, 2vh, 2rem);
+  font-weight: var(--font-weight-bold);
   color: var(--text-secondary);
   margin-bottom: clamp(0.5rem, 1.5vh, 0.75rem);
 }
@@ -255,29 +502,47 @@
   gap: clamp(0.25rem, 0.8vh, 0.5rem);
 }
 
+/* V2 TV: fixture player / team lines min ~34px (2.125rem) */
 .board-fixture-team {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  font-size: clamp(1rem, 2.2vh, 1.5rem);
-  font-weight: 500;
+  gap: var(--ui-space-md);
+  font-size: clamp(2.125rem, 2.5vh, 2.5rem);
+  font-weight: var(--font-weight-normal);
+}
+
+.board-fixture-team-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(0.25rem, 0.6vh, 0.5rem);
+  flex: 1;
+  min-width: 0;
+}
+
+.board-fixture-names {
+  line-height: 1.15;
+  word-break: break-word;
 }
 
 .board-fixture-team-winner {
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 
 .board-fixture-vs {
-  font-size: clamp(0.75rem, 1.6vh, 1rem);
+  font-size: clamp(1.25rem, 1.5vh, 1.5rem);
+  font-weight: var(--font-weight-normal);
   color: var(--text-muted);
   padding: clamp(0.25rem, 0.8vh, 0.5rem) 0;
 }
 
 .board-fixture-score {
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: clamp(1.2rem, 2.5vh, 1.6rem);
+  font-weight: var(--font-weight-bold);
+  font-size: clamp(1.75rem, 2.5vh, 2.25rem);
   margin-left: 0.5rem;
 }
 
@@ -285,7 +550,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: clamp(0.75rem, 1.6vh, 1rem);
+  font-size: clamp(1.125rem, 1.6vh, 1.35rem);
   color: var(--success);
   margin-top: clamp(0.5rem, 1.5vh, 0.75rem);
 }
@@ -309,7 +574,7 @@
 .board-fixtures-empty {
   padding: clamp(2rem, 5vh, 3rem);
   text-align: center;
-  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  font-size: clamp(1.25rem, 2vh, 1.5rem);
   color: var(--text-muted);
 }
 
@@ -317,13 +582,40 @@
    FOOTER
    ============================================================ */
 
+/* V2 TV: footer format line min 20px (1.25rem) */
 .board-footer {
   flex-shrink: 0;
-  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(1.5rem, 4vw, 3rem);
-  font-size: clamp(0.7rem, 1.4vh, 1rem);
-  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-lg);
+  flex-wrap: wrap;
+  padding: var(--ui-space-md) var(--ui-space-xl);
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-default);
+}
+
+.board-footer-left {
+  flex: 1;
+  min-width: min(100%, 36rem);
+  font-size: clamp(1rem, 1.5vh, 1.25rem);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-muted);
+}
+
+.board-footer-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.board-footer-credit {
+  font-size: clamp(0.875rem, 1vh, 1rem);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 /* ============================================================
@@ -431,8 +723,8 @@
 }
 
 .board-winner-trophy {
-  font-size: clamp(1.25rem, 3vh, 2rem);
-  font-weight: 700;
+  font-size: clamp(2.5rem, 4vh, 3.5rem);
+  font-weight: var(--font-weight-bold);
   text-align: center;
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
 }
@@ -445,22 +737,23 @@
   margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
 }
 
+/* V2 TV: winner name min 72px (4.5rem) bold */
 .board-winner-name {
-  font-size: clamp(1.5rem, 4vh, 3rem);
-  font-weight: 700;
-  color: #FFD700;
+  font-size: clamp(4.5rem, 8vh, 6rem);
+  font-weight: var(--font-weight-bold);
+  color: #ffd700;
 }
 
 .board-winner-points {
-  font-size: clamp(1.25rem, 3vh, 1.75rem);
+  font-size: clamp(2rem, 3vh, 2.5rem);
   color: var(--text-secondary);
   text-align: center;
   margin-bottom: clamp(1rem, 3vh, 1.5rem);
 }
 
 .board-winner-label {
-  font-size: clamp(1rem, 2.5vh, 1.5rem);
-  font-weight: 700;
+  font-size: clamp(1.5rem, 2.5vh, 2rem);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.1em;
   color: var(--text-secondary);
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
@@ -474,8 +767,10 @@
   margin-bottom: clamp(1.5rem, 4vh, 2rem);
 }
 
+/* Winner stats line (points / GD) — V2 ~32px min */
 .board-winner-stats {
-  font-size: clamp(0.9rem, 2vh, 1.2rem);
+  font-size: clamp(2rem, 3vh, 2.5rem);
+  font-weight: var(--font-weight-normal);
   color: var(--text-secondary);
   margin-top: 0.5rem;
 }
@@ -517,20 +812,25 @@
 }
 
 .board-podium-label {
-  font-size: clamp(0.8rem, 1.8vh, 1.1rem);
-  font-weight: 700;
+  font-size: clamp(1.25rem, 1.8vh, 1.5rem);
+  font-weight: var(--font-weight-bold);
   margin-bottom: 0.5rem;
 }
 
+/* V2 TV: podium 2nd/3rd (and 1st platform) names min 40px (2.5rem) bold */
 .board-podium-names {
-  font-size: clamp(0.9rem, 2vh, 1.2rem);
-  font-weight: 600;
+  font-size: clamp(2.5rem, 3.5vh, 3rem);
+  font-weight: var(--font-weight-bold);
   text-align: center;
   flex: 1;
 }
 
+.board-podium-names span {
+  display: block;
+}
+
 .board-podium-medal {
-  font-size: clamp(1.5rem, 3vh, 2rem);
+  font-size: clamp(2rem, 3vh, 2.5rem);
   margin-top: 0.5rem;
 }
 
@@ -565,27 +865,6 @@
   }
 }
 
-/* Activity feed */
-.board-activity-feed {
-  flex-shrink: 0;
-  padding: clamp(0.5rem, 1.5vh, 0.75rem) clamp(1.5rem, 4vw, 3rem);
-  font-size: clamp(0.75rem, 1.5vh, 1rem);
-  color: var(--text-muted);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-default);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.board-activity-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--success);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 /* Tie connector */
 .board-tie-cont .board-td-rank-cell {
   border-left: 2px solid var(--border-default);
@@ -594,7 +873,7 @@
 
 .board-tie-connector {
   color: var(--text-muted);
-  font-size: 0.875em;
+  font-size: clamp(1.25rem, 1.75vh, 1.5rem);
 }
 
 .board-winner-divider {
@@ -604,9 +883,70 @@
 }
 
 .board-standings-title {
-  font-size: clamp(1rem, 2.2vh, 1.4rem);
-  font-weight: 700;
+  font-size: clamp(1.5rem, 2.2vh, 2rem);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;
   color: var(--text-secondary);
   margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+/* Player photos (fixtures + standings) */
+.board-player-photo {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-default);
+}
+
+.board-player-photo--sm {
+  width: clamp(32px, 4vh, 48px);
+  height: clamp(32px, 4vh, 48px);
+}
+
+.board-player-photo--md {
+  width: clamp(48px, 6vh, 64px);
+  height: clamp(48px, 6vh, 64px);
+}
+
+.board-player-photo--lg {
+  width: clamp(64px, 8vh, 96px);
+  height: clamp(64px, 8vh, 96px);
+}
+
+.board-player-photo--initials {
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.board-player-photo--sm.board-player-photo--initials {
+  font-size: clamp(0.75rem, 1.5vh, 1rem);
+}
+
+.board-player-photo--md.board-player-photo--initials {
+  font-size: clamp(1rem, 2vh, 1.25rem);
+}
+
+.board-fixture-photos {
+  display: flex;
+  gap: var(--ui-space-xs);
+}
+
+.board-standings-player-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-sm);
+  min-width: 0;
+}
+
+.board-standings-player-cell .board-player-photo {
+  flex-shrink: 0;
+}
+
+.board-standings-player-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

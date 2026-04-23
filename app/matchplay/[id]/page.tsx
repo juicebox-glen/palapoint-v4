@@ -56,6 +56,7 @@ interface MatchplayPlayer {
   id: string
   event_id: string
   name: string
+  photo_url?: string | null
   total_points: number
   matches_played: number
   matches_won: number
@@ -266,7 +267,9 @@ export default function MatchplayEventPage() {
 
     if (playerIds.length < 4) return
 
-    const pairings = generateAmericanoPairings(playerIds, courtLabels)
+    const allPairings = generateAmericanoPairings(playerIds, courtLabels)
+    const cap = getTotalRounds()
+    const pairings = allPairings.slice(0, Math.min(allPairings.length, cap))
 
     async function createRounds() {
       const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
@@ -508,7 +511,9 @@ export default function MatchplayEventPage() {
       await loadRounds()
       return
     }
-    const pairings = generateAmericanoPairings(playerIds, courtLabels)
+    const allPairings = generateAmericanoPairings(playerIds, courtLabels)
+    const cap = getTotalRounds()
+    const pairings = allPairings.slice(0, Math.min(allPairings.length, cap))
 
     for (const p of pairings) {
       if (existingNumbers.has(p.roundNumber)) continue

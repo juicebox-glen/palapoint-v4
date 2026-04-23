@@ -1,261 +1,190 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import SetupScreenHeader from '@/components/SetupScreenHeader'
-import { getMatchplayVenueId } from '@/lib/supabase'
-import '@/app/styles/setup-form.css'
+import '@/app/styles/matchplay.css'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const PLAYER_OPTIONS = [6, 8, 10, 12, 14, 16, 20]
+const COURT_OPTIONS = [1, 2, 3, 4]
+const POINTS_OPTIONS = [16, 24, 32]
+
+const SESSION_KEY = 'matchplay_setup'
 const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
-interface MatchplaySettings {
-  courtCount: number
-  maxScore: number
-  maxScoreCustom?: number
-  rounds: number
-  roundsCustom?: number
-}
-
-const DEFAULT_SETTINGS: MatchplaySettings = {
-  courtCount: 2,
-  maxScore: 32,
-  rounds: 4,
-}
-
-function loadSettings(): MatchplaySettings {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS
-  try {
-    const stored = localStorage.getItem(SETTINGS_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored) as Partial<MatchplaySettings>
-      return { ...DEFAULT_SETTINGS, ...parsed }
-    }
-  } catch {}
-  return DEFAULT_SETTINGS
-}
-
-function saveSettings(s: MatchplaySettings) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
-  } catch {}
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-function getEventSummary(courtCount: number, rounds: number, maxScore: number) {
-  const courts = Math.max(1, courtCount)
-  const totalMatches = rounds * courts
-  const avgMatchMins = maxScore <= 16 ? 8 : maxScore <= 24 ? 10 : 12
-  const estDurationMins = totalMatches * avgMatchMins
-  const hours = Math.floor(estDurationMins / 60)
-  const mins = estDurationMins % 60
-  const durationStr = hours > 0 ? `~${hours}h ${mins}m` : `~${mins}m`
-  return {
-    totalMatches,
-    estimatedDuration: durationStr,
-  }
-}
-
-export default function MatchplayNewPage() {
+export default function NewMatchplayPage() {
   const router = useRouter()
-  const [venueId, setVenueId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [settings, setSettings] = useState<MatchplaySettings>(DEFAULT_SETTINGS)
+
+  const [playerCount, setPlayerCount] = useState(8)
+  const [selectedCourts, setSelectedCourts] = useState<number[]>([1, 2])
+  const [pointsPerMatch, setPointsPerMatch] = useState(32)
+  const [rounds, setRounds] = useState(7)
+
+  const fullRotation = playerCount - 1
 
   useEffect(() => {
-    async function init() {
-      const vid = await getMatchplayVenueId()
-      setVenueId(vid)
-      setLoading(false)
-    }
-    init()
-  }, [])
+    const newDefault = Math.min(playerCount - 1, 7)
+    setRounds(newDefault)
+  }, [playerCount])
 
-  useEffect(() => {
-    if (!venueId || loading) return
+  const restingPerRound = Math.max(0, playerCount - selectedCourts.length * 4)
+  const matchesPerRound = Math.min(selectedCourts.length, Math.floor(playerCount / 4))
+  const totalMatches = rounds * matchesPerRound
+  const matchesPerPlayer = Math.round((totalMatches * 4) / playerCount)
+  const minutesPerMatch = pointsPerMatch === 32 ? 8 : pointsPerMatch === 24 ? 6 : 4
+  const estimatedMinutes = rounds * minutesPerMatch
+  const estimatedDuration =
+    estimatedMinutes >= 60
+      ? `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`
+      : `${estimatedMinutes}m`
 
-    async function prefill() {
-      const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
-      const events = (result.events ?? []).filter((e: { status: string }) => e.status === 'completed')
-      const americanoEvents = events.filter((e: { format?: string }) => e.format === 'americano')
-      const latest = americanoEvents.sort(
-        (a: { created_at: string }, b: { created_at: string }) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0]
+  const maxRoundOption = Math.min(fullRotation, 9)
+  const roundOptions =
+    maxRoundOption >= 3
+      ? Array.from({ length: maxRoundOption - 2 }, (_, i) => i + 3)
+      : [Math.max(1, maxRoundOption)]
 
-      if (latest) {
-        setSettings({
-          courtCount: latest.court_count ?? DEFAULT_SETTINGS.courtCount,
-          maxScore: latest.match_target_score ?? DEFAULT_SETTINGS.maxScore,
-          rounds: 4,
-        })
-      } else {
-        const saved = loadSettings()
-        setSettings(saved)
-      }
-    }
-    prefill()
-  }, [venueId, loading])
-
-  function handleContinue() {
-    const toSave: MatchplaySettings = {
-      ...settings,
-      maxScore: settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore,
-      maxScoreCustom: settings.maxScore === 0 ? settings.maxScoreCustom : undefined,
-      rounds: settings.rounds === 0 ? (settings.roundsCustom ?? 4) : settings.rounds,
-      roundsCustom: settings.rounds === 0 ? settings.roundsCustom : undefined,
-    }
-    saveSettings(toSave)
-    router.push('/matchplay/new/players')
-  }
-
-  const effectiveMaxScore = settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore
-  const effectiveRounds = settings.rounds === 0 ? (settings.roundsCustom ?? 4) : settings.rounds
-  const summary = getEventSummary(settings.courtCount, effectiveRounds, effectiveMaxScore)
-  const courts = Math.max(1, settings.courtCount)
-
-  if (loading) {
-    return (
-      <div className="matchplay-format-page">
-        <SetupScreenHeader />
-        <p className="matchplay-loading-text">Loading...</p>
-      </div>
+  const toggleCourt = (court: number) => {
+    setSelectedCourts((prev) =>
+      prev.includes(court) ? prev.filter((c) => c !== court) : [...prev, court].sort((a, b) => a - b)
     )
   }
 
+  const handleContinue = () => {
+    const payload = {
+      playerCount,
+      selectedCourts,
+      pointsPerMatch,
+      rounds,
+      format: 'americano',
+    }
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload))
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({
+          courtCount: selectedCourts.length,
+          maxScore: pointsPerMatch,
+          rounds,
+        })
+      )
+    } catch {
+      /* ignore quota */
+    }
+    router.push('/matchplay/new/players')
+  }
+
+  const canContinue = selectedCourts.length >= 1
+
   return (
-    <div className="matchplay-format-page">
-      <SetupScreenHeader />
-      <div className="matchplay-format-header">
-        <Link href="/matchplay" className="matchplay-format-back">
-          ← Back
-        </Link>
-        <h1 className="matchplay-format-title">Format Setup</h1>
-      </div>
+    <div className="matchplay-page matchplay-page--stacked">
+      <header className="matchplay-header matchplay-header--event-setup">
+        <div className="matchplay-header-side">
+          <button type="button" onClick={() => router.back()} className="matchplay-back">
+            ← Back
+          </button>
+        </div>
+        <h1 className="matchplay-header-title">New Americano</h1>
+        <div className="matchplay-header-side matchplay-header-side--end" aria-hidden />
+      </header>
 
-      <div className="matchplay-format-form">
-        <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Courts</label>
-          <div className="matchplay-pill-row">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
+      <div className="matchplay-setup-content">
+        <section className="matchplay-setup-section">
+          <h2 className="matchplay-setup-label">Players</h2>
+          <div className="matchplay-pill-group matchplay-pill-group--wide">
+            {PLAYER_OPTIONS.map((count) => (
               <button
-                key={n}
+                key={count}
                 type="button"
-                className={`matchplay-pill ${settings.courtCount === n ? 'active' : ''}`}
-                onClick={() => setSettings((s) => ({ ...s, courtCount: n }))}
+                className={`matchplay-pill ${playerCount === count ? 'matchplay-pill--selected' : ''}`}
+                onClick={() => setPlayerCount(count)}
               >
-                {n}
+                {count}
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Points per match</label>
-          <p className="matchplay-format-hint matchplay-hint-text">
-            Total points per match. Scores always sum to this number.
+        <section className="matchplay-setup-section">
+          <h2 className="matchplay-setup-label">Courts</h2>
+          <div className="matchplay-pill-group">
+            {COURT_OPTIONS.map((court) => (
+              <button
+                key={court}
+                type="button"
+                className={`matchplay-pill matchplay-pill--toggle ${
+                  selectedCourts.includes(court) ? 'matchplay-pill--selected' : ''
+                }`}
+                onClick={() => toggleCourt(court)}
+              >
+                {court}
+              </button>
+            ))}
+          </div>
+          <p className="matchplay-setup-hint">
+            {playerCount} players · {selectedCourts.length} court{selectedCourts.length !== 1 ? 's' : ''}
+            {restingPerRound > 0 ? ` · ${restingPerRound} resting per round` : ''}
           </p>
-          <div className="matchplay-pill-row">
-            {[16, 24, 32].map((n) => (
+        </section>
+
+        <section className="matchplay-setup-section">
+          <h2 className="matchplay-setup-label">Points per match</h2>
+          <div className="matchplay-pill-group">
+            {POINTS_OPTIONS.map((points) => (
               <button
-                key={n}
+                key={points}
                 type="button"
-                className={`matchplay-pill ${settings.maxScore === n ? 'active' : ''}`}
-                onClick={() => setSettings((s) => ({ ...s, maxScore: n }))}
+                className={`matchplay-pill ${pointsPerMatch === points ? 'matchplay-pill--selected' : ''}`}
+                onClick={() => setPointsPerMatch(points)}
               >
-                {n}
+                {points}
               </button>
             ))}
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.maxScore === 0 ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, maxScore: 0 }))}
-            >
-              Custom
-            </button>
           </div>
-          {settings.maxScore === 0 && (
-            <div className="matchplay-format-sub">
-              <input
-                type="number"
-                className="input"
-                min={8}
-                max={64}
-                value={settings.maxScoreCustom ?? 32}
-                onChange={(e) => setSettings((s) => ({ ...s, maxScoreCustom: Number(e.target.value) || 32 }))}
-              />
-            </div>
-          )}
-        </div>
+        </section>
 
-        <div className="matchplay-format-section">
-          <label className="matchplay-format-label">Rounds</label>
-          <div className="matchplay-pill-row">
-            {[3, 4, 5, 6].map((n) => (
+        <section className="matchplay-setup-section">
+          <h2 className="matchplay-setup-label">Rounds</h2>
+          <div className="matchplay-pill-group matchplay-pill-group--wide">
+            {roundOptions.map((r) => (
               <button
-                key={n}
+                key={r}
                 type="button"
-                className={`matchplay-pill ${settings.rounds === n ? 'active' : ''}`}
-                onClick={() => setSettings((s) => ({ ...s, rounds: n }))}
+                className={`matchplay-pill ${rounds === r ? 'matchplay-pill--selected' : ''}`}
+                onClick={() => setRounds(r)}
               >
-                {n}
+                {r}
               </button>
             ))}
-            <button
-              type="button"
-              className={`matchplay-pill ${settings.rounds === 0 ? 'active' : ''}`}
-              onClick={() => setSettings((s) => ({ ...s, rounds: 0 }))}
-            >
-              Custom
-            </button>
           </div>
-          {settings.rounds === 0 && (
-            <div className="matchplay-format-sub">
-              <input
-                type="number"
-                className="input"
-                min={1}
-                max={20}
-                value={settings.roundsCustom ?? 4}
-                onChange={(e) => setSettings((s) => ({ ...s, roundsCustom: Number(e.target.value) || 4 }))}
-              />
-            </div>
-          )}
-          <p className="matchplay-format-hint">Guide — Americano generates rounds so everyone partners with everyone</p>
-        </div>
+          <p className="matchplay-setup-hint">Full rotation = {fullRotation} rounds</p>
+        </section>
 
-        <div className="matchplay-format-section matchplay-event-summary">
-          <label className="matchplay-format-label">Event Summary</label>
-          <div className="matchplay-summary-panel">
-            <p>Matches per player: Add players to see full estimate</p>
-            <p>Total matches: {summary.totalMatches}</p>
-            <p>Estimated duration: {summary.estimatedDuration}</p>
-            <p className="matchplay-summary-based">
-              Based on {courts} court{courts !== 1 ? 's' : ''} · {effectiveRounds} rounds · {effectiveMaxScore} pts per match
-            </p>
+        <section className="matchplay-setup-section matchplay-setup-overview">
+          <div className="matchplay-overview-row">
+            <span>Total matches</span>
+            <span className="matchplay-overview-value">{totalMatches}</span>
           </div>
-        </div>
+          <div className="matchplay-overview-row">
+            <span>Matches per player</span>
+            <span className="matchplay-overview-value">~{matchesPerPlayer}</span>
+          </div>
+          <div className="matchplay-overview-row">
+            <span>Est. duration</span>
+            <span className="matchplay-overview-value">{estimatedDuration}</span>
+          </div>
+        </section>
       </div>
 
-      <div className="matchplay-format-footer">
-        <button type="button" className="btn btn-primary matchplay-format-continue" onClick={handleContinue}>
+      <footer className="matchplay-setup-footer">
+        <button
+          type="button"
+          className="matchplay-btn matchplay-btn--primary"
+          onClick={handleContinue}
+          disabled={!canContinue}
+        >
           Continue
         </button>
-      </div>
+      </footer>
     </div>
   )
 }

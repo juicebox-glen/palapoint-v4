@@ -1,13 +1,49 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import SetupScreenHeader from '@/components/SetupScreenHeader'
-import { getMatchplayVenueId } from '@/lib/supabase'
+import { supabase, getMatchplayVenueId } from '@/lib/supabase'
+import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
-function SetupPhotoSlotIcon() {
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const SESSION_KEY = 'matchplay_setup'
+
+function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Canvas not supported'))
+        return
+      }
+      canvas.width = maxWidth
+      canvas.height = maxHeight
+      const size = Math.min(img.width, img.height)
+      const x = (img.width - size) / 2
+      const y = (img.height - size) / 2
+      ctx.drawImage(img, x, y, size, size, 0, 0, maxWidth, maxHeight)
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('Canvas to blob failed'))),
+        'image/jpeg',
+        0.85
+      )
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Image load failed'))
+    }
+    img.src = objectUrl
+  })
+}
+
+function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +53,7 @@ function SetupPhotoSlotIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="setup-photo-trigger-svg"
+      className={className}
       aria-hidden
     >
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -26,32 +62,38 @@ function SetupPhotoSlotIcon() {
   )
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const SETTINGS_KEY = 'palapoint_matchplay_settings'
+function ImageIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="setup-photo-sheet-option-icon"
+      aria-hidden
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
+    </svg>
+  )
+}
 
-interface MatchplaySettings {
-  courtCount: number
-  maxScore: number
-  maxScoreCustom?: number
+interface MatchplaySetupSession {
+  playerCount: number
+  selectedCourts: number[]
+  pointsPerMatch: number
   rounds: number
-  roundsCustom?: number
+  format: string
 }
 
-function loadSettings(): MatchplaySettings | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const stored = localStorage.getItem(SETTINGS_KEY)
-    if (stored) return JSON.parse(stored) as MatchplaySettings
-  } catch {}
-  return null
-}
-
-function generateEventName(): string {
-  const d = new Date()
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} Americano`
+interface PlayerSlot {
+  name: string
+  photoBlob: Blob | null
+  photoPreview: string | null
 }
 
 async function callMatchplayEvent(body: Record<string, unknown>) {
@@ -78,180 +120,378 @@ async function callMatchplayPlayer(body: Record<string, unknown>) {
   return res.json()
 }
 
-export default function MatchplayNewPlayersPage() {
+function generateEventName(): string {
+  const d = new Date()
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' Americano'
+}
+
+export default function MatchplayPlayersPage() {
   const router = useRouter()
-  const [venueId, setVenueId] = useState<string | null>(null)
-  const [players, setPlayers] = useState<string[]>([])
-  const [newName, setNewName] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [starting, setStarting] = useState(false)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [activeSlot, setActiveSlot] = useState<number | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [processingPhoto, setProcessingPhoto] = useState(false)
+
+  const [config, setConfig] = useState<MatchplaySetupSession | null>(null)
+  const [players, setPlayers] = useState<PlayerSlot[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [venueId, setVenueId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function init() {
-      const vid = await getMatchplayVenueId()
-      setVenueId(vid)
-      const settings = loadSettings()
-      if (!settings) {
+    void getMatchplayVenueId().then(setVenueId)
+  }, [])
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem(SESSION_KEY)
+    if (!stored) {
+      router.replace('/matchplay/new')
+      return
+    }
+    try {
+      const parsed = JSON.parse(stored) as MatchplaySetupSession
+      if (!parsed.playerCount || !Array.isArray(parsed.selectedCourts)) {
         router.replace('/matchplay/new')
         return
       }
-      setLoading(false)
+      setConfig(parsed)
+      setPlayers(
+        Array.from({ length: parsed.playerCount }, () => ({
+          name: '',
+          photoBlob: null,
+          photoPreview: null,
+        }))
+      )
+    } catch {
+      router.replace('/matchplay/new')
     }
-    init()
   }, [router])
 
-  function handleAdd() {
-    const name = newName.trim()
-    if (!name) return
-    setPlayers((prev) => [...prev, name])
-    setNewName('')
-    inputRef.current?.focus()
+  useEffect(() => {
+    if (!sheetOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSheetOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [sheetOpen])
+
+  const filledCount = players.filter((p) => p.name.trim()).length
+  const canStart = config !== null && filledCount === config.playerCount
+
+  const handleNameChange = (index: number, name: string) => {
+    setPlayers((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], name }
+      return updated
+    })
   }
 
-  function handleRemove(index: number) {
-    setPlayers((prev) => prev.filter((_, i) => i !== index))
+  const openPhotoSheet = (index: number) => {
+    setActiveSlot(index)
+    setSheetOpen(true)
   }
 
-  async function handleStartEvent() {
-    const settings = loadSettings()
-    if (!venueId || !settings || players.length < 4) return
+  const clearSlotPhoto = (index: number) => {
+    setPlayers((prev) => {
+      const updated = [...prev]
+      const cur = updated[index]
+      if (cur?.photoPreview?.startsWith('blob:')) URL.revokeObjectURL(cur.photoPreview)
+      updated[index] = { ...updated[index], photoBlob: null, photoPreview: null }
+      return updated
+    })
+  }
 
-    setStarting(true)
+  const applyFileToActiveSlot = useCallback(
+    async (file: File) => {
+      if (activeSlot === null) return
+      setProcessingPhoto(true)
+      try {
+        const blob = await processImageToJpeg(file, 400, 400)
+        const previewUrl = URL.createObjectURL(blob)
+        setPlayers((prev) => {
+          const updated = [...prev]
+          const prevPreview = updated[activeSlot]?.photoPreview
+          if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
+          updated[activeSlot] = {
+            ...updated[activeSlot],
+            photoBlob: blob,
+            photoPreview: previewUrl,
+          }
+          return updated
+        })
+      } catch (e) {
+        console.error(e)
+        setError('Could not process photo')
+      } finally {
+        setProcessingPhoto(false)
+        setSheetOpen(false)
+        setActiveSlot(null)
+      }
+    },
+    [activeSlot]
+  )
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (file) await applyFileToActiveSlot(file)
+  }
+
+  const openCamera = () => {
+    setSheetOpen(false)
+    requestAnimationFrame(() => cameraInputRef.current?.click())
+  }
+
+  const openLibrary = () => {
+    setSheetOpen(false)
+    requestAnimationFrame(() => fileInputRef.current?.click())
+  }
+
+  const handleStartEvent = async () => {
+    if (!config || !canStart) return
+
+    setIsSubmitting(true)
     setError(null)
 
     try {
-      const maxScore = settings.maxScore === 0 ? (settings.maxScoreCustom ?? 32) : settings.maxScore
-      const courtLabels = Array.from({ length: settings.courtCount }, (_, i) => `Court ${i + 1}`)
+      const vid = venueId ?? (await getMatchplayVenueId())
+      if (!vid) {
+        throw new Error('No venue configured for matchplay')
+      }
 
-      const body: Record<string, unknown> = {
+      const courtLabels = config.selectedCourts.map((c) => `Court ${c}`)
+
+      const createResult = await callMatchplayEvent({
         action: 'create',
-        venue_id: venueId,
+        venue_id: vid,
         name: generateEventName(),
-        format: 'americano',
+        format: config.format,
         scoring_type: 'raw_points',
-        court_count: settings.courtCount,
+        court_count: config.selectedCourts.length,
         court_labels: courtLabels,
         match_format: 'first_to_points',
-        match_target_score: maxScore,
+        match_target_score: config.pointsPerMatch,
         win_points: 0,
         draw_points: 0,
         loss_points: 0,
-      }
+      })
 
-      const createResult = await callMatchplayEvent(body)
       if (!createResult.event) {
-        setError(createResult.error || 'Failed to create event')
-        setStarting(false)
-        return
+        throw new Error(createResult.error || 'Failed to create event')
       }
 
-      const eventId = createResult.event.id
-      const addResult = await callMatchplayPlayer({ action: 'add_bulk', event_id: eventId, names: players })
-      if (addResult.error && !addResult.players) {
-        setError(addResult.error || 'Failed to add players')
-        setStarting(false)
-        return
+      const eventId = createResult.event.id as string
+
+      for (let i = 0; i < players.length; i++) {
+        const player = players[i]
+        const addResult = await callMatchplayPlayer({
+          action: 'add',
+          event_id: eventId,
+          name: player.name.trim(),
+        })
+        if (!addResult.success || !addResult.player?.id) {
+          throw new Error(addResult.error || 'Failed to add player')
+        }
+        const playerId = addResult.player.id as string
+
+        if (player.photoBlob) {
+          const photoPath = `matchplay/${eventId}/${playerId}.jpg`
+          const { error: uploadError } = await supabase.storage
+            .from('player-photos')
+            .upload(photoPath, player.photoBlob, {
+              contentType: 'image/jpeg',
+              upsert: true,
+            })
+
+          if (!uploadError) {
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from('player-photos').getPublicUrl(photoPath)
+
+            const upd = await callMatchplayPlayer({
+              action: 'update',
+              player_id: playerId,
+              photo_url: publicUrl,
+            })
+            if (!upd.success) {
+              throw new Error(upd.error || 'Failed to save photo URL')
+            }
+          }
+        }
+      }
+
+      try {
+        sessionStorage.removeItem(SESSION_KEY)
+      } catch {
+        /* ignore */
       }
 
       router.push(`/matchplay/${eventId}`)
     } catch (err) {
-      setError('Failed to start event')
-      setStarting(false)
+      setError(err instanceof Error ? err.message : 'Failed to create event')
+      setIsSubmitting(false)
     }
   }
 
-  if (loading) {
+  if (!config) {
     return (
-      <div className="matchplay-players-page">
-        <SetupScreenHeader />
-        <p className="matchplay-loading-text">Loading...</p>
+      <div className="matchplay-page matchplay-page--stacked">
+        <p className="matchplay-loading">Loading...</p>
       </div>
     )
   }
 
-  const canStart = players.length >= 4
-
-  return (
-    <div className="matchplay-players-page">
-      <SetupScreenHeader />
-      <div className="matchplay-players-header">
-        <Link href="/matchplay/new" className="matchplay-players-back">
-          ← Back
-        </Link>
-        <h1 className="matchplay-players-title">Players</h1>
-        <span className="matchplay-players-count">{players.length} added</span>
-      </div>
-
-      <div className="setup-inputs matchplay-players-list">
-        <div className="setup-player-row">
-          <div className="setup-photo-circle-wrap" aria-hidden>
-            <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
-              <SetupPhotoSlotIcon />
-            </div>
-          </div>
-          <div className="setup-input-wrap setup-input-wrap--player-name">
-            <input
-              ref={inputRef}
-              type="text"
-              className="setup-input"
-              placeholder="Enter name..."
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary matchplay-players-add"
-            onClick={handleAdd}
-            disabled={!newName.trim()}
-          >
-            ADD
+  const sheet =
+    sheetOpen &&
+    activeSlot !== null &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <div
+        className="setup-photo-sheet-backdrop"
+        role="presentation"
+        onClick={() => {
+          setSheetOpen(false)
+          setActiveSlot(null)
+        }}
+      >
+        <div
+          className="setup-photo-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="matchplay-photo-sheet-title"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p id="matchplay-photo-sheet-title" className="setup-photo-sheet-title">
+            Player photo
+          </p>
+          <button type="button" className="setup-photo-sheet-option" onClick={openCamera} disabled={processingPhoto}>
+            <CameraIcon className="setup-photo-sheet-option-icon" />
+            <span>Take photo</span>
           </button>
-        </div>
-
-        {players.map((name, i) => (
-          <div key={`${name}-${i}`} className="setup-player-row">
-            <div className="setup-photo-circle-wrap" aria-hidden>
-              <div className="setup-photo-trigger setup-photo-trigger--static" role="presentation">
-                <SetupPhotoSlotIcon />
-              </div>
-            </div>
-            <div className="setup-input-wrap setup-input-wrap--player-name">
-              <input type="text" className="setup-input" readOnly value={name} aria-label={name} />
-            </div>
+          <button type="button" className="setup-photo-sheet-option" onClick={openLibrary} disabled={processingPhoto}>
+            <ImageIcon />
+            <span>Photo library</span>
+          </button>
+          {players[activeSlot]?.photoPreview && (
             <button
               type="button"
-              className="matchplay-players-remove"
-              onClick={() => handleRemove(i)}
-              aria-label={`Remove ${name}`}
+              className="setup-photo-sheet-remove"
+              onClick={() => {
+                clearSlotPhoto(activeSlot)
+                setSheetOpen(false)
+                setActiveSlot(null)
+              }}
+              disabled={processingPhoto}
             >
-              ✕
+              Remove photo
             </button>
-          </div>
-        ))}
+          )}
+          <button
+            type="button"
+            className="setup-photo-sheet-cancel"
+            onClick={() => {
+              setSheetOpen(false)
+              setActiveSlot(null)
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>,
+      document.body
+    )
+
+  return (
+    <div className="matchplay-page matchplay-page--stacked">
+      <header className="matchplay-header matchplay-header--event-setup">
+        <div className="matchplay-header-side">
+          <button type="button" onClick={() => router.back()} className="matchplay-back">
+            ← Back
+          </button>
+        </div>
+        <h1 className="matchplay-header-title">Add Players</h1>
+        <div className="matchplay-header-side matchplay-header-side--end">
+          <span className="matchplay-header-count">
+            {filledCount} of {config.playerCount}
+          </span>
+        </div>
+      </header>
+
+      <div className="matchplay-players-content">
+        <div className="matchplay-players-list">
+          {players.map((player, index) => (
+            <div key={index} className="matchplay-player-slot">
+              <button type="button" className="matchplay-player-photo" onClick={() => openPhotoSheet(index)}>
+                {player.photoPreview ? (
+                  <img src={player.photoPreview} alt="" />
+                ) : player.name ? (
+                  <span className="matchplay-player-initials">
+                    {player.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </span>
+                ) : (
+                  <span className="matchplay-player-photo-icon" aria-hidden>
+                    <CameraIcon className="matchplay-player-photo-svg" />
+                  </span>
+                )}
+              </button>
+
+              <input
+                type="text"
+                className="matchplay-player-input"
+                placeholder={`Player ${index + 1}`}
+                value={player.name}
+                onChange={(e) => handleNameChange(index, e.target.value)}
+                autoComplete="name"
+              />
+
+              {player.name.trim() ? <span className="matchplay-player-check">✓</span> : null}
+            </div>
+          ))}
+        </div>
+
+        {error ? <p className="matchplay-error">{error}</p> : null}
       </div>
 
-      {error && <div className="setup-error matchplay-error-text">{error}</div>}
-
-      <div className="matchplay-players-footer">
+      <footer className="matchplay-setup-footer">
         <button
           type="button"
-          className="btn btn-primary matchplay-players-start"
-          onClick={handleStartEvent}
-          disabled={!canStart || starting}
+          className="matchplay-btn matchplay-btn--primary"
+          onClick={() => void handleStartEvent()}
+          disabled={!canStart || isSubmitting}
         >
-          {starting ? 'Starting...' : 'START EVENT'}
+          {isSubmitting ? 'Creating…' : 'Start Event'}
         </button>
-        {!canStart && (
-          <p className="matchplay-players-hint">Add at least 4 players to start</p>
-        )}
-        {canStart && players.length % 4 !== 0 && (
-          <p className="matchplay-players-hint">Americano works best with multiples of 4 (8, 12, 16 players)</p>
-        )}
-      </div>
+      </footer>
+
+      {sheet}
+
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="setup-photo-file-input"
+        onChange={(e) => void handleFileInputChange(e)}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="setup-photo-file-input"
+        onChange={(e) => void handleFileInputChange(e)}
+      />
     </div>
   )
 }
