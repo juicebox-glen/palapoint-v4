@@ -1,6 +1,7 @@
 'use client'
 
 import '@/app/styles/matchplay.css'
+import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
@@ -94,8 +95,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                       className={`matchplay-court-btn ${sel ? 'matchplay-court-btn--selected' : ''}`}
                       style={{ pointerEvents: 'none' }}
                     >
+                      <CourtIcon />
                       <span className="matchplay-court-num">{n}</span>
-                      {sel ? <span className="matchplay-court-check">✓</span> : null}
                     </span>
                   )
                 })}

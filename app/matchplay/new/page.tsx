@@ -3,6 +3,7 @@
 import { useState, useEffect, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
+import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -127,9 +128,10 @@ export default function NewMatchplayPage() {
                     type="button"
                     className={`matchplay-court-btn ${selected ? 'matchplay-court-btn--selected' : ''}`}
                     onClick={() => toggleCourt(court)}
+                    aria-pressed={selected}
                   >
+                    <CourtIcon />
                     <span className="matchplay-court-num">{court}</span>
-                    {selected ? <span className="matchplay-court-check">✓</span> : null}
                   </button>
                 )
               })}

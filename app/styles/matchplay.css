@@ -2275,48 +2275,95 @@
   gap: var(--ui-space-sm);
 }
 
+@media (max-width: 360px) {
+  .matchplay-court-grid {
+    gap: var(--ui-space-xs);
+  }
+}
+
 .matchplay-court-btn {
-  aspect-ratio: 1;
+  position: relative;
+  aspect-ratio: 3 / 4;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--ui-space-xs);
   background: var(--bg-tertiary);
   border: 2px solid var(--border-default);
   border-radius: var(--radius-lg);
-  color: var(--text-secondary);
-  font-size: var(--ui-font-lg);
-  font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  overflow: hidden;
+  min-height: 80px;
+  padding: 0;
   transition:
     border-color var(--transition-fast),
     background var(--transition-fast),
     color var(--transition-fast);
-  min-height: 64px;
-  padding: var(--ui-space-xs);
+}
+
+@media (max-width: 360px) {
+  .matchplay-court-btn {
+    min-height: 64px;
+  }
+}
+
+@media (min-width: 600px) {
+  .matchplay-court-btn {
+    min-height: 100px;
+  }
 }
 
 .matchplay-court-btn:hover {
   border-color: var(--brand-primary);
-  color: var(--text-primary);
 }
 
 .matchplay-court-btn--selected {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
-  color: #fff;
+}
+
+/* Court SVG — behind the number */
+.matchplay-court-icon {
+  position: absolute;
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  pointer-events: none;
+}
+
+.matchplay-court-icon-lines {
+  color: var(--border-default);
+  opacity: 0.6;
+  transition:
+    color var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.matchplay-court-btn:hover .matchplay-court-icon-lines {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.matchplay-court-btn--selected .matchplay-court-icon-lines {
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 1;
 }
 
 .matchplay-court-num {
-  font-size: var(--ui-font-xl);
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
   line-height: 1;
+  transition: color var(--transition-fast);
 }
 
-.matchplay-court-check {
-  font-size: var(--ui-font-sm);
-  opacity: 0.9;
-  line-height: 1;
+.matchplay-court-btn:hover .matchplay-court-num {
+  color: var(--text-primary);
+}
+
+.matchplay-court-btn--selected .matchplay-court-num {
+  color: #fff;
 }
 
 .matchplay-card--overview {
