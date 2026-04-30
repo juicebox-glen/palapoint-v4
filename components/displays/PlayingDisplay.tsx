@@ -39,9 +39,32 @@ interface MatchState {
   session_id: string | null
   game_mode: string
   sets_to_win: number
+  tiebreak_at?: number
   side_swap_enabled: boolean
   is_tiebreak?: boolean
   started_at?: string | null
+}
+
+/** Coerce DB / JSON shapes so scoreless + ready checks stay reliable after REMATCH. */
+function normalizePlayingMatch(row: MatchState | null): MatchState | null {
+  if (!row) return null
+  const setScores = Array.isArray(row.set_scores) ? row.set_scores : []
+  return {
+    ...row,
+    team_a_points: Number(row.team_a_points) || 0,
+    team_b_points: Number(row.team_b_points) || 0,
+    team_a_games: Number(row.team_a_games) || 0,
+    team_b_games: Number(row.team_b_games) || 0,
+    set_scores: setScores,
+    started_at: row.started_at ?? null,
+    winner: row.winner ?? null,
+  }
+}
+
+type LiveMatchesRealtimePayload = {
+  eventType: string
+  new?: MatchState
+  old?: MatchState & { id?: string }
 }
 
 /** Design-system preview only — mirrors production `PlayingDisplay` states without Supabase. */
@@ -242,7 +265,7 @@ export default function PlayingDisplay({
         .limit(1)
         .maybeSingle()
 
-      setMatch(matchData as MatchState | null)
+      setMatch(normalizePlayingMatch(matchData as MatchState | null))
       setLoading(false)
     }
 
@@ -274,7 +297,7 @@ export default function PlayingDisplay({
         id: matchData?.id,
         started_at: (matchData as MatchState | null)?.started_at,
       })
-      setMatch(matchData as MatchState | null)
+      setMatch(normalizePlayingMatch(matchData as MatchState | null))
     }
 
     const ch = supabase.channel(`playing-${courtId}`)
@@ -287,14 +310,32 @@ export default function PlayingDisplay({
         table: 'live_matches',
         filter: `court_id=eq.${courtId}`,
       },
-      (payload: { eventType: string; new?: MatchState }) => {
+      (payload: LiveMatchesRealtimePayload) => {
         console.log('[PlayingDisplay] realtime live_matches:', payload.eventType, {
+          id: payload.new?.id ?? payload.old?.id,
           started_at: payload.new?.started_at,
         })
+
         if (payload.eventType === 'DELETE') {
-          setMatch(null)
-        } else if (payload.new) {
-          setMatch(payload.new as MatchState)
+          const deletedId = payload.old?.id
+          setMatch((prev) => {
+            if (!prev || !deletedId || deletedId !== prev.id) return prev
+            return null
+          })
+          return
+        }
+
+        if (payload.eventType === 'INSERT' && payload.new) {
+          setMatch(normalizePlayingMatch(payload.new as MatchState))
+          return
+        }
+
+        if (payload.eventType === 'UPDATE' && payload.new) {
+          const row = normalizePlayingMatch(payload.new as MatchState)!
+          setMatch((prev) => {
+            if (prev && row.id !== prev.id) return prev
+            return row
+          })
         }
       }
     )
@@ -320,24 +361,34 @@ export default function PlayingDisplay({
 
   const handlePlayAgain = async () => {
     if (!match || !sessionId || !courtId) return
+    const body: Record<string, unknown> = {
+      action: 'create',
+      court_id: courtId,
+      session_id: sessionId,
+      game_mode: match.game_mode,
+      sets_to_win: match.sets_to_win ?? 1,
+      tiebreak_at: match.tiebreak_at ?? 6,
+      side_swap_enabled: match.side_swap_enabled ?? true,
+    }
+    if (match.team_a_player_1?.trim()) body.team_a_player_1 = match.team_a_player_1.trim()
+    if (match.team_a_player_2?.trim()) body.team_a_player_2 = match.team_a_player_2.trim()
+    if (match.team_b_player_1?.trim()) body.team_b_player_1 = match.team_b_player_1.trim()
+    if (match.team_b_player_2?.trim()) body.team_b_player_2 = match.team_b_player_2.trim()
+    body.team_a_player_1_photo = match.team_a_player_1_photo ?? null
+    body.team_a_player_2_photo = match.team_a_player_2_photo ?? null
+    body.team_b_player_1_photo = match.team_b_player_1_photo ?? null
+    body.team_b_player_2_photo = match.team_b_player_2_photo ?? null
+
     const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'create',
-        court_id: courtId,
-        session_id: sessionId,
-        game_mode: match.game_mode,
-        sets_to_win: match.sets_to_win,
-        side_swap_enabled: match.side_swap_enabled,
-        team_a_player_1: match.team_a_player_1,
-        team_a_player_2: match.team_a_player_2,
-        team_b_player_1: match.team_b_player_1,
-        team_b_player_2: match.team_b_player_2,
-      }),
+      body: JSON.stringify(body),
     })
-    const result = await response.json()
-    if (result.success) setMatch(result.match)
+    const result = (await response.json()) as { success?: boolean; match?: MatchState }
+    console.log('[PlayingDisplay] rematch create:', { ok: response.ok, success: result.success })
+    if (result.success && result.match) {
+      setMatch(normalizePlayingMatch(result.match))
+    }
   }
 
   const handleEndGame = async () => {
@@ -377,7 +428,7 @@ export default function PlayingDisplay({
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
-      if (row) setMatch(row as MatchState)
+      if (row) setMatch(normalizePlayingMatch(row as MatchState))
     } catch (err) {
       console.error('[PlayingDisplay] end game error:', err)
     }
