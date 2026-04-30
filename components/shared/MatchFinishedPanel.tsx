@@ -151,119 +151,124 @@ export default function MatchFinishedPanel({
   const scoreRows = normalizedSetScoreRows(match.set_scores, match.team_a_games, match.team_b_games)
   const headerStatus = isAbandoned ? 'GAME ENDED' : 'FINISHED'
 
+  const main = (
+    <>
+      <SetupScreenHeader branding={branding} />
+
+      <div className="preview-header">
+        <div className="preview-status">
+          <span className="preview-status-dot preview-status-dot--finished" aria-hidden />
+          <span>{headerStatus}</span>
+        </div>
+        <div className="preview-court">{courtName}</div>
+      </div>
+
+      {error && <div className="control-error-message">{error}</div>}
+
+      <div className="preview-card playing-finished-card">
+        {hasWinner && winnerTeam ? (
+          <>
+            <div className="playing-finished-winner-avatars">
+              <div className="preview-team-avatars">
+                {winnerTeam === 'a' ? (
+                  <>
+                    <MatchPreviewAvatar
+                      photo={match.team_a_player_1_photo}
+                      name={match.team_a_player_1}
+                      team="a"
+                    />
+                    <MatchPreviewAvatar
+                      photo={match.team_a_player_2_photo}
+                      name={match.team_a_player_2}
+                      team="a"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <MatchPreviewAvatar
+                      photo={match.team_b_player_1_photo}
+                      name={match.team_b_player_1}
+                      team="b"
+                    />
+                    <MatchPreviewAvatar
+                      photo={match.team_b_player_2_photo}
+                      name={match.team_b_player_2}
+                      team="b"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+            <p className="playing-finished-win-line">
+              {winnerTeam === 'a'
+                ? `${winnerSurnamesUpper(match.team_a_player_1, match.team_a_player_2, 1)} WIN`
+                : `${winnerSurnamesUpper(match.team_b_player_1, match.team_b_player_2, 2)} WIN`}
+            </p>
+            <MatchFinishedScoresSection
+              setsToWin={match.sets_to_win}
+              rows={scoreRows}
+              winnerSide={winnerTeam}
+            />
+          </>
+        ) : (
+          <>
+            <div className="preview-matchup">
+              <div className="preview-team preview-team-a">
+                <div className="preview-team-avatars">
+                  <MatchPreviewAvatar
+                    photo={match.team_a_player_1_photo}
+                    name={match.team_a_player_1}
+                    team="a"
+                  />
+                  <MatchPreviewAvatar
+                    photo={match.team_a_player_2_photo}
+                    name={match.team_a_player_2}
+                    team="a"
+                  />
+                </div>
+                <div className="preview-team-names preview-team-names--headline">
+                  <span>
+                    {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
+                  </span>
+                </div>
+              </div>
+              <div className="preview-vs-column">
+                <span className="preview-vs">VS</span>
+              </div>
+              <div className="preview-team preview-team-b">
+                <div className="preview-team-avatars">
+                  <MatchPreviewAvatar
+                    photo={match.team_b_player_1_photo}
+                    name={match.team_b_player_1}
+                    team="b"
+                  />
+                  <MatchPreviewAvatar
+                    photo={match.team_b_player_2_photo}
+                    name={match.team_b_player_2}
+                    team="b"
+                  />
+                </div>
+                <div className="preview-team-names preview-team-names--headline">
+                  <span>
+                    {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <MatchFinishedScoresSection setsToWin={match.sets_to_win} rows={scoreRows} />
+            {isAbandoned && <p className="playing-finished-ended-early">Match was ended early</p>}
+          </>
+        )}
+      </div>
+    </>
+  )
+
   return (
     <div className="control-panel">
       <div className="control-container control-container--preview">
-        <div className="control-preview">
-          <SetupScreenHeader branding={branding} />
-
-          <div className="preview-header">
-            <div className="preview-status">
-              <span className="preview-status-dot preview-status-dot--finished" aria-hidden />
-              <span>{headerStatus}</span>
-            </div>
-            <div className="preview-court">{courtName}</div>
-          </div>
-
-          {error && <div className="control-error-message">{error}</div>}
-
-          <div className="preview-card playing-finished-card">
-            {hasWinner && winnerTeam ? (
-              <>
-                <div className="playing-finished-winner-avatars">
-                  <div className="preview-team-avatars">
-                    {winnerTeam === 'a' ? (
-                      <>
-                        <MatchPreviewAvatar
-                          photo={match.team_a_player_1_photo}
-                          name={match.team_a_player_1}
-                          team="a"
-                        />
-                        <MatchPreviewAvatar
-                          photo={match.team_a_player_2_photo}
-                          name={match.team_a_player_2}
-                          team="a"
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <MatchPreviewAvatar
-                          photo={match.team_b_player_1_photo}
-                          name={match.team_b_player_1}
-                          team="b"
-                        />
-                        <MatchPreviewAvatar
-                          photo={match.team_b_player_2_photo}
-                          name={match.team_b_player_2}
-                          team="b"
-                        />
-                      </>
-                    )}
-                  </div>
-                </div>
-                <p className="playing-finished-win-line">
-                  {winnerTeam === 'a'
-                    ? `${winnerSurnamesUpper(match.team_a_player_1, match.team_a_player_2, 1)} WIN`
-                    : `${winnerSurnamesUpper(match.team_b_player_1, match.team_b_player_2, 2)} WIN`}
-                </p>
-                <MatchFinishedScoresSection
-                  setsToWin={match.sets_to_win}
-                  rows={scoreRows}
-                  winnerSide={winnerTeam}
-                />
-              </>
-            ) : (
-              <>
-                <div className="preview-matchup">
-                  <div className="preview-team preview-team-a">
-                    <div className="preview-team-avatars">
-                      <MatchPreviewAvatar
-                        photo={match.team_a_player_1_photo}
-                        name={match.team_a_player_1}
-                        team="a"
-                      />
-                      <MatchPreviewAvatar
-                        photo={match.team_a_player_2_photo}
-                        name={match.team_a_player_2}
-                        team="a"
-                      />
-                    </div>
-                    <div className="preview-team-names preview-team-names--headline">
-                      <span>
-                        {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="preview-vs-column">
-                    <span className="preview-vs">VS</span>
-                  </div>
-                  <div className="preview-team preview-team-b">
-                    <div className="preview-team-avatars">
-                      <MatchPreviewAvatar
-                        photo={match.team_b_player_1_photo}
-                        name={match.team_b_player_1}
-                        team="b"
-                      />
-                      <MatchPreviewAvatar
-                        photo={match.team_b_player_2_photo}
-                        name={match.team_b_player_2}
-                        team="b"
-                      />
-                    </div>
-                    <div className="preview-team-names preview-team-names--headline">
-                      <span>
-                        {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <MatchFinishedScoresSection setsToWin={match.sets_to_win} rows={scoreRows} />
-                {isAbandoned && <p className="playing-finished-ended-early">Match was ended early</p>}
-              </>
-            )}
-          </div>
-
-          <div className="preview-footer">
+        <div className="control-preview control-preview--playing-idle">
+          <div className="playing-idle-content">{main}</div>
+          <div className="preview-footer playing-idle-footer">
             <div className="preview-actions">{actions}</div>
           </div>
         </div>
