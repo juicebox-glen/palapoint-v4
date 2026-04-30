@@ -1,6 +1,6 @@
 'use client'
 
-import { getPlayerInitials } from '@/lib/utils/player-names'
+import { getPlayerInitials } from '@/lib/utils/name-format'
 
 export function MatchPreviewAvatar({
   photo,

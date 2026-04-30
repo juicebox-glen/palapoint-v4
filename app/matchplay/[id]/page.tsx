@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
+import { formatTeamDisplay } from '@/lib/utils/name-format'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -723,8 +724,18 @@ export default function MatchplayEventPage() {
       ) : (
         <div className="matchplay-event-matches">
           {(viewingRound.matches ?? []).map((match) => {
-            const teamANames = [match.team_a_player_1_name || '-', match.team_a_player_2_name || '-'].join(' + ')
-            const teamBNames = [match.team_b_player_1_name || '-', match.team_b_player_2_name || '-'].join(' + ')
+            const teamANames = formatTeamDisplay(
+              match.team_a_player_1_name,
+              match.team_a_player_2_name,
+              1,
+              'first'
+            )
+            const teamBNames = formatTeamDisplay(
+              match.team_b_player_1_name,
+              match.team_b_player_2_name,
+              2,
+              'first'
+            )
             const isCompleted = match.status === 'completed'
             const isExpanded = expandedMatchId === match.id
             const draft = draftScores[match.id]

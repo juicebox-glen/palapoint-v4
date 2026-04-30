@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-import { getTeamDisplayName } from '@/lib/utils/player-names'
+import { formatTeamDisplay } from '@/lib/utils/name-format'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import '@/app/styles/control-panel.css'
@@ -94,7 +94,7 @@ export default function MatchConfirmation({
               </div>
               <div className="preview-team-names preview-team-names--headline">
                 <span>
-                  {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
+                  {formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)}
                 </span>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function MatchConfirmation({
               </div>
               <div className="preview-team-names preview-team-names--headline">
                 <span>
-                  {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
+                  {formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)}
                 </span>
               </div>
             </div>

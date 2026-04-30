@@ -10,7 +10,7 @@ import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
-import { getTeamDisplayName } from '@/lib/utils/player-names'
+import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -535,7 +535,7 @@ export default function CourtDisplay({
         <div className="court-ready-half court-ready-team-a">
           <div className="court-ready-names">
             <span className="court-ready-name">
-              {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
+              {formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)}
             </span>
           </div>
         </div>
@@ -543,7 +543,7 @@ export default function CourtDisplay({
         <div className="court-ready-half court-ready-team-b">
           <div className="court-ready-names">
             <span className="court-ready-name">
-              {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
+              {formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)}
             </span>
           </div>
         </div>
@@ -553,8 +553,8 @@ export default function CourtDisplay({
   }
 
   if (showServerAnnouncement && match) {
-    const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
-    const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
+    const teamAName = formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)
+    const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
     return (
       <ServerAnnouncementOverlay
         servingTeam={match.serving_team as 'a' | 'b'}
@@ -566,8 +566,8 @@ export default function CourtDisplay({
   }
 
   if (showSetWin && setWinData && match) {
-    const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
-    const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
+    const teamAName = formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)
+    const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
     return (
       <SetWinOverlay
         winningTeam={setWinData.winningTeam}
@@ -615,14 +615,14 @@ export default function CourtDisplay({
   const leftTeamData =
     teamOnLeft === 'a'
       ? {
-          name: getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1),
+          name: formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1),
           points: match.team_a_points,
           games: match.team_a_games,
           setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
           team: 'a' as const,
         }
       : {
-          name: getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2),
+          name: formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2),
           points: match.team_b_points,
           games: match.team_b_games,
           setsWon: setScores.filter((s) => s.team_b > s.team_a).length,
@@ -632,14 +632,14 @@ export default function CourtDisplay({
   const rightTeamData =
     teamOnRight === 'a'
       ? {
-          name: getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1),
+          name: formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1),
           points: match.team_a_points,
           games: match.team_a_games,
           setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
           team: 'a' as const,
         }
       : {
-          name: getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2),
+          name: formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2),
           points: match.team_b_points,
           games: match.team_b_games,
           setsWon: setScores.filter((s) => s.team_b > s.team_a).length,

@@ -1,7 +1,7 @@
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import GradientWaveDrift from '@/components/backgrounds/GradientWaveDrift'
-import { getPlayerInitials, getSpectatorTeamSurnameRows } from '@/lib/utils/player-names'
+import { getPlayerInitials, getSpectatorTeamSurnameRows } from '@/lib/utils/name-format'
 import { SpectatorHeader } from './SpectatorHeader'
 import {
   formatLivePointDisplay,

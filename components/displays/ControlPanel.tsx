@@ -13,7 +13,7 @@ import {
 } from '@/components/shared/MatchConfirmation'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-import { getTeamDisplayName } from '@/lib/utils/player-names'
+import { formatTeamDisplay } from '@/lib/utils/name-format'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
@@ -554,8 +554,8 @@ export default function ControlPanel({
     return null
   }
 
-  const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
-  const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
+  const teamAName = formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)
+  const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
 
   return (
     <div className="control-panel">

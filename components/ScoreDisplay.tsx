@@ -2,7 +2,7 @@
 
 import type { MatchState } from '@/lib/types/match'
 import { formatPointDisplay } from '@/lib/utils/score-format'
-import { getTeamDisplayName } from '@/lib/utils/player-names'
+import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 interface ScoreDisplayProps {
@@ -11,9 +11,15 @@ interface ScoreDisplayProps {
 }
 
 export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisplayProps) {
-  const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
-  const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
-  
+  const isCourt = variant === 'court'
+
+  const teamAName = isCourt
+    ? formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1)
+    : formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)
+  const teamBName = isCourt
+    ? formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2)
+    : formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
+
   const pointsA = formatPointDisplay(
     match.team_a_points,
     match.team_b_points,
@@ -26,9 +32,7 @@ export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisp
     match.is_tiebreak,
     match.is_tiebreak ? match.tiebreak_scores?.team_b : undefined
   )
-  
-  const isCourt = variant === 'court'
-  
+
   return (
     <div className={isCourt ? 'court-display' : 'spectator-display'}>
       {/* Team Names */}

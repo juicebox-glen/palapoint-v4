@@ -4,7 +4,7 @@ import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import type { MatchState } from '@/lib/types/match'
 import { formatPointDisplay } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
-import { getTeamDisplayName } from '@/lib/utils/player-names'
+import { formatTeamScoreboard } from '@/lib/utils/name-format'
 
 export interface ControlScoreboardProps {
   match: MatchState
@@ -12,8 +12,8 @@ export interface ControlScoreboardProps {
 
 /** Same markup/classes as staff control in-game — shared with player `/playing`. */
 export default function ControlScoreboard({ match }: ControlScoreboardProps) {
-  const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
-  const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
+  const teamAName = formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1)
+  const teamBName = formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2)
   const pointsA = formatPointDisplay(
     match.team_a_points,
     match.team_b_points,

@@ -947,6 +947,7 @@
 
 .board-standings-player-name {
   min-width: 0;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

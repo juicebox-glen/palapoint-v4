@@ -2,7 +2,7 @@
  * Shared score display formatting for match state.
  */
 
-/** Re-exported from `./player-names` (single implementation; kept here for existing imports). */
+/** Re-exported from `./player-names` (delegates to `name-format`). */
 import { abbreviateSurname } from './player-names'
 
 export { abbreviateSurname }

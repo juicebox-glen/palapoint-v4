@@ -7,6 +7,7 @@ import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
+import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 
 /** Map legacy ?state= values to current preview keys. */
 function normalizeState(raw: string): string {
@@ -30,18 +31,13 @@ function DsFixturePhoto({ initials }: { initials: string }) {
 }
 
 function DsStandingsPlayerCell({ name }: { name: string }) {
-  const initials = name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = getPlayerInitials(name)
   return (
     <div className="board-standings-player-cell">
       <div className="board-player-photo board-player-photo--sm board-player-photo--initials" aria-hidden>
         {initials}
       </div>
-      <span className="board-standings-player-name">{name}</span>
+      <span className="board-standings-player-name">{formatPlayerName(name, 'full')}</span>
     </div>
   )
 }

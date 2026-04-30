@@ -1,5 +1,6 @@
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
+import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { SpectatorHeader } from './SpectatorHeader'
 import { getEndgameSetScores, getGameModeText } from './utils'
@@ -42,11 +43,11 @@ export function SpectatorEndgame({
                 />
               ) : (
                 <div className="spectator-endgame-avatar" aria-hidden>
-                  {match.team_a_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  {getPlayerInitials(match.team_a_player_1)}
                 </div>
               )}
               <span className="spectator-endgame-name">
-                {match.team_a_player_1?.trim() || 'Player 1'}
+                {formatPlayerName(match.team_a_player_1, 'full') || 'Player 1'}
               </span>
             </div>
             <div className="spectator-endgame-player">
@@ -58,11 +59,11 @@ export function SpectatorEndgame({
                 />
               ) : (
                 <div className="spectator-endgame-avatar" aria-hidden>
-                  {match.team_a_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  {getPlayerInitials(match.team_a_player_2)}
                 </div>
               )}
               <span className="spectator-endgame-name">
-                {match.team_a_player_2?.trim() || 'Player 2'}
+                {formatPlayerName(match.team_a_player_2, 'full') || 'Player 2'}
               </span>
             </div>
           </div>
@@ -116,11 +117,11 @@ export function SpectatorEndgame({
                 />
               ) : (
                 <div className="spectator-endgame-avatar" aria-hidden>
-                  {match.team_b_player_1?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  {getPlayerInitials(match.team_b_player_1)}
                 </div>
               )}
               <span className="spectator-endgame-name">
-                {match.team_b_player_1?.trim() || 'Player 1'}
+                {formatPlayerName(match.team_b_player_1, 'full') || 'Player 1'}
               </span>
             </div>
             <div className="spectator-endgame-player">
@@ -132,11 +133,11 @@ export function SpectatorEndgame({
                 />
               ) : (
                 <div className="spectator-endgame-avatar" aria-hidden>
-                  {match.team_b_player_2?.trim()?.charAt(0)?.toUpperCase() || '?'}
+                  {getPlayerInitials(match.team_b_player_2)}
                 </div>
               )}
               <span className="spectator-endgame-name">
-                {match.team_b_player_2?.trim() || 'Player 2'}
+                {formatPlayerName(match.team_b_player_2, 'full') || 'Player 2'}
               </span>
             </div>
           </div>

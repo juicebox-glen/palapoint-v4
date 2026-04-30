@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import '@/app/styles/matchplay-board.css'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { formatTeamDisplay, formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -251,11 +252,6 @@ function getRoundByNumber(rounds: MatchplayRound[], n: number): MatchplayRound |
   return rounds.find((r) => r.round_number === n) ?? null
 }
 
-function boardPlayerFirstName(full: string | undefined): string {
-  if (!full?.trim()) return ''
-  return full.trim().split(/\s+/)[0] ?? ''
-}
-
 function BoardPlayerPhoto({
   name,
   photoUrl,
@@ -269,15 +265,10 @@ function BoardPlayerPhoto({
   if (photoUrl) {
     return <img src={photoUrl} alt="" className={`board-player-photo ${sizeClass}`} />
   }
-  const initials = name
-    .split(/\s+/)
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = getPlayerInitials(name)
   return (
     <div className={`board-player-photo board-player-photo--initials ${sizeClass}`} aria-hidden>
-      {initials || '—'}
+      {initials}
     </div>
   )
 }
@@ -292,10 +283,18 @@ function BoardFixtureCard({ match }: { match: MatchplayMatch }) {
     { name: match.team_b_player_2_name, photo: match.team_b_player_2_photo_url },
   ].filter((p) => p.name?.trim())
 
-  const teamA =
-    teamAPlayers.map((p) => boardPlayerFirstName(p.name)).filter(Boolean).join(' + ') || '—'
-  const teamB =
-    teamBPlayers.map((p) => boardPlayerFirstName(p.name)).filter(Boolean).join(' + ') || '—'
+  const teamA = formatTeamDisplay(
+    match.team_a_player_1_name,
+    match.team_a_player_2_name,
+    1,
+    'first'
+  )
+  const teamB = formatTeamDisplay(
+    match.team_b_player_1_name,
+    match.team_b_player_2_name,
+    2,
+    'first'
+  )
   const isMatchCompleted = match.status === 'completed'
   const scoreA = match.team_a_score ?? 0
   const scoreB = match.team_b_score ?? 0
@@ -709,7 +708,9 @@ export default function MatchplayBoardPage() {
                       <td className="board-td-player">
                         <div className="board-standings-player-cell">
                           <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
-                          <span className="board-standings-player-name">{s.name}</span>
+                          <span className="board-standings-player-name">
+                            {formatPlayerName(s.name, 'full')}
+                          </span>
                         </div>
                       </td>
                       <td className="board-td-num">{s.matches_played ?? 0}</td>
@@ -794,7 +795,9 @@ export default function MatchplayBoardPage() {
                     <td className="board-td-player">
                       <div className="board-standings-player-cell">
                         <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
-                        <span className="board-standings-player-name">{s.name}</span>
+                        <span className="board-standings-player-name">
+                          {formatPlayerName(s.name, 'full')}
+                        </span>
                       </div>
                     </td>
                     <td className="board-td-points">{s.total_points ?? 0}</td>
@@ -814,7 +817,9 @@ export default function MatchplayBoardPage() {
                   <td className="board-td-player">
                     <div className="board-standings-player-cell">
                       <BoardPlayerPhoto name={p.name} photoUrl={p.photo_url} size="sm" />
-                      <span className="board-standings-player-name">{p.name}</span>
+                      <span className="board-standings-player-name">
+                        {formatPlayerName(p.name, 'full')}
+                      </span>
                     </div>
                   </td>
                   <td className="board-td-points">0</td>

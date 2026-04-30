@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
+import { getPlayerInitials } from '@/lib/utils/name-format'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -449,12 +450,7 @@ export default function MatchplayPlayersPage() {
                       <img src={player.photoPreview} alt="" />
                     ) : player.name ? (
                       <span className="matchplay-player-initials">
-                        {player.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        {getPlayerInitials(player.name)}
                       </span>
                     ) : (
                       <svg
