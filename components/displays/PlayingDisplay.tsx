@@ -76,6 +76,12 @@ function isAwaitingCourtAck(m: MatchState | null): boolean {
   )
 }
 
+/** Match has started on court and is still active — poll periodically so completion isn't missed if realtime drops. */
+function isLivePlayingMatch(m: MatchState | null): boolean {
+  if (!m) return false
+  return Boolean(m.started_at) && (m.status === 'in_progress' || m.status === 'setup')
+}
+
 async function fetchLatestLiveMatchForCourt(courtId: string): Promise<MatchState | null> {
   const { data, error } = await supabase
     .from('live_matches')
@@ -387,21 +393,27 @@ export default function PlayingDisplay({
     }
   }, [courtId, isPreview])
 
-  /** Poll while waiting for court FLIC ack — fixes missed realtime after REMATCH / flaky subscriptions. */
+  /**
+   * Poll while awaiting first FLIC ack (fast) and during live play (slower) so completion reaches the player
+   * screen even when realtime misses updates. Stops when match leaves those states (e.g. completed).
+   */
   useEffect(() => {
-    if (isPreview || !courtId || !match || !isAwaitingCourtAck(match)) return
+    if (isPreview || !courtId || !match) return
+
+    const awaitingAck = isAwaitingCourtAck(match)
+    const livePlaying = isLivePlayingMatch(match)
+    if (!awaitingAck && !livePlaying) return
+
+    const intervalMs = awaitingAck ? 2000 : 5000
 
     const poll = async () => {
       const row = await fetchLatestLiveMatchForCourt(courtId)
       if (!row) return
-      setMatch((prev) => {
-        if (!prev || !isAwaitingCourtAck(prev)) return prev
-        return row
-      })
+      setMatch(row)
     }
 
     void poll()
-    const iv = setInterval(() => void poll(), 2000)
+    const iv = setInterval(() => void poll(), intervalMs)
     return () => clearInterval(iv)
   }, [isPreview, courtId, match?.id, match?.started_at, match?.status])
 
@@ -410,13 +422,13 @@ export default function PlayingDisplay({
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return
       const prev = matchRef.current
-      if (!prev || !isAwaitingCourtAck(prev)) return
+      if (!prev) return
+      const shouldRefetch =
+        isAwaitingCourtAck(prev) || isLivePlayingMatch(prev)
+      if (!shouldRefetch) return
       void fetchLatestLiveMatchForCourt(courtId).then((row) => {
         if (!row) return
-        setMatch((m) => {
-          if (!m || !isAwaitingCourtAck(m)) return m
-          return row
-        })
+        setMatch(row)
       })
     }
     document.addEventListener('visibilitychange', onVisible)
