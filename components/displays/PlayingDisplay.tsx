@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
@@ -59,6 +59,37 @@ function normalizePlayingMatch(row: MatchState | null): MatchState | null {
     started_at: row.started_at ?? null,
     winner: row.winner ?? null,
   }
+}
+
+/** Waiting for first court FLIC ack (`started_at`) — realtime sometimes misses the UPDATE. */
+function isAwaitingCourtAck(m: MatchState | null): boolean {
+  if (!m) return false
+  if (!(m.status === 'setup' || m.status === 'in_progress')) return false
+  if (m.started_at) return false
+  const setScores = Array.isArray(m.set_scores) ? m.set_scores : []
+  return (
+    Number(m.team_a_points) === 0 &&
+    Number(m.team_b_points) === 0 &&
+    Number(m.team_a_games) === 0 &&
+    Number(m.team_b_games) === 0 &&
+    setScores.length === 0
+  )
+}
+
+async function fetchLatestLiveMatchForCourt(courtId: string): Promise<MatchState | null> {
+  const { data, error } = await supabase
+    .from('live_matches')
+    .select('*')
+    .eq('court_id', courtId)
+    .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) {
+    console.warn('[PlayingDisplay] fetchLatestLiveMatchForCourt:', error.message)
+    return null
+  }
+  return normalizePlayingMatch(data as MatchState | null)
 }
 
 type LiveMatchesRealtimePayload = {
@@ -138,6 +169,9 @@ export default function PlayingDisplay({
   const [isEnding, setIsEnding] = useState(false)
 
   const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  const matchRef = useRef<MatchState | null>(null)
+  matchRef.current = match
 
   useEffect(() => {
     if (isPreview && preview) {
@@ -261,16 +295,8 @@ export default function PlayingDisplay({
         }
       }
 
-      const { data: matchData } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      setMatch(normalizePlayingMatch(matchData as MatchState | null))
+      const row = await fetchLatestLiveMatchForCourt(courtId)
+      setMatch(row)
       setLoading(false)
     }
 
@@ -290,19 +316,12 @@ export default function PlayingDisplay({
     if (isPreview || !courtId) return
 
     async function refreshMatchFromDb() {
-      const { data: matchData } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      const row = await fetchLatestLiveMatchForCourt(courtId)
       console.log('[PlayingDisplay] refetched live_matches after subscribe:', {
-        id: matchData?.id,
-        started_at: (matchData as MatchState | null)?.started_at,
+        id: row?.id,
+        started_at: row?.started_at,
       })
-      setMatch(normalizePlayingMatch(matchData as MatchState | null))
+      setMatch(row)
     }
 
     const ch = supabase.channel(`playing-${courtId}`)
@@ -336,7 +355,15 @@ export default function PlayingDisplay({
         }
 
         if (payload.eventType === 'UPDATE' && payload.new) {
-          const row = normalizePlayingMatch(payload.new as MatchState)!
+          const raw = payload.new as MatchState
+          if (!raw?.id) {
+            console.warn('[PlayingDisplay] realtime UPDATE missing id; refetching row')
+            void fetchLatestLiveMatchForCourt(courtId).then((row) => {
+              if (row) setMatch(row)
+            })
+            return
+          }
+          const row = normalizePlayingMatch(raw)!
           setMatch((prev) => {
             if (prev && row.id !== prev.id) return prev
             return row
@@ -344,9 +371,14 @@ export default function PlayingDisplay({
         }
       }
     )
-    ch.subscribe((status: string) => {
-      console.log('[PlayingDisplay] realtime channel status:', status)
+    ch.subscribe((status: string, err?: Error) => {
+      console.log('[PlayingDisplay] realtime channel status:', status, err?.message ?? '')
       if (status === 'SUBSCRIBED') {
+        void refreshMatchFromDb()
+        return
+      }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('[PlayingDisplay] realtime channel recover:', status)
         void refreshMatchFromDb()
       }
     })
@@ -354,6 +386,42 @@ export default function PlayingDisplay({
       void supabase.removeChannel(ch)
     }
   }, [courtId, isPreview])
+
+  /** Poll while waiting for court FLIC ack — fixes missed realtime after REMATCH / flaky subscriptions. */
+  useEffect(() => {
+    if (isPreview || !courtId || !match || !isAwaitingCourtAck(match)) return
+
+    const poll = async () => {
+      const row = await fetchLatestLiveMatchForCourt(courtId)
+      if (!row) return
+      setMatch((prev) => {
+        if (!prev || !isAwaitingCourtAck(prev)) return prev
+        return row
+      })
+    }
+
+    void poll()
+    const iv = setInterval(() => void poll(), 2000)
+    return () => clearInterval(iv)
+  }, [isPreview, courtId, match?.id, match?.started_at, match?.status])
+
+  useEffect(() => {
+    if (isPreview || !courtId) return
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      const prev = matchRef.current
+      if (!prev || !isAwaitingCourtAck(prev)) return
+      void fetchLatestLiveMatchForCourt(courtId).then((row) => {
+        if (!row) return
+        setMatch((m) => {
+          if (!m || !isAwaitingCourtAck(m)) return m
+          return row
+        })
+      })
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [isPreview, courtId])
 
   useEffect(() => {
     if (isPreview || !sessionId) return
@@ -458,15 +526,8 @@ export default function PlayingDisplay({
         return
       }
 
-      const { data: row } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (row) setMatch(normalizePlayingMatch(row as MatchState))
+      const row = await fetchLatestLiveMatchForCourt(courtId)
+      if (row) setMatch(row)
     } catch (err) {
       console.error('[PlayingDisplay] end game error:', err)
     } finally {
