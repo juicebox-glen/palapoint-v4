@@ -33,6 +33,48 @@ export interface MatchFinishedMatch {
   team_b_player_2_photo?: string | null
 }
 
+function coerceWinnerSide(w: string | null | undefined): 'a' | 'b' | null {
+  if (w === 'a' || w === 'b') return w
+  if (typeof w === 'string') {
+    const x = w.trim().toLowerCase()
+    if (x === 'a' || x === 'team_a') return 'a'
+    if (x === 'b' || x === 'team_b') return 'b'
+  }
+  return null
+}
+
+/**
+ * Prefer DB `winner`; otherwise infer from set rows / games so abandoned matches
+ * with a clear leader still use the single-team FINISHED layout (design-system parity).
+ */
+export function resolveFinishedWinnerSide(match: MatchFinishedMatch): 'a' | 'b' | null {
+  const explicit = coerceWinnerSide(match.winner)
+  if (explicit) return explicit
+
+  const rows = normalizedSetScoreRows(match.set_scores, match.team_a_games, match.team_b_games)
+  if (rows.length === 0) return null
+
+  let setsWonA = 0
+  let setsWonB = 0
+  for (const r of rows) {
+    if (r.a > r.b) setsWonA++
+    else if (r.b > r.a) setsWonB++
+  }
+
+  const need = Math.max(1, match.sets_to_win ?? 1)
+  if (setsWonA >= need && setsWonA > setsWonB) return 'a'
+  if (setsWonB >= need && setsWonB > setsWonA) return 'b'
+
+  if (setsWonA > setsWonB) return 'a'
+  if (setsWonB > setsWonA) return 'b'
+
+  const last = rows[rows.length - 1]
+  if (last.a > last.b) return 'a'
+  if (last.b > last.a) return 'b'
+
+  return null
+}
+
 export function normalizedSetScoreRows(
   set_scores: MatchFinishedSetScoreRow[] | null | undefined,
   team_a_games: number,
@@ -145,11 +187,11 @@ export default function MatchFinishedPanel({
   error,
 }: MatchFinishedPanelProps) {
   const isAbandoned = match.status === 'abandoned'
-  const hasWinner = Boolean(match.winner) && !isAbandoned
-  const winnerTeam: 'a' | 'b' | null =
-    match.winner === 'a' || match.winner === 'b' ? match.winner : null
+  const winnerTeam = resolveFinishedWinnerSide(match)
+  const showWinnerHero = winnerTeam !== null
   const scoreRows = normalizedSetScoreRows(match.set_scores, match.team_a_games, match.team_b_games)
-  const headerStatus = isAbandoned ? 'GAME ENDED' : 'FINISHED'
+  const headerStatus =
+    match.status === 'completed' || showWinnerHero ? 'FINISHED' : 'GAME ENDED'
 
   const main = (
     <>
@@ -166,7 +208,7 @@ export default function MatchFinishedPanel({
       {error && <div className="control-error-message">{error}</div>}
 
       <div className="preview-card playing-finished-card">
-        {hasWinner && winnerTeam ? (
+        {showWinnerHero ? (
           <>
             <div className="playing-finished-winner-avatars">
               <div className="preview-team-avatars">
@@ -256,7 +298,9 @@ export default function MatchFinishedPanel({
               </div>
             </div>
             <MatchFinishedScoresSection setsToWin={match.sets_to_win} rows={scoreRows} />
-            {isAbandoned && <p className="playing-finished-ended-early">Match was ended early</p>}
+            {isAbandoned && !showWinnerHero && (
+              <p className="playing-finished-ended-early">Match was ended early</p>
+            )}
           </>
         )}
       </div>
