@@ -90,14 +90,16 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 {[1, 2, 3, 4].map((n) => {
                   const sel = n === 1 || n === 2
                   return (
-                    <span
+                    <div
                       key={n}
                       className={`matchplay-court-btn ${sel ? 'matchplay-court-btn--selected' : ''}`}
                       style={{ pointerEvents: 'none' }}
                     >
-                      <CourtIcon />
+                      <div className="matchplay-court-icon-wrap">
+                        <CourtIcon />
+                      </div>
                       <span className="matchplay-court-num">{n}</span>
-                    </span>
+                    </div>
                   )
                 })}
               </div>

@@ -130,7 +130,9 @@ export default function NewMatchplayPage() {
                     onClick={() => toggleCourt(court)}
                     aria-pressed={selected}
                   >
-                    <CourtIcon />
+                    <div className="matchplay-court-icon-wrap">
+                      <CourtIcon />
+                    </div>
                     <span className="matchplay-court-num">{court}</span>
                   </button>
                 )

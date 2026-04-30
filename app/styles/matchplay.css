@@ -2281,23 +2281,25 @@
   }
 }
 
+/* Court tiles: two states — dark (default) vs brand blue (selected). Court diagram full tile; number centered on top in z-order. */
 .matchplay-court-btn {
+  --matchplay-court-tile: #1e2128;
   position: relative;
   aspect-ratio: 3 / 4;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border-default);
-  border-radius: var(--radius-lg);
+  box-sizing: border-box;
+  background: var(--matchplay-court-tile);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
   cursor: pointer;
   overflow: hidden;
   min-height: 80px;
   padding: 0;
   transition:
     border-color var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast);
+    background var(--transition-fast);
 }
 
 @media (max-width: 360px) {
@@ -2313,57 +2315,59 @@
 }
 
 .matchplay-court-btn:hover {
-  border-color: var(--brand-primary);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .matchplay-court-btn--selected {
   background: var(--brand-primary);
-  border-color: var(--brand-primary);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* Court SVG — behind the number */
-.matchplay-court-icon {
-  position: absolute;
-  inset: 12%;
-  width: 76%;
-  height: 76%;
-  pointer-events: none;
-}
-
-.matchplay-court-icon-lines {
-  color: var(--border-default);
-  opacity: 0.6;
-  transition:
-    color var(--transition-fast),
-    opacity var(--transition-fast);
-}
-
-.matchplay-court-btn:hover .matchplay-court-icon-lines {
-  color: var(--text-muted);
-  opacity: 0.8;
-}
-
-.matchplay-court-btn--selected .matchplay-court-icon-lines {
-  color: rgba(255, 255, 255, 0.45);
-  opacity: 1;
+.matchplay-court-btn--selected:hover {
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .matchplay-court-num {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   font-size: clamp(1.5rem, 5vw, 2.5rem);
   font-weight: var(--font-weight-bold);
-  color: var(--text-secondary);
   line-height: 1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
+  pointer-events: none;
   transition: color var(--transition-fast);
-}
-
-.matchplay-court-btn:hover .matchplay-court-num {
-  color: var(--text-primary);
 }
 
 .matchplay-court-btn--selected .matchplay-court-num {
   color: #fff;
+}
+
+.matchplay-court-icon-wrap {
+  position: absolute;
+  inset: 10% 12%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.matchplay-court-icon {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  pointer-events: none;
+}
+
+.matchplay-court-icon-lines {
+  color: rgba(200, 206, 218, 0.26);
+  opacity: 1;
+  transition: color var(--transition-fast);
+}
+
+.matchplay-court-btn--selected .matchplay-court-icon-lines {
+  color: rgba(220, 235, 255, 0.32);
 }
 
 .matchplay-card--overview {
