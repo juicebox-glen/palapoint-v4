@@ -9,41 +9,11 @@ import MatchConfirmation, {
   type MatchConfirmationMatch,
 } from '@/components/shared/MatchConfirmation'
 import type { VenueBranding } from '@/lib/venue'
+import type { MatchState } from '@/lib/types/match'
 import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
 import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-
-interface MatchState {
-  id: string
-  status: string
-  team_a_points: number
-  team_b_points: number
-  team_a_games: number
-  team_b_games: number
-  set_scores: Array<{
-    team_a?: number
-    team_b?: number
-    team_a_games?: number
-    team_b_games?: number
-  }>
-  winner: string | null
-  team_a_player_1: string | null
-  team_a_player_2: string | null
-  team_b_player_1: string | null
-  team_b_player_2: string | null
-  team_a_player_1_photo?: string | null
-  team_a_player_2_photo?: string | null
-  team_b_player_1_photo?: string | null
-  team_b_player_2_photo?: string | null
-  session_id: string | null
-  game_mode: string
-  sets_to_win: number
-  tiebreak_at?: number
-  side_swap_enabled: boolean
-  is_tiebreak?: boolean
-  started_at?: string | null
-}
 
 /** Coerce DB / JSON shapes so scoreless + ready checks stay reliable after REMATCH. */
 function normalizePlayingMatch(row: MatchState | null): MatchState | null {
@@ -55,9 +25,13 @@ function normalizePlayingMatch(row: MatchState | null): MatchState | null {
     team_b_points: Number(row.team_b_points) || 0,
     team_a_games: Number(row.team_a_games) || 0,
     team_b_games: Number(row.team_b_games) || 0,
-    set_scores: setScores,
+    set_scores: setScores as MatchState['set_scores'],
     started_at: row.started_at ?? null,
     winner: row.winner ?? null,
+    deuce_count: Number(row.deuce_count) || 0,
+    current_set: Number(row.current_set) || 1,
+    is_tiebreak: Boolean(row.is_tiebreak),
+    serving_team: row.serving_team ?? null,
   }
 }
 
@@ -125,16 +99,22 @@ export interface PlayingDisplayPreviewConfig {
 function buildPreviewMatch(overrides: Partial<MatchState> = {}): MatchState {
   return {
     id: 'preview-match',
+    court_id: 'preview-court',
+    version: 0,
+    game_mode: 'traditional',
+    sets_to_win: 1,
+    tiebreak_at: 6,
     status: 'in_progress',
+    current_set: 1,
+    is_tiebreak: false,
     team_a_points: 0,
     team_b_points: 0,
     team_a_games: 0,
     team_b_games: 0,
     set_scores: [],
+    deuce_count: 0,
+    serving_team: null,
     winner: null,
-    session_id: 'preview-session',
-    game_mode: 'traditional',
-    sets_to_win: 1,
     side_swap_enabled: true,
     team_a_player_1: 'Glen Noble',
     team_a_player_2: 'Rob Anderson',
@@ -208,6 +188,7 @@ export default function PlayingDisplay({
             buildPreviewMatch({
               status: 'in_progress',
               started_at: new Date().toISOString(),
+              serving_team: 'a',
               team_a_points: 30,
               team_b_points: 15,
               team_a_games: 2,
@@ -224,7 +205,7 @@ export default function PlayingDisplay({
               winner: 'a',
               team_a_games: 6,
               team_b_games: 4,
-              set_scores: [{ team_a_games: 6, team_b_games: 4 }],
+              set_scores: [{ team_a: 6, team_b: 4 }],
             })
           )
           break
@@ -662,7 +643,9 @@ export default function PlayingDisplay({
 
     return (
       <MatchConfirmation
-        match={match as unknown as MatchConfirmationMatch}
+        match={match as MatchConfirmationMatch}
+        scoreboardMatch={isLive ? match : null}
+        playerView
         branding={branding ?? null}
         courtName={courtName}
         idleFooterLayout
