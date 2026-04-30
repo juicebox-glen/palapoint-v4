@@ -939,7 +939,7 @@
   margin-bottom: 0;
 }
 
-/* Player /playing + setup confirmation: matchup centered, CTA + instruction pinned above safe area */
+/* Player /playing + setup confirmation: main block from top; footer (message + CTAs) pinned to bottom + safe area */
 .control-preview.control-preview--playing-idle {
   flex: 1;
   min-height: 0;
@@ -951,7 +951,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: stretch;
   min-height: 0;
   gap: 1.5rem;
 }
