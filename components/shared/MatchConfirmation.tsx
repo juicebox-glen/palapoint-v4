@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-import { formatNameAbbreviated } from '@/lib/utils/player-names'
+import { getTeamDisplayName } from '@/lib/utils/player-names'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import '@/app/styles/control-panel.css'
 
@@ -39,6 +39,8 @@ export interface MatchConfirmationProps {
   primaryMessage?: ReactNode
   /** Bottom CTA area (wrapped in `.preview-actions`). */
   actions: ReactNode
+  /** Pin headline + actions to bottom with scrollable matchup above (player ready / setup confirmation). */
+  idleFooterLayout?: boolean
 }
 
 export default function MatchConfirmation({
@@ -49,80 +51,107 @@ export default function MatchConfirmation({
   statusLabel = 'READY',
   primaryMessage,
   actions,
+  idleFooterLayout = false,
 }: MatchConfirmationProps) {
+  const previewInner = (
+    <>
+      <SetupScreenHeader branding={branding} />
+
+      <div className="preview-header">
+        <div className="preview-status">
+          <span className="preview-status-dot" aria-hidden />
+          <span>{statusLabel}</span>
+        </div>
+        <div className="preview-court">{courtName}</div>
+      </div>
+
+      {error && <div className="control-error-message">{error}</div>}
+
+      <div className="preview-card">
+        <div className="preview-matchup">
+          <div className="preview-team preview-team-a">
+            <div className="preview-team-avatars">
+              <MatchPreviewAvatar
+                photo={match.team_a_player_1_photo}
+                name={match.team_a_player_1}
+                team="a"
+              />
+              <MatchPreviewAvatar
+                photo={match.team_a_player_2_photo}
+                name={match.team_a_player_2}
+                team="a"
+              />
+            </div>
+            <div className="preview-team-names preview-team-names--headline">
+              <span>
+                {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
+              </span>
+            </div>
+          </div>
+
+          <div className="preview-vs-column">
+            <span className="preview-vs">VS</span>
+          </div>
+
+          <div className="preview-team preview-team-b">
+            <div className="preview-team-avatars">
+              <MatchPreviewAvatar
+                photo={match.team_b_player_1_photo}
+                name={match.team_b_player_1}
+                team="b"
+              />
+              <MatchPreviewAvatar
+                photo={match.team_b_player_2_photo}
+                name={match.team_b_player_2}
+                team="b"
+              />
+            </div>
+            <div className="preview-team-names preview-team-names--headline">
+              <span>
+                {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="preview-badges">
+        <span className="preview-badge">{matchPreviewSetsBadgeLabel(match.sets_to_win)}</span>
+        <span className="preview-badge">{matchPreviewModeBadgeLabel(match.game_mode)}</span>
+      </div>
+    </>
+  )
+
+  const footer = (
+    <div className={`preview-footer ${idleFooterLayout ? 'playing-idle-footer' : ''}`}>
+      {primaryMessage != null && primaryMessage !== false && (
+        <div
+          className={`preview-primary-message ${idleFooterLayout ? 'playing-idle-message' : ''}`}
+        >
+          {primaryMessage}
+        </div>
+      )}
+      <div className="preview-actions">{actions}</div>
+    </div>
+  )
+
   return (
     <div className="control-panel">
       <div className="control-container control-container--preview">
-        <div className="control-preview">
-          <SetupScreenHeader branding={branding} />
-
-          <div className="preview-header">
-            <div className="preview-status">
-              <span className="preview-status-dot" aria-hidden />
-              <span>{statusLabel}</span>
-            </div>
-            <div className="preview-court">{courtName}</div>
-          </div>
-
-          {error && <div className="control-error-message">{error}</div>}
-
-          <div className="preview-card">
-            <div className="preview-matchup">
-              <div className="preview-team preview-team-a">
-                <div className="preview-team-avatars">
-                  <MatchPreviewAvatar
-                    photo={match.team_a_player_1_photo}
-                    name={match.team_a_player_1}
-                    team="a"
-                  />
-                  <MatchPreviewAvatar
-                    photo={match.team_a_player_2_photo}
-                    name={match.team_a_player_2}
-                    team="a"
-                  />
-                </div>
-                <div className="preview-team-names">
-                  <span>{formatNameAbbreviated(match.team_a_player_1)}</span>
-                  <span>{formatNameAbbreviated(match.team_a_player_2)}</span>
-                </div>
-              </div>
-
-              <div className="preview-vs-column">
-                <span className="preview-vs">VS</span>
-              </div>
-
-              <div className="preview-team preview-team-b">
-                <div className="preview-team-avatars">
-                  <MatchPreviewAvatar
-                    photo={match.team_b_player_1_photo}
-                    name={match.team_b_player_1}
-                    team="b"
-                  />
-                  <MatchPreviewAvatar
-                    photo={match.team_b_player_2_photo}
-                    name={match.team_b_player_2}
-                    team="b"
-                  />
-                </div>
-                <div className="preview-team-names">
-                  <span>{formatNameAbbreviated(match.team_b_player_1)}</span>
-                  <span>{formatNameAbbreviated(match.team_b_player_2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="preview-badges">
-            <span className="preview-badge">{matchPreviewSetsBadgeLabel(match.sets_to_win)}</span>
-            <span className="preview-badge">{matchPreviewModeBadgeLabel(match.game_mode)}</span>
-          </div>
-
-          <div className="preview-footer">
-            {primaryMessage != null && primaryMessage !== false && (
-              <div className="preview-primary-message">{primaryMessage}</div>
-            )}
-            <div className="preview-actions">{actions}</div>
-          </div>
+        <div
+          className={`control-preview ${idleFooterLayout ? 'control-preview--playing-idle' : ''}`}
+        >
+          {idleFooterLayout ? (
+            <>
+              <div className="playing-idle-content">{previewInner}</div>
+              {footer}
+            </>
+          ) : (
+            <>
+              {previewInner}
+              {footer}
+            </>
+          )}
         </div>
       </div>
     </div>

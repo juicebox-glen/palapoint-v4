@@ -1,7 +1,7 @@
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import GradientWaveDrift from '@/components/backgrounds/GradientWaveDrift'
-import { getPlayerInitials, getSurnameUppercase } from '@/lib/utils/player-names'
+import { getPlayerInitials, getSpectatorTeamSurnameRows } from '@/lib/utils/player-names'
 import { SpectatorHeader } from './SpectatorHeader'
 import { pregameModeLabel, pregameSetsLabel } from './utils'
 
@@ -54,8 +54,11 @@ export function SpectatorPregame({
               </div>
             </div>
             <div className="spectator-pregame-names spectator-pregame-names-a">
-              <span>{getSurnameUppercase(match.team_a_player_1)}</span>
-              <span>{getSurnameUppercase(match.team_a_player_2)}</span>
+              {getSpectatorTeamSurnameRows(match.team_a_player_1, match.team_a_player_2, 1).map(
+                (label, i) => (
+                  <span key={i}>{label}</span>
+                )
+              )}
               <div className="spectator-pregame-names-divider" aria-hidden />
             </div>
           </div>
@@ -87,8 +90,11 @@ export function SpectatorPregame({
             </div>
             <div className="spectator-pregame-names spectator-pregame-names-b">
               <div className="spectator-pregame-names-divider" aria-hidden />
-              <span>{getSurnameUppercase(match.team_b_player_1)}</span>
-              <span>{getSurnameUppercase(match.team_b_player_2)}</span>
+              {getSpectatorTeamSurnameRows(match.team_b_player_1, match.team_b_player_2, 2).map(
+                (label, i) => (
+                  <span key={i}>{label}</span>
+                )
+              )}
             </div>
           </div>
         </div>

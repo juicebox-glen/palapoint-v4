@@ -64,3 +64,32 @@ export function abbreviateSurname(name: string | null | undefined): string {
   const lastName = parts[parts.length - 1]
   return lastName.substring(0, 3).toUpperCase()
 }
+
+/**
+ * Team headline for previews and boards: first names joined, or "Team N" when no names.
+ */
+export function getTeamDisplayName(
+  players: (string | null | undefined)[],
+  teamNumber: 1 | 2
+): string {
+  const names = players.filter((name): name is string => Boolean(name?.trim()))
+  if (names.length === 0) return `Team ${teamNumber}`
+  return names.map((name) => name.trim().split(/\s+/)[0]).join(' & ')
+}
+
+/** Spectator stacks: both empty → one headline; else surnames with placeholder for empty slot. */
+export function getSpectatorTeamSurnameRows(
+  p1: string | null | undefined,
+  p2: string | null | undefined,
+  teamNumber: 1 | 2
+): string[] {
+  const has1 = Boolean(p1?.trim())
+  const has2 = Boolean(p2?.trim())
+  if (!has1 && !has2) {
+    return [getTeamDisplayName([p1, p2], teamNumber)]
+  }
+  return [
+    has1 ? getSurnameUppercase(p1) : '—',
+    has2 ? getSurnameUppercase(p2) : '—',
+  ]
+}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { supabase } from '@/lib/supabase'
 import '@/app/styles/setup-form.css'
 
@@ -67,26 +66,6 @@ function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: str
   )
 }
 
-function ImageIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="setup-photo-sheet-option-icon"
-      aria-hidden
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  )
-}
-
 export default function PlayerPhotoCapture({
   playerId,
   matchId,
@@ -95,27 +74,11 @@ export default function PlayerPhotoCapture({
 }: Props) {
   const [preview, setPreview] = useState<string | null>(currentPhotoUrl ?? null)
   const [uploading, setUploading] = useState(false)
-  const [sheetOpen, setSheetOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setPreview(currentPhotoUrl ?? null)
   }, [currentPhotoUrl])
-
-  useEffect(() => {
-    if (!sheetOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSheetOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [sheetOpen])
 
   const processAndUpload = useCallback(
     async (file: File) => {
@@ -137,10 +100,11 @@ export default function PlayerPhotoCapture({
           data: { publicUrl },
         } = supabase.storage.from('player-photos').getPublicUrl(filename)
 
+        console.log('[PlayerPhotoCapture] upload ok', { playerId, publicUrl })
         setPreview(publicUrl)
         onPhotoChange(publicUrl)
       } catch (err) {
-        console.error('Upload failed:', err)
+        console.error('[PlayerPhotoCapture] upload failed:', err)
         alert('Failed to upload photo')
       } finally {
         setUploading(false)
@@ -160,73 +124,12 @@ export default function PlayerPhotoCapture({
     e?.stopPropagation()
     setPreview(null)
     onPhotoChange(null)
-    setSheetOpen(false)
   }
 
-  const openCamera = () => {
-    setSheetOpen(false)
-    requestAnimationFrame(() => cameraInputRef.current?.click())
+  const openPicker = () => {
+    console.log('[PlayerPhotoCapture] open native picker', { playerId })
+    fileInputRef.current?.click()
   }
-
-  const openLibrary = () => {
-    setSheetOpen(false)
-    requestAnimationFrame(() => fileInputRef.current?.click())
-  }
-
-  const sheet =
-    sheetOpen &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <div
-        className="setup-photo-sheet-backdrop"
-        role="presentation"
-        onClick={() => setSheetOpen(false)}
-      >
-        <div
-          className="setup-photo-sheet"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="setup-photo-sheet-title"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p id="setup-photo-sheet-title" className="setup-photo-sheet-title">
-            Player photo
-          </p>
-          <button
-            type="button"
-            className="setup-photo-sheet-option"
-            onClick={openCamera}
-            disabled={uploading}
-          >
-            <CameraIcon className="setup-photo-sheet-option-icon" />
-            <span>Take photo</span>
-          </button>
-          <button
-            type="button"
-            className="setup-photo-sheet-option"
-            onClick={openLibrary}
-            disabled={uploading}
-          >
-            <ImageIcon />
-            <span>Photo library</span>
-          </button>
-          {preview && (
-            <button
-              type="button"
-              className="setup-photo-sheet-remove"
-              onClick={() => handleRemove()}
-              disabled={uploading}
-            >
-              Remove photo
-            </button>
-          )}
-          <button type="button" className="setup-photo-sheet-cancel" onClick={() => setSheetOpen(false)}>
-            Cancel
-          </button>
-        </div>
-      </div>,
-      document.body
-    )
 
   return (
     <>
@@ -235,7 +138,7 @@ export default function PlayerPhotoCapture({
           <button
             type="button"
             className="setup-photo-thumb"
-            onClick={() => setSheetOpen(true)}
+            onClick={openPicker}
             disabled={uploading}
             aria-label={uploading ? 'Uploading photo' : 'Change photo'}
           >
@@ -261,7 +164,7 @@ export default function PlayerPhotoCapture({
         <button
           type="button"
           className="setup-photo-trigger"
-          onClick={() => setSheetOpen(true)}
+          onClick={openPicker}
           disabled={uploading}
           aria-label={uploading ? 'Uploading photo' : 'Add player photo'}
         >
@@ -269,16 +172,6 @@ export default function PlayerPhotoCapture({
         </button>
       )}
 
-      {sheet}
-
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        className="setup-photo-file-input"
-      />
       <input
         ref={fileInputRef}
         type="file"

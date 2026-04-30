@@ -574,6 +574,7 @@ export default function SetupDisplay({
           match={previewConfirmationMatch()}
           branding={branding ?? null}
           courtName={displayCourtName}
+          idleFooterLayout
           primaryMessage={
             <p
               className="preview-court-start-headline"
@@ -650,6 +651,7 @@ export default function SetupDisplay({
         branding={branding ?? null}
         courtName={displayCourtName}
         error={error}
+        idleFooterLayout
         primaryMessage={
           <p
             className="preview-court-start-headline"

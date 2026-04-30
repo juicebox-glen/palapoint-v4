@@ -5,7 +5,7 @@ import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import type { VenueBranding } from '@/lib/venue'
-import { formatNameAbbreviated, getSurnameUppercase } from '@/lib/utils/player-names'
+import { getSurnameUppercase, getTeamDisplayName } from '@/lib/utils/player-names'
 import '@/app/styles/control-panel.css'
 
 /** Row shape from DB / API (games per set). */
@@ -47,11 +47,15 @@ export function normalizedSetScoreRows(
   return [{ a: team_a_games, b: team_b_games }]
 }
 
-function winnerSurnamesUpper(p1: string | null | undefined, p2: string | null | undefined, fallback: string): string {
+function winnerSurnamesUpper(
+  p1: string | null | undefined,
+  p2: string | null | undefined,
+  teamNumber: 1 | 2
+): string {
   const parts: string[] = []
   if (p1?.trim()) parts.push(getSurnameUppercase(p1))
   if (p2?.trim()) parts.push(getSurnameUppercase(p2))
-  return parts.length > 0 ? parts.join(' / ') : fallback
+  return parts.length > 0 ? parts.join(' / ') : getTeamDisplayName([p1, p2], teamNumber).toUpperCase()
 }
 
 export function MatchFinishedScoresSection({
@@ -199,8 +203,8 @@ export default function MatchFinishedPanel({
                 </div>
                 <p className="playing-finished-win-line">
                   {winnerTeam === 'a'
-                    ? `${winnerSurnamesUpper(match.team_a_player_1, match.team_a_player_2, 'TEAM A')} WIN`
-                    : `${winnerSurnamesUpper(match.team_b_player_1, match.team_b_player_2, 'TEAM B')} WIN`}
+                    ? `${winnerSurnamesUpper(match.team_a_player_1, match.team_a_player_2, 1)} WIN`
+                    : `${winnerSurnamesUpper(match.team_b_player_1, match.team_b_player_2, 2)} WIN`}
                 </p>
                 <MatchFinishedScoresSection
                   setsToWin={match.sets_to_win}
@@ -224,9 +228,10 @@ export default function MatchFinishedPanel({
                         team="a"
                       />
                     </div>
-                    <div className="preview-team-names">
-                      <span>{formatNameAbbreviated(match.team_a_player_1)}</span>
-                      <span>{formatNameAbbreviated(match.team_a_player_2)}</span>
+                    <div className="preview-team-names preview-team-names--headline">
+                      <span>
+                        {getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)}
+                      </span>
                     </div>
                   </div>
                   <div className="preview-vs-column">
@@ -245,9 +250,10 @@ export default function MatchFinishedPanel({
                         team="b"
                       />
                     </div>
-                    <div className="preview-team-names">
-                      <span>{formatNameAbbreviated(match.team_b_player_1)}</span>
-                      <span>{formatNameAbbreviated(match.team_b_player_2)}</span>
+                    <div className="preview-team-names preview-team-names--headline">
+                      <span>
+                        {getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)}
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import type { MatchState } from '@/lib/types/match'
-import { formatPointDisplay, buildTeamName } from '@/lib/utils/score-format'
+import { formatPointDisplay } from '@/lib/utils/score-format'
+import { getTeamDisplayName } from '@/lib/utils/player-names'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 
 interface ScoreDisplayProps {
@@ -10,8 +11,8 @@ interface ScoreDisplayProps {
 }
 
 export default function ScoreDisplay({ match, variant = 'spectator' }: ScoreDisplayProps) {
-  const teamAName = buildTeamName(match.team_a_player_1, match.team_a_player_2, 'Team A')
-  const teamBName = buildTeamName(match.team_b_player_1, match.team_b_player_2, 'Team B')
+  const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
+  const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
   
   const pointsA = formatPointDisplay(
     match.team_a_points,

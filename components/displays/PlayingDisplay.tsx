@@ -41,6 +41,7 @@ interface MatchState {
   sets_to_win: number
   side_swap_enabled: boolean
   is_tiebreak?: boolean
+  started_at?: string | null
 }
 
 /** Design-system preview only — mirrors production `PlayingDisplay` states without Supabase. */
@@ -249,7 +250,33 @@ export default function PlayingDisplay({
   }, [courtId, courtSlug, isPreview, preview])
 
   useEffect(() => {
+    if (isPreview) return
+    console.log('[PlayingDisplay] match state:', {
+      id: match?.id,
+      status: match?.status,
+      started_at: match?.started_at ?? null,
+    })
+  }, [isPreview, match])
+
+  useEffect(() => {
     if (isPreview || !courtId) return
+
+    async function refreshMatchFromDb() {
+      const { data: matchData } = await supabase
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', courtId)
+        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      console.log('[PlayingDisplay] refetched live_matches after subscribe:', {
+        id: matchData?.id,
+        started_at: (matchData as MatchState | null)?.started_at,
+      })
+      setMatch(matchData as MatchState | null)
+    }
+
     const ch = supabase.channel(`playing-${courtId}`)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RealtimeChannel
     ;(ch as any).on(
@@ -261,6 +288,9 @@ export default function PlayingDisplay({
         filter: `court_id=eq.${courtId}`,
       },
       (payload: { eventType: string; new?: MatchState }) => {
+        console.log('[PlayingDisplay] realtime live_matches:', payload.eventType, {
+          started_at: payload.new?.started_at,
+        })
         if (payload.eventType === 'DELETE') {
           setMatch(null)
         } else if (payload.new) {
@@ -268,7 +298,12 @@ export default function PlayingDisplay({
         }
       }
     )
-    ch.subscribe()
+    ch.subscribe((status: string) => {
+      console.log('[PlayingDisplay] realtime channel status:', status)
+      if (status === 'SUBSCRIBED') {
+        void refreshMatchFromDb()
+      }
+    })
     return () => {
       void supabase.removeChannel(ch)
     }
@@ -306,9 +341,13 @@ export default function PlayingDisplay({
   }
 
   const handleEndGame = async () => {
-    if (!match || !courtId) return
+    if (!match || !courtId) {
+      console.warn('[PlayingDisplay] end game: missing match or courtId')
+      return
+    }
+    console.log('[PlayingDisplay] end game clicked', { matchId: match.id, courtId })
     try {
-      await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -317,8 +356,30 @@ export default function PlayingDisplay({
           reason: 'abandoned',
         }),
       })
+      const data = (await response.json().catch(() => ({}))) as {
+        success?: boolean
+        error?: string
+      }
+      console.log('[PlayingDisplay] end game response:', {
+        ok: response.ok,
+        success: data.success,
+        error: data.error,
+      })
+      if (!response.ok || data.success === false) {
+        console.error('[PlayingDisplay] end game failed:', data.error ?? response.status)
+        return
+      }
+      const { data: row } = await supabase
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', courtId)
+        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (row) setMatch(row as MatchState)
     } catch (err) {
-      console.error('Error ending game:', err)
+      console.error('[PlayingDisplay] end game error:', err)
     }
   }
 
@@ -442,14 +503,19 @@ export default function PlayingDisplay({
       match.team_a_points === 0 &&
       match.team_b_points === 0 &&
       match.team_a_games === 0 &&
-      match.team_b_games === 0
-    const showReady = match.status === 'setup' || isScoreless
+      match.team_b_games === 0 &&
+      (match.set_scores || []).length === 0
+    const showReady =
+      !match.started_at &&
+      isScoreless &&
+      (match.status === 'setup' || match.status === 'in_progress')
 
     return (
       <MatchConfirmation
         match={match as unknown as MatchConfirmationMatch}
         branding={branding ?? null}
         courtName={courtName}
+        idleFooterLayout
         statusLabel={showReady ? 'READY' : 'LIVE'}
         primaryMessage={
           showReady ? (

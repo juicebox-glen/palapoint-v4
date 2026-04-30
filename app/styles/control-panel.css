@@ -889,6 +889,21 @@
   align-items: flex-start;
 }
 
+.preview-team-names.preview-team-names--headline {
+  gap: 0;
+}
+
+.preview-team-a .preview-team-names.preview-team-names--headline,
+.preview-team-b .preview-team-names.preview-team-names--headline {
+  text-align: center;
+  align-items: center;
+}
+
+.preview-team-names--headline span {
+  white-space: normal;
+  line-height: 1.25;
+}
+
 .preview-badges {
   display: flex;
   justify-content: flex-start;
@@ -922,6 +937,41 @@
 
 .preview-footer .preview-court-start-headline {
   margin-bottom: 0;
+}
+
+/* Player /playing + setup confirmation: matchup centered, CTA + instruction pinned above safe area */
+.control-preview.control-preview--playing-idle {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 0;
+  gap: 0;
+}
+
+.playing-idle-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  gap: 1.5rem;
+}
+
+.playing-idle-footer.preview-footer {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: var(--ui-space-lg, 1rem);
+  padding-bottom: calc(var(--ui-space-lg, 1rem) + env(safe-area-inset-bottom, 0px));
+}
+
+.playing-idle-message {
+  color: var(--text-muted);
+  font-size: var(--ui-font-base);
+  text-align: center;
+}
+
+.playing-idle-footer .playing-idle-message .preview-court-start-headline {
+  margin-bottom: 0;
+  color: inherit;
 }
 
 .preview-actions {

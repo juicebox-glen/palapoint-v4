@@ -13,8 +13,9 @@ import {
 } from '@/components/shared/MatchConfirmation'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
-import { formatPointDisplay, buildTeamNameAbbreviated } from '@/lib/utils/score-format'
+import { formatPointDisplay } from '@/lib/utils/score-format'
 import { getPointSituation } from '@/lib/utils/point-situation'
+import { getTeamDisplayName } from '@/lib/utils/player-names'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
@@ -555,8 +556,8 @@ export default function ControlPanel({
     return null
   }
 
-  const teamAName = buildTeamNameAbbreviated(match.team_a_player_1, match.team_a_player_2, 'Team A')
-  const teamBName = buildTeamNameAbbreviated(match.team_b_player_1, match.team_b_player_2, 'Team B')
+  const teamAName = getTeamDisplayName([match.team_a_player_1, match.team_a_player_2], 1)
+  const teamBName = getTeamDisplayName([match.team_b_player_1, match.team_b_player_2], 2)
   const pointsA = formatPointDisplay(
     match.team_a_points,
     match.team_b_points,
