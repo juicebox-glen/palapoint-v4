@@ -1,4 +1,9 @@
 import Link from 'next/link'
+import { getPlayerInitials } from '@/lib/utils/name-format'
+
+const DS_PHOTO_A = 'Glen Noble'
+const DS_PHOTO_B = 'Rob Anderson'
+const DS_PHOTO_CTRL_B = 'Julian Waters'
 
 export default function PhotosPage() {
   return (
@@ -24,7 +29,7 @@ export default function PhotosPage() {
                 style={{ width: '120px', height: '150px' }}
               >
                 <span className="spectator-pregame-initials" style={{ fontSize: '2rem' }}>
-                  GN
+                  {getPlayerInitials(DS_PHOTO_A)}
                 </span>
               </div>
               <div
@@ -32,7 +37,7 @@ export default function PhotosPage() {
                 style={{ width: '120px', height: '150px' }}
               >
                 <span className="spectator-pregame-initials" style={{ fontSize: '2rem' }}>
-                  RA
+                  {getPlayerInitials(DS_PHOTO_B)}
                 </span>
               </div>
             </div>
@@ -53,10 +58,10 @@ export default function PhotosPage() {
           <div className="ds-component-demo ds-component-demo--dark" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <div className="spectator-live-photo spectator-live-photo-a" style={{ width: '60px', height: '70px' }}>
-                <span className="spectator-live-initials">GN</span>
+                <span className="spectator-live-initials">{getPlayerInitials(DS_PHOTO_A)}</span>
               </div>
               <div className="spectator-live-photo spectator-live-photo-a" style={{ width: '60px', height: '70px' }}>
-                <span className="spectator-live-initials">RA</span>
+                <span className="spectator-live-initials">{getPlayerInitials(DS_PHOTO_B)}</span>
               </div>
             </div>
           </div>
@@ -83,7 +88,9 @@ export default function PhotosPage() {
                   border: '2px solid var(--team-a)',
                 }}
               >
-                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--team-a)' }}>GN</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--team-a)' }}>
+                  {getPlayerInitials(DS_PHOTO_A)}
+                </span>
               </div>
               <div
                 className="preview-avatar preview-avatar-b"
@@ -98,7 +105,9 @@ export default function PhotosPage() {
                   border: '2px solid var(--team-b)',
                 }}
               >
-                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--team-b)' }}>JW</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--team-b)' }}>
+                  {getPlayerInitials(DS_PHOTO_CTRL_B)}
+                </span>
               </div>
             </div>
           </div>
@@ -160,8 +169,10 @@ export default function PhotosPage() {
             <strong>Team B (Pink)</strong>: Border color <code>var(--team-b)</code>, glow uses rgba of same
           </li>
           <li>
-            <strong>Initials</strong>: First letter of first name + first letter of surname (e.g., &quot;Glen
-            Noble&quot; → &quot;GN&quot;)
+            <strong>Initials</strong>: <code>getPlayerInitials()</code> in{' '}
+            <code>@/lib/utils/name-format</code> — two initials when first + last word exist (e.g.
+            &quot;Glen Noble&quot; → GN); single-token names use up to two letters (e.g. &quot;Glen&quot; → GL);
+            empty → ?.
           </li>
           <li>
             <strong>Photo aspect</strong>: Always square source, may display in portrait container

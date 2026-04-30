@@ -52,7 +52,7 @@ export default function MatchplayScreensPage() {
         <h2>TV board</h2>
         <ScreenPreview
           title="Matchplay TV board"
-          description="Starting soon, live leaderboard + fixtures (team photos / initials), completed podium. Same markup classes as /matchplay/[id]/board."
+          description="Starting soon, live leaderboard + fixtures (team photos / initials), completed podium. Same markup classes as /matchplay/[id]/board. Fixture pair labels use formatTeamDisplay (first names); standings cells use formatPlayerName(full) + getPlayerInitials from @/lib/utils/name-format."
           viewport="tv"
           states={TV_BOARD_STATES}
         />

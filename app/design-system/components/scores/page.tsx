@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import { getPlayerInitials, getSpectatorTeamSurnameRows } from '@/lib/utils/name-format'
 
 export default function ScoresPage() {
+  const spectatorNameLines = getSpectatorTeamSurnameRows('Glen Noble', 'Rob Anderson', 1)
+
   return (
     <div className="ds-page">
       <Link href="/design-system" className="ds-back">
@@ -14,7 +17,10 @@ export default function ScoresPage() {
 
       <section className="ds-section">
         <h2>Spectator Live - Score Card</h2>
-        <p>Full score row with photos, names, sets, games, points</p>
+        <p>
+          Full score row with photos, names, sets, games, points. Name stack uses{' '}
+          <code>getSpectatorTeamSurnameRows</code> (<code>surname_short</code> per player).
+        </p>
 
         <div className="ds-viewport-demo ds-viewport-demo--tv" style={{ padding: '2rem' }}>
           <div
@@ -41,7 +47,9 @@ export default function ScoresPage() {
                   justifyContent: 'center',
                 }}
               >
-                <span style={{ fontWeight: 700, color: 'var(--team-a)' }}>GN</span>
+                <span style={{ fontWeight: 700, color: 'var(--team-a)' }}>
+                  {getPlayerInitials('Glen Noble')}
+                </span>
               </div>
               <div
                 style={{
@@ -55,23 +63,31 @@ export default function ScoresPage() {
                   justifyContent: 'center',
                 }}
               >
-                <span style={{ fontWeight: 700, color: 'var(--team-a)' }}>RA</span>
+                <span style={{ fontWeight: 700, color: 'var(--team-a)' }}>
+                  {getPlayerInitials('Rob Anderson')}
+                </span>
               </div>
             </div>
 
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>NOBLE</span>
-                <span
-                  style={{
-                    width: '12px',
-                    height: '12px',
-                    background: '#D0FF14',
-                    borderRadius: '50%',
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>ANDERSON</span>
+              {spectatorNameLines.map((line, i) => (
+                <div
+                  key={i}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: i === 0 ? '0.25rem' : 0 }}
+                >
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>{line}</span>
+                  {i === 0 ? (
+                    <span
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        background: '#D0FF14',
+                        borderRadius: '50%',
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ))}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

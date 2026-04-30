@@ -7,7 +7,7 @@ import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
-import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
+import { formatPlayerName, formatTeamDisplay, getPlayerInitials } from '@/lib/utils/name-format'
 
 /** Map legacy ?state= values to current preview keys. */
 function normalizeState(raw: string): string {
@@ -22,11 +22,24 @@ function normalizeState(raw: string): string {
   return aliases[raw] ?? raw
 }
 
-function DsFixturePhoto({ initials }: { initials: string }) {
+function DsFixturePhoto({ name }: { name: string }) {
   return (
     <div className="board-player-photo board-player-photo--sm board-player-photo--initials" aria-hidden>
-      {initials}
+      {getPlayerInitials(name)}
     </div>
+  )
+}
+
+/** Match `/matchplay/[id]/board` fixture labels: first-name pairs via `formatTeamDisplay`. */
+function DsFixturePhotosAndTeamName({ p1, p2 }: { p1: string; p2: string }) {
+  return (
+    <>
+      <div className="board-fixture-photos">
+        <DsFixturePhoto name={p1} />
+        <DsFixturePhoto name={p2} />
+      </div>
+      <span className="board-fixture-names">{formatTeamDisplay(p1, p2, 1, 'first')}</span>
+    </>
   )
 }
 
@@ -189,14 +202,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                       {slot.photo === 'img' ? (
                         <span className="matchplay-ds-photo-fake" />
                       ) : slot.name ? (
-                        <span className="matchplay-player-initials">
-                          {slot.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </span>
+                        <span className="matchplay-player-initials">{getPlayerInitials(slot.name)}</span>
                       ) : (
                         <svg
                           className="matchplay-player-camera-icon"
@@ -288,13 +294,13 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           <div className="matchplay-event-match-card matchplay-event-match-card-completed">
             <span className="matchplay-event-match-court">Court 1</span>
             <span className="matchplay-event-match-summary">
-              Glen Noble + Rob Anderson{' '}
+              {formatTeamDisplay('Glen Noble', 'Rob Anderson', 1, 'first')}{' '}
               <span className="matchplay-event-match-summary-score">
                 <span>18</span>
                 <ScoreSepBar className="matchplay-event-match-summary-sep" />
                 <span>14</span>
               </span>{' '}
-              Julian Waters + Carl Pettit
+              {formatTeamDisplay('Julian Waters', 'Carl Pettit', 2, 'first')}
             </span>
             <span className="matchplay-event-match-done">✓</span>
           </div>
@@ -304,7 +310,9 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
             <div className="matchplay-event-score-entry">
               <div className="matchplay-event-score-row">
-                <span className="matchplay-event-score-team">Sam Wilson + Jake Thomas</span>
+                <span className="matchplay-event-score-team">
+                  {formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}
+                </span>
                 <div className="matchplay-event-stepper">
                   <span className="matchplay-event-stepper-btn">−</span>
                   <span className="matchplay-event-stepper-value">12</span>
@@ -313,11 +321,15 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               </div>
               <div className="matchplay-event-vs">vs</div>
               <div className="matchplay-event-score-row">
-                <span className="matchplay-event-score-team">Mike Brown + Tom Davis</span>
+                <span className="matchplay-event-score-team">
+                  {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}
+                </span>
                 <span className="matchplay-event-stepper-value">20</span>
               </div>
             </div>
-            <div className="matchplay-event-result-preview">Result: Mike Brown + Tom Davis win</div>
+            <div className="matchplay-event-result-preview">
+              Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
+            </div>
             <div className="matchplay-event-score-actions">
               <span className="btn btn-secondary" style={{ pointerEvents: 'none' }}>
                 CANCEL
@@ -331,7 +343,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
         <div className="matchplay-event-resting">
           <div className="matchplay-event-resting-title">Resting this round</div>
           <div className="matchplay-event-resting-list">
-            <span className="matchplay-event-resting-player">Alex Chen</span>
+            <span className="matchplay-event-resting-player">{formatPlayerName('Alex Chen', 'full')}</span>
           </div>
         </div>
         <footer className="matchplay-event-footer">
@@ -368,21 +380,13 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <div className="board-fixture-teams">
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="GN" />
-                        <DsFixturePhoto initials="JW" />
-                      </div>
-                      <span className="board-fixture-names">Glen + Julian</span>
+                      <DsFixturePhotosAndTeamName p1="Glen Noble" p2="Julian Waters" />
                     </div>
                   </div>
                   <div className="board-fixture-vs">vs</div>
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="RA" />
-                        <DsFixturePhoto initials="CP" />
-                      </div>
-                      <span className="board-fixture-names">Rob + Carl</span>
+                      <DsFixturePhotosAndTeamName p1="Rob Anderson" p2="Carl Pettit" />
                     </div>
                   </div>
                 </div>
@@ -392,27 +396,21 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <div className="board-fixture-teams">
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="SW" />
-                        <DsFixturePhoto initials="JT" />
-                      </div>
-                      <span className="board-fixture-names">Sam + Jake</span>
+                      <DsFixturePhotosAndTeamName p1="Sam Wilson" p2="Jake Thomas" />
                     </div>
                   </div>
                   <div className="board-fixture-vs">vs</div>
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="MB" />
-                        <DsFixturePhoto initials="TD" />
-                      </div>
-                      <span className="board-fixture-names">Mike + Tom</span>
+                      <DsFixturePhotosAndTeamName p1="Mike Brown" p2="Tom Davis" />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="board-resting">Resting this round: Alex Chen</div>
+            <div className="board-resting">
+              Resting this round: {formatPlayerName('Alex Chen', 'full')}
+            </div>
           </div>
           <div className="board-panel board-standings">
             <div className="board-panel-title">STANDINGS</div>
@@ -454,22 +452,14 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <div className="board-fixture-teams">
                   <div className="board-fixture-team board-fixture-team-winner">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="GN" />
-                        <DsFixturePhoto initials="JW" />
-                      </div>
-                      <span className="board-fixture-names">Glen + Julian</span>
+                      <DsFixturePhotosAndTeamName p1="Glen Noble" p2="Julian Waters" />
                     </div>
                     <span className="board-fixture-score">18</span>
                   </div>
                   <div className="board-fixture-vs">vs</div>
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="RA" />
-                        <DsFixturePhoto initials="CP" />
-                      </div>
-                      <span className="board-fixture-names">Rob + Carl</span>
+                      <DsFixturePhotosAndTeamName p1="Rob Anderson" p2="Carl Pettit" />
                     </div>
                     <span className="board-fixture-score">14</span>
                   </div>
@@ -481,21 +471,13 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <div className="board-fixture-teams">
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="SW" />
-                        <DsFixturePhoto initials="JT" />
-                      </div>
-                      <span className="board-fixture-names">Sam + Jake</span>
+                      <DsFixturePhotosAndTeamName p1="Sam Wilson" p2="Jake Thomas" />
                     </div>
                   </div>
                   <div className="board-fixture-vs">vs</div>
                   <div className="board-fixture-team">
                     <div className="board-fixture-team-main">
-                      <div className="board-fixture-photos">
-                        <DsFixturePhoto initials="MB" />
-                        <DsFixturePhoto initials="TD" />
-                      </div>
-                      <span className="board-fixture-names">Mike + Tom</span>
+                      <DsFixturePhotosAndTeamName p1="Mike Brown" p2="Tom Davis" />
                     </div>
                   </div>
                 </div>
@@ -505,7 +487,9 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 </div>
               </div>
             </div>
-            <div className="board-resting">Resting this round: Alex Chen</div>
+            <div className="board-resting">
+              Resting this round: {formatPlayerName('Alex Chen', 'full')}
+            </div>
           </div>
           <div className="board-panel board-standings">
             <div className="board-panel-title">STANDINGS</div>
@@ -597,7 +581,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             <div className="board-winner-label">WINNER</div>
             <div className="board-winner-card">
               <div className="board-winner-names">
-                <span className="board-winner-name">Glen Noble</span>
+                <span className="board-winner-name">{formatPlayerName('Glen Noble', 'full')}</span>
               </div>
               <div className="board-winner-stats">95 pts • GD +24</div>
             </div>
@@ -606,21 +590,21 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               <div className="board-podium-platform board-podium-2nd">
                 <div className="board-podium-label">2nd</div>
                 <div className="board-podium-names">
-                  <span>Julian Waters</span>
+                  <span>{formatPlayerName('Julian Waters', 'full')}</span>
                 </div>
                 <div className="board-podium-medal">🥈</div>
               </div>
               <div className="board-podium-platform board-podium-1st">
                 <div className="board-podium-label">1st</div>
                 <div className="board-podium-names">
-                  <span>Glen Noble</span>
+                  <span>{formatPlayerName('Glen Noble', 'full')}</span>
                 </div>
                 <div className="board-podium-medal">🥇</div>
               </div>
               <div className="board-podium-platform board-podium-3rd">
                 <div className="board-podium-label">3rd</div>
                 <div className="board-podium-names">
-                  <span>Rob Anderson</span>
+                  <span>{formatPlayerName('Rob Anderson', 'full')}</span>
                 </div>
                 <div className="board-podium-medal">🥉</div>
               </div>

@@ -1,3 +1,7 @@
+import { formatPlayerName, formatTeamScoreboard } from '@/lib/utils/name-format'
+
+const DS_SAMPLE_PLAYER = 'Glen Noble'
+
 export default function TypographyPage() {
   return (
     <div className="ds-page">
@@ -102,20 +106,31 @@ export default function TypographyPage() {
       </section>
 
       <section className="ds-section">
-        <h2>Player Names</h2>
+        <h2>Player names</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+          Derived via{' '}
+          <code style={{ color: 'var(--text-muted)' }}>@/lib/utils/name-format</code> (`formatPlayerName`,
+          `formatTeamScoreboard`).
+        </p>
 
         <div className="ds-name-samples">
           <div>
-            <span style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: '0.02em' }}>NOBLE</span>
-            <code>Surname - TV Display</code>
+            <span style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: '0.02em' }}>
+              {formatPlayerName(DS_SAMPLE_PLAYER, 'surname_short')}
+            </span>
+            <code>surname_short (TV/spectator stack)</code>
           </div>
           <div>
-            <span style={{ fontSize: '1rem', fontWeight: 500 }}>G. Noble</span>
-            <code>Abbreviated - Mobile</code>
+            <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+              {formatPlayerName(DS_SAMPLE_PLAYER, 'abbreviated')}
+            </span>
+            <code>abbreviated</code>
           </div>
           <div>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>NOB / AND</span>
-            <code>3-letter - Compact</code>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+              {formatTeamScoreboard('Glen Noble', 'Rob Anderson', 1)}
+            </span>
+            <code>formatTeamScoreboard (control/court scoreboards)</code>
           </div>
         </div>
       </section>
