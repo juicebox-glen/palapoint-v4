@@ -135,6 +135,9 @@ export default function PlayingDisplay({
   const [match, setMatch] = useState<MatchState | null>(null)
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [isEnding, setIsEnding] = useState(false)
+
+  const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   useEffect(() => {
     if (isPreview && preview) {
@@ -163,6 +166,8 @@ export default function PlayingDisplay({
           setSessionState({ valid: true })
           setMatch(
             buildPreviewMatch({
+              status: 'in_progress',
+              started_at: new Date().toISOString(),
               team_a_points: 30,
               team_b_points: 15,
               team_a_games: 2,
@@ -423,6 +428,52 @@ export default function PlayingDisplay({
     router.push(`/setup/${courtSlug}`)
   }
 
+  const handleEndGame = async () => {
+    if (isPreview || !match || !courtId) return
+    setIsEnding(true)
+    try {
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (ANON_KEY) headers.Authorization = `Bearer ${ANON_KEY}`
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          action: 'end',
+          court_id: courtId,
+          reason: 'abandoned',
+        }),
+      })
+      const data = (await response.json().catch(() => ({}))) as {
+        success?: boolean
+        error?: string
+      }
+      console.log('[PlayingDisplay] end game response:', {
+        ok: response.ok,
+        success: data.success,
+        error: data.error,
+      })
+      if (!response.ok || data.success === false) {
+        console.error('[PlayingDisplay] end game failed:', data.error ?? response.status)
+        return
+      }
+
+      const { data: row } = await supabase
+        .from('live_matches')
+        .select('*')
+        .eq('court_id', courtId)
+        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (row) setMatch(normalizePlayingMatch(row as MatchState))
+    } catch (err) {
+      console.error('[PlayingDisplay] end game error:', err)
+    } finally {
+      setIsEnding(false)
+    }
+  }
+
   const handleEndSession = async () => {
     if (!sessionId) return
     try {
@@ -526,11 +577,15 @@ export default function PlayingDisplay({
       Number(match.team_a_games) === 0 &&
       Number(match.team_b_games) === 0 &&
       (match.set_scores || []).length === 0
-    /** Pre–first-FLIC: preview only — Edit Match, no End Game on player phone */
+    /** Pre–first-FLIC: Edit Match only; after court ack (`started_at`): End Game */
     const isPreviewReady =
       !match.started_at &&
       isScoreless &&
       (match.status === 'setup' || match.status === 'in_progress')
+
+    const isLive =
+      Boolean(match.started_at) &&
+      (match.status === 'in_progress' || match.status === 'setup')
 
     return (
       <MatchConfirmation
@@ -556,6 +611,15 @@ export default function PlayingDisplay({
           isPreviewReady ? (
             <button type="button" className="btn btn-secondary btn-block" onClick={handleNewGame}>
               EDIT MATCH
+            </button>
+          ) : isLive ? (
+            <button
+              type="button"
+              className="btn btn-danger btn-block"
+              onClick={handleEndGame}
+              disabled={isEnding || isPreview}
+            >
+              {isEnding ? 'ENDING…' : 'END GAME'}
             </button>
           ) : null
         }
