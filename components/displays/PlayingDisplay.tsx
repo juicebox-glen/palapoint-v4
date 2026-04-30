@@ -391,49 +391,6 @@ export default function PlayingDisplay({
     }
   }
 
-  const handleEndGame = async () => {
-    if (!match || !courtId) {
-      console.warn('[PlayingDisplay] end game: missing match or courtId')
-      return
-    }
-    console.log('[PlayingDisplay] end game clicked', { matchId: match.id, courtId })
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'end',
-          court_id: courtId,
-          reason: 'abandoned',
-        }),
-      })
-      const data = (await response.json().catch(() => ({}))) as {
-        success?: boolean
-        error?: string
-      }
-      console.log('[PlayingDisplay] end game response:', {
-        ok: response.ok,
-        success: data.success,
-        error: data.error,
-      })
-      if (!response.ok || data.success === false) {
-        console.error('[PlayingDisplay] end game failed:', data.error ?? response.status)
-        return
-      }
-      const { data: row } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (row) setMatch(normalizePlayingMatch(row as MatchState))
-    } catch (err) {
-      console.error('[PlayingDisplay] end game error:', err)
-    }
-  }
-
   const handleNewGame = () => {
     if (match && courtId && typeof window !== 'undefined') {
       sessionStorage.setItem(`setup_game_mode_${courtId}`, match.game_mode)
@@ -442,6 +399,10 @@ export default function PlayingDisplay({
         `setup_side_swap_${courtId}`,
         String(match.side_swap_enabled ?? true)
       )
+      sessionStorage.setItem(
+        `setup_tiebreak_${courtId}`,
+        JSON.stringify((match.tiebreak_at ?? 6) === 6)
+      )
       const players = [
         match.team_a_player_1 || '',
         match.team_a_player_2 || '',
@@ -449,6 +410,15 @@ export default function PlayingDisplay({
         match.team_b_player_2 || '',
       ]
       sessionStorage.setItem(`setup_players_${courtId}`, JSON.stringify(players))
+      sessionStorage.setItem(
+        `setup_photos_${courtId}`,
+        JSON.stringify({
+          team_a_player_1_photo: match.team_a_player_1_photo ?? null,
+          team_a_player_2_photo: match.team_a_player_2_photo ?? null,
+          team_b_player_1_photo: match.team_b_player_1_photo ?? null,
+          team_b_player_2_photo: match.team_b_player_2_photo ?? null,
+        })
+      )
     }
     router.push(`/setup/${courtSlug}`)
   }
@@ -551,12 +521,13 @@ export default function PlayingDisplay({
 
   if (match?.status === 'in_progress' || match?.status === 'setup') {
     const isScoreless =
-      match.team_a_points === 0 &&
-      match.team_b_points === 0 &&
-      match.team_a_games === 0 &&
-      match.team_b_games === 0 &&
+      Number(match.team_a_points) === 0 &&
+      Number(match.team_b_points) === 0 &&
+      Number(match.team_a_games) === 0 &&
+      Number(match.team_b_games) === 0 &&
       (match.set_scores || []).length === 0
-    const showReady =
+    /** Pre–first-FLIC: preview only — Edit Match, no End Game on player phone */
+    const isPreviewReady =
       !match.started_at &&
       isScoreless &&
       (match.status === 'setup' || match.status === 'in_progress')
@@ -567,9 +538,9 @@ export default function PlayingDisplay({
         branding={branding ?? null}
         courtName={courtName}
         idleFooterLayout
-        statusLabel={showReady ? 'READY' : 'LIVE'}
+        statusLabel={isPreviewReady ? 'READY' : 'LIVE'}
         primaryMessage={
-          showReady ? (
+          isPreviewReady ? (
             <p
               className="preview-court-start-headline"
               role="status"
@@ -582,9 +553,11 @@ export default function PlayingDisplay({
           ) : undefined
         }
         actions={
-          <button type="button" className="btn btn-danger btn-block" onClick={handleEndGame}>
-            END GAME
-          </button>
+          isPreviewReady ? (
+            <button type="button" className="btn btn-secondary btn-block" onClick={handleNewGame}>
+              EDIT MATCH
+            </button>
+          ) : null
         }
       />
     )

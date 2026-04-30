@@ -37,8 +37,8 @@ export interface MatchConfirmationProps {
   statusLabel?: string
   /** Rendered after setting badges, before the action buttons. */
   primaryMessage?: ReactNode
-  /** Bottom CTA area (wrapped in `.preview-actions`). */
-  actions: ReactNode
+  /** Bottom CTA area (wrapped in `.preview-actions`). Omit when empty (e.g. LIVE player view). */
+  actions?: ReactNode
   /** Pin headline + actions to bottom with scrollable matchup above (player ready / setup confirmation). */
   idleFooterLayout?: boolean
 }
@@ -122,18 +122,23 @@ export default function MatchConfirmation({
     </>
   )
 
-  const footer = (
+  const hasPrimary =
+    primaryMessage != null && primaryMessage !== false
+  const hasActions = actions != null && actions !== false
+  const showFooter = hasPrimary || hasActions
+
+  const footer = showFooter ? (
     <div className={`preview-footer ${idleFooterLayout ? 'playing-idle-footer' : ''}`}>
-      {primaryMessage != null && primaryMessage !== false && (
+      {hasPrimary && (
         <div
           className={`preview-primary-message ${idleFooterLayout ? 'playing-idle-message' : ''}`}
         >
           {primaryMessage}
         </div>
       )}
-      <div className="preview-actions">{actions}</div>
+      {hasActions && <div className="preview-actions">{actions}</div>}
     </div>
-  )
+  ) : null
 
   return (
     <div className="control-panel">
