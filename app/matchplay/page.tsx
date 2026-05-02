@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase, getMatchplayVenueId, getFirstCourtForVenue, validateControlPin } from '@/lib/supabase'
+import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import '@/app/styles/setup-form.css'
@@ -41,68 +41,32 @@ async function callMatchplayEvent(body: Record<string, unknown>) {
 export default function MatchplayPage() {
   const router = useRouter()
   const [venueId, setVenueId] = useState<string | null>(null)
-  const [courtId, setCourtId] = useState<string | null>(null)
-  const [pinAuthenticated, setPinAuthenticated] = useState(false)
-  const [pinLoading, setPinLoading] = useState(true)
-  const [pin, setPin] = useState('')
-  const [pinError, setPinError] = useState<string | null>(null)
+  const [venueResolveDone, setVenueResolveDone] = useState(false)
   const [events, setEvents] = useState<MatchplayEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Resolve venue and court for PIN
   useEffect(() => {
     async function resolve() {
       try {
         const vid = await getMatchplayVenueId()
         if (!vid) {
           setError('No venue configured. Set NEXT_PUBLIC_MATCHPLAY_VENUE_ID or add a venue.')
-          setPinLoading(false)
-          setLoading(false)
           return
         }
         setVenueId(vid)
-        const court = await getFirstCourtForVenue(vid)
-        if (court) {
-          setCourtId(court.id)
-          const stored = sessionStorage.getItem(`control_pin_${court.id}`)
-          if (stored) {
-            const valid = await validateControlPin(court.id, stored)
-            if (valid) setPinAuthenticated(true)
-            else sessionStorage.removeItem(`control_pin_${court.id}`)
-          }
-        }
       } catch (err) {
         console.error(err)
         setError('Failed to load venue')
+      } finally {
+        setVenueResolveDone(true)
       }
-      setPinLoading(false)
     }
     resolve()
   }, [])
 
-  async function handlePinSubmit() {
-    if (!courtId || pin.length !== 4) return
-    setPinError(null)
-    setPinLoading(true)
-    try {
-      const valid = await validateControlPin(courtId, pin)
-      if (valid) {
-        sessionStorage.setItem(`control_pin_${courtId}`, pin)
-        setPinAuthenticated(true)
-      } else {
-        setPinError('Incorrect PIN')
-        setPin('')
-      }
-    } catch {
-      setPinError('Failed to verify PIN')
-    }
-    setPinLoading(false)
-  }
-
-  // Load events
   useEffect(() => {
-    if (!venueId || !pinAuthenticated) return
+    if (!venueId) return
 
     async function load() {
       setLoading(true)
@@ -111,16 +75,12 @@ export default function MatchplayPage() {
         const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
         const list = result.events ?? []
         if (list.length > 0) {
-          const { data: players } = await supabase
-            .from('matchplay_players')
-            .select('event_id')
+          const { data: players } = await supabase.from('matchplay_players').select('event_id')
           const counts: Record<string, number> = {}
           for (const p of players ?? []) {
             counts[p.event_id] = (counts[p.event_id] ?? 0) + 1
           }
-          const { data: rounds } = await supabase
-            .from('matchplay_rounds')
-            .select('event_id')
+          const { data: rounds } = await supabase.from('matchplay_rounds').select('event_id')
           const roundCounts: Record<string, number> = {}
           for (const r of rounds ?? []) {
             roundCounts[r.event_id] = (roundCounts[r.event_id] ?? 0) + 1
@@ -141,7 +101,7 @@ export default function MatchplayPage() {
       setLoading(false)
     }
     load()
-  }, [venueId, pinAuthenticated])
+  }, [venueId])
 
   const activeEvent = events.find((e) => e.status === 'setup' || e.status === 'in_progress')
   const pastEvents = events
@@ -149,49 +109,22 @@ export default function MatchplayPage() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
 
-  // PIN screen
-  if (pinLoading || !pinAuthenticated) {
-    return (
-      <div className="setup-screen">
-        <div className="setup-pin-wrap">
-          <SetupScreenHeader />
-          <p className="setup-pin-title">Enter 4-digit PIN</p>
-          {pinError && <div className="setup-pin-error">{pinError}</div>}
-          {error && <div className="setup-pin-error">{error}</div>}
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={4}
-            className="setup-pin-input"
-            value={pin}
-            onChange={(e) => {
-              setPin(e.target.value.replace(/\D/g, '').slice(0, 4))
-              setPinError(null)
-            }}
-            onKeyDown={(e) => e.key === 'Enter' && pin.length === 4 && handlePinSubmit()}
-            placeholder="0000"
-            autoFocus
-            disabled={pinLoading || !!error}
-          />
-          <button
-            type="button"
-            className="btn btn-primary btn-block"
-            onClick={handlePinSubmit}
-            disabled={pin.length !== 4 || pinLoading || !!error}
-          >
-            {pinLoading ? 'Verifying...' : 'Submit'}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // State B: Active event in progress
-  if (loading) {
+  if (!venueResolveDone || (venueId !== null && loading)) {
     return (
       <div className="matchplay-launcher matchplay-launcher--compact">
         <SetupScreenHeader />
         <p className="matchplay-loading-text">Loading...</p>
+      </div>
+    )
+  }
+
+  if (!venueId && error) {
+    return (
+      <div className="matchplay-launcher matchplay-launcher--compact">
+        <SetupScreenHeader />
+        <div className="setup-pin-error" role="alert" style={{ margin: '1rem' }}>
+          {error}
+        </div>
       </div>
     )
   }
@@ -210,7 +143,8 @@ export default function MatchplayPage() {
           </div>
           <div className="matchplay-active-event-name">{activeEvent.name}</div>
           <div className="matchplay-active-event-meta">
-            Round {(activeEvent.match_count ?? 0) || 1} of {(activeEvent.match_count ?? 0) || 1} · {activeEvent.player_count ?? 0} players
+            Round {(activeEvent.match_count ?? 0) || 1} of {(activeEvent.match_count ?? 0) || 1} ·{' '}
+            {activeEvent.player_count ?? 0} players
           </div>
           <button
             type="button"
@@ -224,10 +158,14 @@ export default function MatchplayPage() {
     )
   }
 
-  // State A: No active event — game mode list (setup-section + session-review rows)
   return (
     <div className="matchplay-launcher matchplay-launcher--compact">
       <SetupScreenHeader />
+      {error ? (
+        <div className="setup-pin-error" role="alert" style={{ margin: '0 1rem 1rem' }}>
+          {error}
+        </div>
+      ) : null}
       <MatchplayLauncherModePicker />
 
       {pastEvents.length > 0 && (
