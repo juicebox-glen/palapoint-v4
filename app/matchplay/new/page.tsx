@@ -7,8 +7,8 @@ import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
+import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 
-const PLAYER_OPTIONS = [6, 8, 10, 12, 14, 16, 20]
 const COURT_OPTIONS = [1, 2, 3, 4]
 const POINTS_OPTIONS = [16, 24, 32]
 
@@ -103,8 +103,8 @@ export default function NewMatchplayPage() {
         <div className="matchplay-setup-content">
           <div className="matchplay-card">
             <span className="matchplay-card-label">Players</span>
-            <div className="matchplay-pill-bar">
-              {PLAYER_OPTIONS.map((count) => (
+            <div className="matchplay-pill-bar matchplay-pill-bar--players">
+              {MATCHPLAY_AMERICANO_PLAYER_OPTIONS.map((count) => (
                 <button
                   key={count}
                   type="button"

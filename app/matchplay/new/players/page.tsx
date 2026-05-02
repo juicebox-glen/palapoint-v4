@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
+import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { getPlayerInitials } from '@/lib/utils/name-format'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -155,7 +156,12 @@ export default function MatchplayPlayersPage() {
     }
     try {
       const parsed = JSON.parse(stored) as MatchplaySetupSession
-      if (!parsed.playerCount || !Array.isArray(parsed.selectedCourts)) {
+      const allowed = MATCHPLAY_AMERICANO_PLAYER_OPTIONS as readonly number[]
+      if (
+        typeof parsed.playerCount !== 'number' ||
+        !allowed.includes(parsed.playerCount) ||
+        !Array.isArray(parsed.selectedCourts)
+      ) {
         router.replace('/matchplay/new')
         return
       }

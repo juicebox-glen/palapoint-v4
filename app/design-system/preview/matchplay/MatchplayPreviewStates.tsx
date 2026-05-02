@@ -84,8 +84,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           <div className="matchplay-setup-content">
             <div className="matchplay-card">
               <span className="matchplay-card-label">Players</span>
-              <div className="matchplay-pill-bar">
-                {[6, 8, 10, 12, 14, 16, 20].map((n) => (
+              <div className="matchplay-pill-bar matchplay-pill-bar--players">
+                {[8, 10, 12, 14, 16, 20].map((n) => (
                   <span key={n} className={`matchplay-pill-bar-item ${n === 8 ? 'matchplay-pill-bar-item--selected' : ''}`}>
                     {n}
                   </span>
