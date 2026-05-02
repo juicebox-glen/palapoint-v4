@@ -64,7 +64,8 @@ test('formatTeamDisplay', () => {
 
 test('formatTeamScoreboard', () => {
   assertEqual(formatTeamScoreboard('Glen Noble', 'Rob Anderson', 1), 'NOB / AND')
-  assertEqual(formatTeamScoreboard('', '', 1), 'T1')
+  assertEqual(formatTeamScoreboard('', '', 1), 'TEAM 1')
+  assertEqual(formatTeamScoreboard('', '', 2), 'TEAM 2')
 })
 
 test('getPlayerInitials', () => {

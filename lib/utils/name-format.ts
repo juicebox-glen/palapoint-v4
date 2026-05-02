@@ -72,7 +72,7 @@ export function formatTeamDisplay(
 
 /**
  * Format for scoreboard — 3-letter codes
- * Returns "NOB / AND" style for a team
+ * Returns "NOB / AND" style for a team, or "TEAM 1" / "TEAM 2" when no names entered
  */
 export function formatTeamScoreboard(
   player1: string | null | undefined,
@@ -82,7 +82,7 @@ export function formatTeamScoreboard(
   const code1 = formatPlayerName(player1, 'surname_short')
   const code2 = formatPlayerName(player2, 'surname_short')
 
-  if (!code1 && !code2) return `T${teamNumber}`
+  if (!code1 && !code2) return `TEAM ${teamNumber}`
   if (!code1) return code2
   if (!code2) return code1
 
