@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
-import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import '@/app/styles/matchplay.css'
@@ -89,8 +88,6 @@ export default function NewMatchplayPage() {
 
   return (
     <div className="matchplay-page matchplay-page--setup" style={brandVars}>
-      <MatchplaySetupBrandHeader branding={branding} />
-
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import MatchplaySetupBrandHeader from '@/components/matchplay/MatchplaySetupBrandHeader'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
@@ -360,7 +359,6 @@ export default function MatchplayPlayersPage() {
   if (!config) {
     return (
       <div className="matchplay-page matchplay-page--setup" style={brandVars}>
-        <MatchplaySetupBrandHeader branding={branding} />
         <p className="matchplay-loading">Loading…</p>
       </div>
     )
@@ -428,8 +426,6 @@ export default function MatchplayPlayersPage() {
 
   return (
     <div className="matchplay-page matchplay-page--setup" style={brandVars}>
-      <MatchplaySetupBrandHeader branding={branding} />
-
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back

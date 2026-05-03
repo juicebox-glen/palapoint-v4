@@ -2099,6 +2099,14 @@
   box-sizing: border-box;
 }
 
+.matchplay-page--setup > .matchplay-page-header {
+  padding-top: calc(var(--ui-space-lg) + env(safe-area-inset-top, 0px));
+}
+
+.matchplay-page--setup > .matchplay-loading {
+  padding-top: calc(var(--ui-space-lg) + env(safe-area-inset-top, 0px));
+}
+
 .matchplay-brand-header {
   display: flex;
   justify-content: center;
