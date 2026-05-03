@@ -2245,17 +2245,14 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Six equal slots; 2×3 on narrow widths so pills stay readable and evenly spaced. */
+/* Player counts: one row, equal flex share so numbers stay evenly spaced. */
 .matchplay-pill-bar--players {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow-x: visible;
+  flex-wrap: nowrap;
 }
 
-@media (min-width: 520px) {
-  .matchplay-pill-bar--players {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
+.matchplay-pill-bar--players .matchplay-pill-bar-item {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .matchplay-pill-bar::-webkit-scrollbar {
