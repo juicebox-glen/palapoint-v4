@@ -6,8 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
-import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
-import { formatTeamDisplay } from '@/lib/utils/name-format'
+import { formatPlayerName } from '@/lib/utils/name-format'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -84,11 +83,6 @@ function loadSettings(): MatchplaySettings | null {
     if (stored) return JSON.parse(stored) as MatchplaySettings
   } catch (_) {}
   return null
-}
-
-function getTotalRoundsAmericano(playerCount: number): number {
-  if (playerCount < 4) return 0
-  return playerCount % 2 === 0 ? playerCount - 1 : playerCount
 }
 
 function getTotalRounds(): number {
@@ -181,6 +175,320 @@ function generateAmericanoPairings(
   return result
 }
 
+function MatchplayHubPlayersIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={22}
+      height={22}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
+function MatchplayHubStandingsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={22}
+      height={22}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...props}
+    >
+      <path d="M8 6v14" />
+      <path d="M16 10v10" />
+      <path d="M12 13v7" />
+      <path d="M4 20h16" />
+    </svg>
+  )
+}
+
+function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded?: string | null): string {
+  const row = players.find((p) => p.id === id)
+  if (row?.name?.trim()) return row.name.trim()
+  return embedded?.trim() ?? ''
+}
+
+function HubMatchCard({
+  match,
+  players,
+  isAmericano,
+  maxScore,
+  isSetup,
+  canEditLineup,
+  isExpanded,
+  draft,
+  isSubmitting,
+  onToggleExpand,
+  onCancelExpand,
+  onConfirmScores,
+  onScoreAChange,
+  onScoreBChange,
+  onEditLineup,
+}: {
+  match: MatchplayMatch
+  players: MatchplayPlayer[]
+  isAmericano: boolean
+  maxScore: number
+  isSetup: boolean
+  canEditLineup: boolean
+  isExpanded: boolean
+  draft: { a: number; b: number } | undefined
+  isSubmitting: boolean
+  onToggleExpand: () => void
+  onCancelExpand: () => void
+  onConfirmScores: (teamAScore: number, teamBScore: number) => void
+  onScoreAChange: (next: number) => void
+  onScoreBChange: (next: number) => void
+  onEditLineup: () => void
+}) {
+  const teamANames = [
+    resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
+    resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
+  ].filter(Boolean)
+  const teamBNames = [
+    resolveMatchPlayerName(players, match.team_b_player_1_id, match.team_b_player_1_name),
+    resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
+  ].filter(Boolean)
+
+  const teamASurnames = teamANames.map((n) => formatPlayerName(n, 'surname_short'))
+  const teamBSurnames = teamBNames.map((n) => formatPlayerName(n, 'surname_short'))
+
+  const courtLabel = match.court_label?.trim() || 'Court'
+
+  const teamADisplay = teamANames.map((n) => formatPlayerName(n, 'first')).join(' & ')
+  const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
+
+  const isCompleted = match.status === 'completed'
+
+  const scoreA =
+    isCompleted ? (match.team_a_score ?? 0) : draft?.a ?? (isExpanded ? (match.team_a_score ?? 0) : 0)
+  const scoreB = isCompleted
+    ? (match.team_b_score ?? 0)
+    : isAmericano
+      ? maxScore - scoreA
+      : draft?.b ?? (isExpanded ? (match.team_b_score ?? 0) : 0)
+
+  const confirmDisabled =
+    isSubmitting || (isAmericano ? scoreA === 0 : scoreA === 0 && scoreB === 0)
+
+  if (isSetup) {
+    return (
+      <div className="matchplay-hub-match matchplay-hub-match--setup">
+        <div className="matchplay-hub-match-compact">
+          <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+            {teamASurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
+          <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+            <span className="matchplay-hub-match-score-num">—</span>
+          </div>
+          <div className="matchplay-hub-match-center">
+            <span className="matchplay-hub-match-vs">VS</span>
+            <span className="matchplay-hub-match-court">{courtLabel}</span>
+          </div>
+          <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+            <span className="matchplay-hub-match-score-num">—</span>
+          </div>
+          <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+            {teamBSurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+            {canEditLineup && (
+              <button
+                type="button"
+                className="matchplay-hub-match-edit"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEditLineup()
+                }}
+              >
+                EDIT
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isCompleted) {
+    return (
+      <div className="matchplay-hub-match matchplay-hub-match--completed">
+        <div className="matchplay-hub-match-compact">
+          <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+            {teamASurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
+          <div className="matchplay-hub-match-score">
+            <span className="matchplay-hub-match-score-num">{match.team_a_score ?? 0}</span>
+          </div>
+          <div className="matchplay-hub-match-center">
+            <span className="matchplay-hub-match-vs">VS</span>
+            <span className="matchplay-hub-match-court">{courtLabel}</span>
+          </div>
+          <div className="matchplay-hub-match-score">
+            <span className="matchplay-hub-match-score-num">{match.team_b_score ?? 0}</span>
+          </div>
+          <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+            {teamBSurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const teamAWins = scoreA > scoreB
+  const teamBWins = scoreB > scoreA
+
+  return (
+    <div
+      className={`matchplay-hub-match matchplay-hub-match--pending ${isExpanded ? 'matchplay-hub-match--expanded' : ''}`}
+      onClick={() => !isExpanded && onToggleExpand()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          onToggleExpand()
+        }
+      }}
+    >
+      <div className="matchplay-hub-match-compact">
+        <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+          {teamASurnames.map((name, i) => (
+            <span key={i} className="matchplay-hub-match-surname">
+              {name}
+            </span>
+          ))}
+        </div>
+        <div className="matchplay-hub-match-score">
+          <span className="matchplay-hub-match-score-num">{scoreA}</span>
+        </div>
+        <div className="matchplay-hub-match-center">
+          <span className="matchplay-hub-match-vs">VS</span>
+          <span className="matchplay-hub-match-court">{courtLabel}</span>
+        </div>
+        <div className="matchplay-hub-match-score">
+          <span className="matchplay-hub-match-score-num">{scoreB}</span>
+        </div>
+        <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+          {teamBSurnames.map((name, i) => (
+            <span key={i} className="matchplay-hub-match-surname">
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="matchplay-hub-match-entry" onClick={(e) => e.stopPropagation()}>
+          <div className="matchplay-hub-match-entry-row">
+            <span className="matchplay-hub-match-entry-team">{teamADisplay}</span>
+            <div className="matchplay-hub-match-stepper">
+              <button
+                type="button"
+                className="matchplay-hub-stepper-btn"
+                aria-label="Decrease Team A score"
+                disabled={scoreA <= 0}
+                onClick={() => onScoreAChange(Math.max(0, scoreA - 1))}
+              >
+                −
+              </button>
+              <span className="matchplay-hub-stepper-value">{scoreA}</span>
+              <button
+                type="button"
+                className="matchplay-hub-stepper-btn"
+                aria-label="Increase Team A score"
+                disabled={isAmericano && scoreA >= maxScore}
+                onClick={() =>
+                  onScoreAChange(isAmericano ? Math.min(maxScore, scoreA + 1) : scoreA + 1)
+                }
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div className="matchplay-hub-match-entry-vs">vs</div>
+
+          <div className="matchplay-hub-match-entry-row">
+            <span className="matchplay-hub-match-entry-team">{teamBDisplay}</span>
+            {isAmericano ? (
+              <span className="matchplay-hub-match-entry-score">{scoreB}</span>
+            ) : (
+              <div className="matchplay-hub-match-stepper">
+                <button
+                  type="button"
+                  className="matchplay-hub-stepper-btn"
+                  aria-label="Decrease Team B score"
+                  disabled={scoreB <= 0}
+                  onClick={() => onScoreBChange(Math.max(0, scoreB - 1))}
+                >
+                  −
+                </button>
+                <span className="matchplay-hub-stepper-value">{scoreB}</span>
+                <button type="button" className="matchplay-hub-stepper-btn" aria-label="Increase Team B score" onClick={() => onScoreBChange(scoreB + 1)}>
+                  +
+                </button>
+              </div>
+            )}
+          </div>
+
+          {(scoreA > 0 || scoreB > 0) && (
+            <p className="matchplay-hub-match-entry-result">
+              Result:{' '}
+              {teamAWins ? `${teamADisplay} win` : teamBWins ? `${teamBDisplay} win` : 'Draw'}
+            </p>
+          )}
+
+          <div className="matchplay-hub-match-entry-actions">
+            <button type="button" onClick={onCancelExpand} className="matchplay-hub-btn matchplay-hub-btn--secondary">
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={() => onConfirmScores(scoreA, scoreB)}
+              disabled={confirmDisabled}
+              className="matchplay-hub-btn matchplay-hub-btn--primary"
+            >
+              {isSubmitting ? 'SAVING...' : 'CONFIRM SCORE'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function MatchplayEventPage() {
   const params = useParams()
   const router = useRouter()
@@ -202,12 +510,11 @@ export default function MatchplayEventPage() {
   const [showPlayersModal, setShowPlayersModal] = useState(false)
   const [showStandingsModal, setShowStandingsModal] = useState(false)
   const [showEditMatchModal, setShowEditMatchModal] = useState<MatchplayMatch | null>(null)
-  const [showEndEventMenu, setShowEndEventMenu] = useState(false)
 
   const [newPlayerName, setNewPlayerName] = useState('')
   const [editMatchAssignments, setEditMatchAssignments] = useState<{ a1: string; a2: string; b1: string; b2: string }>({ a1: '', a2: '', b1: '', b2: '' })
 
-  const roundTabsRef = useRef<HTMLDivElement>(null)
+  const roundTabsRef = useRef<HTMLElement | null>(null)
   const pairingGeneratedRef = useRef(false)
 
   const getCourtLabels = useCallback(() => {
@@ -348,7 +655,6 @@ export default function MatchplayEventPage() {
   }, [eventId, loadPlayers, loadRounds, loadStandings])
 
   const viewingRound = rounds.find((r) => r.id === selectedRoundId) ?? rounds[0]
-  const currentRoundNumber = viewingRound ? Math.max(...rounds.filter((r) => r.status !== 'completed').map((r) => r.round_number ?? 0), 0) : 0
   const isAmericano = event?.format === 'americano'
   const maxScore = event?.match_target_score ?? 32
   const hasCompletedMatchInCurrentRound = viewingRound?.matches?.some((m) => m.status === 'completed') ?? false
@@ -385,7 +691,6 @@ export default function MatchplayEventPage() {
       setError(result.error || 'Failed to complete')
     }
     setActionLoading(null)
-    setShowEndEventMenu(false)
   }
 
   const handleNextRound = async () => {
@@ -615,316 +920,100 @@ export default function MatchplayEventPage() {
 
   if (!event) return null
 
+  const canEditLineup = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
+
   return (
     <div className="matchplay-event-page">
-      <header className="matchplay-event-header">
-        <button
-          type="button"
-          className="matchplay-event-back"
-          onClick={() => router.push('/matchplay')}
-          aria-label="Back"
-        >
+      <header className="matchplay-hub-header">
+        <button type="button" onClick={() => router.push('/matchplay')} className="matchplay-hub-back" aria-label="Back">
           ←
         </button>
-        <h1 className="matchplay-event-title">{event.name}</h1>
-        <div className="matchplay-event-header-actions">
-          <button
-            type="button"
-            className="matchplay-event-icon-btn"
-            onClick={() => setShowPlayersModal(true)}
-            aria-label="Players"
-          >
-            👥
+        <h1 className="matchplay-hub-title">Event</h1>
+        <div className="matchplay-hub-actions">
+          <button type="button" onClick={() => setShowPlayersModal(true)} className="matchplay-hub-icon-btn" aria-label="Players">
+            <MatchplayHubPlayersIcon />
           </button>
-          {isLive && (
+          {event?.status === 'in_progress' && (
             <button
               type="button"
-              className="matchplay-event-icon-btn"
               onClick={() => {
                 loadStandings()
                 setShowStandingsModal(true)
               }}
+              className="matchplay-hub-icon-btn"
               aria-label="Standings"
             >
-              📊
+              <MatchplayHubStandingsIcon />
             </button>
           )}
-          <div className="matchplay-event-header-right">
-            {isLive && (
-              <div className="matchplay-event-menu-wrap">
-                <button
-                  type="button"
-                  className="matchplay-event-menu-btn"
-                  onClick={() => setShowEndEventMenu(!showEndEventMenu)}
-                  aria-label="More options"
-                >
-                  ⋮
-                </button>
-                {showEndEventMenu && (
-                  <>
-                    <div className="matchplay-event-menu-backdrop" onClick={() => setShowEndEventMenu(false)} />
-                    <div className="matchplay-event-menu-dropdown">
-                      <button
-                        type="button"
-                        className="matchplay-event-menu-item"
-                        onClick={handleCompleteEvent}
-                        disabled={!!actionLoading}
-                      >
-                        End Event
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-            <span
-              className={`matchplay-event-status-badge ${
-                isSetup ? 'matchplay-event-status-setup' : isLive ? 'matchplay-event-status-live' : 'matchplay-event-status-completed'
-              }`}
-            >
-              {isSetup && 'SETUP'}
-              {isLive && (
-                <>
-                  <span className="matchplay-event-status-dot" aria-hidden />
-                  LIVE
-                </>
-              )}
-              {event.status === 'completed' && 'COMPLETED'}
-            </span>
-          </div>
         </div>
       </header>
 
-      {/* Round tabs */}
-      <div className="matchplay-event-round-tabs-wrap" ref={roundTabsRef}>
-        <div className="matchplay-event-round-tabs">
-          {rounds.map((round) => (
+      <nav className="matchplay-hub-rounds" ref={roundTabsRef}>
+        {rounds.map((round) => {
+          const isActive = round.id === selectedRoundId
+          const isCompleted = round.status === 'completed'
+          return (
             <button
               key={round.id}
               type="button"
-              className={`matchplay-event-round-tab ${selectedRoundId === round.id ? 'active' : ''} ${
-                round.status === 'completed' ? 'completed' : round.status === 'in_progress' ? 'in-progress' : ''
-              }`}
               data-round-id={round.id}
               onClick={() => setSelectedRoundId(round.id)}
+              className={`matchplay-hub-round-tab ${isActive ? 'matchplay-hub-round-tab--active' : ''} ${isCompleted ? 'matchplay-hub-round-tab--completed' : ''}`}
             >
-              Round {round.round_number}
-              {round.status === 'completed' && <span className="matchplay-event-round-check">✓</span>}
-              {round.status === 'in_progress' && <span className="matchplay-event-round-dot">·</span>}
+              ROUND {round.round_number}
+              {isCompleted && <span className="matchplay-hub-round-check">✓</span>}
             </button>
-          ))}
-        </div>
-      </div>
+          )
+        })}
+      </nav>
 
-      {error && <div className="setup-error matchplay-event-error">{error}</div>}
+      {error && <div className="setup-error matchplay-hub-error">{error}</div>}
 
-      {/* Match cards */}
       {!viewingRound ? (
-        <div className="matchplay-event-empty">No rounds yet. Add players and wait for pairings to generate.</div>
+        <div className="matchplay-hub-empty">No rounds yet. Add players and wait for pairings to generate.</div>
       ) : (
-        <div className="matchplay-event-matches">
-          {(viewingRound.matches ?? []).map((match) => {
-            const teamANames = formatTeamDisplay(
-              match.team_a_player_1_name,
-              match.team_a_player_2_name,
-              1,
-              'first'
-            )
-            const teamBNames = formatTeamDisplay(
-              match.team_b_player_1_name,
-              match.team_b_player_2_name,
-              2,
-              'first'
-            )
-            const isCompleted = match.status === 'completed'
-            const isExpanded = expandedMatchId === match.id
-            const draft = draftScores[match.id]
-            const scoreA = draft?.a ?? (isExpanded ? (match.team_a_score ?? 0) : 0)
-            const scoreB = isAmericano ? (maxScore - scoreA) : (draft?.b ?? (isExpanded ? (match.team_b_score ?? 0) : 0))
-            const canEdit = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
-
-            if (isSetup) {
-              return (
-                <div key={match.id} className="matchplay-event-match-card matchplay-event-match-card-setup">
-                  <div className="matchplay-event-match-header">
-                    <span className="matchplay-event-match-court">{match.court_label}</span>
-                    {canEdit && (
-                      <button
-                        type="button"
-                        className="matchplay-event-match-edit-btn"
-                        onClick={() => openEditMatch(match)}
-                      >
-                        EDIT
-                      </button>
-                    )}
-                  </div>
-                  <div className="matchplay-event-match-teams">
-                    {teamANames} vs {teamBNames}
-                  </div>
-                </div>
-              )
-            }
-
-            if (isCompleted) {
-              return (
-                <div key={match.id} className="matchplay-event-match-card matchplay-event-match-card-completed">
-                  <span className="matchplay-event-match-court">{match.court_label}</span>
-                  <span className="matchplay-event-match-summary">
-                    {teamANames}{' '}
-                    <span className="matchplay-event-match-summary-score">
-                      <span>{match.team_a_score ?? 0}</span>
-                      <ScoreSepBar className="matchplay-event-match-summary-sep" />
-                      <span>{match.team_b_score ?? 0}</span>
-                    </span>{' '}
-                    {teamBNames}
-                  </span>
-                  <span className="matchplay-event-match-done">✓</span>
-                </div>
-              )
-            }
-
-            if (isExpanded) {
-              const teamAWins = scoreA > scoreB
-              const teamBWins = scoreB > scoreA
-              return (
-                <div key={match.id} className="matchplay-event-match-card matchplay-event-match-card-expanded">
-                  <div className="matchplay-event-match-header">
-                    <span className="matchplay-event-match-court">{match.court_label}</span>
-                  </div>
-                  <div className="matchplay-event-score-entry">
-                    <div className="matchplay-event-score-row">
-                      <span className="matchplay-event-score-team">{teamANames}</span>
-                      <div className="matchplay-event-stepper">
-                        <button
-                          type="button"
-                          className="matchplay-event-stepper-btn"
-                          aria-label="Decrease Team A"
-                          disabled={scoreA <= 0}
-                          onClick={() =>
-                            setDraftScores((prev) => ({
-                              ...prev,
-                              [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), a: Math.max(0, scoreA - 1) },
-                            }))
-                          }
-                        >
-                          −
-                        </button>
-                        <span className="matchplay-event-stepper-value">{scoreA}</span>
-                        <button
-                          type="button"
-                          className="matchplay-event-stepper-btn"
-                          aria-label="Increase Team A"
-                          disabled={isAmericano && scoreA >= maxScore}
-                          onClick={() =>
-                            setDraftScores((prev) => ({
-                              ...prev,
-                              [match.id]: {
-                                ...(prev[match.id] ?? { a: 0, b: 0 }),
-                                a: isAmericano ? Math.min(maxScore, scoreA + 1) : scoreA + 1,
-                              },
-                            }))
-                          }
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                    <div className="matchplay-event-vs">vs</div>
-                    <div className="matchplay-event-score-row">
-                      <span className="matchplay-event-score-team">{teamBNames}</span>
-                      {isAmericano ? (
-                        <span className="matchplay-event-stepper-value">{scoreB}</span>
-                      ) : (
-                        <div className="matchplay-event-stepper">
-                          <button
-                            type="button"
-                            className="matchplay-event-stepper-btn"
-                            aria-label="Decrease Team B"
-                            disabled={scoreB <= 0}
-                            onClick={() =>
-                              setDraftScores((prev) => ({
-                                ...prev,
-                                [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: Math.max(0, scoreB - 1) },
-                              }))
-                            }
-                          >
-                            −
-                          </button>
-                          <span className="matchplay-event-stepper-value">{scoreB}</span>
-                          <button
-                            type="button"
-                            className="matchplay-event-stepper-btn"
-                            aria-label="Increase Team B"
-                            onClick={() =>
-                              setDraftScores((prev) => ({
-                                ...prev,
-                                [match.id]: { ...(prev[match.id] ?? { a: 0, b: 0 }), b: scoreB + 1 },
-                              }))
-                            }
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {(scoreA > 0 || scoreB > 0) && (
-                    <div className="matchplay-event-result-preview">
-                      Result: {teamAWins ? `${teamANames} win` : teamBWins ? `${teamBNames} win` : 'Draw'}
-                    </div>
-                  )}
-                  <div className="matchplay-event-score-actions">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        setExpandedMatchId(null)
-                        setDraftScores((prev) => {
-                          const next = { ...prev }
-                          delete next[match.id]
-                          return next
-                        })
-                      }}
-                    >
-                      CANCEL
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      disabled={submittingMatchId === match.id}
-                      onClick={() => handleEnterResult(match.id, scoreA, scoreB)}
-                    >
-                      {submittingMatchId === match.id ? 'Saving...' : 'CONFIRM SCORE'}
-                    </button>
-                  </div>
-                </div>
-              )
-            }
-
-            return (
-              <div
-                key={match.id}
-                className="matchplay-event-match-card matchplay-event-match-card-pending"
-                onClick={() => setExpandedMatchId(match.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && setExpandedMatchId(match.id)}
-              >
-                <div className="matchplay-event-match-header">
-                  <span className="matchplay-event-match-court">{match.court_label}</span>
-                  <span className="matchplay-event-match-pending-badge">PENDING</span>
-                </div>
-                <div className="matchplay-event-match-teams">
-                  {teamANames} vs {teamBNames}
-                </div>
-                <div className="matchplay-event-match-hint">Tap to enter score</div>
-              </div>
-            )
-          })}
+        <div className="matchplay-hub-matches">
+          {(viewingRound.matches ?? []).map((match) => (
+            <HubMatchCard
+              key={match.id}
+              match={match}
+              players={players}
+              isAmericano={isAmericano}
+              maxScore={maxScore}
+              isSetup={isSetup}
+              canEditLineup={canEditLineup}
+              isExpanded={expandedMatchId === match.id}
+              draft={draftScores[match.id]}
+              isSubmitting={submittingMatchId === match.id}
+              onToggleExpand={() => setExpandedMatchId(match.id)}
+              onCancelExpand={() => {
+                setExpandedMatchId(null)
+                setDraftScores((prev) => {
+                  const next = { ...prev }
+                  delete next[match.id]
+                  return next
+                })
+              }}
+              onConfirmScores={(a, b) => handleEnterResult(match.id, a, b)}
+              onScoreAChange={(nextA) =>
+                setDraftScores((prev) => {
+                  const cur = prev[match.id] ?? { a: 0, b: 0 }
+                  return { ...prev, [match.id]: { ...cur, a: nextA } }
+                })
+              }
+              onScoreBChange={(nextB) =>
+                setDraftScores((prev) => {
+                  const cur = prev[match.id] ?? { a: 0, b: 0 }
+                  return { ...prev, [match.id]: { ...cur, b: nextB } }
+                })
+              }
+              onEditLineup={() => openEditMatch(match)}
+            />
+          ))}
         </div>
       )}
 
-      {/* Resting section */}
       {viewingRound && (() => {
         const assignedIds = new Set<string>()
         for (const m of viewingRound.matches ?? []) {
@@ -937,14 +1026,14 @@ export default function MatchplayEventPage() {
         const sitOutCounts = getSitOutCounts()
         if (resting.length === 0) return null
         return (
-          <div className="matchplay-event-resting">
-            <div className="matchplay-event-resting-title">Resting this round</div>
-            <div className="matchplay-event-resting-list">
+          <div className="matchplay-hub-resting">
+            <div className="matchplay-hub-resting-title">Resting this round</div>
+            <div className="matchplay-hub-resting-list">
               {resting.map((p) => (
-                <span key={p.id} className="matchplay-event-resting-player">
+                <span key={p.id} className="matchplay-hub-resting-player">
                   {p.name}
                   {(sitOutCounts[p.id] ?? 0) > 0 && (
-                    <span className="matchplay-event-resting-count"> (rested {(sitOutCounts[p.id] ?? 0)} times)</span>
+                    <span className="matchplay-hub-resting-count"> (rested {(sitOutCounts[p.id] ?? 0)} times)</span>
                   )}
                 </span>
               ))}
@@ -953,12 +1042,11 @@ export default function MatchplayEventPage() {
         )
       })()}
 
-      {/* Footer */}
-      <footer className="matchplay-event-footer">
+      <footer className="matchplay-hub-footer">
         {isSetup && (
           <button
             type="button"
-            className="btn btn-primary matchplay-event-footer-btn"
+            className="matchplay-hub-footer-btn"
             onClick={handleStartEvent}
             disabled={!!actionLoading || players.length < 4}
           >
@@ -968,18 +1056,13 @@ export default function MatchplayEventPage() {
         {isLive && (
           <>
             {canShowEndEvent && isFinalRound && allMatchesScoredInCurrentRound ? (
-              <button
-                type="button"
-                className="btn btn-primary matchplay-event-footer-btn"
-                onClick={handleCompleteEvent}
-                disabled={!!actionLoading}
-              >
+              <button type="button" className="matchplay-hub-footer-btn" onClick={handleCompleteEvent} disabled={!!actionLoading}>
                 {actionLoading === 'complete' ? 'Ending...' : 'END EVENT'}
               </button>
             ) : (
               <button
                 type="button"
-                className="btn btn-primary matchplay-event-footer-btn"
+                className="matchplay-hub-footer-btn"
                 onClick={handleNextRound}
                 disabled={!allMatchesScoredInCurrentRound || isFinalRound}
               >

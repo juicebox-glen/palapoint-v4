@@ -6,7 +6,6 @@ import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
-import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { formatPlayerName, formatTeamDisplay, getPlayerInitials } from '@/lib/utils/name-format'
 
@@ -276,105 +275,110 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'event') {
     return (
       <div className="matchplay-event-page" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-event-header">
-          <span className="matchplay-event-back" aria-hidden>
+        <header className="matchplay-hub-header">
+          <span className="matchplay-hub-back" aria-hidden>
             ←
           </span>
-          <h1 className="matchplay-event-title">Tue 22 Apr Americano</h1>
-          <div className="matchplay-event-header-actions">
-            <span className="matchplay-event-icon-btn" aria-hidden>
+          <h1 className="matchplay-hub-title">Event</h1>
+          <div className="matchplay-hub-actions">
+            <span className="matchplay-hub-icon-btn" aria-hidden>
               👥
             </span>
-            <span className="matchplay-event-icon-btn" aria-hidden>
+            <span className="matchplay-hub-icon-btn" aria-hidden>
               📊
             </span>
-            <div className="matchplay-event-header-right">
-              <span className="matchplay-event-menu-wrap">
-                <span className="matchplay-event-menu-btn" aria-hidden>
-                  ⋮
-                </span>
-              </span>
-              <span className="matchplay-event-status-badge matchplay-event-status-live">
-                <span className="matchplay-event-status-dot" aria-hidden />
-                LIVE
-              </span>
-            </div>
           </div>
         </header>
-        <div className="matchplay-event-round-tabs-wrap">
-          <div className="matchplay-event-round-tabs">
-            <button type="button" className="matchplay-event-round-tab completed">
-              Round 1<span className="matchplay-event-round-check">✓</span>
-            </button>
-            <button type="button" className="matchplay-event-round-tab active in-progress">
-              Round 2<span className="matchplay-event-round-dot">·</span>
-            </button>
-            <button type="button" className="matchplay-event-round-tab">
-              Round 3
-            </button>
-            <button type="button" className="matchplay-event-round-tab">
-              Round 4
-            </button>
-          </div>
-        </div>
-        <div className="matchplay-event-matches">
-          <div className="matchplay-event-match-card matchplay-event-match-card-completed">
-            <span className="matchplay-event-match-court">Court 1</span>
-            <span className="matchplay-event-match-summary">
-              {formatTeamDisplay('Glen Noble', 'Rob Anderson', 1, 'first')}{' '}
-              <span className="matchplay-event-match-summary-score">
-                <span>18</span>
-                <ScoreSepBar className="matchplay-event-match-summary-sep" />
-                <span>14</span>
-              </span>{' '}
-              {formatTeamDisplay('Julian Waters', 'Carl Pettit', 2, 'first')}
-            </span>
-            <span className="matchplay-event-match-done">✓</span>
-          </div>
-          <div className="matchplay-event-match-card matchplay-event-match-card-expanded">
-            <div className="matchplay-event-match-header">
-              <span className="matchplay-event-match-court">Court 2</span>
+        <nav className="matchplay-hub-rounds">
+          <button type="button" className="matchplay-hub-round-tab matchplay-hub-round-tab--completed">
+            ROUND 1<span className="matchplay-hub-round-check">✓</span>
+          </button>
+          <button type="button" className="matchplay-hub-round-tab matchplay-hub-round-tab--active">
+            ROUND 2
+          </button>
+          <button type="button" className="matchplay-hub-round-tab">ROUND 3</button>
+          <button type="button" className="matchplay-hub-round-tab">ROUND 4</button>
+        </nav>
+        <div className="matchplay-hub-matches">
+          <div className="matchplay-hub-match matchplay-hub-match--completed">
+            <div className="matchplay-hub-match-compact">
+              <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Rob Anderson', 'surname_short')}</span>
+              </div>
+              <div className="matchplay-hub-match-score">
+                <span className="matchplay-hub-match-score-num">18</span>
+              </div>
+              <div className="matchplay-hub-match-center">
+                <span className="matchplay-hub-match-vs">VS</span>
+                <span className="matchplay-hub-match-court">Court 1</span>
+              </div>
+              <div className="matchplay-hub-match-score">
+                <span className="matchplay-hub-match-score-num">14</span>
+              </div>
+              <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Julian Waters', 'surname_short')}</span>
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Carl Pettit', 'surname_short')}</span>
+              </div>
             </div>
-            <div className="matchplay-event-score-entry">
-              <div className="matchplay-event-score-row">
-                <span className="matchplay-event-score-team">
-                  {formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}
-                </span>
-                <div className="matchplay-event-stepper">
-                  <span className="matchplay-event-stepper-btn">−</span>
-                  <span className="matchplay-event-stepper-value">12</span>
-                  <span className="matchplay-event-stepper-btn">+</span>
+          </div>
+          <div className="matchplay-hub-match matchplay-hub-match--pending matchplay-hub-match--expanded">
+            <div className="matchplay-hub-match-compact">
+              <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Jake Thomas', 'surname_short')}</span>
+              </div>
+              <div className="matchplay-hub-match-score">
+                <span className="matchplay-hub-match-score-num">12</span>
+              </div>
+              <div className="matchplay-hub-match-center">
+                <span className="matchplay-hub-match-vs">VS</span>
+                <span className="matchplay-hub-match-court">Court 2</span>
+              </div>
+              <div className="matchplay-hub-match-score">
+                <span className="matchplay-hub-match-score-num">20</span>
+              </div>
+              <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Mike Brown', 'surname_short')}</span>
+                <span className="matchplay-hub-match-surname">{formatPlayerName('Tom Davis', 'surname_short')}</span>
+              </div>
+            </div>
+            <div className="matchplay-hub-match-entry">
+              <div className="matchplay-hub-match-entry-row">
+                <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}</span>
+                <div className="matchplay-hub-match-stepper">
+                  <span className="matchplay-hub-stepper-btn">−</span>
+                  <span className="matchplay-hub-stepper-value">12</span>
+                  <span className="matchplay-hub-stepper-btn">+</span>
                 </div>
               </div>
-              <div className="matchplay-event-vs">vs</div>
-              <div className="matchplay-event-score-row">
-                <span className="matchplay-event-score-team">
-                  {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}
+              <div className="matchplay-hub-match-entry-vs">vs</div>
+              <div className="matchplay-hub-match-entry-row">
+                <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}</span>
+                <span className="matchplay-hub-match-entry-score">20</span>
+              </div>
+              <p className="matchplay-hub-match-entry-result">
+                Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
+              </p>
+              <div className="matchplay-hub-match-entry-actions">
+                <span className="matchplay-hub-btn matchplay-hub-btn--secondary" style={{ pointerEvents: 'none' }}>
+                  CANCEL
                 </span>
-                <span className="matchplay-event-stepper-value">20</span>
+                <span className="matchplay-hub-btn matchplay-hub-btn--primary" style={{ pointerEvents: 'none' }}>
+                  CONFIRM SCORE
+                </span>
               </div>
             </div>
-            <div className="matchplay-event-result-preview">
-              Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
-            </div>
-            <div className="matchplay-event-score-actions">
-              <span className="btn btn-secondary" style={{ pointerEvents: 'none' }}>
-                CANCEL
-              </span>
-              <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
-                CONFIRM SCORE
-              </span>
-            </div>
           </div>
         </div>
-        <div className="matchplay-event-resting">
-          <div className="matchplay-event-resting-title">Resting this round</div>
-          <div className="matchplay-event-resting-list">
-            <span className="matchplay-event-resting-player">{formatPlayerName('Alex Chen', 'full')}</span>
+        <div className="matchplay-hub-resting">
+          <div className="matchplay-hub-resting-title">Resting this round</div>
+          <div className="matchplay-hub-resting-list">
+            <span className="matchplay-hub-resting-player">{formatPlayerName('Alex Chen', 'full')}</span>
           </div>
         </div>
-        <footer className="matchplay-event-footer">
-          <span className="btn btn-primary matchplay-event-footer-btn" style={{ pointerEvents: 'none' }}>
+        <footer className="matchplay-hub-footer">
+          <span className="matchplay-hub-footer-btn" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
             NEXT ROUND
           </span>
         </footer>
