@@ -2097,6 +2097,10 @@
   color: var(--text-primary);
   font-family: var(--font-family);
   box-sizing: border-box;
+  /* Align setup-form row tokens (normally scoped to `.setup-screen`) */
+  --foreground: var(--text-primary);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-default);
 }
 
 .matchplay-page--setup > .matchplay-page-header {
@@ -2507,24 +2511,13 @@
   padding: var(--ui-space-xl);
 }
 
-/* Players (setup) */
-.matchplay-players-content {
-  flex: 1;
-  padding: var(--ui-space-md) 0 var(--ui-space-lg);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.matchplay-players-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-sm);
-}
-
-.matchplay-player-row {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-md);
+/* Matchplay Americano add-players: same row pattern as setup-form `setup-player-row` + `setup-input-wrap--player-name` */
+.matchplay-players-setup-hint {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  text-align: center;
+  margin: var(--ui-space-md) 0 0;
+  line-height: 1.45;
 }
 
 .matchplay-player-avatar {
@@ -2583,27 +2576,6 @@
 .matchplay-player-camera-icon {
   width: 20px;
   height: 20px;
-}
-
-.matchplay-player-input {
-  flex: 1;
-  min-width: 0;
-  min-height: 48px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: var(--ui-space-md);
-  color: var(--text-primary);
-  font-size: var(--ui-font-base);
-}
-
-.matchplay-player-input::placeholder {
-  color: var(--text-muted);
-}
-
-.matchplay-player-input:focus {
-  outline: none;
-  border-color: var(--brand-primary);
 }
 
 .matchplay-error {

@@ -437,55 +437,53 @@ export default function MatchplayPlayersPage() {
       </div>
 
       <div className="matchplay-setup-inner">
-        <div className="matchplay-players-content">
-          <div className="matchplay-card">
-            <div className="matchplay-players-grid">
-              {players.map((player, index) => (
-                <div key={index} className="matchplay-player-row">
-                  <button
-                    type="button"
-                    className={`matchplay-player-avatar ${player.photoPreview ? 'matchplay-player-avatar--has-photo' : ''}`}
-                    onClick={() => openPhotoSheet(index)}
-                    aria-label={player.photoPreview ? 'Change photo' : 'Add photo'}
-                  >
-                    {player.photoPreview ? (
-                      <img src={player.photoPreview} alt="" />
-                    ) : player.name ? (
-                      <span className="matchplay-player-initials">
-                        {getPlayerInitials(player.name)}
-                      </span>
-                    ) : (
-                      <svg
-                        className="matchplay-player-camera-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        aria-hidden
-                      >
-                        <rect x="3" y="6" width="18" height="14" rx="2" />
-                        <circle cx="12" cy="13" r="4" />
-                        <path d="M9 3h6l1.5 3h-9z" />
-                      </svg>
-                    )}
-                  </button>
+        <div className="matchplay-setup-content">
+          <div className="setup-inputs">
+            {players.map((player, index) => (
+              <div key={index} className="setup-player-row">
+                <button
+                  type="button"
+                  className={`matchplay-player-avatar ${player.photoPreview ? 'matchplay-player-avatar--has-photo' : ''}`}
+                  onClick={() => openPhotoSheet(index)}
+                  aria-label={player.photoPreview ? 'Change photo' : 'Add photo'}
+                >
+                  {player.photoPreview ? (
+                    <img src={player.photoPreview} alt="" />
+                  ) : player.name ? (
+                    <span className="matchplay-player-initials">{getPlayerInitials(player.name)}</span>
+                  ) : (
+                    <svg
+                      className="matchplay-player-camera-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden
+                    >
+                      <rect x="3" y="6" width="18" height="14" rx="2" />
+                      <circle cx="12" cy="13" r="4" />
+                      <path d="M9 3h6l1.5 3h-9z" />
+                    </svg>
+                  )}
+                </button>
 
+                <div className="setup-input-wrap setup-input-wrap--player-name">
                   <input
                     type="text"
-                    className="matchplay-player-input"
+                    className="setup-input"
                     placeholder={`Player ${index + 1}`}
                     value={player.name}
                     onChange={(e) => handleNameChange(index, e.target.value)}
                     autoComplete="name"
                   />
                 </div>
-              ))}
-            </div>
-
-            <p className="matchplay-card-hint matchplay-card-hint--center">
-              Americano works best with multiples of 4 (6–20 players supported)
-            </p>
+              </div>
+            ))}
           </div>
+
+          <p className="matchplay-players-setup-hint">
+            Americano works best with multiples of 4 (6–20 players supported)
+          </p>
 
           {error ? <p className="matchplay-error">{error}</p> : null}
         </div>
