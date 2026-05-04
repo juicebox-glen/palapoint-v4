@@ -1,12 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
-import { getPlayerInitials } from '@/lib/utils/name-format'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -65,26 +63,6 @@ function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: str
   )
 }
 
-function ImageIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="setup-photo-sheet-option-icon"
-      aria-hidden
-    >
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  )
-}
-
 interface MatchplaySetupSession {
   playerCount: number
   selectedCourts: number[]
@@ -131,11 +109,9 @@ function generateEventName(): string {
 export default function MatchplayPlayersPage() {
   const router = useRouter()
   const branding = useMatchplaySetupBranding()
-  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const photoPickSlotRef = useRef<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [activeSlot, setActiveSlot] = useState<number | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [processingPhoto, setProcessingPhoto] = useState(false)
+  const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
   const [config, setConfig] = useState<MatchplaySetupSession | null>(null)
   const [players, setPlayers] = useState<PlayerSlot[]>([])
@@ -177,20 +153,6 @@ export default function MatchplayPlayersPage() {
     }
   }, [router])
 
-  useEffect(() => {
-    if (!sheetOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSheetOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [sheetOpen])
-
   const filledCount = players.filter((p) => p.name.trim()).length
   const canStart = config !== null && filledCount === config.playerCount
 
@@ -202,9 +164,9 @@ export default function MatchplayPlayersPage() {
     })
   }
 
-  const openPhotoSheet = (index: number) => {
-    setActiveSlot(index)
-    setSheetOpen(true)
+  const openPhotoPicker = (index: number) => {
+    photoPickSlotRef.current = index
+    fileInputRef.current?.click()
   }
 
   const clearSlotPhoto = (index: number) => {
@@ -217,52 +179,44 @@ export default function MatchplayPlayersPage() {
     })
   }
 
-  const applyFileToActiveSlot = useCallback(
-    async (file: File) => {
-      if (activeSlot === null) return
-      setProcessingPhoto(true)
-      try {
-        const blob = await processImageToJpeg(file, 400, 400)
-        const previewUrl = URL.createObjectURL(blob)
-        setPlayers((prev) => {
-          const updated = [...prev]
-          const prevPreview = updated[activeSlot]?.photoPreview
-          if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
-          updated[activeSlot] = {
-            ...updated[activeSlot],
-            photoBlob: blob,
-            photoPreview: previewUrl,
-          }
-          return updated
-        })
-      } catch (e) {
-        console.error(e)
-        setError('Could not process photo')
-      } finally {
-        setProcessingPhoto(false)
-        setSheetOpen(false)
-        setActiveSlot(null)
-      }
-    },
-    [activeSlot]
-  )
+  const applyFileToSlot = useCallback(async (slot: number, file: File) => {
+    setProcessingSlot(slot)
+    try {
+      const blob = await processImageToJpeg(file, 400, 400)
+      const previewUrl = URL.createObjectURL(blob)
+      setPlayers((prev) => {
+        const updated = [...prev]
+        const prevPreview = updated[slot]?.photoPreview
+        if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
+        updated[slot] = {
+          ...updated[slot],
+          photoBlob: blob,
+          photoPreview: previewUrl,
+        }
+        return updated
+      })
+    } catch (e) {
+      console.error(e)
+      setError('Could not process photo')
+    } finally {
+      setProcessingSlot(null)
+    }
+  }, [])
 
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (file) await applyFileToActiveSlot(file)
+    const slot = photoPickSlotRef.current
+    photoPickSlotRef.current = null
+    if (!file || slot === null) return
+    await applyFileToSlot(slot, file)
   }
 
-  const openCamera = () => {
-    setSheetOpen(false)
-    requestAnimationFrame(() => cameraInputRef.current?.click())
+  const handleRemovePhoto = (index: number, ev: React.MouseEvent) => {
+    ev.preventDefault()
+    ev.stopPropagation()
+    clearSlotPhoto(index)
   }
-
-  const openLibrary = () => {
-    setSheetOpen(false)
-    requestAnimationFrame(() => fileInputRef.current?.click())
-  }
-
   const handleStartEvent = async () => {
     if (!config || !canStart) return
 
@@ -364,66 +318,6 @@ export default function MatchplayPlayersPage() {
     )
   }
 
-  const sheet =
-    sheetOpen &&
-    activeSlot !== null &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <div
-        className="setup-photo-sheet-backdrop"
-        role="presentation"
-        onClick={() => {
-          setSheetOpen(false)
-          setActiveSlot(null)
-        }}
-      >
-        <div
-          className="setup-photo-sheet"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="matchplay-photo-sheet-title"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <p id="matchplay-photo-sheet-title" className="setup-photo-sheet-title">
-            Player photo
-          </p>
-          <button type="button" className="setup-photo-sheet-option" onClick={openCamera} disabled={processingPhoto}>
-            <CameraIcon className="setup-photo-sheet-option-icon" />
-            <span>Take photo</span>
-          </button>
-          <button type="button" className="setup-photo-sheet-option" onClick={openLibrary} disabled={processingPhoto}>
-            <ImageIcon />
-            <span>Photo library</span>
-          </button>
-          {players[activeSlot]?.photoPreview && (
-            <button
-              type="button"
-              className="setup-photo-sheet-remove"
-              onClick={() => {
-                clearSlotPhoto(activeSlot)
-                setSheetOpen(false)
-                setActiveSlot(null)
-              }}
-              disabled={processingPhoto}
-            >
-              Remove photo
-            </button>
-          )}
-          <button
-            type="button"
-            className="setup-photo-sheet-cancel"
-            onClick={() => {
-              setSheetOpen(false)
-              setActiveSlot(null)
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>,
-      document.body
-    )
-
   return (
     <div className="matchplay-page matchplay-page--setup" style={brandVars}>
       <div className="matchplay-page-header">
@@ -441,33 +335,47 @@ export default function MatchplayPlayersPage() {
           <div className="matchplay-card">
             <span className="matchplay-card-label">Add Players</span>
             <div className="setup-inputs">
-              {players.map((player, index) => (
-                <div key={index} className="setup-player-row">
-                  <button
-                    type="button"
-                    className={`matchplay-player-avatar ${player.photoPreview ? 'matchplay-player-avatar--has-photo' : ''}`}
-                    onClick={() => openPhotoSheet(index)}
-                    aria-label={player.photoPreview ? 'Change photo' : 'Add photo'}
-                  >
+              {players.map((player, index) => {
+                const busy = processingSlot === index
+                return (
+                  <div key={index} className="setup-player-row">
                     {player.photoPreview ? (
-                      <img src={player.photoPreview} alt="" />
-                    ) : player.name ? (
-                      <span className="matchplay-player-initials">{getPlayerInitials(player.name)}</span>
+                      <div className="setup-photo-circle-wrap">
+                        <button
+                          type="button"
+                          className="setup-photo-thumb"
+                          onClick={() => openPhotoPicker(index)}
+                          disabled={busy}
+                          aria-label={busy ? 'Processing photo' : 'Change photo'}
+                        >
+                          {busy ? (
+                            <span className="setup-photo-thumb-loading">…</span>
+                          ) : (
+                            <img src={player.photoPreview} alt="" />
+                          )}
+                        </button>
+                        {!busy ? (
+                          <button
+                            type="button"
+                            className="setup-photo-remove"
+                            onClick={(e) => handleRemovePhoto(index, e)}
+                            aria-label="Remove photo"
+                          >
+                            <span aria-hidden>×</span>
+                          </button>
+                        ) : null}
+                      </div>
                     ) : (
-                      <svg
-                        className="matchplay-player-camera-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        aria-hidden
+                      <button
+                        type="button"
+                        className="setup-photo-trigger"
+                        onClick={() => openPhotoPicker(index)}
+                        disabled={busy}
+                        aria-label={busy ? 'Processing photo' : 'Add player photo'}
                       >
-                        <rect x="3" y="6" width="18" height="14" rx="2" />
-                        <circle cx="12" cy="13" r="4" />
-                        <path d="M9 3h6l1.5 3h-9z" />
-                      </svg>
+                        {busy ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
+                      </button>
                     )}
-                  </button>
 
                   <div className="setup-input-wrap setup-input-wrap--player-name">
                     <input
@@ -480,7 +388,8 @@ export default function MatchplayPlayersPage() {
                     />
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
 
             <p className="matchplay-card-hint matchplay-card-hint--center">
@@ -503,22 +412,12 @@ export default function MatchplayPlayersPage() {
         </button>
       </footer>
 
-      {sheet}
-
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="setup-photo-file-input"
-        onChange={(e) => void handleFileInputChange(e)}
-      />
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         className="setup-photo-file-input"
-        onChange={(e) => void handleFileInputChange(e)}
+        onChange={(e) => void handlePhotoFileChange(e)}
       />
     </div>
   )
