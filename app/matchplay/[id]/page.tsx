@@ -249,7 +249,7 @@ function HubMatchCard({
   isSetup: boolean
   canEditLineup: boolean
   isExpanded: boolean
-  draft: { a: number; b: number } | undefined
+  draft: { a: number; b?: number } | undefined
   isSubmitting: boolean
   onToggleExpand: () => void
   onCancelExpand: () => void
@@ -276,17 +276,17 @@ function HubMatchCard({
   const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
 
   const isCompleted = match.status === 'completed'
+  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : 0
+  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : 0
 
-  const scoreA =
-    isCompleted ? (match.team_a_score ?? 0) : draft?.a ?? (isExpanded ? (match.team_a_score ?? 0) : 0)
-  const scoreB = isCompleted
-    ? (match.team_b_score ?? 0)
-    : isAmericano
-      ? maxScore - scoreA
-      : draft?.b ?? (isExpanded ? (match.team_b_score ?? 0) : 0)
+  const draftScoreA = draft?.a ?? 0
+  const draftScoreB = isAmericano ? maxScore - draftScoreA : draft?.b ?? 0
 
   const confirmDisabled =
-    isSubmitting || (isAmericano ? scoreA === 0 : scoreA === 0 && scoreB === 0)
+    isSubmitting || (isAmericano ? draftScoreA === 0 : draftScoreA === 0 && draftScoreB === 0)
+
+  const entryTeamAWins = draftScoreA > draftScoreB
+  const entryTeamBWins = draftScoreB > draftScoreA
 
   if (isSetup) {
     return (
@@ -344,15 +344,15 @@ function HubMatchCard({
               </span>
             ))}
           </div>
-          <div className="matchplay-hub-match-score">
-            <span className="matchplay-hub-match-score-num">{match.team_a_score ?? 0}</span>
+          <div className="matchplay-hub-match-score matchplay-hub-match-score--completed">
+            <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
           </div>
           <div className="matchplay-hub-match-center">
             <span className="matchplay-hub-match-vs">VS</span>
             <span className="matchplay-hub-match-court">{courtLabel}</span>
           </div>
-          <div className="matchplay-hub-match-score">
-            <span className="matchplay-hub-match-score-num">{match.team_b_score ?? 0}</span>
+          <div className="matchplay-hub-match-score matchplay-hub-match-score--completed">
+            <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
           </div>
           <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
             {teamBSurnames.map((name, i) => (
@@ -365,9 +365,6 @@ function HubMatchCard({
       </div>
     )
   }
-
-  const teamAWins = scoreA > scoreB
-  const teamBWins = scoreB > scoreA
 
   return (
     <div
@@ -390,15 +387,15 @@ function HubMatchCard({
             </span>
           ))}
         </div>
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{scoreA}</span>
+        <div className="matchplay-hub-match-score matchplay-hub-match-score--side-a">
+          <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
         </div>
         <div className="matchplay-hub-match-center">
           <span className="matchplay-hub-match-vs">VS</span>
           <span className="matchplay-hub-match-court">{courtLabel}</span>
         </div>
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{scoreB}</span>
+        <div className="matchplay-hub-match-score matchplay-hub-match-score--side-b">
+          <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
         </div>
         <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
           {teamBSurnames.map((name, i) => (
@@ -418,19 +415,19 @@ function HubMatchCard({
                 type="button"
                 className="matchplay-hub-stepper-btn"
                 aria-label="Decrease Team A score"
-                disabled={scoreA <= 0}
-                onClick={() => onScoreAChange(Math.max(0, scoreA - 1))}
+                disabled={draftScoreA <= 0}
+                onClick={() => onScoreAChange(Math.max(0, draftScoreA - 1))}
               >
                 −
               </button>
-              <span className="matchplay-hub-stepper-value">{scoreA}</span>
+              <span className="matchplay-hub-stepper-value">{draftScoreA}</span>
               <button
                 type="button"
                 className="matchplay-hub-stepper-btn"
                 aria-label="Increase Team A score"
-                disabled={isAmericano && scoreA >= maxScore}
+                disabled={isAmericano ? draftScoreA >= maxScore : false}
                 onClick={() =>
-                  onScoreAChange(isAmericano ? Math.min(maxScore, scoreA + 1) : scoreA + 1)
+                  onScoreAChange(isAmericano ? Math.min(maxScore, draftScoreA + 1) : draftScoreA + 1)
                 }
               >
                 +
@@ -443,31 +440,40 @@ function HubMatchCard({
           <div className="matchplay-hub-match-entry-row">
             <span className="matchplay-hub-match-entry-team">{teamBDisplay}</span>
             {isAmericano ? (
-              <span className="matchplay-hub-match-entry-score">{scoreB}</span>
+              <span className="matchplay-hub-match-entry-score">{draftScoreB}</span>
             ) : (
               <div className="matchplay-hub-match-stepper">
                 <button
                   type="button"
                   className="matchplay-hub-stepper-btn"
                   aria-label="Decrease Team B score"
-                  disabled={scoreB <= 0}
-                  onClick={() => onScoreBChange(Math.max(0, scoreB - 1))}
+                  disabled={draftScoreB <= 0}
+                  onClick={() => onScoreBChange(Math.max(0, draftScoreB - 1))}
                 >
                   −
                 </button>
-                <span className="matchplay-hub-stepper-value">{scoreB}</span>
-                <button type="button" className="matchplay-hub-stepper-btn" aria-label="Increase Team B score" onClick={() => onScoreBChange(scoreB + 1)}>
+                <span className="matchplay-hub-stepper-value">{draftScoreB}</span>
+                <button type="button" className="matchplay-hub-stepper-btn" aria-label="Increase Team B score" onClick={() => onScoreBChange(draftScoreB + 1)}>
                   +
                 </button>
               </div>
             )}
           </div>
 
-          {(scoreA > 0 || scoreB > 0) && (
-            <p className="matchplay-hub-match-entry-result">
-              Result:{' '}
-              {teamAWins ? `${teamADisplay} win` : teamBWins ? `${teamBDisplay} win` : 'Draw'}
-            </p>
+          {isAmericano ? (
+            draftScoreA > 0 && (
+              <p className="matchplay-hub-match-entry-result">
+                Result:{' '}
+                {entryTeamAWins ? `${teamADisplay} win` : entryTeamBWins ? `${teamBDisplay} win` : 'Draw'}
+              </p>
+            )
+          ) : (
+            (draftScoreA > 0 || draftScoreB > 0) && (
+              <p className="matchplay-hub-match-entry-result">
+                Result:{' '}
+                {entryTeamAWins ? `${teamADisplay} win` : entryTeamBWins ? `${teamBDisplay} win` : 'Draw'}
+              </p>
+            )
           )}
 
           <div className="matchplay-hub-match-entry-actions">
@@ -476,7 +482,7 @@ function HubMatchCard({
             </button>
             <button
               type="button"
-              onClick={() => onConfirmScores(scoreA, scoreB)}
+              onClick={() => onConfirmScores(draftScoreA, draftScoreB)}
               disabled={confirmDisabled}
               className="matchplay-hub-btn matchplay-hub-btn--primary"
             >
@@ -504,7 +510,7 @@ export default function MatchplayEventPage() {
 
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null)
-  const [draftScores, setDraftScores] = useState<Record<string, { a: number; b: number }>>({})
+  const [draftScores, setDraftScores] = useState<Record<string, { a: number; b?: number }>>({})
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null)
 
   const [showPlayersModal, setShowPlayersModal] = useState(false)
@@ -986,7 +992,13 @@ export default function MatchplayEventPage() {
               isExpanded={expandedMatchId === match.id}
               draft={draftScores[match.id]}
               isSubmitting={submittingMatchId === match.id}
-              onToggleExpand={() => setExpandedMatchId(match.id)}
+              onToggleExpand={() => {
+                setExpandedMatchId(match.id)
+                setDraftScores((prev) => ({
+                  ...prev,
+                  [match.id]: prev[match.id] ?? (isAmericano ? { a: 0 } : { a: 0, b: 0 }),
+                }))
+              }}
               onCancelExpand={() => {
                 setExpandedMatchId(null)
                 setDraftScores((prev) => {

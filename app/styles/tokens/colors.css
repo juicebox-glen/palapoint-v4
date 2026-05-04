@@ -33,7 +33,10 @@
   --team-b-dark: #C73D75;
   --team-b-bg: rgba(232, 74, 138, 0.15);
   --team-b-glow: rgba(232, 74, 138, 0.4);
-  
+  /* Aliases for layouts that expect --team-*-color (e.g. matchplay hub score borders) */
+  --team-a-color: var(--team-a);
+  --team-b-color: var(--team-b);
+
   /* ----------------------------------------
      BACKGROUNDS
      Dark theme foundation - matches setup page
@@ -63,6 +66,7 @@
      SEMANTIC (status / feedback)
      ---------------------------------------- */
   --success: #22C55E;
+  --success-rgb: 34, 197, 94;
   --success-dark: #16A34A;
   --success-bg: rgba(34, 197, 94, 0.15);
   

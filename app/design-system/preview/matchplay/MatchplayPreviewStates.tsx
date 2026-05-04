@@ -306,14 +306,14 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Rob Anderson', 'surname_short')}</span>
               </div>
-              <div className="matchplay-hub-match-score">
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--completed">
                 <span className="matchplay-hub-match-score-num">18</span>
               </div>
               <div className="matchplay-hub-match-center">
                 <span className="matchplay-hub-match-vs">VS</span>
                 <span className="matchplay-hub-match-court">Court 1</span>
               </div>
-              <div className="matchplay-hub-match-score">
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--completed">
                 <span className="matchplay-hub-match-score-num">14</span>
               </div>
               <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
@@ -328,15 +328,15 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Jake Thomas', 'surname_short')}</span>
               </div>
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">12</span>
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--side-a">
+                <span className="matchplay-hub-match-score-num">0</span>
               </div>
               <div className="matchplay-hub-match-center">
                 <span className="matchplay-hub-match-vs">VS</span>
                 <span className="matchplay-hub-match-court">Court 2</span>
               </div>
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">20</span>
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--side-b">
+                <span className="matchplay-hub-match-score-num">0</span>
               </div>
               <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Mike Brown', 'surname_short')}</span>

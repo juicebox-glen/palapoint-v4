@@ -1522,6 +1522,10 @@
   overflow: hidden;
 }
 
+.matchplay-hub-match--completed {
+  border-left: 3px solid var(--success);
+}
+
 .matchplay-hub-match--pending {
   cursor: pointer;
 }
@@ -1574,12 +1578,16 @@
   opacity: 0.5;
 }
 
-.matchplay-hub-match-team--a + .matchplay-hub-match-score:not(.matchplay-hub-match-score--placeholder) {
-  border: 2px solid var(--team-a-color, #5b6cff);
+.matchplay-hub-match--pending .matchplay-hub-match-score--side-a {
+  border: 2px solid var(--team-a-color);
 }
 
-.matchplay-hub-match-center + .matchplay-hub-match-score:not(.matchplay-hub-match-score--placeholder) {
-  border: 2px solid var(--team-b-color, #ff6b9d);
+.matchplay-hub-match--pending .matchplay-hub-match-score--side-b {
+  border: 2px solid var(--team-b-color);
+}
+
+.matchplay-hub-match-score--completed {
+  border: 2px solid var(--success);
 }
 
 .matchplay-hub-match-score-num {
