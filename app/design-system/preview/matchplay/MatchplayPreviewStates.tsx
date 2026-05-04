@@ -239,9 +239,6 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                   </div>
                 ))}
               </div>
-              <p className="matchplay-card-hint matchplay-card-hint--center">
-                Americano works best with multiples of 4 (6–20 players supported)
-              </p>
             </div>
           </div>
         </div>
