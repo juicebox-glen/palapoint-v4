@@ -85,7 +85,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             <div className="matchplay-card">
               <span className="matchplay-card-label">Players</span>
               <div className="matchplay-pill-bar matchplay-pill-bar--players">
-                {[8, 10, 12, 14, 16, 20].map((n) => (
+                {[6, 8, 10, 12, 14, 16, 20].map((n) => (
                   <span key={n} className={`matchplay-pill-bar-item ${n === 8 ? 'matchplay-pill-bar-item--selected' : ''}`}>
                     {n}
                   </span>
@@ -94,7 +94,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
 
             <div className="matchplay-card">
-              <span className="matchplay-card-label">Courts</span>
+              <span className="matchplay-card-label">Select Courts</span>
               <div className="matchplay-court-grid">
                 {[1, 2, 3, 4].map((n) => {
                   const sel = n === 1 || n === 2
@@ -112,11 +112,19 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                   )
                 })}
               </div>
-              <p className="matchplay-card-hint">8 players · 2 courts · 0 resting per round</p>
+              <div className="matchplay-court-summary">
+                <span className="matchplay-court-summary-item">
+                  <strong>8</strong> players
+                </span>
+                <span className="matchplay-court-summary-divider">·</span>
+                <span className="matchplay-court-summary-item">
+                  <strong>2</strong> courts
+                </span>
+              </div>
             </div>
 
             <div className="matchplay-card">
-              <span className="matchplay-card-label">Points per match</span>
+              <span className="matchplay-card-label">Points per Match</span>
               <div className="matchplay-pill-bar">
                 {[16, 24, 32].map((n) => (
                   <span key={n} className={`matchplay-pill-bar-item ${n === 32 ? 'matchplay-pill-bar-item--selected' : ''}`}>
@@ -124,13 +132,14 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                   </span>
                 ))}
               </div>
+              <p className="matchplay-card-hint">~8 min per match</p>
             </div>
 
             <div className="matchplay-card">
               <span className="matchplay-card-label">Rounds</span>
               <div className="matchplay-pill-bar">
                 {[3, 4, 5, 6, 7].map((n) => (
-                  <span key={n} className={`matchplay-pill-bar-item ${n === 5 ? 'matchplay-pill-bar-item--selected' : ''}`}>
+                  <span key={n} className={`matchplay-pill-bar-item ${n === 7 ? 'matchplay-pill-bar-item--selected' : ''}`}>
                     {n}
                   </span>
                 ))}
@@ -141,15 +150,15 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             <div className="matchplay-card matchplay-card--overview">
               <div className="matchplay-overview-row">
                 <span className="matchplay-overview-label">Total matches</span>
-                <span className="matchplay-overview-value">10</span>
+                <span className="matchplay-overview-value">14</span>
               </div>
               <div className="matchplay-overview-row">
                 <span className="matchplay-overview-label">Matches per player</span>
-                <span className="matchplay-overview-value">~5</span>
+                <span className="matchplay-overview-value">~7</span>
               </div>
               <div className="matchplay-overview-row">
                 <span className="matchplay-overview-label">Est. duration</span>
-                <span className="matchplay-overview-value">40m</span>
+                <span className="matchplay-overview-value">56m</span>
               </div>
             </div>
           </div>

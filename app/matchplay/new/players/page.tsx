@@ -483,7 +483,7 @@ export default function MatchplayPlayersPage() {
             </div>
 
             <p className="matchplay-card-hint matchplay-card-hint--center">
-              Americano works best with multiples of 4 (8, 12, 16 players)
+              Americano works best with multiples of 4 (6–20 players supported)
             </p>
           </div>
 

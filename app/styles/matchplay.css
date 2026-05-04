@@ -2299,6 +2299,59 @@
   }
 }
 
+.matchplay-court-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space-xs);
+  margin-top: var(--ui-space-lg);
+  padding: var(--ui-space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.matchplay-court-summary-item {
+  font-size: var(--ui-font-base);
+  color: var(--text-primary);
+}
+
+.matchplay-court-summary-item strong {
+  font-weight: var(--font-weight-bold);
+}
+
+.matchplay-court-summary-divider {
+  color: var(--text-muted);
+}
+
+.matchplay-court-summary-warning {
+  color: var(--warning);
+}
+
+.matchplay-court-summary-warning strong {
+  color: var(--warning);
+}
+
+.matchplay-validation-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-sm);
+  padding: 0 var(--ui-space-lg);
+  margin-bottom: var(--ui-space-md);
+}
+
+.matchplay-validation-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-sm);
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  color: var(--warning);
+  font-size: var(--ui-font-sm);
+}
+
 /* Court tiles: two states — dark (default) vs brand blue (selected). Court diagram full tile; number centered on top in z-order. */
 .matchplay-court-btn {
   --matchplay-court-tile: #1e2128;
