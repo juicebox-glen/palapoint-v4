@@ -325,15 +325,18 @@ export default function MatchplayPlayersPage() {
           ← Back
         </button>
         <h1 className="matchplay-page-title">Players</h1>
-        <span className="matchplay-header-badge">
-          {filledCount} of {config.playerCount}
-        </span>
+        <span className="matchplay-page-header-spacer" aria-hidden />
       </div>
 
       <div className="matchplay-setup-inner">
         <div className="matchplay-setup-content">
           <div className="matchplay-card">
-            <span className="matchplay-card-label">Add Players</span>
+            <div className="matchplay-card-label-row">
+              <span className="matchplay-card-label">Add Players</span>
+              <span className="matchplay-card-label-count">
+                {filledCount} of {config.playerCount}
+              </span>
+            </div>
             <div className="setup-inputs">
               {players.map((player, index) => {
                 const busy = processingSlot === index

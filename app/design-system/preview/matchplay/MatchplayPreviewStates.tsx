@@ -229,15 +229,18 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
         <div className="matchplay-page-header">
           <span className="matchplay-back-btn">← Back</span>
           <h1 className="matchplay-page-title">Players</h1>
-          <span className="matchplay-header-badge">
-            {filled} of {slots.length}
-          </span>
+          <span className="matchplay-page-header-spacer" aria-hidden />
         </div>
 
         <div className="matchplay-setup-inner">
           <div className="matchplay-setup-content">
             <div className="matchplay-card">
-              <span className="matchplay-card-label">Add Players</span>
+              <div className="matchplay-card-label-row">
+                <span className="matchplay-card-label">Add Players</span>
+                <span className="matchplay-card-label-count">
+                  {filled} of {slots.length}
+                </span>
+              </div>
               <div className="setup-inputs">
                 {slots.map((slot, index) => (
                   <div key={index} className="setup-player-row">

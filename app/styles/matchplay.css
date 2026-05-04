@@ -2227,6 +2227,27 @@
   margin-bottom: var(--ui-space-md);
 }
 
+.matchplay-card-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ui-space-md);
+  margin-bottom: 1.2rem;
+}
+
+.matchplay-card-label-row .matchplay-card-label {
+  margin-bottom: 0;
+}
+
+.matchplay-card-label-count {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
 .matchplay-card-hint {
   font-size: var(--ui-font-sm);
   color: var(--text-muted);
