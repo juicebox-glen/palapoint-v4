@@ -200,46 +200,49 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
         <div className="matchplay-setup-inner">
           <div className="matchplay-setup-content">
-            <div className="setup-inputs">
-              {slots.map((slot, index) => (
-                <div key={index} className="setup-player-row">
-                  <span
-                    className={`matchplay-player-avatar ${slot.photo === 'img' ? 'matchplay-player-avatar--has-photo' : ''}`}
-                    aria-hidden
-                  >
-                    {slot.photo === 'img' ? (
-                      <span className="matchplay-ds-photo-fake" />
-                    ) : slot.name ? (
-                      <span className="matchplay-player-initials">{getPlayerInitials(slot.name)}</span>
-                    ) : (
-                      <svg
-                        className="matchplay-player-camera-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect x="3" y="6" width="18" height="14" rx="2" />
-                        <circle cx="12" cy="13" r="4" />
-                        <path d="M9 3h6l1.5 3h-9z" />
-                      </svg>
-                    )}
-                  </span>
-                  <div className="setup-input-wrap setup-input-wrap--player-name">
-                    <input
-                      type="text"
-                      className="setup-input"
-                      placeholder={`Player ${index + 1}`}
-                      readOnly
-                      value={slot.name}
-                    />
+            <div className="matchplay-card">
+              <span className="matchplay-card-label">Add Players</span>
+              <div className="setup-inputs">
+                {slots.map((slot, index) => (
+                  <div key={index} className="setup-player-row">
+                    <span
+                      className={`matchplay-player-avatar ${slot.photo === 'img' ? 'matchplay-player-avatar--has-photo' : ''}`}
+                      aria-hidden
+                    >
+                      {slot.photo === 'img' ? (
+                        <span className="matchplay-ds-photo-fake" />
+                      ) : slot.name ? (
+                        <span className="matchplay-player-initials">{getPlayerInitials(slot.name)}</span>
+                      ) : (
+                        <svg
+                          className="matchplay-player-camera-icon"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect x="3" y="6" width="18" height="14" rx="2" />
+                          <circle cx="12" cy="13" r="4" />
+                          <path d="M9 3h6l1.5 3h-9z" />
+                        </svg>
+                      )}
+                    </span>
+                    <div className="setup-input-wrap setup-input-wrap--player-name">
+                      <input
+                        type="text"
+                        className="setup-input"
+                        placeholder={`Player ${index + 1}`}
+                        readOnly
+                        value={slot.name}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <p className="matchplay-card-hint matchplay-card-hint--center">
+                Americano works best with multiples of 4 (6–20 players supported)
+              </p>
             </div>
-            <p className="matchplay-players-setup-hint">
-              Americano works best with multiples of 4 (6–20 players supported)
-            </p>
           </div>
         </div>
 

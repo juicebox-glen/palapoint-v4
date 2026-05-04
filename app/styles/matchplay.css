@@ -2511,15 +2511,6 @@
   padding: var(--ui-space-xl);
 }
 
-/* Matchplay Americano add-players: same row pattern as setup-form `setup-player-row` + `setup-input-wrap--player-name` */
-.matchplay-players-setup-hint {
-  font-size: var(--ui-font-sm);
-  color: var(--text-muted);
-  text-align: center;
-  margin: var(--ui-space-md) 0 0;
-  line-height: 1.45;
-}
-
 .matchplay-player-avatar {
   width: 48px;
   height: 48px;
