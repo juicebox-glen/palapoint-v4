@@ -32,9 +32,13 @@ export default function MatchplayScreensPage() {
       <header className="ds-page-header">
         <h1>Social Matchplay</h1>
         <p>
-          Staff flow: launcher → Event Setup → Add Players → event hub. Event Setup and Add Players use the same
-          card-based layout and pill bars as game setup (<code>setup-form.css</code> logo class + <code>matchplay.css</code>{' '}
-          setup tokens). TV board previews mirror fixtures with avatars and standings with photo cells.
+          Staff flow: launcher → Event Setup (<code>/matchplay/new</code>) → Add Players (
+          <code>/matchplay/new/players</code>) → event hub. Event Setup uses pill bars, the courts summary strip, and the
+          overview card; there is no venue logo strip on those routes (the launcher uses <code>SetupScreenHeader</code>{' '}
+          only). Add Players follows staff match setup: <code>setup-photo-trigger</code>,{' '}
+          <code>setup-photo-thumb</code>, and a hidden file input with <code>accept=&quot;image/*&quot;</code> so the OS
+          photo picker opens directly. TV board previews mirror <code>/matchplay/[id]/board</code>; mocks use a neutral
+          venue label.
         </p>
       </header>
 
@@ -42,7 +46,7 @@ export default function MatchplayScreensPage() {
         <h2>Staff</h2>
         <ScreenPreview
           title="Staff Matchplay"
-          description="Mobile frame for launcher, Event Setup, Add Players, and event hub. Launcher only uses SetupScreenHeader; setup screens match /matchplay/new."
+          description="Mobile previews use production class names (no Supabase). Matches launcher, Event Setup, Add Players, and event hub — layout aligned with live routes above."
           viewport="mobile"
           states={STAFF_STATES}
         />

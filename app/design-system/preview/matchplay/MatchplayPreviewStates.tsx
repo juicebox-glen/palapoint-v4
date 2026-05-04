@@ -7,6 +7,7 @@ import '@/app/styles/setup-form.css'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
+import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { formatPlayerName, formatTeamDisplay, getPlayerInitials } from '@/lib/utils/name-format'
 
 /** Map legacy ?state= values to current preview keys. */
@@ -55,6 +56,47 @@ function DsStandingsPlayerCell({ name }: { name: string }) {
   )
 }
 
+/** Same icon as staff setup `PlayerPhotoCapture` — native picker opens from hidden file input in production. */
+function DsSetupCameraIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="setup-photo-trigger-svg"
+      aria-hidden
+    >
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  )
+}
+
+/** Static decoration matching `/matchplay/new/players` photo column (`setup-photo-thumb` / `setup-photo-trigger`). */
+function DsMatchplayAddPlayersPhotoSlot({ hasPhoto }: { hasPhoto: boolean }) {
+  if (hasPhoto) {
+    return (
+      <div className="setup-photo-circle-wrap">
+        <span className="setup-photo-thumb" style={{ pointerEvents: 'none', cursor: 'default' }}>
+          <span className="matchplay-ds-photo-fake" />
+        </span>
+        <span className="setup-photo-remove" style={{ pointerEvents: 'none' }} aria-hidden>
+          ×
+        </span>
+      </div>
+    )
+  }
+  return (
+    <span className="setup-photo-trigger setup-photo-trigger--static" aria-hidden>
+      <DsSetupCameraIcon />
+    </span>
+  )
+}
+
 /** Static previews using production class names — no Supabase. */
 export default function MatchplayPreviewStates({ state }: { state: string }) {
   const s = normalizeState(state || 'launcher')
@@ -71,9 +113,6 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'format') {
     return (
       <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-brand-header">
-          <span className="matchplay-brand-text">PalaPoint</span>
-        </header>
         <div className="matchplay-page-header">
           <span className="matchplay-back-btn">← Back</span>
           <h1 className="matchplay-page-title">New Americano</h1>
@@ -85,7 +124,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             <div className="matchplay-card">
               <span className="matchplay-card-label">Players</span>
               <div className="matchplay-pill-bar matchplay-pill-bar--players">
-                {[6, 8, 10, 12, 14, 16, 20].map((n) => (
+                {MATCHPLAY_AMERICANO_PLAYER_OPTIONS.map((n) => (
                   <span key={n} className={`matchplay-pill-bar-item ${n === 8 ? 'matchplay-pill-bar-item--selected' : ''}`}>
                     {n}
                   </span>
@@ -174,8 +213,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   }
 
   if (s === 'players') {
-    const slots: { name: string; photo?: 'initials' | 'img' }[] = [
-      { name: 'Glen Noble', photo: 'img' },
+    const slots: { name: string; hasPhoto?: boolean }[] = [
+      { name: 'Glen Noble', hasPhoto: true },
       { name: 'Rob Anderson' },
       { name: 'Julian Waters' },
       { name: 'Carl Pettit' },
@@ -187,9 +226,6 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     const filled = slots.filter((row) => row.name.trim()).length
     return (
       <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-brand-header">
-          <span className="matchplay-brand-text">PalaPoint</span>
-        </header>
         <div className="matchplay-page-header">
           <span className="matchplay-back-btn">← Back</span>
           <h1 className="matchplay-page-title">Players</h1>
@@ -205,28 +241,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               <div className="setup-inputs">
                 {slots.map((slot, index) => (
                   <div key={index} className="setup-player-row">
-                    <span
-                      className={`matchplay-player-avatar ${slot.photo === 'img' ? 'matchplay-player-avatar--has-photo' : ''}`}
-                      aria-hidden
-                    >
-                      {slot.photo === 'img' ? (
-                        <span className="matchplay-ds-photo-fake" />
-                      ) : slot.name ? (
-                        <span className="matchplay-player-initials">{getPlayerInitials(slot.name)}</span>
-                      ) : (
-                        <svg
-                          className="matchplay-player-camera-icon"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect x="3" y="6" width="18" height="14" rx="2" />
-                          <circle cx="12" cy="13" r="4" />
-                          <path d="M9 3h6l1.5 3h-9z" />
-                        </svg>
-                      )}
-                    </span>
+                    <DsMatchplayAddPlayersPhotoSlot hasPhoto={!!slot.hasPhoto && !!slot.name.trim()} />
                     <div className="setup-input-wrap setup-input-wrap--player-name">
                       <input
                         type="text"
@@ -369,7 +384,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       <div className="board-container board-live">
         <header className="board-header">
           <div className="board-header-logo">
-            <span className="board-venue-name">Padel4All</span>
+            <span className="board-venue-name">Venue</span>
           </div>
           <h1 className="board-header-title">Tue 22 Apr Americano</h1>
           <div className="board-header-right">
@@ -441,7 +456,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       <div className="board-container board-live">
         <header className="board-header">
           <div className="board-header-logo">
-            <span className="board-venue-name">Padel4All</span>
+            <span className="board-venue-name">Venue</span>
           </div>
           <h1 className="board-header-title">Tue 22 Apr Americano</h1>
           <div className="board-header-right">
@@ -573,7 +588,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       <div className="board-container board-completed">
         <header className="board-header">
           <div className="board-header-logo">
-            <span className="board-venue-name">Padel4All</span>
+            <span className="board-venue-name">Venue</span>
           </div>
           <h1 className="board-header-title">Tue 22 Apr Americano</h1>
           <div className="board-header-right">
@@ -704,7 +719,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       <p className="matchplay-loading-text" style={{ marginBottom: 'var(--ui-space-md)' }}>
         Unknown preview state &quot;{state}&quot; — showing launcher. Try{' '}
         <code>
-          ?state=launcher|format|event_setup|players|event|board_setup|board_live|board_completed
+          ?state=launcher|format|players|event|board_setup|board_live|board_completed
         </code>{' '}
         (aliases: <code>setup</code> → Event Setup, <code>fixtures|scoring|standings</code> → Event Hub).
       </p>
