@@ -300,7 +300,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           <button type="button" className="matchplay-hub-round-tab">ROUND 4</button>
         </nav>
         <div className="matchplay-hub-matches">
-          <div className="matchplay-hub-match matchplay-hub-match--completed">
+          <div className="matchplay-hub-match matchplay-card matchplay-hub-match--completed">
             <div className="matchplay-hub-match-compact">
               <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
@@ -324,7 +324,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               </div>
             </div>
           </div>
-          <div className="matchplay-hub-match matchplay-hub-match--pending matchplay-hub-match--expanded">
+          <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending matchplay-hub-match--expanded">
             <div className="matchplay-hub-match-compact">
               <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>

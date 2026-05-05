@@ -304,7 +304,7 @@ function HubMatchCard({
 
   if (isSetup) {
     return (
-      <div className="matchplay-hub-match matchplay-hub-match--setup">
+      <div className="matchplay-hub-match matchplay-card matchplay-hub-match--setup">
         <div className="matchplay-hub-match-compact">
           <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
             {teamASurnames.map((name, i) => (
@@ -346,7 +346,7 @@ function HubMatchCard({
 
   return (
     <div
-      className={`matchplay-hub-match ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'} ${isExpanded ? 'matchplay-hub-match--expanded' : ''}`}
+      className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'} ${isExpanded ? 'matchplay-hub-match--expanded' : ''}`}
       onClick={() => !isExpanded && onToggleExpand()}
       role="button"
       tabIndex={0}

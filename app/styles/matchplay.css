@@ -1515,34 +1515,19 @@
   padding: var(--ui-space-md) var(--ui-space-lg);
 }
 
-.matchplay-hub-match {
-  /* Compact row — pixel-matched to hub fixture card spec */
-  --hub-compact-bg: #0c0d10;
-  --hub-compact-border: rgba(255, 255, 255, 0.06);
-  --hub-compact-score-bg: #21262e;
-  --hub-compact-meta: #6b7280;
-  --hub-compact-rule: #334155;
-
-  background: var(--hub-compact-bg);
-  border: 1px solid var(--hub-compact-border);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
 .matchplay-hub-match--pending {
   cursor: pointer;
 }
 
 .matchplay-hub-match--completed {
   cursor: pointer;
-  border-left: 3px solid var(--success);
-}
-
-.matchplay-hub-match--expanded {
-  border-color: var(--brand-primary);
 }
 
 .matchplay-hub-match-compact {
+  --hub-compact-score-bg: var(--bg-tertiary);
+  --hub-compact-meta: var(--text-muted);
+  --hub-compact-rule: var(--border-default);
+
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(4.75rem, auto) auto minmax(0, 1fr);
   align-items: center;
@@ -2159,6 +2144,20 @@
   padding: var(--ui-space-lg);
   border: 1px solid var(--border-default);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Event hub fixture rows share matchplay-card chrome; inset padding lives in compact + entry */
+.matchplay-hub-match.matchplay-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.matchplay-hub-match.matchplay-card.matchplay-hub-match--completed {
+  border-left: 3px solid var(--success);
+}
+
+.matchplay-hub-match.matchplay-card.matchplay-hub-match--expanded {
+  border-color: var(--brand-primary);
 }
 
 .matchplay-card-label {
