@@ -1526,6 +1526,15 @@
   cursor: pointer;
 }
 
+.matchplay-hub-match--completed {
+  cursor: pointer;
+  border-left: 3px solid var(--success);
+}
+
+.matchplay-hub-match--completed .matchplay-hub-match-compact {
+  opacity: 0.92;
+}
+
 .matchplay-hub-match--expanded {
   border-color: var(--brand-primary);
 }
@@ -1561,12 +1570,13 @@
 }
 
 .matchplay-hub-match-score {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
 }
 
@@ -1574,20 +1584,8 @@
   opacity: 0.5;
 }
 
-.matchplay-hub-match--pending .matchplay-hub-match-score--side-a {
-  border: 2px solid var(--team-a-color);
-}
-
-.matchplay-hub-match--pending .matchplay-hub-match-score--side-b {
-  border: 2px solid var(--team-b-color);
-}
-
-.matchplay-hub-match-score--completed {
-  border: 2px solid var(--success);
-}
-
 .matchplay-hub-match-score-num {
-  font-size: var(--ui-font-xl);
+  font-size: var(--ui-font-lg);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }

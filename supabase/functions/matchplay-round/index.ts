@@ -321,6 +321,8 @@ Deno.serve(async (req) => {
           return errorResponse('match_id, team_a_score, and team_b_score are required');
         }
 
+        // Applies to pending or already-completed matches (staff corrections).
+
         const { data: match, error: matchErr } = await supabase
           .from('matchplay_matches')
           .select('*')
