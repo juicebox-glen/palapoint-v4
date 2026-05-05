@@ -1522,10 +1522,6 @@
   overflow: hidden;
 }
 
-.matchplay-hub-match--completed {
-  border-left: 3px solid var(--success);
-}
-
 .matchplay-hub-match--pending {
   cursor: pointer;
 }
