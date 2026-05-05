@@ -4,6 +4,7 @@ import '@/app/styles/matchplay.css'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
+import { BoardStandings, type BoardStandingsPlayer } from '@/components/matchplay/BoardStandings'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
@@ -21,6 +22,61 @@ function normalizeState(raw: string): string {
   }
   return aliases[raw] ?? raw
 }
+
+/** Static standings rows — keep in sync with TV board `/matchplay/[id]/board` previews. */
+const DS_BOARD_LIVE_STANDINGS: BoardStandingsPlayer[] = [
+  { id: 'ds-live-1', name: 'Glen Noble', total_points: 38, game_difference: 12 },
+  { id: 'ds-live-2', name: 'Julian Waters', total_points: 38, game_difference: 12 },
+  { id: 'ds-live-3', name: 'Rob Anderson', total_points: 30, game_difference: 2 },
+  { id: 'ds-live-4', name: 'Carl Pettit', total_points: 28, game_difference: -2 },
+]
+
+const DS_BOARD_LIVE_RESTING: BoardStandingsPlayer[] = [
+  { id: 'ds-live-rest', name: 'Alex Chen', total_points: 22, game_difference: -4 },
+]
+
+const DS_BOARD_COMPLETED_STANDINGS: BoardStandingsPlayer[] = [
+  {
+    id: 'ds-fin-1',
+    name: 'Glen Noble',
+    total_points: 95,
+    game_difference: 24,
+    matches_played: 5,
+    matches_won: 5,
+    matches_drawn: 0,
+    matches_lost: 0,
+  },
+  {
+    id: 'ds-fin-2',
+    name: 'Julian Waters',
+    total_points: 82,
+    game_difference: 10,
+    matches_played: 5,
+    matches_won: 4,
+    matches_drawn: 0,
+    matches_lost: 1,
+  },
+  {
+    id: 'ds-fin-3',
+    name: 'Rob Anderson',
+    total_points: 71,
+    game_difference: 4,
+    matches_played: 5,
+    matches_won: 3,
+    matches_drawn: 1,
+    matches_lost: 1,
+  },
+  {
+    id: 'ds-fin-4',
+    name: 'Carl Pettit',
+    total_points: 58,
+    game_difference: -6,
+    matches_played: 5,
+    matches_won: 2,
+    matches_drawn: 0,
+    matches_lost: 3,
+  },
+]
 
 function DsFixturePhoto({ name }: { name: string }) {
   return (
@@ -40,18 +96,6 @@ function DsFixturePhotosAndTeamName({ p1, p2 }: { p1: string; p2: string }) {
       </div>
       <span className="board-fixture-names">{formatTeamDisplay(p1, p2, 1, 'first')}</span>
     </>
-  )
-}
-
-function DsStandingsPlayerCell({ name }: { name: string }) {
-  const initials = getPlayerInitials(name)
-  return (
-    <div className="board-standings-player-cell">
-      <div className="board-player-photo board-player-photo--sm board-player-photo--initials" aria-hidden>
-        {initials}
-      </div>
-      <span className="board-standings-player-name">{formatPlayerName(name, 'full')}</span>
-    </div>
   )
 }
 
@@ -451,9 +495,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               Resting this round: {formatPlayerName('Alex Chen', 'full')}
             </div>
           </div>
-          <div className="board-panel board-standings">
-            <div className="board-panel-title">STANDINGS</div>
-            <div className="board-standings-empty">Standings will appear after Round 1</div>
+          <div className="board-panel board-standings board-panel--standings">
+            <BoardStandings mode="setup" standings={[]} />
           </div>
         </div>
         <footer className="board-footer">
@@ -530,62 +573,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               Resting this round: {formatPlayerName('Alex Chen', 'full')}
             </div>
           </div>
-          <div className="board-panel board-standings">
-            <div className="board-panel-title">STANDINGS</div>
-            <table className="board-standings-table board-standings-table--live">
-              <thead>
-                <tr>
-                  <th className="board-th-rank">#</th>
-                  <th className="board-th-player">Player</th>
-                  <th className="board-th-points">P</th>
-                  <th className="board-th-diff">+/-</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="board-standings-row board-row-tied">
-                  <td className="board-td-rank board-td-rank-cell">1</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Glen Noble" />
-                  </td>
-                  <td className="board-td-points">38</td>
-                  <td className="board-td-diff">+12</td>
-                </tr>
-                <tr className="board-standings-row board-row-tied">
-                  <td className="board-td-rank board-td-rank-cell">1</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Julian Waters" />
-                  </td>
-                  <td className="board-td-points">38</td>
-                  <td className="board-td-diff">+12</td>
-                </tr>
-                <tr className="board-standings-row">
-                  <td className="board-td-rank board-td-rank-cell">3</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Rob Anderson" />
-                  </td>
-                  <td className="board-td-points">30</td>
-                  <td className="board-td-diff">+2</td>
-                </tr>
-                <tr className="board-standings-row">
-                  <td className="board-td-rank board-td-rank-cell">4</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Carl Pettit" />
-                  </td>
-                  <td className="board-td-points">28</td>
-                  <td className="board-td-diff">−2</td>
-                </tr>
-                <tr className="board-standings-row board-row-resting">
-                  <td className="board-td-rank board-td-rank-cell board-td-rank-resting" aria-hidden>
-                    ·
-                  </td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Alex Chen" />
-                  </td>
-                  <td className="board-td-points">0</td>
-                  <td className="board-td-diff">0</td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="board-panel board-standings board-panel--standings">
+            <BoardStandings mode="live" standings={DS_BOARD_LIVE_STANDINGS} restingPlayers={DS_BOARD_LIVE_RESTING} />
           </div>
         </div>
         <footer className="board-footer">
@@ -650,71 +639,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
 
             <div className="board-winner-divider" />
-            <div className="board-standings-title">FINAL STANDINGS</div>
-            <table className="board-standings-table">
-              <thead>
-                <tr>
-                  <th className="board-th-rank">#</th>
-                  <th className="board-th-player">Player</th>
-                  <th className="board-th-num">P</th>
-                  <th className="board-th-num">W</th>
-                  <th className="board-th-num">D</th>
-                  <th className="board-th-num">L</th>
-                  <th className="board-th-num">GD</th>
-                  <th className="board-th-pts">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="board-rank-1">
-                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥇</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Glen Noble" />
-                  </td>
-                  <td className="board-td-num">5</td>
-                  <td className="board-td-num">5</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">+24</td>
-                  <td className="board-td-pts">95</td>
-                </tr>
-                <tr className="board-rank-2">
-                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥈</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Julian Waters" />
-                  </td>
-                  <td className="board-td-num">5</td>
-                  <td className="board-td-num">4</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">+10</td>
-                  <td className="board-td-pts">82</td>
-                </tr>
-                <tr className="board-rank-3">
-                  <td className="board-td-rank board-td-rank-cell board-td-rank-medal">🥉</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Rob Anderson" />
-                  </td>
-                  <td className="board-td-num">5</td>
-                  <td className="board-td-num">3</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">1</td>
-                  <td className="board-td-num">+4</td>
-                  <td className="board-td-pts">71</td>
-                </tr>
-                <tr>
-                  <td className="board-td-rank board-td-rank-cell">4</td>
-                  <td className="board-td-player">
-                    <DsStandingsPlayerCell name="Carl Pettit" />
-                  </td>
-                  <td className="board-td-num">5</td>
-                  <td className="board-td-num">2</td>
-                  <td className="board-td-num">0</td>
-                  <td className="board-td-num">3</td>
-                  <td className="board-td-num">−6</td>
-                  <td className="board-td-pts">58</td>
-                </tr>
-              </tbody>
-            </table>
+            <BoardStandings mode="completed" standings={DS_BOARD_COMPLETED_STANDINGS} title="FINAL STANDINGS" size="hero" />
           </div>
         </div>
 

@@ -56,3 +56,11 @@ Additional variants (unchanged): **`.btn-danger-fill`**, **`.btn-team-a`**, **`.
 ## Setup screen tokens
 
 **`.setup-screen`** maps local aliases (`--background`, `--primary`, `--card`, …) to global `:root` tokens in **`setup-form.css`** so setup UI stays theme-consistent.
+
+## Matchplay TV board standings
+
+- **Component:** [`components/matchplay/BoardStandings.tsx`](../components/matchplay/BoardStandings.tsx) — podium-style rows, medals for ranks 1–3, optional resting rows (live), hero variant with W-D-L line (completed).
+- **Styles:** **`board-standings-root`** and related classes in **`app/styles/matchplay-board.css`**.
+- **Design-system previews:** [`app/design-system/preview/matchplay/MatchplayPreviewStates.tsx`](../app/design-system/preview/matchplay/MatchplayPreviewStates.tsx) uses **`BoardStandings`** for `board_setup`, `board_live`, and `board_completed` so mocks stay aligned with [`app/matchplay/[id]/board/page.tsx`](../app/matchplay/[id]/board/page.tsx). Mock rows live at **`DS_BOARD_*`** constants in that file — update them when changing production mock data or layout.
+
+Legacy **`board-standings-table`** rules remain in **`matchplay-board.css`** only for any stray HTML tables; prefer **`BoardStandings`** for new work.
