@@ -13,6 +13,15 @@ export default function ButtonsPage() {
       </header>
 
       <section className="ds-section">
+        <h2>Naming</h2>
+        <p>
+          Prefer BEM-style modifiers on <code>.btn</code> (<code>btn--primary</code>, <code>btn--full</code>) alongside the legacy
+          chained names (<code>btn-primary</code>, <code>btn-block</code>) — both map to the same rules in{' '}
+          <code>app/styles/components/buttons.css</code>. See <code>docs/ui-components.md</code>.
+        </p>
+      </section>
+
+      <section className="ds-section">
         <h2>Primary Buttons</h2>
         <p>Used for main actions: Start Match, Continue, Submit</p>
 

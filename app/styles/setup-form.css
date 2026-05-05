@@ -2,20 +2,24 @@
    Game Setup Screen — Style Reference (all fonts Inter)
    ============================================================ */
 
-/* Design tokens */
+/* Scoped aliases → global design tokens (:root from tokens/colors.css) */
 .setup-screen {
-  --background: rgba(14, 17, 22, 1);
-  --foreground: #E6EAF2;
-  --primary: hsl(228 94% 60%);
-  --primary-foreground: #E6EAF2;
-  --primary-glow: hsl(228 94% 60% / 0.3);
-  --secondary: hsl(220 15% 15%);
-  --secondary-foreground: hsl(0 0% 85%);
-  --muted: hsl(220 15% 18%);
-  --muted-foreground: hsl(220 10% 55%);
-  --border: hsl(220 15% 20%);
-  --card: hsl(220 15% 10%);
-  --input: hsl(220 15% 15%);
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --primary: var(--brand-primary);
+  --primary-foreground: #ffffff;
+  --primary-glow: var(--brand-primary-glow);
+  --secondary: var(--bg-secondary);
+  --secondary-foreground: var(--text-secondary);
+  --muted: var(--bg-tertiary);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--brand-primary);
+  --card: var(--bg-secondary);
+  --card-foreground: var(--text-primary);
+  --border: var(--border-default);
+  --input: var(--bg-tertiary);
+  --ring: var(--brand-primary);
+  --destructive: var(--error);
 }
 
 /* Page — column layout so primary CTA can stay above home indicator / thumb zone */

@@ -2,23 +2,21 @@
    SHARED BUTTON STYLES
    ============================================ */
 
-/* Base button — typography shared by .btn-primary, .btn-secondary, .btn-danger, .btn-ghost, .btn-team-* */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  gap: var(--ui-space-sm);
+  padding: var(--ui-space-md) var(--ui-space-lg);
+  border-radius: var(--radius-lg);
   font-family: var(--font-family);
   font-size: var(--btn-font-size);
   font-weight: var(--btn-font-weight);
-  text-transform: uppercase;
   letter-spacing: var(--btn-letter-spacing);
-  border: none;
-  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-normal);
-  min-height: var(--touch-target-comfortable);
+  transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+  text-transform: uppercase;
 }
 
 .btn:disabled {
@@ -26,45 +24,52 @@
   cursor: not-allowed;
 }
 
-/* Primary button - main actions */
-.btn-primary {
+/* Primary — includes legacy .btn-primary */
+.btn-primary,
+.btn--primary {
   background: var(--brand-primary);
-  color: var(--text-primary);
+  border: none;
+  color: #fff;
   box-shadow: var(--shadow-glow-primary);
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled),
+.btn--primary:hover:not(:disabled) {
   background: var(--brand-primary-hover);
 }
 
-.btn-primary:active:not(:disabled) {
+.btn-primary:active:not(:disabled),
+.btn--primary:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-/* Secondary button - alternative actions */
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+/* Secondary — includes legacy .btn-secondary */
+.btn-secondary,
+.btn--secondary {
+  background: var(--bg-secondary);
   border: 1px solid var(--border-default);
+  color: var(--text-primary);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-light);
+.btn-secondary:hover:not(:disabled),
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--brand-primary);
 }
 
-/* Danger button - destructive actions */
-.btn-danger {
+/* Danger — includes legacy .btn-danger */
+.btn-danger,
+.btn--danger {
   background: transparent;
-  color: var(--error);
   border: 1px solid var(--error);
+  color: var(--error);
 }
 
-.btn-danger:hover:not(:disabled) {
+.btn-danger:hover:not(:disabled),
+.btn--danger:hover:not(:disabled) {
   background: var(--error-bg);
 }
 
-/** Solid destructive CTA (e.g. session takeover) — use with `.btn` */
+/** Solid destructive CTA — use with `.btn` */
 .btn-danger-fill {
   background: var(--error);
   color: var(--text-primary);
@@ -80,15 +85,16 @@
   transform: scale(0.98);
 }
 
-/* Ghost button - minimal emphasis */
-.btn-ghost {
+/* Ghost — includes legacy .btn-ghost */
+.btn-ghost,
+.btn--ghost {
   background: transparent;
+  border: none;
   color: var(--text-secondary);
-  border: 1px solid var(--border-default);
 }
 
-.btn-ghost:hover:not(:disabled) {
-  background: var(--bg-tertiary);
+.btn-ghost:hover:not(:disabled),
+.btn--ghost:hover:not(:disabled) {
   color: var(--text-primary);
 }
 
@@ -96,6 +102,7 @@
 .btn-team-a {
   background: var(--team-a);
   color: var(--text-primary);
+  border: none;
   box-shadow: var(--shadow-glow-team-a);
 }
 
@@ -107,6 +114,7 @@
 .btn-team-b {
   background: var(--team-b);
   color: var(--text-primary);
+  border: none;
   box-shadow: var(--shadow-glow-team-b);
 }
 
@@ -114,20 +122,60 @@
   background: var(--team-b-dark);
 }
 
-/* Full width variant */
-.btn-block {
+.btn-block,
+.btn--full {
   width: 100%;
 }
 
-/* Small button */
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: calc(var(--btn-font-size) - 0.0625rem);
+.btn-sm,
+.btn--sm {
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  font-size: var(--ui-font-sm);
   min-height: var(--touch-target-min);
 }
 
-/* Large button */
-.btn-lg {
-  padding: 1rem 2rem;
-  font-size: calc(var(--btn-font-size) + 0.125rem);
+.btn-lg,
+.btn--lg {
+  padding: var(--ui-space-lg) var(--ui-space-xl);
+  font-size: var(--ui-font-lg);
+  min-height: var(--touch-target-comfortable);
+}
+
+/**
+ * Matchplay full-width primary CTA — backwards-compatible alias.
+ * Prefer: class="btn btn--primary btn--full"
+ */
+.matchplay-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-sm);
+  width: 100%;
+  min-height: var(--touch-target-comfortable);
+  padding: var(--ui-space-md) var(--ui-space-lg);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family);
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--btn-letter-spacing);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  background: var(--brand-primary);
+  color: #fff;
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.matchplay-btn-primary:hover:not(:disabled) {
+  background: var(--brand-primary-hover);
+}
+
+.matchplay-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.matchplay-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -1738,32 +1738,12 @@
   margin-top: var(--ui-space-lg);
 }
 
-.matchplay-hub-btn {
-  padding: var(--ui-space-md);
-  border-radius: var(--radius-lg);
+.matchplay-hub-match-entry-actions .btn {
   font-size: var(--ui-font-base);
   font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
-.matchplay-hub-btn--primary {
-  background: var(--brand-primary);
-  border: none;
-  color: white;
-}
-
-.matchplay-hub-btn--primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.matchplay-hub-btn--secondary {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  color: var(--text-primary);
-}
+/* Hub score-entry buttons — shared .btn / .btn--primary | .btn--secondary (components/buttons.css) */
 
 .matchplay-hub-resting {
   margin: var(--ui-space-md) var(--ui-space-lg) var(--ui-space-xl);
@@ -1809,23 +1789,9 @@
   border-top: 1px solid var(--border-default);
 }
 
-.matchplay-hub-footer-btn {
-  width: 100%;
-  padding: var(--ui-space-md) var(--ui-space-lg);
-  background: var(--brand-primary);
-  border: none;
-  border-radius: var(--radius-lg);
-  color: white;
+.matchplay-hub-footer .btn {
   font-size: var(--ui-font-base);
   font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  text-transform: uppercase;
-  min-height: var(--touch-target-comfortable);
-}
-
-.matchplay-hub-footer-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .matchplay-event-modal-overlay {
@@ -2141,36 +2107,11 @@
   gap: var(--ui-space-md);
 }
 
-.matchplay-card {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: var(--ui-space-lg);
-  border: 1px solid var(--border-default);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-}
-
-/* Event hub fixture rows share matchplay-card chrome; inset padding lives in compact + entry */
+/* matchplay-card, preview-card, labels — components/cards.css (aliases).
+ * Hub fixture rows: zero outer padding (chrome comes from inner grids). */
 .matchplay-hub-match.matchplay-card {
   padding: 0;
   overflow: hidden;
-}
-
-.matchplay-hub-match.matchplay-card.matchplay-hub-match--completed {
-  border-left: 3px solid var(--success);
-}
-
-.matchplay-hub-match.matchplay-card.matchplay-hub-match--expanded {
-  border-color: var(--brand-primary);
-}
-
-.matchplay-card-label {
-  display: block;
-  font-size: var(--ui-font-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: var(--ui-space-md);
 }
 
 .matchplay-card-label-row {
@@ -2192,13 +2133,6 @@
   white-space: nowrap;
   flex-shrink: 0;
   letter-spacing: 0.02em;
-}
-
-.matchplay-card-hint {
-  font-size: var(--ui-font-sm);
-  color: var(--text-muted);
-  margin-top: var(--ui-space-md);
-  margin-bottom: 0;
 }
 
 .matchplay-pill-bar {
@@ -2441,28 +2375,7 @@
   background: var(--bg-primary);
 }
 
-.matchplay-btn-primary {
-  width: 100%;
-  min-height: 48px;
-  padding: var(--ui-space-md) var(--ui-space-lg);
-  background: var(--brand-primary);
-  border: none;
-  border-radius: var(--radius-lg);
-  color: #fff;
-  font-size: var(--ui-font-base);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.matchplay-btn-primary:hover:not(:disabled) {
-  background: var(--brand-primary-hover);
-}
-
-.matchplay-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+/* .matchplay-btn-primary — alias in components/buttons.css */
 
 .matchplay-loading {
   flex: 1;

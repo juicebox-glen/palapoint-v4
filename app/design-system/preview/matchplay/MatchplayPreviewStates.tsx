@@ -369,11 +369,11 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
               </p>
               <div className="matchplay-hub-match-entry-actions">
-                <span className="matchplay-hub-btn matchplay-hub-btn--secondary" style={{ pointerEvents: 'none' }}>
+                <span className="btn btn--secondary btn--full" style={{ pointerEvents: 'none' }}>
                   CANCEL
                 </span>
-                <span className="matchplay-hub-btn matchplay-hub-btn--primary" style={{ pointerEvents: 'none' }}>
-                  CONFIRM SCORE
+                <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
+                  CONFIRM
                 </span>
               </div>
             </div>
@@ -386,7 +386,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           </div>
         </div>
         <footer className="matchplay-hub-footer">
-          <span className="matchplay-hub-footer-btn" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
+          <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
             NEXT ROUND
           </span>
         </footer>

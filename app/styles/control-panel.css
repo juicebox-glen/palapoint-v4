@@ -721,15 +721,7 @@
   letter-spacing: 0.05em;
 }
 
-/* Matchup card — overflow clips rounded corners; avatars sized to stay inside */
-.preview-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: 1.875rem 1.25rem;
-  overflow: hidden;
-  max-width: 100%;
-}
+/* .preview-card — shared shell in components/cards.css */
 
 .preview-matchup {
   display: grid;

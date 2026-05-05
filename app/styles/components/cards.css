@@ -7,54 +7,117 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 1.25rem;
+  padding: var(--ui-space-lg);
 }
 
-/* Card with subtle glow */
+/* Elevated (subtle shadow) — combine with .card */
+.card--elevated {
+  box-shadow: var(--shadow-md);
+}
+
+/* Interactive (hover state) */
+.card--interactive {
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.card--interactive:hover {
+  border-color: var(--brand-primary);
+}
+
+/* Selected state */
+.card--selected {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+/* Completed state (green indicator) */
+.card--completed,
+.matchplay-hub-match.matchplay-card.matchplay-hub-match--completed {
+  border-left: 3px solid var(--success);
+}
+
+/* Expanded state */
+.card--expanded,
+.matchplay-hub-match.matchplay-card.matchplay-hub-match--expanded {
+  border-color: var(--brand-primary);
+}
+
+/* Padding variants (suffix matches approximate visual weight, not token name) */
+.card--padding-sm {
+  padding: var(--ui-space-md);
+}
+
+.card--padding-md {
+  padding: var(--ui-space-lg);
+}
+
+.card--padding-lg {
+  padding: var(--ui-space-xl);
+}
+
+/* Section label inside a card */
+.card__label,
+.card-title,
+.matchplay-card-label {
+  display: block;
+  font-size: var(--ui-font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--ui-space-md);
+}
+
+/* Helper text below card content */
+.card__hint,
+.matchplay-card-hint {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  margin-top: var(--ui-space-md);
+  margin-bottom: 0;
+}
+
+/* ----- Legacy single-class cards (backwards compatibility) ----- */
+
 .card-elevated {
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 1.25rem;
+  padding: var(--ui-space-lg);
   box-shadow: var(--shadow-md);
 }
 
-/* Card header/title */
-.card-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-/* Interactive card (selectable) */
 .card-interactive {
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: var(--ui-space-md);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .card-interactive:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--border-light);
-}
-
-.card-interactive.active {
-  background: var(--brand-primary);
   border-color: var(--brand-primary);
 }
 
-/* Result card - for showing scores/results */
+.card-interactive.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+/* Result card — scores / outcomes */
 .card-result {
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  padding: var(--ui-space-xl);
   text-align: center;
 }
 
@@ -64,4 +127,23 @@
 
 .card-result.team-b-winner {
   border-top: 3px solid var(--team-b);
+}
+
+/* Matchplay setup cards — alias of .card + elevation (single class in TSX) */
+.matchplay-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--ui-space-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Control / session-review matchup shell — tighter radius + preview padding */
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1.875rem 1.25rem;
+  overflow: hidden;
+  max-width: 100%;
 }

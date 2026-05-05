@@ -78,7 +78,7 @@ There is **no** dedicated score route and **no** score modal.
    - **Steppers** for Team A (always) and Team B (**fixed-sum Americano**: only Team A is stepped; Team B display = `maxScore - scoreA`; **non-American**: both teams have steppers).
    - Optional **result preview** line when scores &gt; 0.
    - **CANCEL** — collapses, clears drafts for that match id.
-   - **CONFIRM SCORE** — calls **`handleEnterResult`** → Edge Function `matchplay-round` action **`enter_result`** with `team_a_score` / `team_b_score`.
+   - **CONFIRM** — calls **`handleEnterResult`** → Edge Function `matchplay-round` action **`enter_result`** with `team_a_score` / `team_b_score`. On a completed match being corrected, the primary action label is **UPDATE**.
 3. **Completed** match → read-only summary row with scores and ✓.
 4. **Setup** mode → match rows are preview-only with optional **EDIT** opening the **Edit Match** modal (lineup changes), not score entry.
 

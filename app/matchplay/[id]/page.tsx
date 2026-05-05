@@ -443,16 +443,16 @@ function HubMatchCard({
           )}
 
           <div className="matchplay-hub-match-entry-actions">
-            <button type="button" onClick={onCancelExpand} className="matchplay-hub-btn matchplay-hub-btn--secondary">
+            <button type="button" onClick={onCancelExpand} className="btn btn--secondary btn--full">
               CANCEL
             </button>
             <button
               type="button"
               onClick={() => onConfirmScores(draftScoreA, draftScoreB)}
               disabled={confirmDisabled}
-              className="matchplay-hub-btn matchplay-hub-btn--primary"
+              className="btn btn--primary btn--full"
             >
-              {isSubmitting ? 'SAVING...' : isCompleted ? 'UPDATE SCORE' : 'CONFIRM SCORE'}
+              {isSubmitting ? 'SAVING...' : isCompleted ? 'UPDATE' : 'CONFIRM'}
             </button>
           </div>
         </div>
@@ -1044,7 +1044,7 @@ export default function MatchplayEventPage() {
         {isSetup && (
           <button
             type="button"
-            className="matchplay-hub-footer-btn"
+            className="btn btn--primary btn--full"
             onClick={handleStartEvent}
             disabled={!!actionLoading || players.length < 4}
           >
@@ -1054,13 +1054,13 @@ export default function MatchplayEventPage() {
         {isLive && (
           <>
             {canShowEndEvent && isFinalRound && allMatchesScoredInCurrentRound ? (
-              <button type="button" className="matchplay-hub-footer-btn" onClick={handleCompleteEvent} disabled={!!actionLoading}>
+              <button type="button" className="btn btn--primary btn--full" onClick={handleCompleteEvent} disabled={!!actionLoading}>
                 {actionLoading === 'complete' ? 'Ending...' : 'END EVENT'}
               </button>
             ) : (
               <button
                 type="button"
-                className="matchplay-hub-footer-btn"
+                className="btn btn--primary btn--full"
                 onClick={handleNextRound}
                 disabled={!allMatchesScoredInCurrentRound || isFinalRound}
               >
