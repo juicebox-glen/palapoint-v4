@@ -1527,9 +1527,9 @@
   --hub-compact-score-bg: var(--bg-tertiary);
   --hub-compact-meta: var(--text-muted);
   --hub-compact-rule: var(--border-default);
-  /* Fixture score wells — Figma reference size */
-  --hub-score-w: 107.55px;
-  --hub-score-h: 127.8px;
+  /* Figma aspect ratio 107.55 : 127.8 @~0.841 — keep 48px width, height scales */
+  --hub-score-w: 48px;
+  --hub-score-h: calc(48px * 127.8 / 107.55);
 
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(4.75rem, auto) auto minmax(0, 1fr);
@@ -1573,16 +1573,15 @@
 
 .matchplay-hub-match-score {
   box-sizing: border-box;
-  width: var(--hub-score-w, 107.55px);
-  height: var(--hub-score-h, 127.8px);
+  width: var(--hub-score-w, 48px);
+  height: var(--hub-score-h, calc(48px * 127.8 / 107.55));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: var(--hub-compact-score-bg);
   border: none;
-  /* ~8px radius at 48px scale → proportional to shorter side */
-  border-radius: calc(var(--hub-score-w, 107.55px) * (8 / 48));
+  border-radius: 8px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -1591,13 +1590,13 @@
 }
 
 .matchplay-hub-match-score--placeholder .matchplay-hub-match-score-num {
-  font-size: clamp(1rem, calc(var(--hub-score-h, 127.8px) * 0.22), 2rem);
+  font-size: var(--ui-font-base);
   font-weight: var(--font-weight-medium);
   color: var(--hub-compact-meta);
 }
 
 .matchplay-hub-match-score-num {
-  font-size: clamp(1.5rem, calc(var(--hub-score-h, 127.8px) * 0.38), 3.75rem);
+  font-size: 1.375rem;
   font-weight: var(--font-weight-semibold);
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
