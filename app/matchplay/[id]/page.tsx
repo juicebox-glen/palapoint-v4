@@ -225,6 +225,17 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
   return embedded?.trim() ?? ''
 }
 
+function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
+  return (
+    <div className="matchplay-hub-match-center">
+      <span className="matchplay-hub-match-center-rule" aria-hidden />
+      <span className="matchplay-hub-match-vs">VS</span>
+      <span className="matchplay-hub-match-court">{courtLabel}</span>
+      <span className="matchplay-hub-match-center-rule" aria-hidden />
+    </div>
+  )
+}
+
 function HubMatchCard({
   match,
   players,
@@ -305,10 +316,7 @@ function HubMatchCard({
           <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
             <span className="matchplay-hub-match-score-num">—</span>
           </div>
-          <div className="matchplay-hub-match-center">
-            <span className="matchplay-hub-match-vs">VS</span>
-            <span className="matchplay-hub-match-court">{courtLabel}</span>
-          </div>
+          <HubCompactCenter courtLabel={courtLabel} />
           <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
             <span className="matchplay-hub-match-score-num">—</span>
           </div>
@@ -360,10 +368,7 @@ function HubMatchCard({
         <div className="matchplay-hub-match-score">
           <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
         </div>
-        <div className="matchplay-hub-match-center">
-          <span className="matchplay-hub-match-vs">VS</span>
-          <span className="matchplay-hub-match-court">{courtLabel}</span>
-        </div>
+        <HubCompactCenter courtLabel={courtLabel} />
         <div className="matchplay-hub-match-score">
           <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
         </div>

@@ -310,8 +310,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <span className="matchplay-hub-match-score-num">18</span>
               </div>
               <div className="matchplay-hub-match-center">
+                <span className="matchplay-hub-match-center-rule" aria-hidden />
                 <span className="matchplay-hub-match-vs">VS</span>
                 <span className="matchplay-hub-match-court">Court 1</span>
+                <span className="matchplay-hub-match-center-rule" aria-hidden />
               </div>
               <div className="matchplay-hub-match-score">
                 <span className="matchplay-hub-match-score-num">14</span>
@@ -332,8 +334,10 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
                 <span className="matchplay-hub-match-score-num">0</span>
               </div>
               <div className="matchplay-hub-match-center">
+                <span className="matchplay-hub-match-center-rule" aria-hidden />
                 <span className="matchplay-hub-match-vs">VS</span>
                 <span className="matchplay-hub-match-court">Court 2</span>
+                <span className="matchplay-hub-match-center-rule" aria-hidden />
               </div>
               <div className="matchplay-hub-match-score">
                 <span className="matchplay-hub-match-score-num">0</span>
