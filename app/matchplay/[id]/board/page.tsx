@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import '@/app/styles/matchplay-board.css'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { BoardStandings } from '@/components/matchplay/BoardStandings'
 import { formatTeamDisplay, formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -210,25 +211,6 @@ function groupStandings(standings: MatchplayPlayer[]): GroupedStanding[] {
     i++
   }
   return groups
-}
-
-type LiveStandingRow = { player: MatchplayPlayer; rank: number; tiedGroup: boolean }
-
-function flattenLiveStandingsRows(standings: MatchplayPlayer[]): LiveStandingRow[] {
-  const groups = groupStandings(standings)
-  const rows: LiveStandingRow[] = []
-  for (const g of groups) {
-    const tiedGroup = g.players.length > 1
-    for (const p of g.players) {
-      rows.push({ player: p, rank: g.rank, tiedGroup })
-    }
-  }
-  return rows
-}
-
-function formatGameDiff(gd: number): string {
-  if (gd > 0) return `+${gd}`
-  return String(gd)
 }
 
 function namesOnPitchForMatches(matches: MatchplayMatch[]): Set<string> {
@@ -599,9 +581,8 @@ export default function MatchplayBoardPage() {
             )}
           </div>
 
-          <div className="board-panel board-standings">
-            <div className="board-panel-title">STANDINGS</div>
-            <div className="board-standings-empty">Standings will appear after Round 1</div>
+          <div className="board-panel board-standings board-panel--standings">
+            <BoardStandings mode="setup" standings={standings} />
           </div>
         </div>
 
@@ -682,48 +663,7 @@ export default function MatchplayBoardPage() {
               </div>
             </div>
             <div className="board-winner-divider" />
-            <div className="board-standings-title">FINAL STANDINGS</div>
-            <table className="board-standings-table">
-              <thead>
-                <tr>
-                  <th className="board-th-rank">#</th>
-                  <th className="board-th-player">Player</th>
-                  <th className="board-th-num">P</th>
-                  <th className="board-th-num">W</th>
-                  <th className="board-th-num">D</th>
-                  <th className="board-th-num">L</th>
-                  <th className="board-th-num">GD</th>
-                  <th className="board-th-pts">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groups.flatMap((g) =>
-                  g.players.map((s, idx) => (
-                    <tr key={s.id} className={`${g.rank <= 3 ? `board-rank-${g.rank}` : ''} ${idx > 0 ? 'board-tie-cont' : ''}`}>
-                      <td
-                        className={`board-td-rank board-td-rank-cell ${idx === 0 && g.rank <= 3 ? 'board-td-rank-medal' : ''}`}
-                      >
-                        {idx === 0 ? (g.rank <= 3 ? ['🥇', '🥈', '🥉'][g.rank - 1] : g.rank) : <span className="board-tie-connector">└</span>}
-                      </td>
-                      <td className="board-td-player">
-                        <div className="board-standings-player-cell">
-                          <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
-                          <span className="board-standings-player-name">
-                            {formatPlayerName(s.name, 'full')}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="board-td-num">{s.matches_played ?? 0}</td>
-                      <td className="board-td-num">{s.matches_won ?? 0}</td>
-                      <td className="board-td-num">{s.matches_drawn ?? 0}</td>
-                      <td className="board-td-num">{s.matches_lost ?? 0}</td>
-                      <td className="board-td-num">{s.game_difference ?? 0}</td>
-                      <td className="board-td-pts">{s.total_points ?? 0}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <BoardStandings mode="completed" standings={standings} title="FINAL STANDINGS" size="hero" />
           </div>
         </div>
 
@@ -772,62 +712,13 @@ export default function MatchplayBoardPage() {
           )}
         </div>
 
-        <div className="board-panel board-standings">
-          <div className="board-panel-title">STANDINGS</div>
-          <table className="board-standings-table board-standings-table--live">
-            <thead>
-              <tr>
-                <th className="board-th-rank">#</th>
-                <th className="board-th-player">Player</th>
-                <th className="board-th-points">P</th>
-                <th className="board-th-diff">+/-</th>
-              </tr>
-            </thead>
-            <tbody>
-              {flattenLiveStandingsRows(standings).map(({ player: s, rank, tiedGroup }) => {
-                const flash = flashingRowIds.has(s.id)
-                const rowClass = ['board-standings-row', tiedGroup ? 'board-row-tied' : '', flash ? 'board-row-flash' : '']
-                  .filter(Boolean)
-                  .join(' ')
-                return (
-                  <tr key={s.id} className={rowClass}>
-                    <td className="board-td-rank board-td-rank-cell">{rank}</td>
-                    <td className="board-td-player">
-                      <div className="board-standings-player-cell">
-                        <BoardPlayerPhoto name={s.name} photoUrl={s.photo_url} size="sm" />
-                        <span className="board-standings-player-name">
-                          {formatPlayerName(s.name, 'full')}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="board-td-points">{s.total_points ?? 0}</td>
-                    <td className="board-td-diff">{formatGameDiff(s.game_difference ?? 0)}</td>
-                  </tr>
-                )
-              })}
-              {restingLive.map((p) => (
-                <tr
-                  key={`rest-standings-${p.id}`}
-                  className="board-standings-row board-row-resting"
-                  aria-label={`${p.name}, resting this round`}
-                >
-                  <td className="board-td-rank board-td-rank-cell board-td-rank-resting" aria-hidden>
-                    ·
-                  </td>
-                  <td className="board-td-player">
-                    <div className="board-standings-player-cell">
-                      <BoardPlayerPhoto name={p.name} photoUrl={p.photo_url} size="sm" />
-                      <span className="board-standings-player-name">
-                        {formatPlayerName(p.name, 'full')}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="board-td-points">0</td>
-                  <td className="board-td-diff">0</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="board-panel board-standings board-panel--standings">
+          <BoardStandings
+            mode="live"
+            standings={standings}
+            restingPlayers={restingLive}
+            flashPlayerIds={flashingRowIds}
+          />
         </div>
       </div>
 
