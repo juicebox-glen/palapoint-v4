@@ -324,12 +324,13 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             ←
           </span>
           <h1 className="matchplay-hub-title">Event</h1>
-          <div className="matchplay-hub-actions">
-            <span className="matchplay-hub-icon-btn" aria-hidden>
-              👥
-            </span>
-            <span className="matchplay-hub-icon-btn" aria-hidden>
-              📊
+          <div className="matchplay-hub-menu-container">
+            <span className="matchplay-hub-menu-btn" aria-hidden style={{ pointerEvents: 'none' }}>
+              <svg width={22} height={22} viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="19" r="2" />
+              </svg>
             </span>
           </div>
         </header>

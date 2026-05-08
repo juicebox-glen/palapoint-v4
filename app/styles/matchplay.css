@@ -1440,6 +1440,86 @@
   gap: var(--ui-space-sm);
 }
 
+.matchplay-hub-menu-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.matchplay-hub-menu-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.matchplay-hub-menu-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.matchplay-hub-menu {
+  position: absolute;
+  top: calc(100% + var(--ui-space-sm));
+  right: 0;
+  min-width: 180px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: var(--z-dropdown);
+}
+
+.matchplay-hub-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-md);
+  padding: var(--ui-space-md) var(--ui-space-lg);
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--ui-font-base);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.matchplay-hub-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.matchplay-hub-menu-item--danger {
+  color: var(--error);
+}
+
+.matchplay-hub-menu-item--danger:hover {
+  background: var(--error-bg);
+}
+
+.matchplay-hub-menu-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.matchplay-hub-menu-divider {
+  height: 1px;
+  background: var(--border-default);
+  margin: var(--ui-space-xs) 0;
+}
+
 .matchplay-hub-icon-btn {
   width: 40px;
   height: 40px;
@@ -1826,6 +1906,32 @@
     border-radius: var(--radius-lg);
     max-width: 480px;
   }
+
+  .matchplay-event-modal.matchplay-hub-end-modal {
+    max-width: 360px;
+  }
+}
+
+.matchplay-hub-end-modal-text {
+  font-size: var(--ui-font-base);
+  color: var(--text-primary);
+  margin: 0 0 var(--ui-space-md);
+  line-height: 1.45;
+}
+
+.matchplay-hub-end-modal-text--muted {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+}
+
+.matchplay-hub-end-modal-actions {
+  display: flex;
+  gap: var(--ui-space-md);
+  margin-top: var(--ui-space-lg);
+}
+
+.matchplay-hub-end-modal-actions .btn {
+  flex: 1;
 }
 
 .matchplay-event-modal-header {

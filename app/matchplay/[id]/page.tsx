@@ -219,6 +219,34 @@ function MatchplayHubStandingsIcon(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
+function MatchplayHubMoreVerticalIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
+      <circle cx="12" cy="5" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="12" cy="19" r="2" />
+    </svg>
+  )
+}
+
+function MatchplayHubStopIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden
+      {...props}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <rect x="9" y="9" width="6" height="6" />
+    </svg>
+  )
+}
+
 function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded?: string | null): string {
   const row = players.find((p) => p.id === id)
   if (row?.name?.trim()) return row.name.trim()
@@ -482,11 +510,14 @@ export default function MatchplayEventPage() {
   const [showPlayersModal, setShowPlayersModal] = useState(false)
   const [showStandingsModal, setShowStandingsModal] = useState(false)
   const [showEditMatchModal, setShowEditMatchModal] = useState<MatchplayMatch | null>(null)
+  const [showMenu, setShowMenu] = useState(false)
+  const [showEndConfirm, setShowEndConfirm] = useState(false)
 
   const [newPlayerName, setNewPlayerName] = useState('')
   const [editMatchAssignments, setEditMatchAssignments] = useState<{ a1: string; a2: string; b1: string; b2: string }>({ a1: '', a2: '', b1: '', b2: '' })
 
   const roundTabsRef = useRef<HTMLElement | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const pairingGeneratedRef = useRef(false)
 
   const getCourtLabels = useCallback(() => {
@@ -596,6 +627,21 @@ export default function MatchplayEventPage() {
   }, [selectedRoundId])
 
   useEffect(() => {
+    if (!showMenu) return
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+    }
+  }, [showMenu])
+
+  useEffect(() => {
     if (!eventId) return
     const ch = supabase.channel(`matchplay-realtime-${eventId}`)
     ;(ch as any).on(
@@ -650,19 +696,25 @@ export default function MatchplayEventPage() {
     setActionLoading(null)
   }
 
-  const handleCompleteEvent = async () => {
+  const handleEndEventConfirmed = async () => {
     if (!eventId) return
-    if (!confirm('End event? Final standings will be locked.')) return
     setActionLoading('complete')
     setError(null)
-    const result = await callMatchplayEvent({ action: 'complete', event_id: eventId })
-    if (result.event) {
-      setEvent(result.event)
-      router.push('/matchplay')
-    } else {
-      setError(result.error || 'Failed to complete')
+    try {
+      const result = await callMatchplayEvent({ action: 'complete', event_id: eventId })
+      if (result.event) {
+        setEvent(result.event)
+        setShowEndConfirm(false)
+        router.push('/matchplay')
+      } else {
+        setError(result.error || 'Failed to end event')
+      }
+    } catch (err) {
+      console.error('End event error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to end event')
+    } finally {
+      setActionLoading(null)
     }
-    setActionLoading(null)
   }
 
   const handleNextRound = async () => {
@@ -901,22 +953,63 @@ export default function MatchplayEventPage() {
           ←
         </button>
         <h1 className="matchplay-hub-title">Event</h1>
-        <div className="matchplay-hub-actions">
-          <button type="button" onClick={() => setShowPlayersModal(true)} className="matchplay-hub-icon-btn" aria-label="Players">
-            <MatchplayHubPlayersIcon />
+        <div className="matchplay-hub-menu-container" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setShowMenu((open) => !open)}
+            className="matchplay-hub-menu-btn"
+            aria-label="Event menu"
+            aria-expanded={showMenu}
+          >
+            <MatchplayHubMoreVerticalIcon />
           </button>
-          {event?.status === 'in_progress' && (
-            <button
-              type="button"
-              onClick={() => {
-                loadStandings()
-                setShowStandingsModal(true)
-              }}
-              className="matchplay-hub-icon-btn"
-              aria-label="Standings"
-            >
-              <MatchplayHubStandingsIcon />
-            </button>
+          {showMenu && (
+            <div className="matchplay-hub-menu" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                className="matchplay-hub-menu-item"
+                onClick={() => {
+                  setShowMenu(false)
+                  setShowPlayersModal(true)
+                }}
+              >
+                <MatchplayHubPlayersIcon className="matchplay-hub-menu-icon" />
+                Players
+              </button>
+              {event?.status === 'in_progress' && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="matchplay-hub-menu-item"
+                  onClick={() => {
+                    setShowMenu(false)
+                    loadStandings()
+                    setShowStandingsModal(true)
+                  }}
+                >
+                  <MatchplayHubStandingsIcon className="matchplay-hub-menu-icon" />
+                  Standings
+                </button>
+              )}
+              {event?.status === 'in_progress' && (
+                <>
+                  <div className="matchplay-hub-menu-divider" aria-hidden />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="matchplay-hub-menu-item matchplay-hub-menu-item--danger"
+                    onClick={() => {
+                      setShowMenu(false)
+                      setShowEndConfirm(true)
+                    }}
+                  >
+                    <MatchplayHubStopIcon className="matchplay-hub-menu-icon" />
+                    End Event
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
       </header>
@@ -1054,7 +1147,12 @@ export default function MatchplayEventPage() {
         {isLive && (
           <>
             {canShowEndEvent && isFinalRound && allMatchesScoredInCurrentRound ? (
-              <button type="button" className="btn btn--primary btn--full" onClick={handleCompleteEvent} disabled={!!actionLoading}>
+              <button
+                type="button"
+                className="btn btn--primary btn--full"
+                onClick={() => setShowEndConfirm(true)}
+                disabled={!!actionLoading}
+              >
                 {actionLoading === 'complete' ? 'Ending...' : 'END EVENT'}
               </button>
             ) : (
@@ -1070,6 +1168,50 @@ export default function MatchplayEventPage() {
           </>
         )}
       </footer>
+
+      {showEndConfirm && (
+        <div
+          className="matchplay-event-modal-overlay"
+          onClick={() => {
+            if (!actionLoading) setShowEndConfirm(false)
+          }}
+        >
+          <div className="matchplay-event-modal matchplay-hub-end-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="matchplay-event-modal-header">
+              <h2>End Event?</h2>
+              <button
+                type="button"
+                className="matchplay-event-modal-close"
+                onClick={() => !actionLoading && setShowEndConfirm(false)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="matchplay-event-modal-body">
+              <p className="matchplay-hub-end-modal-text">
+                This will end the event early and finalize standings with current scores.
+              </p>
+              <p className="matchplay-hub-end-modal-text matchplay-hub-end-modal-text--muted">
+                Any unscored matches will be excluded from final standings.
+              </p>
+              <div className="matchplay-hub-end-modal-actions">
+                <button type="button" className="btn btn--secondary btn--full" onClick={() => setShowEndConfirm(false)} disabled={!!actionLoading}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger-fill btn--full"
+                  onClick={handleEndEventConfirmed}
+                  disabled={actionLoading === 'complete'}
+                >
+                  {actionLoading === 'complete' ? 'Ending...' : 'End Event'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Players Modal */}
       {showPlayersModal && (

@@ -14,13 +14,13 @@ Everything is rendered by **`MatchplayEventPage`** — there are **no separate r
 
 | Region | Purpose |
 |--------|---------|
-| **Header** (`matchplay-event-header`) | Back → `/matchplay`, event title, 👥 Players, 📊 Standings (live only), ⋮ menu (live: End Event), status pill (SETUP / LIVE / COMPLETED) |
+| **Header** (`matchplay-hub-header`) | Back → `/matchplay`, **Event** title, **⋮** menu (`matchplay-hub-menu`): **Players** (always); **Standings** + **End Event** when `in_progress` |
 | **Round tabs** (`matchplay-event-round-tabs`) | Horizontal tabs per round; shows ✓ when completed, dot when in progress; clicking sets `selectedRoundId` |
 | **Error banner** | Inline `error` state below tabs |
 | **Match list** (`matchplay-event-matches`) | Cards for each match in **`viewingRound`** (derived from `selectedRoundId`) |
 | **Resting block** (`matchplay-event-resting`) | Players not assigned to any match this round + optional sit-out counts |
 | **Footer** (`matchplay-event-footer`) | Context actions (see §5) |
-| **Modals** (conditional overlays) | Players roster, Standings table, Edit match lineups |
+| **Modals** (conditional overlays) | Players roster, Standings table, Edit match lineups, **End Event** confirmation (`matchplay-hub-end-modal`) |
 
 **Small shared UI**
 
@@ -49,7 +49,7 @@ Everything is rendered by **`MatchplayEventPage`** — there are **no separate r
 | **`expandedMatchId`** | At most one **pending** match expanded for **inline score entry** |
 | **`draftScores`** | `Record<matchId, { a, b }>` — stepper edits before confirm (American: Team B score derived from `maxScore - scoreA`) |
 | **`submittingMatchId`** | Disables confirm while `enter_result` runs |
-| **`showPlayersModal`**, **`showStandingsModal`**, **`showEditMatchModal`**, **`showEndEventMenu`** | Overlay visibility |
+| **`showPlayersModal`**, **`showStandingsModal`**, **`showEditMatchModal`**, **`showMenu`**, **`showEndConfirm`** | Menu dropdown + overlay visibility (`menuRef`; outside dismiss on pointerdown) |
 | **`newPlayerName`**, **`editMatchAssignments`** | Form state for modals |
 | **`pairingGeneratedRef`** | Prevents duplicate client-side round creation when React effects re-run |
 | **`roundTabsRef`** | Scroll selected tab into view |
@@ -133,10 +133,9 @@ Single channel per `eventId` listens to:
 | Control | When | Behavior |
 |---------|------|----------|
 | **← Back** | Always | `router.push('/matchplay')` |
-| **👥 Players** | Always | Opens **Players** modal |
-| **📊 Standings** | `in_progress` only | `loadStandings()` then opens modal |
-| **⋮ → End Event** | `in_progress` only | Confirms, then `matchplay-event` **`complete`** → redirects to `/matchplay` |
-| **Status badge** | Always | SETUP / LIVE / COMPLETED |
+| **⋮ → Players** | Always | Opens **Players** modal |
+| **⋮ → Standings** | `in_progress` only | `loadStandings()` then opens modal |
+| **⋮ → End Event** | `in_progress` only | Opens confirmation modal → `matchplay-event` **`complete`** → redirects to `/matchplay` |
 
 ### Footer
 
@@ -144,7 +143,7 @@ Single channel per `eventId` listens to:
 |--------|------|----------|
 | **START EVENT** | `setup` | `matchplay-event` **`start`**, then **`start_round`** on round 1, `loadRounds()`. Disabled if &lt; 4 players or action in flight. |
 | **NEXT ROUND** | `in_progress`, not “final end” branch | Selects next round; if next is `pending`, **`start_round`**. Disabled until **all** matches in **current** viewing round are completed **or** already on final round (see JSX). |
-| **END EVENT** | `in_progress` **and** on **final** round **and** all matches in that round completed | Same as menu **End Event** (`complete`). |
+| **END EVENT** | `in_progress` **and** on **final** round **and** all matches in that round completed | Opens the same **End Event** confirmation modal as the ⋮ menu (`complete`). |
 | *(none)* | `completed` | No footer CTAs rendered |
 
 ### Match cards
@@ -160,6 +159,7 @@ Single channel per `eventId` listens to:
 |-------|---------|
 | **Players** | Add player (`matchplay-player` **`add`**), remove (`**remove**`), list |
 | **Standings** | Read-only table; columns differ for Americano vs not |
+| **End Event** | Warning copy + **Cancel** / **End Event** (solid danger); **`complete`** then navigate |
 | **Edit Match** | Four dropdowns (Team A/B × 2 players), save → **`update_match`** |
 
 ---
@@ -178,7 +178,7 @@ All use `POST` to Supabase Functions with anon JWT:
 
 ## 7. Mental model summary
 
-- **One big client component** drives header, tabs, match list, resting, footer, and three modals.
+- **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and modals (players, standings, edit match, end-event confirm).
 - **Scores** are entered **inline** by expanding a pending card; submission is **`enter_result`**.
 - **Rounds/matches** come from the **`matchplay-round`** API; **pairing math** for new rounds is duplicated client-side (`generateAmericanoPairings`) then persisted via **`create_round`**.
 - **Standings** refresh on match changes via realtime + explicit fetch when opening the modal.
