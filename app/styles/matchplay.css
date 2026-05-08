@@ -1411,10 +1411,36 @@
 
 .matchplay-event-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-family);
   padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Full-screen loading / error before hub content */
+.matchplay-event-page.matchplay-event-page--centered-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-lg);
+  padding: var(--ui-space-xl);
+  padding-bottom: calc(var(--ui-space-xl) + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.matchplay-event-page--centered-state .matchplay-loading-text {
+  font-size: var(--ui-font-base);
+}
+
+.matchplay-event-page--centered-state .matchplay-modal-actions {
+  justify-content: center;
+}
+
+.matchplay-event-page--centered-state .matchplay-error-text {
+  margin-top: 0;
 }
 
 /* ==========================================================================

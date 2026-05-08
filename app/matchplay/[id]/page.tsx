@@ -244,15 +244,11 @@ function HubMatchCard({
   const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
 
   const isCompleted = match.status === 'completed'
-  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : 0
-  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : 0
+  const draftScoreA = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
+  const draftScoreB = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
 
-  const draftScoreA =
-    draft?.a ??
-    (isCompleted ? (match.team_a_score ?? 0) : isAmericano ? 0 : 0)
-  const draftScoreB =
-    draft?.b ??
-    (isCompleted ? (match.team_b_score ?? 0) : isAmericano ? maxScore : 0)
+  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : isExpanded ? draftScoreA : 0
+  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : isExpanded ? draftScoreB : 0
 
   const hasScores = draftScoreA > 0 || draftScoreB > 0
   const winner = draftScoreA > draftScoreB ? 'a' : draftScoreB > draftScoreA ? 'b' : null
@@ -392,10 +388,14 @@ function HubMatchCard({
             </div>
           </div>
 
-          {hasScores && winner && (
+          {hasScores && (
             <p className="matchplay-hub-match-entry-result">
               Result:{' '}
-              {winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
+              {winner === null
+                ? 'Draw'
+                : winner === 'a'
+                  ? `${teamADisplay} win`
+                  : `${teamBDisplay} win`}
             </p>
           )}
 
@@ -772,7 +772,7 @@ export default function MatchplayEventPage() {
 
   if (loading) {
     return (
-      <div className="matchplay-event-page">
+      <div className="matchplay-event-page matchplay-event-page--centered-state">
         <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
@@ -780,7 +780,7 @@ export default function MatchplayEventPage() {
 
   if (error && !event) {
     return (
-      <div className="matchplay-event-page">
+      <div className="matchplay-event-page matchplay-event-page--centered-state">
         <p className="matchplay-error-text">{error}</p>
         <div className="matchplay-modal-actions">
           <Link href="/matchplay" className="btn btn-secondary">
@@ -918,9 +918,6 @@ export default function MatchplayEventPage() {
                       },
                     }
                   }
-                  if (isAmericano) {
-                    return { ...prev, [match.id]: { a: 0, b: maxScore } }
-                  }
                   return { ...prev, [match.id]: { a: 0, b: 0 } }
                 })
               }}
@@ -938,9 +935,13 @@ export default function MatchplayEventPage() {
                   const cur = prev[match.id] ?? { a: 0, b: 0 }
                   if (isAmericano) {
                     const a = Math.max(0, Math.min(maxScore, nextA))
-                    return { ...prev, [match.id]: { a, b: maxScore - a } }
+                    if (a === 0) {
+                      return { ...prev, [match.id]: { a: 0, b: 0 } }
+                    }
+                    const b = maxScore - a
+                    return { ...prev, [match.id]: { a, b: Math.max(0, Math.min(maxScore, b)) } }
                   }
-                  return { ...prev, [match.id]: { ...cur, a: nextA } }
+                  return { ...prev, [match.id]: { ...cur, a: Math.max(0, nextA) } }
                 })
               }
               onScoreBChange={(nextB) =>
@@ -948,9 +949,13 @@ export default function MatchplayEventPage() {
                   const cur = prev[match.id] ?? { a: 0, b: 0 }
                   if (isAmericano) {
                     const b = Math.max(0, Math.min(maxScore, nextB))
-                    return { ...prev, [match.id]: { a: maxScore - b, b } }
+                    if (b === 0) {
+                      return { ...prev, [match.id]: { a: 0, b: 0 } }
+                    }
+                    const a = maxScore - b
+                    return { ...prev, [match.id]: { a: Math.max(0, Math.min(maxScore, a)), b } }
                   }
-                  return { ...prev, [match.id]: { ...cur, b: nextB } }
+                  return { ...prev, [match.id]: { ...cur, b: Math.max(0, nextB) } }
                 })
               }
               onEditLineup={() => openEditMatch(match)}
