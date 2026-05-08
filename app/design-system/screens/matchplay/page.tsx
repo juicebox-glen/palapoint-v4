@@ -4,7 +4,8 @@ import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenP
 
 const MATCHPLAY_PREVIEW_BASE = '/design-system/preview/matchplay'
 
-const SETUP_FLOW_STATES: ScreenPreviewState[] = [
+/** Single strip: pre-event setup through hub and linked full-screen routes (mobile). */
+const STAFF_SETUP_AND_HUB_STATES: ScreenPreviewState[] = [
   { name: 'launcher', label: 'Launcher', url: `${MATCHPLAY_PREVIEW_BASE}?state=launcher`, viewport: 'mobile' },
   {
     name: 'format',
@@ -13,9 +14,6 @@ const SETUP_FLOW_STATES: ScreenPreviewState[] = [
     viewport: 'mobile',
   },
   { name: 'players', label: 'Add players', url: `${MATCHPLAY_PREVIEW_BASE}?state=players`, viewport: 'mobile' },
-]
-
-const EVENT_STAFF_STATES: ScreenPreviewState[] = [
   { name: 'event', label: 'Event hub', url: `${MATCHPLAY_PREVIEW_BASE}?state=event`, viewport: 'mobile' },
   {
     name: 'event_finalize',
@@ -76,22 +74,12 @@ export default function MatchplayScreensPage() {
       </header>
 
       <section className="ds-section">
-        <h2>Setup flow (staff)</h2>
+        <h2>Staff — setup &amp; hub</h2>
         <ScreenPreview
-          title="Matchplay setup"
-          description="Launcher, New Americano pills/courts/overview, then Add Players (setup-photo-trigger / setup-input rows, Start Event)."
+          title="Matchplay staff flow"
+          description="One sequence: launcher → New Americano → Add Players → event hub (including finalize footer variant) → roster edit, standings, and post-complete results. Tabs follow that order."
           viewport="mobile"
-          states={SETUP_FLOW_STATES}
-        />
-      </section>
-
-      <section className="ds-section">
-        <h2>Live event — staff screens</h2>
-        <ScreenPreview
-          title="Hub & full-screen routes"
-          description="Event hub with round tabs and expanded scorer; footer variant for final round (Finalize results); roster edit mirroring setup players card; scrollable standings rows; post-complete results with winner block and CTAs."
-          viewport="mobile"
-          states={EVENT_STAFF_STATES}
+          states={STAFF_SETUP_AND_HUB_STATES}
         />
       </section>
 
