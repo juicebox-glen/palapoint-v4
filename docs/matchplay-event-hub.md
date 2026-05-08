@@ -8,7 +8,7 @@ Related UI styles live in [`app/styles/matchplay.css`](../app/styles/matchplay.c
 
 **Related routes**
 
-- Full-screen roster (view roster + edit names/photos when not completed): [`app/matchplay/[id]/players/page.tsx`](../app/matchplay/[id]/players/page.tsx)
+- Full-screen roster (same UI as new-event players step; save names/photos when not completed): [`app/matchplay/[id]/players/page.tsx`](../app/matchplay/[id]/players/page.tsx)
 - Full-screen standings: [`app/matchplay/[id]/standings/page.tsx`](../app/matchplay/[id]/standings/page.tsx)
 - Full-screen results after completing an event: [`app/matchplay/[id]/results/page.tsx`](../app/matchplay/[id]/results/page.tsx)
 - Board TV UI: [`/matchplay/[id]/board`](./matchplay-board-audit-v2.md) — separate from this page.
@@ -123,7 +123,7 @@ Single channel per `eventId` listens to:
 
 ### Roster changes during an event
 
-The hub **`/players`** route is **view-only for roster size**: staff can **edit names** and **update photos** while the event is **`setup`** or **`in_progress`** (not after **`completed`**). **Adding or removing players** is done only during initial setup on **`/matchplay/new/players`** — changing headcount mid-event would invalidate pairings.
+The hub **`/players`** route uses the **same layout as `/matchplay/new/players`**: `matchplay-card`, **`setup-player-row`**, **`setup-photo-trigger`** / **`setup-photo-thumb`**, and **`setup-input`** for names. Staff **`Save Changes`** (disabled when nothing is dirty) applies **`matchplay-player`** **`update`** calls; photos upload to **`player-photos`** at **`matchplay/{eventId}/{playerId}.jpg`** (same path as setup). **Adding or removing players** is only on **`/matchplay/new/players`** — changing headcount mid-event would invalidate pairings.
 
 On **this hub page**, there is no roster mutation beyond navigating to **`/players`** for display/edits above.
 
