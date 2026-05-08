@@ -2703,29 +2703,25 @@
 }
 
 /* ==========================================================================
-   FULL SCREEN PLAYERS / STANDINGS (event hub routes)
+   PLAYERS PAGE — hub roster (/matchplay/[id]/players), simplified
    ========================================================================== */
 
 .matchplay-players-content {
   flex: 1;
   min-height: 0;
   width: 100%;
-  padding: var(--ui-space-md) var(--ui-space-lg) var(--ui-space-xl);
+  padding: var(--ui-space-md) var(--ui-space-lg);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
-.matchplay-player-add-row {
-  display: flex;
-  gap: var(--ui-space-md);
+.matchplay-players-roster-hint {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  text-align: center;
   margin-bottom: var(--ui-space-lg);
-  align-items: stretch;
-}
-
-.matchplay-player-add-row .setup-input {
-  flex: 1;
-  min-width: 0;
 }
 
 .matchplay-players-list {
@@ -2742,41 +2738,117 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: var(--ui-space-sm) var(--ui-space-md);
+  min-height: 56px;
 }
 
-.matchplay-players-list .matchplay-player-avatar {
+.matchplay-player-number {
+  width: 24px;
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.matchplay-players-content .matchplay-player-avatar {
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
 }
 
-.matchplay-player-name {
+.matchplay-players-content .matchplay-player-avatar:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+}
+
+.matchplay-players-content .matchplay-player-avatar--has-photo {
+  border-style: solid;
+  border-color: var(--border-default);
+}
+
+.matchplay-player-avatar--uploading {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.matchplay-player-avatar-spinner {
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+}
+
+.matchplay-player-name-btn {
   flex: 1;
+  background: none;
+  border: none;
+  padding: var(--ui-space-sm) 0;
   font-size: var(--ui-font-base);
   color: var(--text-primary);
   text-align: left;
+  cursor: pointer;
   min-width: 0;
 }
 
-.matchplay-player-remove {
+.matchplay-player-name-btn:disabled {
+  cursor: default;
+  color: var(--text-primary);
+}
+
+.matchplay-player-edit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-sm);
+  min-width: 0;
+}
+
+.matchplay-player-edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--ui-font-base);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.matchplay-player-edit-actions {
+  display: flex;
+  gap: var(--ui-space-xs);
+  flex-shrink: 0;
+}
+
+.matchplay-player-edit-btn {
   width: 32px;
   height: 32px;
-  background: none;
+  border-radius: var(--radius-sm);
   border: none;
-  color: var(--text-muted);
   font-size: var(--ui-font-base);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
 }
 
-.matchplay-player-remove:hover {
+.matchplay-player-edit-btn--cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.matchplay-player-edit-btn--cancel:hover:not(:disabled) {
   background: var(--error-bg);
   color: var(--error);
+}
+
+.matchplay-player-edit-btn--save {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.matchplay-player-edit-btn--save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .matchplay-players-empty {
@@ -2784,6 +2856,32 @@
   color: var(--text-muted);
   padding: var(--ui-space-xl);
 }
+
+.matchplay-players-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-md);
+  background: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-md);
+  padding: var(--ui-space-md);
+  margin-bottom: var(--ui-space-md);
+  color: var(--error);
+  font-size: var(--ui-font-sm);
+}
+
+.matchplay-players-error-dismiss {
+  background: none;
+  border: none;
+  color: var(--error);
+  cursor: pointer;
+  padding: var(--ui-space-xs);
+}
+
+/* ==========================================================================
+   FULL SCREEN STANDINGS (event hub route)
+   ========================================================================== */
 
 .matchplay-standings-content {
   flex: 1;

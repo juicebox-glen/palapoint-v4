@@ -8,7 +8,7 @@ Related UI styles live in [`app/styles/matchplay.css`](../app/styles/matchplay.c
 
 **Related routes**
 
-- Full-screen roster management (photos + add/remove): [`app/matchplay/[id]/players/page.tsx`](../app/matchplay/[id]/players/page.tsx)
+- Full-screen roster (view roster + edit names/photos when not completed): [`app/matchplay/[id]/players/page.tsx`](../app/matchplay/[id]/players/page.tsx)
 - Full-screen standings: [`app/matchplay/[id]/standings/page.tsx`](../app/matchplay/[id]/standings/page.tsx)
 - Full-screen results after completing an event: [`app/matchplay/[id]/results/page.tsx`](../app/matchplay/[id]/results/page.tsx)
 - Board TV UI: [`/matchplay/[id]/board`](./matchplay-board-audit-v2.md) — separate from this page.
@@ -121,14 +121,11 @@ Single channel per `eventId` listens to:
 - **`matchplay_matches`** → `loadRounds()`
 - **`matchplay_rounds`** → `loadRounds()`
 
-### Regenerating rounds after roster changes
+### Roster changes during an event
 
-On **[`/matchplay/[id]/players`**](../app/matchplay/[id]/players/page.tsx), **`regenerateFutureRounds`** mirrors hub logic:
+The hub **`/players`** route is **view-only for roster size**: staff can **edit names** and **update photos** while the event is **`setup`** or **`in_progress`** (not after **`completed`**). **Adding or removing players** is done only during initial setup on **`/matchplay/new/players`** — changing headcount mid-event would invalidate pairings.
 
-- Deletes **future** rounds (relative to current incomplete round, or all non-completed rounds in **setup**).
-- Recreates missing rounds from **`generateAmericanoPairings`** again up to the same cap.
-
-On **this hub page**, roster edits happen only via navigation to `/players`; **`regenerateFutureRounds`** remains on **players route**.
+On **this hub page**, there is no roster mutation beyond navigating to **`/players`** for display/edits above.
 
 ---
 
@@ -182,7 +179,7 @@ All use `POST` to Supabase Functions with anon JWT:
 | Function | Actions used on this page |
 |----------|---------------------------|
 | **`matchplay-event`** | `get`, `start`, `complete` |
-| **`matchplay-player`** | `list` on hub; **`add` / `remove` / `update` / `standings`** also used on **`/players`**, **`/standings`**, **`/results`** |
+| **`matchplay-player`** | `list` on hub; **`update`** on **`/[id]/players`** (names/photos); **`standings`** on **`/standings`** / **`/results`**; **`add` / `remove`** only on **`/matchplay/new/players`** |
 | **`matchplay-round`** | `list_rounds`, `get_round`, `create_round`, `start_round`, `enter_result`, `delete_round`, `update_match` |
 
 ---
@@ -192,6 +189,6 @@ All use `POST` to Supabase Functions with anon JWT:
 - **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and overlays (**edit match**, **end-event confirm**). Post-complete UX is **`/results`**.
 - **Players** and **Standings** are **full-screen routes** (`/players`, `/standings`) linked from the menu.
 - **Scores** are entered **inline** by expanding a pending card; submission is **`enter_result`**.
-- **Rounds/matches** come from the **`matchplay-round`** API; **pairing math** for new rounds is **`generateAmericanoPairings`** in **`lib/matchplay-americano-pairings.ts`**, then persisted via **`create_round`** on hub startup **and** on **`/players`** roster edits.
+- **Rounds/matches** come from the **`matchplay-round`** API; **pairing math** for new rounds is **`generateAmericanoPairings`** in **`lib/matchplay-americano-pairings.ts`**, then persisted via **`create_round`** when the hub first creates rounds from setup (see pairing effect on the hub page).
 
 If this doc drifts from code, treat [`page.tsx`](../app/matchplay/[id]/page.tsx) as source of truth.

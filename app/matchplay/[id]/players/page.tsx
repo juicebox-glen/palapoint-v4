@@ -3,36 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
 import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 import '@/app/styles/matchplay.css'
-import '@/app/styles/setup-form.css'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-interface MatchplayEvent {
-  id: string
-  status: string
-  court_count?: number
-  court_labels?: string[]
-}
-
-interface MatchplayRound {
-  id: string
-  round_number: number
-  status: string
-  matches?: { status: string }[]
-}
-
-interface PlayerRow {
+interface Player {
   id: string
   name: string
   photo_url?: string | null
 }
 
-async function callMatchplayRound(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-round`, {
+interface EventSummary {
+  id: string
+  status: string
+}
+
+async function callMatchplayEvent(body: Record<string, unknown>) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -45,18 +34,6 @@ async function callMatchplayRound(body: Record<string, unknown>) {
 
 async function callMatchplayPlayer(body: Record<string, unknown>) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -99,181 +76,129 @@ function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Pr
   })
 }
 
-export default function MatchplayEventPlayersPage() {
+export default function MatchplayPlayersPage() {
   const router = useRouter()
   const params = useParams()
   const eventId = params.id as string
 
-  const [event, setEvent] = useState<MatchplayEvent | null>(null)
-  const [players, setPlayers] = useState<PlayerRow[]>([])
+  const [event, setEvent] = useState<EventSummary | null>(null)
+  const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newPlayerName, setNewPlayerName] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
-  const [removingId, setRemovingId] = useState<string | null>(null)
-  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null)
+
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [activePhotoPlayer, setActivePhotoPlayer] = useState<string | null>(null)
+  const [photoPlayerId, setPhotoPlayerId] = useState<string | null>(null)
+  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null)
 
-  const getCourtLabels = useCallback(() => {
-    const labels = event?.court_labels
-    if (labels && labels.length > 0) return labels
-    const count = event?.court_count ?? 2
-    return Array.from({ length: count }, (_, i) => `Court ${i + 1}`)
-  }, [event])
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [eventData, playersData] = await Promise.all([
+        callMatchplayEvent({ action: 'get', event_id: eventId }),
+        callMatchplayPlayer({ action: 'list', event_id: eventId }),
+      ])
 
-  const fetchRoundsWithMatches = useCallback(async (): Promise<MatchplayRound[]> => {
-    const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
-    const list = (listResult.rounds ?? []) as MatchplayRound[]
-    const withMatches = await Promise.all(
-      list.map(async (r) => {
-        const getResult = await callMatchplayRound({ action: 'get_round', round_id: r.id })
-        return { ...r, matches: getResult.round?.matches ?? [] } as MatchplayRound
-      })
-    )
-    return withMatches.sort((a, b) => (a.round_number ?? 0) - (b.round_number ?? 0))
-  }, [eventId])
-
-  const refreshPlayers = useCallback(async () => {
-    const result = await callMatchplayPlayer({ action: 'list', event_id: eventId })
-    const list = (result.players ?? []) as PlayerRow[]
-    setPlayers(list)
-    return list
-  }, [eventId])
-
-  const regenerateFutureRounds = useCallback(
-    async (playerIds: string[]) => {
-      if (!eventId || !event) return
-      const rounds = await fetchRoundsWithMatches()
-      const currentRound = rounds.find((r) => r.status !== 'completed')
-      const currentRoundNum = event.status === 'setup' ? 0 : (currentRound?.round_number ?? 0)
-      const futureRounds = rounds.filter((r) => (r.round_number ?? 0) > currentRoundNum)
-
-      for (const r of futureRounds) {
-        const hasCompleted = (r.matches ?? []).some((m) => m.status === 'completed')
-        if (hasCompleted) continue
-        await callMatchplayRound({ action: 'delete_round', round_id: r.id })
-      }
-      if (event.status === 'setup') {
-        for (const r of rounds) {
-          const hasCompleted = (r.matches ?? []).some((m) => m.status === 'completed')
-          if (!hasCompleted) await callMatchplayRound({ action: 'delete_round', round_id: r.id })
-        }
-      }
-
-      const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
-      const remaining = (listResult.rounds ?? []) as { round_number?: number }[]
-      const existingNumbers = new Set(remaining.map((r) => r.round_number ?? 0))
-
-      const courtLabels = getCourtLabels()
-      if (playerIds.length < 4) {
-        await fetchRoundsWithMatches()
-        return
-      }
-
-      const allPairings = generateAmericanoPairings(playerIds, courtLabels)
-      const cap = getMatchplayTotalRoundsFromStorage()
-      const pairings = allPairings.slice(0, Math.min(allPairings.length, cap))
-
-      for (const p of pairings) {
-        if (existingNumbers.has(p.roundNumber)) continue
-        const shouldCreate = event.status === 'setup' || p.roundNumber > currentRoundNum
-        if (!shouldCreate) continue
-
-        const result = await callMatchplayRound({
-          action: 'create_round',
-          event_id: eventId,
-          round_number: p.roundNumber,
-          matches: p.matches,
-        })
-        if (result.round) existingNumbers.add(p.roundNumber)
-        else if (result.error?.includes('duplicate') || result.error?.includes('unique')) {
-          existingNumbers.add(p.roundNumber)
-        }
-      }
-      await fetchRoundsWithMatches()
-    },
-    [event, eventId, fetchRoundsWithMatches, getCourtLabels]
-  )
-
-  useEffect(() => {
-    if (!eventId) return
-    let cancelled = false
-    async function init() {
-      setLoading(true)
-      setError(null)
-      const evResult = await callMatchplayEvent({ action: 'get', event_id: eventId })
-      if (cancelled) return
-      if (evResult.event) setEvent(evResult.event)
-      else {
-        setError('Event not found')
+      if (eventData.success && eventData.event) {
+        setEvent(eventData.event as EventSummary)
+      } else {
+        setEvent(null)
+        setError(eventData.error || 'Event not found')
+        setPlayers([])
         setLoading(false)
         return
       }
-      try {
-        await refreshPlayers()
-        await fetchRoundsWithMatches()
-      } catch {
-        if (!cancelled) setError('Failed to load players')
-      }
-      if (!cancelled) setLoading(false)
-    }
-    void init()
-    return () => {
-      cancelled = true
-    }
-  }, [eventId, fetchRoundsWithMatches, refreshPlayers])
 
-  const handleAddPlayer = async () => {
-    if (!eventId || !newPlayerName.trim()) return
-    setIsAdding(true)
-    setError(null)
-    const result = await callMatchplayPlayer({ action: 'add', event_id: eventId, name: newPlayerName.trim() })
-    if (result.player) {
-      setNewPlayerName('')
-      const list = await refreshPlayers()
-      await regenerateFutureRounds(list.map((p) => p.id))
-    } else {
-      setError(result.error || 'Failed to add player')
+      if (playersData.success) {
+        setPlayers((playersData.players ?? []) as Player[])
+      } else {
+        setError(playersData.error || 'Failed to load players')
+      }
+    } catch (err) {
+      console.error('[Players] Load error:', err)
+      setError('Failed to load players')
     }
-    setIsAdding(false)
+    setLoading(false)
+  }, [eventId])
+
+  useEffect(() => {
+    if (!eventId) return
+    void loadData()
+  }, [eventId, loadData])
+
+  const handleStartEdit = (player: Player) => {
+    if (event?.status === 'completed') return
+    setEditingPlayerId(player.id)
+    setEditingName(player.name)
   }
 
-  const handleRemovePlayer = async (playerId: string) => {
-    setRemovingId(playerId)
-    setError(null)
-    const result = await callMatchplayPlayer({ action: 'remove', player_id: playerId })
-    if (result.success) {
-      const list = await refreshPlayers()
-      await regenerateFutureRounds(list.map((p) => p.id))
-    } else {
-      setError(result.error || 'Failed to remove player')
+  const handleSaveName = async (playerId: string) => {
+    const trimmedName = editingName.trim()
+    if (!trimmedName) {
+      setError('Name cannot be empty')
+      return
     }
-    setRemovingId(null)
+
+    setSavingId(playerId)
+    setError(null)
+
+    try {
+      const data = await callMatchplayPlayer({
+        action: 'update',
+        player_id: playerId,
+        name: trimmedName,
+      })
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to update name')
+      }
+
+      setPlayers((prev) => prev.map((p) => (p.id === playerId ? { ...p, name: trimmedName } : p)))
+      setEditingPlayerId(null)
+      setEditingName('')
+    } catch (err) {
+      console.error('[Players] Save name error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingPlayerId(null)
+    setEditingName('')
   }
 
   const handlePhotoClick = (playerId: string) => {
-    setActivePhotoPlayer(playerId)
+    setPhotoPlayerId(playerId)
     fileInputRef.current?.click()
   }
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    const targetPlayerId = photoPlayerId
     e.target.value = ''
-    if (!file || !activePhotoPlayer || !eventId) {
-      setActivePhotoPlayer(null)
+
+    if (!file || !targetPlayerId || !eventId) {
+      setPhotoPlayerId(null)
       return
     }
 
-    const playerId = activePhotoPlayer
-    setActivePhotoPlayer(null)
-    setUploadingPhotoId(playerId)
+    setUploadingPhotoId(targetPlayerId)
     setError(null)
 
+    let previewUrl: string | null = null
+
     try {
+      previewUrl = URL.createObjectURL(file)
+      setPlayers((prev) => prev.map((p) => (p.id === targetPlayerId ? { ...p, photo_url: previewUrl! } : p)))
+
       const processedBlob = await processImageToJpeg(file, 400, 400)
-      const filename = `matchplay-events/${eventId}/${playerId}-${Date.now()}.jpg`
+      const filename = `matchplay-events/${eventId}/${targetPlayerId}-${Date.now()}.jpg`
       const { error: upErr } = await supabase.storage.from('player-photos').upload(filename, processedBlob, {
         contentType: 'image/jpeg',
         upsert: true,
@@ -284,20 +209,25 @@ export default function MatchplayEventPlayersPage() {
         data: { publicUrl },
       } = supabase.storage.from('player-photos').getPublicUrl(filename)
 
-      const updateResult = await callMatchplayPlayer({
+      const data = await callMatchplayPlayer({
         action: 'update',
-        player_id: playerId,
+        player_id: targetPlayerId,
         photo_url: publicUrl,
       })
-      if (!updateResult.success && !updateResult.player) {
-        throw new Error(updateResult.error || 'Failed to update photo')
+
+      if (data.success === false) {
+        console.warn('[Players] Photo record update warning:', data.error)
       }
-      await refreshPlayers()
+
+      setPlayers((prev) => prev.map((p) => (p.id === targetPlayerId ? { ...p, photo_url: publicUrl } : p)))
     } catch (err) {
-      console.error(err)
-      setError(err instanceof Error ? err.message : 'Failed to upload photo')
+      console.error('[Players] Photo upload error:', err)
+      setError('Failed to upload photo')
+      await loadData()
     } finally {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
       setUploadingPhotoId(null)
+      setPhotoPlayerId(null)
     }
   }
 
@@ -309,6 +239,8 @@ export default function MatchplayEventPlayersPage() {
     )
   }
 
+  const isEditable = event?.status !== 'completed'
+
   return (
     <div className="matchplay-page matchplay-page--setup">
       <header className="matchplay-page-header">
@@ -319,60 +251,87 @@ export default function MatchplayEventPlayersPage() {
         <span className="matchplay-header-badge">{players.length}</span>
       </header>
 
-      <div className="matchplay-setup-inner matchplay-players-content">
-        {error && <div className="matchplay-error">{error}</div>}
+      <div className="matchplay-players-content">
+        {error ? (
+          <div className="matchplay-players-error-banner" role="alert">
+            <span>{error}</span>
+            <button type="button" onClick={() => setError(null)} className="matchplay-players-error-dismiss" aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+        ) : null}
 
-        <div className="matchplay-player-add-row">
-          <input
-            type="text"
-            className="setup-input"
-            placeholder="Add player name..."
-            value={newPlayerName}
-            onChange={(e) => setNewPlayerName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddPlayer()}
-          />
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={() => void handleAddPlayer()}
-            disabled={!newPlayerName.trim() || isAdding}
-          >
-            {isAdding ? '...' : 'Add'}
-          </button>
-        </div>
+        {isEditable ? (
+          <p className="matchplay-players-roster-hint">Tap a name to edit · Tap photo to change</p>
+        ) : null}
 
         <div className="matchplay-players-list">
-          {players.map((player) => (
+          {players.map((player, index) => (
             <div key={player.id} className="matchplay-player-row">
+              <span className="matchplay-player-number">{index + 1}</span>
+
               <button
                 type="button"
-                className={`matchplay-player-avatar ${player.photo_url ? 'matchplay-player-avatar--has-photo' : ''}`}
-                onClick={() => handlePhotoClick(player.id)}
-                disabled={uploadingPhotoId === player.id}
+                className={`matchplay-player-avatar ${player.photo_url ? 'matchplay-player-avatar--has-photo' : ''} ${uploadingPhotoId === player.id ? 'matchplay-player-avatar--uploading' : ''}`}
+                onClick={() => isEditable && handlePhotoClick(player.id)}
+                disabled={!isEditable || uploadingPhotoId === player.id}
                 aria-label={player.photo_url ? 'Change photo' : 'Add photo'}
               >
-                {player.photo_url ? (
+                {uploadingPhotoId === player.id ? (
+                  <span className="matchplay-player-avatar-spinner" aria-hidden>
+                    …
+                  </span>
+                ) : player.photo_url ? (
                   <img src={player.photo_url} alt="" />
                 ) : (
                   <span className="matchplay-player-initials">{getPlayerInitials(player.name)}</span>
                 )}
               </button>
 
-              <span className="matchplay-player-name">{formatPlayerName(player.name, 'full')}</span>
-
-              <button
-                type="button"
-                className="matchplay-player-remove"
-                onClick={() => void handleRemovePlayer(player.id)}
-                disabled={removingId === player.id}
-                aria-label="Remove player"
-              >
-                {removingId === player.id ? '...' : '✕'}
-              </button>
+              {editingPlayerId === player.id ? (
+                <div className="matchplay-player-edit">
+                  <input
+                    type="text"
+                    className="matchplay-player-edit-input"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void handleSaveName(player.id)
+                      if (e.key === 'Escape') handleCancelEdit()
+                    }}
+                    autoFocus
+                    disabled={savingId === player.id}
+                  />
+                  <div className="matchplay-player-edit-actions">
+                    <button
+                      type="button"
+                      className="matchplay-player-edit-btn matchplay-player-edit-btn--cancel"
+                      onClick={handleCancelEdit}
+                      disabled={savingId === player.id}
+                      aria-label="Cancel"
+                    >
+                      ✕
+                    </button>
+                    <button
+                      type="button"
+                      className="matchplay-player-edit-btn matchplay-player-edit-btn--save"
+                      onClick={() => void handleSaveName(player.id)}
+                      disabled={savingId === player.id || !editingName.trim()}
+                      aria-label="Save"
+                    >
+                      {savingId === player.id ? '…' : '✓'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" className="matchplay-player-name-btn" onClick={() => handleStartEdit(player)} disabled={!isEditable}>
+                  {formatPlayerName(player.name, 'full')}
+                </button>
+              )}
             </div>
           ))}
 
-          {players.length === 0 && <p className="matchplay-players-empty">No players added yet</p>}
+          {players.length === 0 ? <p className="matchplay-players-empty">No players</p> : null}
         </div>
       </div>
 
