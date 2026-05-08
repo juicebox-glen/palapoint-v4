@@ -2556,3 +2556,284 @@
   margin-top: var(--ui-space-md);
   text-align: center;
 }
+
+/* ==========================================================================
+   END EVENT SUMMARY (centered overlay)
+   ========================================================================== */
+
+.matchplay-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-dark);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ui-space-lg);
+  box-sizing: border-box;
+}
+
+.matchplay-end-summary {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--ui-space-xl);
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.matchplay-end-summary-title {
+  font-size: var(--ui-font-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--ui-space-lg);
+}
+
+.matchplay-end-summary-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-sm);
+  margin-bottom: var(--ui-space-lg);
+}
+
+.matchplay-end-summary-trophy {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.matchplay-end-summary-winner-name {
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.matchplay-end-summary-winner-points {
+  font-size: var(--ui-font-base);
+  color: var(--text-secondary);
+}
+
+.matchplay-end-summary-stats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--ui-space-sm);
+  font-size: var(--ui-font-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--ui-space-xl);
+}
+
+.matchplay-end-summary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-md);
+}
+
+/* ==========================================================================
+   FULL SCREEN PLAYERS / STANDINGS (event hub routes)
+   ========================================================================== */
+
+.matchplay-players-content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: var(--ui-space-md) var(--ui-space-lg) var(--ui-space-xl);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.matchplay-player-add-row {
+  display: flex;
+  gap: var(--ui-space-md);
+  margin-bottom: var(--ui-space-lg);
+  align-items: stretch;
+}
+
+.matchplay-player-add-row .setup-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.matchplay-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-sm);
+}
+
+.matchplay-player-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--ui-space-sm) var(--ui-space-md);
+}
+
+.matchplay-players-list .matchplay-player-avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.matchplay-player-name {
+  flex: 1;
+  font-size: var(--ui-font-base);
+  color: var(--text-primary);
+  text-align: left;
+  min-width: 0;
+}
+
+.matchplay-player-remove {
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--ui-font-base);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.matchplay-player-remove:hover {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.matchplay-players-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--ui-space-xl);
+}
+
+.matchplay-standings-content {
+  flex: 1;
+  min-height: 0;
+  padding: var(--ui-space-md) var(--ui-space-lg) var(--ui-space-xl);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.matchplay-standings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-sm);
+}
+
+.matchplay-standings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--ui-space-md);
+}
+
+.matchplay-standings-row--rank-1 {
+  border-color: #ffd700;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), transparent);
+}
+
+.matchplay-standings-row--rank-2 {
+  border-color: #c0c0c0;
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), transparent);
+}
+
+.matchplay-standings-row--rank-3 {
+  border-color: #cd7f32;
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), transparent);
+}
+
+.matchplay-standings-rank {
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matchplay-standings-medal {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.matchplay-standings-rank-num {
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+}
+
+.matchplay-standings-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matchplay-standings-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.matchplay-standings-initials {
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
+}
+
+.matchplay-standings-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.matchplay-standings-name {
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.matchplay-standings-stats {
+  font-size: var(--ui-font-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-sm);
+  flex-wrap: wrap;
+}
+
+.matchplay-standings-diff {
+  font-size: var(--ui-font-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.matchplay-standings-diff--positive {
+  color: var(--success);
+}
+
+.matchplay-standings-diff--negative {
+  color: var(--error);
+}
+
+.matchplay-standings-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--ui-space-xl);
+}

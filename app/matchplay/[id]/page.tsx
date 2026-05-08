@@ -7,10 +7,10 @@ import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 import { formatPlayerName } from '@/lib/utils/name-format'
+import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 interface MatchplayEvent {
   id: string
@@ -68,29 +68,6 @@ interface MatchplayPlayer {
   rank?: number
 }
 
-interface MatchplaySettings {
-  courtCount?: number
-  maxScore?: number
-  maxScoreCustom?: number
-  rounds: number
-  roundsCustom?: number
-}
-
-function loadSettings(): MatchplaySettings | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const stored = localStorage.getItem(SETTINGS_KEY)
-    if (stored) return JSON.parse(stored) as MatchplaySettings
-  } catch (_) {}
-  return null
-}
-
-function getTotalRounds(): number {
-  const s = loadSettings()
-  if (!s) return 4
-  return s.rounds === 0 ? (s.roundsCustom ?? 4) : s.rounds
-}
-
 async function callMatchplayEvent(body: Record<string, unknown>) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
     method: 'POST',
@@ -125,54 +102,6 @@ async function callMatchplayRound(body: Record<string, unknown>) {
     body: JSON.stringify(body),
   })
   return res.json()
-}
-
-/** Americano: everyone partners with everyone once. Circle method. */
-function generateAmericanoPairings(
-  playerIds: string[],
-  courtLabels: string[]
-): { roundNumber: number; matches: { court_label: string; team_a: string[]; team_b: string[] }[]; resting?: string }[] {
-  const result: { roundNumber: number; matches: { court_label: string; team_a: string[]; team_b: string[] }[]; resting?: string }[] = []
-  const n = playerIds.length
-  const hasBye = n % 2 !== 0
-  const playerList = hasBye ? [...playerIds, null as unknown as string] : [...playerIds]
-  const total = playerList.length
-  const fixed = playerList[0]!
-  const rotating = playerList.slice(1)
-  const numCourts = Math.max(1, Math.floor(total / 4))
-  const courts = courtLabels.length > 0 ? courtLabels.slice(0, numCourts) : Array.from({ length: numCourts }, (_, i) => `Court ${i + 1}`)
-
-  for (let round = 0; round < total - 1; round++) {
-    const currentOrder = [fixed, ...rotating]
-    const pairs: [string, string][] = []
-    let resting: string | undefined
-
-    for (let i = 0; i < total / 2; i++) {
-      const p1 = currentOrder[i]
-      const p2 = currentOrder[total - 1 - i]
-      if (p1 != null && p2 != null) {
-        pairs.push([p1, p2])
-      } else {
-        resting = (p1 ?? p2) as string
-      }
-    }
-
-    const matches: { court_label: string; team_a: string[]; team_b: string[] }[] = []
-    for (let i = 0; i < pairs.length - 1; i += 2) {
-      const courtIdx = Math.floor(i / 2) % courts.length
-      matches.push({
-        court_label: courts[courtIdx] ?? `Court ${courtIdx + 1}`,
-        team_a: pairs[i]!,
-        team_b: pairs[i + 1]!,
-      })
-    }
-
-    result.push({ roundNumber: round + 1, matches, resting })
-
-    rotating.push(rotating.shift()!)
-  }
-
-  return result
 }
 
 function MatchplayHubPlayersIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -497,7 +426,6 @@ export default function MatchplayEventPage() {
   const [event, setEvent] = useState<MatchplayEvent | null>(null)
   const [players, setPlayers] = useState<MatchplayPlayer[]>([])
   const [rounds, setRounds] = useState<MatchplayRound[]>([])
-  const [standings, setStandings] = useState<MatchplayPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -507,13 +435,15 @@ export default function MatchplayEventPage() {
   const [draftScores, setDraftScores] = useState<Record<string, { a: number; b: number }>>({})
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null)
 
-  const [showPlayersModal, setShowPlayersModal] = useState(false)
-  const [showStandingsModal, setShowStandingsModal] = useState(false)
   const [showEditMatchModal, setShowEditMatchModal] = useState<MatchplayMatch | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
+  const [showEndSummary, setShowEndSummary] = useState<{
+    winner: { name: string; points: number } | null
+    totalPlayers: number
+    roundsCompleted: number
+  } | null>(null)
 
-  const [newPlayerName, setNewPlayerName] = useState('')
   const [editMatchAssignments, setEditMatchAssignments] = useState<{ a1: string; a2: string; b1: string; b2: string }>({ a1: '', a2: '', b1: '', b2: '' })
 
   const roundTabsRef = useRef<HTMLElement | null>(null)
@@ -551,11 +481,6 @@ export default function MatchplayEventPage() {
     setRounds(sorted)
   }, [eventId])
 
-  const loadStandings = useCallback(async () => {
-    const result = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
-    setStandings(result.standings ?? [])
-  }, [eventId])
-
   useEffect(() => {
     if (!eventId) return
     async function init() {
@@ -579,7 +504,7 @@ export default function MatchplayEventPage() {
     if (playerIds.length < 4) return
 
     const allPairings = generateAmericanoPairings(playerIds, courtLabels)
-    const cap = getTotalRounds()
+    const cap = getMatchplayTotalRoundsFromStorage()
     const pairings = allPairings.slice(0, Math.min(allPairings.length, cap))
 
     async function createRounds() {
@@ -656,7 +581,6 @@ export default function MatchplayEventPage() {
       { event: '*', schema: 'public', table: 'matchplay_matches', filter: `event_id=eq.${eventId}` },
       () => {
         loadRounds()
-        loadStandings()
       }
     )
     ;(ch as any).on(
@@ -670,7 +594,7 @@ export default function MatchplayEventPage() {
     return () => {
       supabase.removeChannel(ch)
     }
-  }, [eventId, loadPlayers, loadRounds, loadStandings])
+  }, [eventId, loadPlayers, loadRounds])
 
   const viewingRound = rounds.find((r) => r.id === selectedRoundId) ?? rounds[0]
   const isAmericano = event?.format === 'americano'
@@ -701,14 +625,34 @@ export default function MatchplayEventPage() {
     setActionLoading('complete')
     setError(null)
     try {
-      const result = await callMatchplayEvent({ action: 'complete', event_id: eventId })
-      if (result.event) {
-        setEvent(result.event)
-        setShowEndConfirm(false)
-        router.push('/matchplay')
-      } else {
-        setError(result.error || 'Failed to end event')
+      const standingsResult = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
+      if (!standingsResult.success) {
+        throw new Error(standingsResult.error || 'Failed to load standings')
       }
+      const finalStandings = (standingsResult.standings ?? []) as MatchplayPlayer[]
+      const leaders = finalStandings.filter((s) => (s.rank ?? 999) === 1)
+      const winner =
+        leaders.length > 0
+          ? {
+              name: leaders.map((l) => l.name).join(' & '),
+              points: leaders[0]!.total_points ?? 0,
+            }
+          : null
+
+      const result = await callMatchplayEvent({ action: 'complete', event_id: eventId })
+      if (!result.event) {
+        setError(result.error || 'Failed to end event')
+        return
+      }
+
+      setEvent(result.event)
+      const completedRounds = rounds.filter((r) => r.status === 'completed').length
+      setShowEndSummary({
+        winner,
+        totalPlayers: players.length,
+        roundsCompleted: completedRounds,
+      })
+      setShowEndConfirm(false)
     } catch (err) {
       console.error('End event error:', err)
       setError(err instanceof Error ? err.message : 'Failed to end event')
@@ -747,7 +691,6 @@ export default function MatchplayEventPage() {
         return next
       })
       loadRounds()
-      loadStandings()
     } else {
       setError(result.error || 'Failed to save score')
     }
@@ -784,86 +727,6 @@ export default function MatchplayEventPage() {
     return counts
   }
 
-  const handleAddPlayer = async () => {
-    if (!eventId || !newPlayerName.trim()) return
-    setActionLoading('add')
-    setError(null)
-    const result = await callMatchplayPlayer({ action: 'add', event_id: eventId, name: newPlayerName.trim() })
-    if (result.player) {
-      setNewPlayerName('')
-      await loadPlayers()
-      await regenerateFutureRounds()
-    } else {
-      setError(result.error || 'Failed to add player')
-    }
-    setActionLoading(null)
-  }
-
-  const handleRemovePlayer = async (playerId: string) => {
-    if (!eventId) return
-    setActionLoading('remove')
-    setError(null)
-    const result = await callMatchplayPlayer({ action: 'remove', player_id: playerId })
-    if (result.success) {
-      await loadPlayers()
-      await regenerateFutureRounds()
-    } else {
-      setError(result.error || 'Failed to remove player')
-    }
-    setActionLoading(null)
-  }
-
-  const regenerateFutureRounds = async () => {
-    if (!eventId || !event) return
-    const currentRound = rounds.find((r) => r.status !== 'completed')
-    const currentRoundNum = event.status === 'setup' ? 0 : (currentRound?.round_number ?? 0)
-    const futureRounds = rounds.filter((r) => (r.round_number ?? 0) > currentRoundNum)
-
-    for (const r of futureRounds) {
-      const hasCompleted = (r.matches ?? []).some((m) => m.status === 'completed')
-      if (hasCompleted) continue
-      await callMatchplayRound({ action: 'delete_round', round_id: r.id })
-    }
-    if (event.status === 'setup') {
-      for (const r of rounds) {
-        const hasCompleted = (r.matches ?? []).some((m) => m.status === 'completed')
-        if (!hasCompleted) await callMatchplayRound({ action: 'delete_round', round_id: r.id })
-      }
-    }
-
-    const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
-    const remaining = (listResult.rounds ?? []) as { round_number?: number }[]
-    const existingNumbers = new Set(remaining.map((r) => r.round_number ?? 0))
-
-    const courtLabels = getCourtLabels()
-    const playerIds = players.map((p) => p.id)
-    if (playerIds.length < 4) {
-      await loadRounds()
-      return
-    }
-    const allPairings = generateAmericanoPairings(playerIds, courtLabels)
-    const cap = getTotalRounds()
-    const pairings = allPairings.slice(0, Math.min(allPairings.length, cap))
-
-    for (const p of pairings) {
-      if (existingNumbers.has(p.roundNumber)) continue
-      const shouldCreate = event.status === 'setup' || p.roundNumber > currentRoundNum
-      if (!shouldCreate) continue
-
-      const result = await callMatchplayRound({
-        action: 'create_round',
-        event_id: eventId,
-        round_number: p.roundNumber,
-        matches: p.matches,
-      })
-      if (result.round) existingNumbers.add(p.roundNumber)
-      else if (result.error?.includes('duplicate') || result.error?.includes('unique')) {
-        existingNumbers.add(p.roundNumber)
-      }
-    }
-    await loadRounds()
-  }
-
   const handleEditMatchSave = async () => {
     const m = showEditMatchModal
     if (!m || !eventId) return
@@ -895,27 +758,6 @@ export default function MatchplayEventPage() {
       b2: match.team_b_player_2_id,
     })
     setShowEditMatchModal(match)
-  }
-
-  const groupStandings = (list: MatchplayPlayer[]) => {
-    const groups: { rank: number; players: MatchplayPlayer[] }[] = []
-    let rank = 1
-    let i = 0
-    while (i < list.length) {
-      const p = list[i]!
-      const groupPlayers = [p]
-      while (i + 1 < list.length) {
-        const next = list[i + 1]!
-        if (next.total_points === p.total_points && next.game_difference === p.game_difference) {
-          groupPlayers.push(next)
-          i++
-        } else break
-      }
-      groups.push({ rank, players: groupPlayers })
-      rank += groupPlayers.length
-      i++
-    }
-    return groups
   }
 
   const isSetup = event?.status === 'setup'
@@ -971,7 +813,7 @@ export default function MatchplayEventPage() {
                 className="matchplay-hub-menu-item"
                 onClick={() => {
                   setShowMenu(false)
-                  setShowPlayersModal(true)
+                  router.push(`/matchplay/${eventId}/players`)
                 }}
               >
                 <MatchplayHubPlayersIcon className="matchplay-hub-menu-icon" />
@@ -984,8 +826,7 @@ export default function MatchplayEventPage() {
                   className="matchplay-hub-menu-item"
                   onClick={() => {
                     setShowMenu(false)
-                    loadStandings()
-                    setShowStandingsModal(true)
+                    router.push(`/matchplay/${eventId}/standings`)
                   }}
                 >
                   <MatchplayHubStandingsIcon className="matchplay-hub-menu-icon" />
@@ -1213,120 +1054,54 @@ export default function MatchplayEventPage() {
         </div>
       )}
 
-      {/* Players Modal */}
-      {showPlayersModal && (
-        <div className="matchplay-event-modal-overlay" onClick={() => setShowPlayersModal(false)}>
-          <div className="matchplay-event-modal matchplay-event-players-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="matchplay-event-modal-header">
-              <h2>Players</h2>
-              <button type="button" className="matchplay-event-modal-close" onClick={() => setShowPlayersModal(false)} aria-label="Close">
-                ✕
-              </button>
-            </div>
-            <div className="matchplay-event-modal-body">
-              <div className="matchplay-event-add-player">
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Add player"
-                  value={newPlayerName}
-                  onChange={(e) => setNewPlayerName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddPlayer()}
-                />
-                <button type="button" className="btn btn-primary" onClick={handleAddPlayer} disabled={!newPlayerName.trim() || !!actionLoading}>
-                  Add
-                </button>
-              </div>
-              <div className="matchplay-event-player-count">{players.length} players</div>
-              <div className="matchplay-event-player-list">
-                {players.map((p) => (
-                  <div key={p.id} className="matchplay-event-player-row">
-                    <span>{p.name}</span>
-                    <button
-                      type="button"
-                      className="matchplay-event-player-remove"
-                      onClick={() => handleRemovePlayer(p.id)}
-                      aria-label={`Remove ${p.name}`}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showEndSummary && (
+        <div className="matchplay-modal-overlay" role="dialog" aria-labelledby="matchplay-end-summary-title">
+          <div className="matchplay-end-summary">
+            <div className="matchplay-end-summary-content">
+              <h2 id="matchplay-end-summary-title" className="matchplay-end-summary-title">
+                Event Ended
+              </h2>
 
-      {/* Standings Modal */}
-      {showStandingsModal && (
-        <div className="matchplay-event-modal-overlay" onClick={() => setShowStandingsModal(false)}>
-          <div className="matchplay-event-modal matchplay-event-standings-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="matchplay-event-modal-header">
-              <h2>Standings</h2>
-              <button type="button" className="matchplay-event-modal-close" onClick={() => setShowStandingsModal(false)} aria-label="Close">
-                ✕
-              </button>
-            </div>
-            <div className="matchplay-event-modal-body">
-              <div className="matchplay-table-scroll">
-                <table className="matchplay-standings">
-                  <thead>
-                    <tr>
-                      <th className="rank">#</th>
-                      <th className="player">Player</th>
-                      {isAmericano ? (
-                        <>
-                          <th className="num">W</th>
-                          <th className="num">T</th>
-                          <th className="num">L</th>
-                          <th className="num">P</th>
-                          <th className="num">+/−</th>
-                        </>
-                      ) : (
-                        <>
-                          <th className="num">P</th>
-                          <th className="num">W</th>
-                          <th className="num">D</th>
-                          <th className="num">L</th>
-                          <th className="num">GD</th>
-                          <th className="num">Pts</th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupStandings(standings).flatMap((g) =>
-                      g.players.map((s, idx) => (
-                        <tr key={s.id} className={`${g.rank <= 3 ? `rank-${g.rank}` : ''} ${idx > 0 ? 'matchplay-tie-cont' : ''}`}>
-                          <td className="rank">
-                            {idx === 0 ? (g.rank <= 3 ? ['🥇', '🥈', '🥉'][g.rank - 1] : g.rank) : <span className="matchplay-tie-connector">└</span>}
-                          </td>
-                          <td className="player">{s.name}</td>
-                          {isAmericano ? (
-                            <>
-                              <td className="num">{(s.matches_won ?? 0) || '-'}</td>
-                              <td className="num">{(s.matches_drawn ?? 0) || '-'}</td>
-                              <td className="num">{(s.matches_lost ?? 0) || '-'}</td>
-                              <td className="num">{(s.total_points ?? 0) || '-'}</td>
-                              <td className="num">{(s.game_difference ?? 0) >= 0 ? `+${s.game_difference}` : s.game_difference}</td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="num">{(s.matches_played ?? 0) || '-'}</td>
-                              <td className="num">{(s.matches_won ?? 0) || '-'}</td>
-                              <td className="num">{(s.matches_drawn ?? 0) || '-'}</td>
-                              <td className="num">{(s.matches_lost ?? 0) || '-'}</td>
-                              <td className="num">{(s.game_difference ?? 0) || '-'}</td>
-                              <td className="num">{(s.total_points ?? 0) || '-'}</td>
-                            </>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              {showEndSummary.winner && (
+                <div className="matchplay-end-summary-winner">
+                  <span className="matchplay-end-summary-trophy" aria-hidden>
+                    🏆
+                  </span>
+                  <span className="matchplay-end-summary-winner-name">
+                    {formatPlayerName(showEndSummary.winner.name, 'full')}
+                  </span>
+                  <span className="matchplay-end-summary-winner-points">{showEndSummary.winner.points} pts</span>
+                </div>
+              )}
+
+              <div className="matchplay-end-summary-stats">
+                <span>{showEndSummary.totalPlayers} players</span>
+                <span aria-hidden>·</span>
+                <span>{showEndSummary.roundsCompleted} rounds completed</span>
               </div>
+            </div>
+
+            <div className="matchplay-end-summary-actions">
+              <button
+                type="button"
+                className="btn btn--secondary btn--full"
+                onClick={() => {
+                  setShowEndSummary(null)
+                  router.push(`/matchplay/${event?.id}/standings`)
+                }}
+              >
+                View Final Standings
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary btn--full"
+                onClick={() => {
+                  setShowEndSummary(null)
+                  router.push('/matchplay')
+                }}
+              >
+                Start New Event
+              </button>
             </div>
           </div>
         </div>
