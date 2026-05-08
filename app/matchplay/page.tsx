@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
@@ -43,6 +43,42 @@ export default function MatchplayPage() {
   const [events, setEvents] = useState<MatchplayEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [closingActiveEvent, setClosingActiveEvent] = useState(false)
+
+  const loadEvents = useCallback(async () => {
+    if (!venueId) return
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
+      const list: MatchplayEvent[] = result.events ?? []
+      const activeRow = list.find((e) => e.status === 'setup' || e.status === 'in_progress')
+      if (!activeRow) {
+        setEvents(list)
+      } else {
+        const [playersRes, roundsRes] = await Promise.all([
+          supabase
+            .from('matchplay_players')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', activeRow.id),
+          supabase
+            .from('matchplay_rounds')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', activeRow.id),
+        ])
+        const player_count = playersRes.count ?? 0
+        const match_count = roundsRes.count ?? 0
+        setEvents(
+          list.map((e) => (e.id === activeRow.id ? { ...e, player_count, match_count } : e))
+        )
+      }
+    } catch (err) {
+      console.error(err)
+      setError('Failed to load events')
+      setEvents([])
+    }
+    setLoading(false)
+  }, [venueId])
 
   useEffect(() => {
     async function resolve() {
@@ -66,47 +102,33 @@ export default function MatchplayPage() {
   }, [])
 
   useEffect(() => {
-    if (!venueId) return
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
-        const list: MatchplayEvent[] = result.events ?? []
-        const activeRow = list.find((e) => e.status === 'setup' || e.status === 'in_progress')
-        if (!activeRow) {
-          setEvents(list)
-        } else {
-          const [playersRes, roundsRes] = await Promise.all([
-            supabase
-              .from('matchplay_players')
-              .select('*', { count: 'exact', head: true })
-              .eq('event_id', activeRow.id),
-            supabase
-              .from('matchplay_rounds')
-              .select('*', { count: 'exact', head: true })
-              .eq('event_id', activeRow.id),
-          ])
-          const player_count = playersRes.count ?? 0
-          const match_count = roundsRes.count ?? 0
-          setEvents(
-            list.map((e) =>
-              e.id === activeRow.id ? { ...e, player_count, match_count } : e
-            )
-          )
-        }
-      } catch (err) {
-        console.error(err)
-        setError('Failed to load events')
-        setEvents([])
-      }
-      setLoading(false)
-    }
-    load()
-  }, [venueId])
+    void loadEvents()
+  }, [loadEvents])
 
   const activeEvent = events.find((e) => e.status === 'setup' || e.status === 'in_progress')
+
+  const handleCloseActiveEvent = async () => {
+    if (!activeEvent) return
+    const ok = window.confirm(
+      'Mark this event as finished and clear it from the launcher? You can start a new Americano afterwards. Existing scores stay in the database.'
+    )
+    if (!ok) return
+    setClosingActiveEvent(true)
+    setError(null)
+    try {
+      const result = await callMatchplayEvent({ action: 'complete', event_id: activeEvent.id })
+      if (!result.event) {
+        setError((result.error as string | undefined) ?? 'Could not close event')
+        return
+      }
+      await loadEvents()
+    } catch (err) {
+      console.error(err)
+      setError('Could not close event')
+    } finally {
+      setClosingActiveEvent(false)
+    }
+  }
 
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
@@ -145,13 +167,28 @@ export default function MatchplayPage() {
             Round {(activeEvent.match_count ?? 0) || 1} of {(activeEvent.match_count ?? 0) || 1} ·{' '}
             {activeEvent.player_count ?? 0} players
           </div>
-          <button
-            type="button"
-            className="btn btn-primary matchplay-continue-btn"
-            onClick={() => router.push(`/matchplay/${activeEvent.id}`)}
-          >
-            CONTINUE EVENT
-          </button>
+          {error ? (
+            <div className="matchplay-error" role="alert" style={{ marginBottom: 'var(--ui-space-md)' }}>
+              {error}
+            </div>
+          ) : null}
+          <div className="matchplay-active-event-actions">
+            <button
+              type="button"
+              className="btn btn-primary matchplay-continue-btn"
+              onClick={() => router.push(`/matchplay/${activeEvent.id}`)}
+            >
+              CONTINUE EVENT
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--full matchplay-close-active-btn"
+              disabled={closingActiveEvent}
+              onClick={() => void handleCloseActiveEvent()}
+            >
+              {closingActiveEvent ? 'Closing…' : 'Mark finished & clear launcher'}
+            </button>
+          </div>
         </div>
       </div>
     )

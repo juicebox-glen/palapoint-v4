@@ -239,10 +239,20 @@
   margin-bottom: 1.25rem;
 }
 
+.matchplay-active-event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-md);
+}
+
 .matchplay-continue-btn {
   width: 100%;
   min-height: var(--touch-target-comfortable);
   font-weight: var(--font-weight-semibold);
+}
+
+.matchplay-close-active-btn {
+  min-height: var(--touch-target-comfortable);
 }
 
 .matchplay-past-events {
