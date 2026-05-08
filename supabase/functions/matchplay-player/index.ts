@@ -167,6 +167,11 @@ Deno.serve(async (req) => {
 
       case 'update': {
         const { player_id, name, photo_url } = body as UpdateInput;
+        console.log('[matchplay-player] update request:', {
+          player_id,
+          has_name: name !== undefined,
+          has_photo_url: photo_url !== undefined,
+        });
         if (!player_id) {
           return errorResponse('player_id is required');
         }

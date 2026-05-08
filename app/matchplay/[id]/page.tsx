@@ -459,8 +459,10 @@ export default function MatchplayEventPage() {
 
   const loadEvent = useCallback(async () => {
     const result = await callMatchplayEvent({ action: 'get', event_id: eventId })
-    if (result.event) setEvent(result.event)
-    else setError('Event not found')
+    if (result.event) {
+      console.log('[EventHub] Loaded event status:', (result.event as MatchplayEvent).status)
+      setEvent(result.event)
+    } else setError('Event not found')
   }, [eventId])
 
   const loadPlayers = useCallback(async () => {
@@ -494,8 +496,13 @@ export default function MatchplayEventPage() {
   }, [eventId, loadEvent, loadPlayers, loadRounds])
 
   useEffect(() => {
+    pairingGeneratedRef.current = false
+  }, [eventId])
+
+  useEffect(() => {
+    if (loading) return
     if (!event || !players.length || rounds.length > 0 || pairingGeneratedRef.current) return
-    if (event.status !== 'setup' && event.status !== 'in_progress') return
+    if (event.status !== 'setup') return
 
     pairingGeneratedRef.current = true
     const courtLabels = getCourtLabels()
@@ -534,7 +541,7 @@ export default function MatchplayEventPage() {
       await loadRounds()
     }
     createRounds()
-  }, [event, players, rounds.length, eventId, getCourtLabels, loadRounds])
+  }, [loading, event, players, rounds.length, eventId, getCourtLabels, loadRounds])
 
   useEffect(() => {
     if (rounds.length === 0) return
@@ -763,7 +770,7 @@ export default function MatchplayEventPage() {
   const isSetup = event?.status === 'setup'
   const isLive = event?.status === 'in_progress'
 
-  if (loading && !event) {
+  if (loading) {
     return (
       <div className="matchplay-event-page">
         <p className="matchplay-loading-text">Loading...</p>
@@ -855,6 +862,7 @@ export default function MatchplayEventPage() {
         </div>
       </header>
 
+      {rounds.length > 0 ? (
       <nav className="matchplay-hub-rounds" ref={roundTabsRef}>
         {rounds.map((round) => {
           const isActive = round.id === selectedRoundId
@@ -873,11 +881,16 @@ export default function MatchplayEventPage() {
           )
         })}
       </nav>
+      ) : null}
 
       {error && <div className="setup-error matchplay-hub-error">{error}</div>}
 
       {!viewingRound ? (
-        <div className="matchplay-hub-empty">No rounds yet. Add players and wait for pairings to generate.</div>
+        <div className="matchplay-hub-empty">
+          {event.status === 'setup'
+            ? 'No rounds yet. Add at least four players from the menu, or wait for fixtures to generate.'
+            : 'No fixtures loaded for this event.'}
+        </div>
       ) : (
         <div className="matchplay-hub-matches">
           {(viewingRound.matches ?? []).map((match) => (

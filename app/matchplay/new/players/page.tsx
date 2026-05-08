@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
+import { generateAmericanoPairings } from '@/lib/matchplay-americano-pairings'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -89,6 +90,18 @@ async function callMatchplayEvent(body: Record<string, unknown>) {
   return res.json()
 }
 
+async function callMatchplayRound(body: Record<string, unknown>) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-round`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify(body),
+  })
+  return res.json()
+}
+
 async function callMatchplayPlayer(body: Record<string, unknown>) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
     method: 'POST',
@@ -98,7 +111,22 @@ async function callMatchplayPlayer(body: Record<string, unknown>) {
     },
     body: JSON.stringify(body),
   })
-  return res.json()
+  const text = await res.text()
+  let parsed: Record<string, unknown>
+  try {
+    parsed = text ? (JSON.parse(text) as Record<string, unknown>) : {}
+  } catch {
+    console.error('[MatchplaySetup] matchplay-player non-JSON body:', text.slice(0, 300))
+    return { success: false, error: 'invalid_server_response' }
+  }
+  if (!res.ok) {
+    return {
+      ...parsed,
+      success: typeof parsed.success === 'boolean' ? parsed.success : false,
+      error: (parsed.error as string | undefined) ?? `HTTP ${res.status}`,
+    }
+  }
+  return parsed
 }
 
 function generateEventName(): string {
@@ -220,6 +248,16 @@ export default function MatchplayPlayersPage() {
   const handleStartEvent = async () => {
     if (!config || !canStart) return
 
+    // Snapshot synchronously before any await — avoids rare stale `players` if state batches oddly after photo crop/upload.
+    const playersSnapshot = players.map((p) => ({
+      name: p.name,
+      photoBlob: p.photoBlob,
+      photoPreview: p.photoPreview,
+    }))
+
+    console.log('[MatchplaySetup] StartEvent snapshot:', playersSnapshot.length, 'slots')
+    console.log('[MatchplaySetup] StartEvent config:', config)
+
     setIsSubmitting(true)
     setError(null)
 
@@ -252,28 +290,56 @@ export default function MatchplayPlayersPage() {
 
       const eventId = createResult.event.id as string
 
-      for (let i = 0; i < players.length; i++) {
-        const player = players[i]
+      const playerIds: string[] = []
+
+      for (let i = 0; i < playersSnapshot.length; i++) {
+        const player = playersSnapshot[i]!
+
+        console.log(`[MatchplaySetup] Player ${i}:`, {
+          namePreview: player.name?.slice(0, 40),
+          hasPhotoBlob: !!player.photoBlob,
+          hasPhotoPreview: !!player.photoPreview,
+        })
+
+        const trimmed = player.name?.trim() ?? ''
+        if (!trimmed) {
+          throw new Error(`Player ${i + 1} has no name`)
+        }
+
         const addResult = await callMatchplayPlayer({
           action: 'add',
           event_id: eventId,
-          name: player.name.trim(),
+          name: trimmed,
         })
-        if (!addResult.success || !addResult.player?.id) {
-          throw new Error(addResult.error || 'Failed to add player')
+
+        console.log(`[MatchplaySetup] Add player ${i} response:`, addResult)
+
+        const created =
+          addResult.player &&
+          typeof addResult.player === 'object' &&
+          addResult.player !== null &&
+          'id' in addResult.player
+            ? (addResult.player as { id: string })
+            : null
+
+        // Treat explicit failure OR missing player row as fatal; allow omit success if legacy deploy returns only { player }.
+        if (addResult.success === false || !created?.id) {
+          throw new Error((addResult.error as string | undefined) || 'Failed to add player')
         }
-        const playerId = addResult.player.id as string
+
+        const playerId = created.id
+        playerIds.push(playerId)
 
         if (player.photoBlob) {
           const photoPath = `matchplay/${eventId}/${playerId}.jpg`
-          const { error: uploadError } = await supabase.storage
-            .from('player-photos')
-            .upload(photoPath, player.photoBlob, {
-              contentType: 'image/jpeg',
-              upsert: true,
-            })
+          const { error: uploadError } = await supabase.storage.from('player-photos').upload(photoPath, player.photoBlob, {
+            contentType: 'image/jpeg',
+            upsert: true,
+          })
 
-          if (!uploadError) {
+          if (uploadError) {
+            console.error('[MatchplaySetup] Photo upload error (continuing without photo):', uploadError)
+          } else {
             const {
               data: { publicUrl },
             } = supabase.storage.from('player-photos').getPublicUrl(photoPath)
@@ -283,12 +349,67 @@ export default function MatchplayPlayersPage() {
               player_id: playerId,
               photo_url: publicUrl,
             })
-            if (!upd.success) {
-              throw new Error(upd.error || 'Failed to save photo URL')
+
+            console.log(`[MatchplaySetup] Photo update player ${i} response:`, upd)
+
+            if (upd.success === false) {
+              console.warn('[MatchplaySetup] Photo URL save failed (event still created):', upd.error)
             }
           }
         }
       }
+
+      if (playerIds.length !== playersSnapshot.length) {
+        console.error('[MatchplaySetup] playerIds mismatch:', playerIds.length, 'vs', playersSnapshot.length)
+        throw new Error(`Expected ${playersSnapshot.length} player IDs but got ${playerIds.length}`)
+      }
+
+      console.log('[MatchplaySetup] All player IDs:', playerIds)
+
+      const allPairings = generateAmericanoPairings(playerIds, courtLabels)
+      const roundCap = Math.min(allPairings.length, Math.max(1, config.rounds))
+      const pairings = allPairings.slice(0, roundCap)
+
+      console.log('[MatchplaySetup] Creating rounds:', pairings.length)
+
+      let round1Id: string | null = null
+      for (const p of pairings) {
+        const roundRes = await callMatchplayRound({
+          action: 'create_round',
+          event_id: eventId,
+          round_number: p.roundNumber,
+          matches: p.matches,
+        })
+        const rid = roundRes.round && typeof roundRes.round === 'object' && roundRes.round !== null && 'id' in roundRes.round
+          ? String((roundRes.round as { id: string }).id)
+          : ''
+        if (!rid) {
+          throw new Error((roundRes.error as string | undefined) || `Failed to create round ${p.roundNumber}`)
+        }
+        if (p.roundNumber === 1) round1Id = rid
+      }
+
+      console.log('[MatchplaySetup] Starting event…')
+      const startEventRes = await callMatchplayEvent({
+        action: 'start',
+        event_id: eventId,
+      })
+      if (!startEventRes.event) {
+        throw new Error((startEventRes.error as string | undefined) || 'Failed to start event')
+      }
+
+      if (round1Id) {
+        console.log('[MatchplaySetup] Starting Round 1…', round1Id)
+        const startRoundRes = await callMatchplayRound({
+          action: 'start_round',
+          round_id: round1Id,
+        })
+        if (!startRoundRes.round) {
+          console.warn('[MatchplaySetup] Failed to start round 1:', startRoundRes.error)
+        }
+      }
+
+      console.log('[MatchplaySetup] Navigating to event hub…')
 
       try {
         sessionStorage.removeItem(SESSION_KEY)
