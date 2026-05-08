@@ -10,6 +10,7 @@ Related UI styles live in [`app/styles/matchplay.css`](../app/styles/matchplay.c
 
 - Full-screen roster management (photos + add/remove): [`app/matchplay/[id]/players/page.tsx`](../app/matchplay/[id]/players/page.tsx)
 - Full-screen standings: [`app/matchplay/[id]/standings/page.tsx`](../app/matchplay/[id]/standings/page.tsx)
+- Full-screen results after completing an event: [`app/matchplay/[id]/results/page.tsx`](../app/matchplay/[id]/results/page.tsx)
 - Board TV UI: [`/matchplay/[id]/board`](./matchplay-board-audit-v2.md) — separate from this page.
 
 ---
@@ -26,7 +27,7 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 | **Match list** (`matchplay-event-matches`) | Cards for each match in **`viewingRound`** (derived from `selectedRoundId`) |
 | **Resting block** (`matchplay-event-resting`) | Players not assigned to any match this round + optional sit-out counts |
 | **Footer** (`matchplay-event-footer`) | Context actions (see §5) |
-| **Modals** (conditional overlays) | Edit match lineups, **End Event** confirmation (`matchplay-hub-end-modal`), **End Event summary** (`matchplay-end-summary` via `matchplay-modal-overlay`) |
+| **Modals** (conditional overlays) | Edit match lineups, **End Event / Finalize** confirmation (`matchplay-hub-end-modal`) |
 
 **Small shared UI**
 
@@ -49,12 +50,12 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 | State | Role |
 |-------|------|
 | `loading`, `error` | Initial load and global errors |
-| `actionLoading` | Single string discriminant for long actions (`'start' \| 'complete' \| 'edit'`, …) |
+| `actionLoading` | Single string discriminant for long actions (`'start' \| 'end' \| 'edit'`, …) |
 | **`selectedRoundId`** | Which round tab is active; **`viewingRound`** = `rounds.find(r => r.id === selectedRoundId)` |
 | **`expandedMatchId`** | At most one **pending** match expanded for **inline score entry** |
 | **`draftScores`** | `Record<matchId, { a, b }>` — stepper edits before confirm (American: Team B score derived from `maxScore - scoreA`) |
 | **`submittingMatchId`** | Disables confirm while `enter_result` runs |
-| **`showEditMatchModal`**, **`showMenu`**, **`showEndConfirm`**, **`showEndSummary`** | Menu dropdown + overlay visibility (`menuRef`; outside dismiss on pointerdown). **`showEndSummary`** drives post-complete recap UI (winner name/points if ranked leaders exist, player count, completed-round count). |
+| **`showEditMatchModal`**, **`showMenu`**, **`showEndConfirm`** | Menu dropdown + end-event confirmation (`menuRef`; outside dismiss on pointerdown). |
 | **`editMatchAssignments`** | Form state for Edit Match modal |
 | **`pairingGeneratedRef`** | Prevents duplicate client-side round creation when React effects re-run |
 | **`roundTabsRef`** | Scroll selected tab into view |
@@ -64,8 +65,9 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 - **`viewingRound`** — active round for match list + resting calculation.
 - **`allMatchesScoredInCurrentRound`** — every match in `viewingRound` has `status === 'completed'`.
 - **`isFinalRound`** — viewing round number ≥ last round number.
+- **`totalRounds`**, **`completedRoundsCount`**, **`allRoundsComplete`** — derived from hub **`rounds`** for finalize vs early-end copy in the confirmation modal and footer labels.
 - **`canEdit`** (setup only for edit button) — non-American OR (setup OR live with no completed match yet in current round) — controls **EDIT** on setup cards.
-- Footer swaps **NEXT ROUND** vs **END EVENT** using `isFinalRound`, `allMatchesScoredInCurrentRound`, and `event.status`.
+- Footer swaps **NEXT ROUND** vs **FINALIZE RESULTS** / **END EVENT** using `isFinalRound`, `allMatchesScoredInCurrentRound`, **`allRoundsComplete`**, and `event.status`.
 
 ### Round selection sync
 
@@ -101,7 +103,7 @@ Sequential:
 2. **`loadPlayers`** — `callMatchplayPlayer({ action: 'list', event_id })`
 3. **`loadRounds`** — `callMatchplayRound({ action: 'list_rounds', event_id })`, then for **each** round `callMatchplayRound({ action: 'get_round', round_id })` to attach **`matches`**, then sort by `round_number`.
 
-Standings are **not** loaded on this screen except briefly inside **`handleEndEventConfirmed`** (same **`standings`** Edge Function action) to derive winner summary labels **before** calling **`complete`**.
+Standings are **not** loaded on this hub screen (they load on **`/standings`** and **`/results`**).
 
 ### Pairing generation (client → API)
 
@@ -139,16 +141,14 @@ On **this hub page**, roster edits happen only via navigation to `/players`; **`
 | **← Back** | Always | `router.push('/matchplay')` |
 | **⋮ → Players** | Always | `router.push('/matchplay/[id]/players')` |
 | **⋮ → Standings** | `in_progress` only | `router.push('/matchplay/[id]/standings')` |
-| **⋮ → End Event** | `in_progress` only | Opens confirmation modal → **`handleEndEventConfirmed`** (see below). |
+| **⋮ → End Event** | `in_progress` only | Opens confirmation modal → **`handleEndEvent`** (see below). |
 
-### End Event confirmation → completion summary
+### End Event confirmation → results route
 
-**`handleEndEventConfirmed`**:
+**`handleEndEvent`**:
 
-1. **`matchplay-player` `standings`** — derive tied‑leader label (`rank === 1`; joined with **` & `**).
-2. **`matchplay-event` `complete`**.
-3. Clear **`showEndConfirm`**, set **`showEndSummary`** with winner (nullable), **`players.length`**, count of rounds with `status === 'completed'`.
-4. Summary CTAs: **View Final Standings** → `/matchplay/[id]/standings`, **Start New Event** → `/matchplay`.
+1. **`matchplay-event` `complete`**.
+2. **`router.push(`/matchplay/[id]/results`)`** — full-screen recap (winner + standings). From there, **Detailed standings** goes to **`/standings`**; **Back** returns to results.
 
 ### Footer
 
@@ -156,7 +156,7 @@ On **this hub page**, roster edits happen only via navigation to `/players`; **`
 |--------|------|----------|
 | **START EVENT** | `setup` | `matchplay-event` **`start`**, then **`start_round`** on round 1, `loadRounds()`. Disabled if &lt; 4 players or action in flight. |
 | **NEXT ROUND** | `in_progress`, not “final end” branch | Selects next round; if next is `pending`, **`start_round`**. Disabled until **all** matches in **current** viewing round are completed **or** already on final round (see JSX). |
-| **END EVENT** | `in_progress` **and** on **final** round **and** all matches in that round completed | Opens the same **End Event** confirmation modal as the ⋮ menu (`complete`). |
+| **FINALIZE RESULTS** / **END EVENT** | `in_progress` **and** on **final** round **and** all matches in that round completed | Label depends on **`allRoundsComplete`**; opens the same confirmation modal as ⋮ **End Event**, then **`complete`** → **`/results`**. |
 | *(none)* | `completed` | No footer CTAs rendered |
 
 ### Match cards
@@ -170,8 +170,7 @@ On **this hub page**, roster edits happen only via navigation to `/players`; **`
 
 | Overlay | Actions |
 |---------|---------|
-| **End Event confirm** | Warning copy + **Cancel** / **End Event** (solid danger); see **`handleEndEventConfirmed`** above. |
-| **End Event summary** | Trophy-style recap + primary / secondary navigation buttons |
+| **End Event confirm** | Copy and primary button style depend on **`allRoundsComplete`** (finalize vs early end); **Cancel** / confirm; see **`handleEndEvent`** above. |
 | **Edit Match** | Four dropdowns (Team A/B × 2 players), save → **`update_match`** |
 
 ---
@@ -183,14 +182,14 @@ All use `POST` to Supabase Functions with anon JWT:
 | Function | Actions used on this page |
 |----------|---------------------------|
 | **`matchplay-event`** | `get`, `start`, `complete` |
-| **`matchplay-player`** | `list`, `standings` (only during end-flow summary preparation on hub); **`add` / `remove` / `update` / `standings`** live on **`/players`** |
+| **`matchplay-player`** | `list` on hub; **`add` / `remove` / `update` / `standings`** also used on **`/players`**, **`/standings`**, **`/results`** |
 | **`matchplay-round`** | `list_rounds`, `get_round`, `create_round`, `start_round`, `enter_result`, `delete_round`, `update_match` |
 
 ---
 
 ## 7. Mental model summary
 
-- **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and overlays (**edit match**, **end-event confirm**, **end-event summary**).
+- **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and overlays (**edit match**, **end-event confirm**). Post-complete UX is **`/results`**.
 - **Players** and **Standings** are **full-screen routes** (`/players`, `/standings`) linked from the menu.
 - **Scores** are entered **inline** by expanding a pending card; submission is **`enter_result`**.
 - **Rounds/matches** come from the **`matchplay-round`** API; **pairing math** for new rounds is **`generateAmericanoPairings`** in **`lib/matchplay-americano-pairings.ts`**, then persisted via **`create_round`** on hub startup **and** on **`/players`** roster edits.

@@ -438,11 +438,6 @@ export default function MatchplayEventPage() {
   const [showEditMatchModal, setShowEditMatchModal] = useState<MatchplayMatch | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
-  const [showEndSummary, setShowEndSummary] = useState<{
-    winner: { name: string; points: number } | null
-    totalPlayers: number
-    roundsCompleted: number
-  } | null>(null)
 
   const [editMatchAssignments, setEditMatchAssignments] = useState<{ a1: string; a2: string; b1: string; b2: string }>({ a1: '', a2: '', b1: '', b2: '' })
 
@@ -610,6 +605,9 @@ export default function MatchplayEventPage() {
   const allMatchesScoredInCurrentRound = (viewingRound?.matches?.length ?? 0) > 0 && (viewingRound?.matches ?? []).every((m) => m.status === 'completed')
   const isFinalRound = rounds.length > 0 && (viewingRound?.round_number ?? 0) >= (rounds[rounds.length - 1]?.round_number ?? 0)
   const canShowEndEvent = event?.status === 'in_progress' && (isFinalRound ? allMatchesScoredInCurrentRound : true)
+  const totalRounds = rounds.length
+  const completedRoundsCount = rounds.filter((r) => r.status === 'completed').length
+  const allRoundsComplete = rounds.length > 0 && rounds.every((r) => r.status === 'completed')
 
   const handleStartEvent = async () => {
     if (!eventId) return
@@ -627,44 +625,23 @@ export default function MatchplayEventPage() {
     setActionLoading(null)
   }
 
-  const handleEndEventConfirmed = async () => {
+  const handleEndEvent = async () => {
     if (!eventId) return
-    setActionLoading('complete')
+    setActionLoading('end')
     setError(null)
     try {
-      const standingsResult = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
-      if (!standingsResult.success) {
-        throw new Error(standingsResult.error || 'Failed to load standings')
-      }
-      const finalStandings = (standingsResult.standings ?? []) as MatchplayPlayer[]
-      const leaders = finalStandings.filter((s) => (s.rank ?? 999) === 1)
-      const winner =
-        leaders.length > 0
-          ? {
-              name: leaders.map((l) => l.name).join(' & '),
-              points: leaders[0]!.total_points ?? 0,
-            }
-          : null
-
       const result = await callMatchplayEvent({ action: 'complete', event_id: eventId })
       if (!result.event) {
-        setError(result.error || 'Failed to end event')
-        return
+        throw new Error(result.error || 'Failed to end event')
       }
-
       setEvent(result.event)
-      const completedRounds = rounds.filter((r) => r.status === 'completed').length
-      setShowEndSummary({
-        winner,
-        totalPlayers: players.length,
-        roundsCompleted: completedRounds,
-      })
-      setShowEndConfirm(false)
+      router.push(`/matchplay/${eventId}/results`)
     } catch (err) {
       console.error('End event error:', err)
       setError(err instanceof Error ? err.message : 'Failed to end event')
     } finally {
       setActionLoading(null)
+      setShowEndConfirm(false)
     }
   }
 
@@ -1012,7 +989,13 @@ export default function MatchplayEventPage() {
                 onClick={() => setShowEndConfirm(true)}
                 disabled={!!actionLoading}
               >
-                {actionLoading === 'complete' ? 'Ending...' : 'END EVENT'}
+                {actionLoading === 'end'
+                  ? allRoundsComplete
+                    ? 'Finalizing...'
+                    : 'Ending...'
+                  : allRoundsComplete
+                    ? 'FINALIZE RESULTS'
+                    : 'END EVENT'}
               </button>
             ) : (
               <button
@@ -1037,7 +1020,7 @@ export default function MatchplayEventPage() {
         >
           <div className="matchplay-event-modal matchplay-hub-end-modal" onClick={(e) => e.stopPropagation()}>
             <div className="matchplay-event-modal-header">
-              <h2>End Event?</h2>
+              <h2>{allRoundsComplete ? 'Finalize event?' : 'End event early?'}</h2>
               <button
                 type="button"
                 className="matchplay-event-modal-close"
@@ -1048,78 +1031,39 @@ export default function MatchplayEventPage() {
               </button>
             </div>
             <div className="matchplay-event-modal-body">
-              <p className="matchplay-hub-end-modal-text">
-                This will end the event early and finalize standings with current scores.
-              </p>
-              <p className="matchplay-hub-end-modal-text matchplay-hub-end-modal-text--muted">
-                Any unscored matches will be excluded from final standings.
-              </p>
+              {allRoundsComplete ? (
+                <p className="matchplay-hub-end-modal-text">
+                  All {totalRounds} rounds are complete. Ready to finalize standings?
+                </p>
+              ) : (
+                <>
+                  <p className="matchplay-hub-end-modal-text">
+                    This will end the event after {completedRoundsCount} of {totalRounds} rounds.
+                  </p>
+                  <p className="matchplay-hub-end-modal-text matchplay-hub-end-modal-text--muted">
+                    Any unscored matches will be excluded from final standings.
+                  </p>
+                </>
+              )}
               <div className="matchplay-hub-end-modal-actions">
                 <button type="button" className="btn btn--secondary btn--full" onClick={() => setShowEndConfirm(false)} disabled={!!actionLoading}>
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger-fill btn--full"
-                  onClick={handleEndEventConfirmed}
-                  disabled={actionLoading === 'complete'}
+                  className={`btn btn--full ${allRoundsComplete ? 'btn--primary' : 'btn-danger-fill'}`}
+                  onClick={handleEndEvent}
+                  disabled={actionLoading === 'end'}
                 >
-                  {actionLoading === 'complete' ? 'Ending...' : 'End Event'}
+                  {actionLoading === 'end'
+                    ? allRoundsComplete
+                      ? 'Finalizing...'
+                      : 'Ending...'
+                    : allRoundsComplete
+                      ? 'Finalize results'
+                      : 'End event'}
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEndSummary && (
-        <div className="matchplay-modal-overlay" role="dialog" aria-labelledby="matchplay-end-summary-title">
-          <div className="matchplay-end-summary">
-            <div className="matchplay-end-summary-content">
-              <h2 id="matchplay-end-summary-title" className="matchplay-end-summary-title">
-                Event Ended
-              </h2>
-
-              {showEndSummary.winner && (
-                <div className="matchplay-end-summary-winner">
-                  <span className="matchplay-end-summary-trophy" aria-hidden>
-                    🏆
-                  </span>
-                  <span className="matchplay-end-summary-winner-name">
-                    {formatPlayerName(showEndSummary.winner.name, 'full')}
-                  </span>
-                  <span className="matchplay-end-summary-winner-points">{showEndSummary.winner.points} pts</span>
-                </div>
-              )}
-
-              <div className="matchplay-end-summary-stats">
-                <span>{showEndSummary.totalPlayers} players</span>
-                <span aria-hidden>·</span>
-                <span>{showEndSummary.roundsCompleted} rounds completed</span>
-              </div>
-            </div>
-
-            <div className="matchplay-end-summary-actions">
-              <button
-                type="button"
-                className="btn btn--secondary btn--full"
-                onClick={() => {
-                  setShowEndSummary(null)
-                  router.push(`/matchplay/${event?.id}/standings`)
-                }}
-              >
-                View Final Standings
-              </button>
-              <button
-                type="button"
-                className="btn btn--primary btn--full"
-                onClick={() => {
-                  setShowEndSummary(null)
-                  router.push('/matchplay')
-                }}
-              >
-                Start New Event
-              </button>
             </div>
           </div>
         </div>
