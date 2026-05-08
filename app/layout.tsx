@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ScrollToTopOnNavigate } from '@/components/ScrollToTopOnNavigate'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <ScrollToTopOnNavigate />
         {children}
         {process.env.NODE_ENV === 'development' && (
           <div
