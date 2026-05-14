@@ -207,8 +207,10 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
               </div>
             </div>
             <div className="matchplay-hub-match-vs-column">
-              <span className="matchplay-hub-match-vs-badge">VS</span>
-              <span className="matchplay-hub-match-court">Court 1</span>
+              <div className="matchplay-hub-match-vs-wrap">
+                <span className="matchplay-hub-match-vs-badge">VS</span>
+                <span className="matchplay-hub-match-court">Court 1</span>
+              </div>
             </div>
             <div className="matchplay-hub-match-side">
               <div className="matchplay-hub-match-score">
@@ -233,8 +235,10 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
               </div>
             </div>
             <div className="matchplay-hub-match-vs-column">
-              <span className="matchplay-hub-match-vs-badge">VS</span>
-              <span className="matchplay-hub-match-court">Court 2</span>
+              <div className="matchplay-hub-match-vs-wrap">
+                <span className="matchplay-hub-match-vs-badge">VS</span>
+                <span className="matchplay-hub-match-court">Court 2</span>
+              </div>
             </div>
             <div className="matchplay-hub-match-side">
               <div className="matchplay-hub-match-score">

@@ -1718,16 +1718,14 @@
   line-height: 1;
 }
 
-/* Centre gutter — vertical rule + stacked VS / court (matches staff preview-vs-column pattern) */
+/* Centre gutter — same layout as staff `.preview-vs-column` */
 
 .matchplay-hub-match-vs-column {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  gap: 0.35rem;
   min-width: 2.75rem;
   padding: 0 0.5rem;
   flex-shrink: 0;
@@ -1745,34 +1743,43 @@
   z-index: 0;
 }
 
-.matchplay-hub-match-vs-badge {
+/* Same shell as staff `.preview-vs` — VS + court stacked, single background/radius */
+
+.matchplay-hub-match-vs-wrap {
   position: relative;
   z-index: 1;
-  font-size: 0.6875rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.12em;
-  color: var(--hub-compact-meta);
-  text-transform: uppercase;
-  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-muted);
   padding: 0.4rem 0.65rem;
-  background: var(--bg-tertiary);
+  line-height: 1.2;
+  background: var(--bg-secondary);
   border-radius: var(--radius-sm);
 }
 
-.matchplay-hub-match-vs-column .matchplay-hub-match-court {
-  position: relative;
-  z-index: 1;
+.matchplay-hub-match-vs-badge {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.matchplay-hub-match-vs-wrap .matchplay-hub-match-court {
   font-size: 0.625rem;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.14em;
-  color: var(--hub-compact-meta);
+  color: inherit;
   text-transform: uppercase;
   line-height: 1.25;
   text-align: center;
   max-width: 6.5rem;
-  background: var(--bg-tertiary);
-  padding: 0.15rem 0.4rem;
-  border-radius: var(--radius-sm);
+  padding: 0;
+  margin: 0;
+  background: transparent;
 }
 
 .matchplay-hub-match-edit {

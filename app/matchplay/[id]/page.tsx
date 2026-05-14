@@ -185,8 +185,10 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
 function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   return (
     <div className="matchplay-hub-match-vs-column">
-      <span className="matchplay-hub-match-vs-badge">VS</span>
-      <span className="matchplay-hub-match-court">{courtLabel}</span>
+      <div className="matchplay-hub-match-vs-wrap">
+        <span className="matchplay-hub-match-vs-badge">VS</span>
+        <span className="matchplay-hub-match-court">{courtLabel}</span>
+      </div>
     </div>
   )
 }
