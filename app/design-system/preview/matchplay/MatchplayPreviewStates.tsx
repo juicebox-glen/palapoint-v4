@@ -197,9 +197,11 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
       <div className="matchplay-hub-matches">
         <div className="matchplay-hub-match matchplay-card matchplay-hub-match--completed">
           <div className="matchplay-hub-match-compact">
-            <div className="matchplay-hub-match-side">
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">18</span>
+            <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
+              <div className="matchplay-hub-match-score-row">
+                <div className="matchplay-hub-match-score">
+                  <span className="matchplay-hub-match-score-num">18</span>
+                </div>
               </div>
               <div className="matchplay-hub-match-names">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
@@ -212,9 +214,11 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
                 <span className="matchplay-hub-match-court">Court 1</span>
               </div>
             </div>
-            <div className="matchplay-hub-match-side">
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">14</span>
+            <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
+              <div className="matchplay-hub-match-score-row">
+                <div className="matchplay-hub-match-score">
+                  <span className="matchplay-hub-match-score-num">14</span>
+                </div>
               </div>
               <div className="matchplay-hub-match-names">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Julian Waters', 'surname_short')}</span>
@@ -225,9 +229,11 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
         </div>
         <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending matchplay-hub-match--expanded">
           <div className="matchplay-hub-match-compact">
-            <div className="matchplay-hub-match-side">
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">0</span>
+            <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
+              <div className="matchplay-hub-match-score-row">
+                <div className="matchplay-hub-match-score">
+                  <span className="matchplay-hub-match-score-num">0</span>
+                </div>
               </div>
               <div className="matchplay-hub-match-names">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>
@@ -240,9 +246,11 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
                 <span className="matchplay-hub-match-court">Court 2</span>
               </div>
             </div>
-            <div className="matchplay-hub-match-side">
-              <div className="matchplay-hub-match-score">
-                <span className="matchplay-hub-match-score-num">0</span>
+            <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
+              <div className="matchplay-hub-match-score-row">
+                <div className="matchplay-hub-match-score">
+                  <span className="matchplay-hub-match-score-num">0</span>
+                </div>
               </div>
               <div className="matchplay-hub-match-names">
                 <span className="matchplay-hub-match-surname">{formatPlayerName('Mike Brown', 'surname_short')}</span>

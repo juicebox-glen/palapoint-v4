@@ -259,9 +259,11 @@ function HubMatchCard({
     return (
       <div className="matchplay-hub-match matchplay-card matchplay-hub-match--setup">
         <div className="matchplay-hub-match-compact">
-          <div className="matchplay-hub-match-side">
-            <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-              <span className="matchplay-hub-match-score-num">—</span>
+          <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
+            <div className="matchplay-hub-match-score-row">
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+                <span className="matchplay-hub-match-score-num">—</span>
+              </div>
             </div>
             <div className="matchplay-hub-match-names">
               {teamASurnames.map((name, i) => (
@@ -272,9 +274,11 @@ function HubMatchCard({
             </div>
           </div>
           <HubCompactCenter courtLabel={courtLabel} />
-          <div className="matchplay-hub-match-side">
-            <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-              <span className="matchplay-hub-match-score-num">—</span>
+          <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
+            <div className="matchplay-hub-match-score-row">
+              <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+                <span className="matchplay-hub-match-score-num">—</span>
+              </div>
             </div>
             <div className="matchplay-hub-match-names">
               {teamBSurnames.map((name, i) => (
@@ -315,9 +319,11 @@ function HubMatchCard({
       }}
     >
       <div className="matchplay-hub-match-compact">
-        <div className="matchplay-hub-match-side">
-          <div className="matchplay-hub-match-score">
-            <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
+        <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
+          <div className="matchplay-hub-match-score-row">
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
+            </div>
           </div>
           <div className="matchplay-hub-match-names">
             {teamASurnames.map((name, i) => (
@@ -328,9 +334,11 @@ function HubMatchCard({
           </div>
         </div>
         <HubCompactCenter courtLabel={courtLabel} />
-        <div className="matchplay-hub-match-side">
-          <div className="matchplay-hub-match-score">
-            <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
+        <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
+          <div className="matchplay-hub-match-score-row">
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
+            </div>
           </div>
           <div className="matchplay-hub-match-names">
             {teamBSurnames.map((name, i) => (

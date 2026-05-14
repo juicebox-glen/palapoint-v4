@@ -1662,23 +1662,67 @@
 .matchplay-hub-match-side {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   gap: 1rem;
   min-width: 0;
+  justify-content: center;
+}
+
+/* Mirror `.preview-team-a` / `.preview-team-b` — toward centre gutter */
+.matchplay-hub-match-side--a {
+  align-items: flex-end;
+}
+
+.matchplay-hub-match-side--b {
+  align-items: flex-start;
+}
+
+/* Same rules as `.preview-team-avatars` — one score tile = one avatar slot width & 4:5 ratio */
+.matchplay-hub-match-score-row {
+  --hub-score-gap: 0.625rem;
+  container-type: inline-size;
+  display: flex;
+  gap: var(--hub-score-gap);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.matchplay-hub-match-side--a .matchplay-hub-match-score-row {
+  justify-content: flex-end;
+}
+
+.matchplay-hub-match-side--b .matchplay-hub-match-score-row {
+  justify-content: flex-start;
 }
 
 .matchplay-hub-match-names {
   display: flex;
   flex-direction: column;
   gap: 0.3125rem;
-  align-items: center;
-  text-align: center;
+  font-size: 1rem;
+  color: var(--text-primary);
   width: 100%;
 }
 
+.matchplay-hub-match-side--a .matchplay-hub-match-names {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.matchplay-hub-match-side--b .matchplay-hub-match-names {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.matchplay-hub-match-names .matchplay-hub-match-surname {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .matchplay-hub-match-surname {
-  font-size: 0.8125rem;
+  font-size: inherit;
   font-weight: var(--font-weight-normal);
   color: var(--text-primary);
   text-transform: uppercase;
@@ -1688,16 +1732,29 @@
 
 .matchplay-hub-match-score {
   box-sizing: border-box;
-  width: clamp(3.25rem, 22vw, 4.5rem);
-  height: clamp(3.25rem, 22vw, 4.5rem);
+  width: min(4rem, calc((100% - var(--hub-score-gap)) / 2));
+  max-width: min(4rem, calc((100% - var(--hub-score-gap)) / 2));
+  aspect-ratio: 4 / 5;
+  height: auto;
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   background: var(--hub-compact-score-bg);
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
+  overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.matchplay-hub-match-side--a .matchplay-hub-match-score {
+  border-color: var(--team-a);
+}
+
+.matchplay-hub-match-side--b .matchplay-hub-match-score {
+  border-color: var(--team-b);
 }
 
 .matchplay-hub-match-score--placeholder {
@@ -1705,14 +1762,14 @@
 }
 
 .matchplay-hub-match-score--placeholder .matchplay-hub-match-score-num {
-  font-size: var(--ui-font-base);
+  font-size: clamp(0.75rem, 6cqi + 0.35rem, 1.125rem);
   font-weight: var(--font-weight-medium);
   color: var(--hub-compact-meta);
 }
 
 .matchplay-hub-match-score-num {
-  font-size: clamp(1.25rem, 4.25vw, 1.75rem);
-  font-weight: var(--font-weight-semibold);
+  font-size: clamp(0.875rem, 10cqi + 0.35rem, 1.375rem);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   line-height: 1;
@@ -1784,7 +1841,6 @@
 
 .matchplay-hub-match-edit {
   margin-top: var(--ui-space-xs);
-  align-self: flex-end;
   padding: 0.25rem var(--ui-space-sm);
   font-size: var(--ui-font-xs);
   font-weight: var(--font-weight-semibold);
@@ -1797,6 +1853,7 @@
 
 .matchplay-hub-match-names .matchplay-hub-match-edit {
   margin-top: var(--ui-space-xs);
+  align-self: flex-start;
 }
 
 .matchplay-hub-match-entry {
