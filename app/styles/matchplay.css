@@ -1716,18 +1716,17 @@
 
 .matchplay-hub-match-names .matchplay-hub-match-surname {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .matchplay-hub-match-surname {
   font-size: inherit;
   font-weight: var(--font-weight-normal);
   color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  line-height: 1.15;
+  text-transform: none;
+  letter-spacing: 0.015em;
+  line-height: 1.25;
 }
 
 .matchplay-hub-match-score {
@@ -1743,18 +1742,10 @@
   justify-content: center;
   flex-shrink: 0;
   background: var(--hub-compact-score-bg);
-  border: 1px solid transparent;
+  border: none;
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.matchplay-hub-match-side--a .matchplay-hub-match-score {
-  border-color: var(--team-a);
-}
-
-.matchplay-hub-match-side--b .matchplay-hub-match-score {
-  border-color: var(--team-b);
 }
 
 .matchplay-hub-match-score--placeholder {

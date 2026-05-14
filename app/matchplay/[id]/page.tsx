@@ -235,8 +235,8 @@ function HubMatchCard({
     resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
   ].filter(Boolean)
 
-  const teamASurnames = teamANames.map((n) => formatPlayerName(n, 'surname_short'))
-  const teamBSurnames = teamBNames.map((n) => formatPlayerName(n, 'surname_short'))
+  const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'full'))
+  const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'full'))
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
@@ -266,7 +266,7 @@ function HubMatchCard({
               </div>
             </div>
             <div className="matchplay-hub-match-names">
-              {teamASurnames.map((name, i) => (
+              {teamACompactNames.map((name, i) => (
                 <span key={i} className="matchplay-hub-match-surname">
                   {name}
                 </span>
@@ -281,7 +281,7 @@ function HubMatchCard({
               </div>
             </div>
             <div className="matchplay-hub-match-names">
-              {teamBSurnames.map((name, i) => (
+              {teamBCompactNames.map((name, i) => (
                 <span key={i} className="matchplay-hub-match-surname">
                   {name}
                 </span>
@@ -326,7 +326,7 @@ function HubMatchCard({
             </div>
           </div>
           <div className="matchplay-hub-match-names">
-            {teamASurnames.map((name, i) => (
+            {teamACompactNames.map((name, i) => (
               <span key={i} className="matchplay-hub-match-surname">
                 {name}
               </span>
@@ -341,7 +341,7 @@ function HubMatchCard({
             </div>
           </div>
           <div className="matchplay-hub-match-names">
-            {teamBSurnames.map((name, i) => (
+            {teamBCompactNames.map((name, i) => (
               <span key={i} className="matchplay-hub-match-surname">
                 {name}
               </span>
