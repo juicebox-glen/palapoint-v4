@@ -1631,6 +1631,13 @@
   padding: var(--ui-space-md) var(--ui-space-lg);
 }
 
+.matchplay-hub-match--pending {
+  cursor: pointer;
+}
+
+.matchplay-hub-match--completed {
+  cursor: pointer;
+}
 
 .matchplay-hub-match-compact {
   --hub-compact-score-bg: var(--bg-tertiary);
@@ -1763,277 +1770,96 @@
   cursor: pointer;
 }
 
-
-/* ==========================================================================
-   COMPACT HUB FIXTURE ROWS — tappable score boxes (live scoring)
-   ========================================================================== */
-
-.matchplay-hub-match-fixture {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-md);
-  padding: var(--ui-space-md);
-}
-
-.matchplay-hub-match-score-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--ui-space-sm);
-}
-
-.matchplay-hub-match-score-btn:disabled {
-  cursor: default;
-}
-
-.matchplay-hub-match-fixture .matchplay-hub-match-team-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: var(--ui-font-sm);
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.matchplay-hub-match-score-box {
-  box-sizing: border-box;
-  width: 60px;
-  height: 60px;
+.matchplay-hub-match-entry {
+  padding: var(--ui-space-lg);
+  border-top: 1px solid var(--border-default);
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+}
+
+.matchplay-hub-match-entry-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  padding: var(--ui-space-sm) 0;
+  gap: var(--ui-space-md);
+}
+
+.matchplay-hub-match-entry-team {
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.matchplay-hub-match-entry-vs {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--ui-font-sm);
+  padding: var(--ui-space-xs) 0;
+}
+
+.matchplay-hub-match-entry-score {
   font-size: var(--ui-font-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-  transition: border-color var(--transition-fast);
+  min-width: 60px;
+  text-align: center;
 }
 
-.matchplay-hub-match-score-btn:hover:not(:disabled) .matchplay-hub-match-score-box {
-  border-color: var(--brand-primary);
-}
-
-.matchplay-hub-match-fixture-vs {
+.matchplay-hub-match-stepper {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  font-size: var(--ui-font-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  text-transform: uppercase;
+  gap: var(--ui-space-sm);
   flex-shrink: 0;
 }
 
-.matchplay-hub-match-fixture-vs-label {
-  line-height: 1;
-}
-
-.matchplay-hub-match-fixture-court {
-  font-size: 0.625rem;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  max-width: 6.5rem;
-  text-align: center;
-  line-height: 1.25;
-}
-
-.matchplay-hub-match-completed-indicator {
-  position: absolute;
-  top: var(--ui-space-sm);
-  right: var(--ui-space-sm);
-  width: 24px;
-  height: 24px;
-  background: var(--success);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--ui-font-xs);
-  font-weight: var(--font-weight-bold);
-}
-
-/* ==========================================================================
-   SCORE PICKER BOTTOM SHEET
-   ========================================================================== */
-
-.matchplay-score-picker-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay-dark);
-  display: flex;
-  align-items: flex-end;
-  z-index: var(--z-modal);
-  animation: matchplay-score-picker-fade-in 0.2s ease-out;
-}
-
-@keyframes matchplay-score-picker-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.matchplay-score-picker-sheet {
-  width: 100%;
-  max-height: 70vh;
+.matchplay-hub-stepper-btn {
+  width: 44px;
+  height: 44px;
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: var(--ui-space-lg);
-  padding-bottom: calc(var(--ui-space-lg) + env(safe-area-inset-bottom, 0px));
-  display: flex;
-  flex-direction: column;
-  animation: matchplay-score-picker-slide-up 0.3s ease-out;
-}
-
-@keyframes matchplay-score-picker-slide-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.matchplay-score-picker-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--ui-space-md);
-}
-
-.matchplay-score-picker-close {
-  width: 32px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--ui-font-lg);
-}
-
-.matchplay-score-picker-team {
-  font-size: var(--ui-font-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  text-align: center;
-  margin-bottom: var(--ui-space-lg);
-}
-
-.matchplay-score-picker-team--dual {
-  font-size: var(--ui-font-base);
-}
-
-.matchplay-score-picker-scroll {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-xs);
-  margin-bottom: var(--ui-space-lg);
-  padding: var(--ui-space-md) 0;
-  min-height: 0;
-}
-
-.matchplay-score-picker-scroll--compact {
-  flex: 0 1 auto;
-  max-height: 11rem;
-  margin-bottom: 0;
-}
-
-.matchplay-score-picker-dual {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ui-space-md);
-  margin-bottom: var(--ui-space-lg);
-  min-height: 0;
-}
-
-@media (max-width: 420px) {
-  .matchplay-score-picker-dual {
-    grid-template-columns: 1fr;
-  }
-}
-
-.matchplay-score-picker-dual-label {
-  font-size: var(--ui-font-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  text-align: center;
-  margin-bottom: var(--ui-space-sm);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.matchplay-score-picker-option {
-  min-height: 48px;
-  background: var(--bg-tertiary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   font-size: var(--ui-font-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition:
-    border-color var(--transition-fast),
-    transform var(--transition-fast),
-    background var(--transition-fast),
-    color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.matchplay-score-picker-option--selected {
-  background: var(--brand-primary);
-  border-color: var(--brand-primary);
-  color: white;
-  transform: scale(1.03);
+.matchplay-hub-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.matchplay-score-picker-option:hover:not(.matchplay-score-picker-option--selected) {
-  border-color: var(--brand-primary);
-  color: var(--text-primary);
-}
-
-.matchplay-score-picker-other {
-  font-size: var(--ui-font-base);
-  color: var(--text-secondary);
+.matchplay-hub-stepper-value {
+  font-size: var(--ui-font-2xl);
+  font-weight: var(--font-weight-bold);
+  min-width: 48px;
   text-align: center;
-  margin-bottom: var(--ui-space-lg);
+  font-variant-numeric: tabular-nums;
 }
 
-.matchplay-score-picker-scroll::-webkit-scrollbar {
-  width: 4px;
+.matchplay-hub-match-entry-result {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--ui-font-sm);
+  margin: var(--ui-space-md) 0;
 }
 
-.matchplay-score-picker-scroll::-webkit-scrollbar-track {
-  background: var(--bg-tertiary);
-  border-radius: 2px;
+.matchplay-hub-match-entry-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ui-space-md);
+  margin-top: var(--ui-space-lg);
 }
 
-.matchplay-score-picker-scroll::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 2px;
+.matchplay-hub-match-entry-actions .btn {
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-semibold);
 }
 
-/* Hub footer actions — shared .btn / .btn--primary | .btn--secondary (components/buttons.css) */
+/* Hub score-entry buttons — shared .btn / .btn--primary | .btn--secondary (components/buttons.css) */
 
 .matchplay-hub-resting {
   margin: var(--ui-space-md) var(--ui-space-lg) var(--ui-space-xl);
@@ -2426,7 +2252,6 @@
 /* matchplay-card, preview-card, labels — components/cards.css (aliases).
  * Hub fixture rows: zero outer padding (chrome comes from inner grids). */
 .matchplay-hub-match.matchplay-card {
-  position: relative;
   padding: 0;
   overflow: hidden;
 }

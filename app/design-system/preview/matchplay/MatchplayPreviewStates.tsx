@@ -196,57 +196,80 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
       </nav>
       <div className="matchplay-hub-matches">
         <div className="matchplay-hub-match matchplay-card matchplay-hub-match--completed">
-          <div className="matchplay-hub-match-fixture">
-            <div className="matchplay-hub-match-score-btn" style={{ pointerEvents: 'none' }} role="presentation">
-              <div className="matchplay-hub-match-team-lines">
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Rob Anderson', 'surname_short')}</span>
-              </div>
-              <div className="matchplay-hub-match-score-box">
-                <span className="matchplay-hub-match-score-box-num">18</span>
-              </div>
+          <div className="matchplay-hub-match-compact">
+            <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Glen Noble', 'surname_short')}</span>
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Rob Anderson', 'surname_short')}</span>
             </div>
-            <div className="matchplay-hub-match-fixture-vs">
-              <span className="matchplay-hub-match-fixture-vs-label">vs</span>
-              <span className="matchplay-hub-match-fixture-court">Court 1</span>
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">18</span>
             </div>
-            <div className="matchplay-hub-match-score-btn" style={{ pointerEvents: 'none' }} role="presentation">
-              <div className="matchplay-hub-match-score-box">
-                <span className="matchplay-hub-match-score-box-num">14</span>
-              </div>
-              <div className="matchplay-hub-match-team-lines">
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Julian Waters', 'surname_short')}</span>
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Carl Pettit', 'surname_short')}</span>
-              </div>
+            <div className="matchplay-hub-match-center">
+              <span className="matchplay-hub-match-center-rule" aria-hidden />
+              <span className="matchplay-hub-match-vs">VS</span>
+              <span className="matchplay-hub-match-court">Court 1</span>
+              <span className="matchplay-hub-match-center-rule" aria-hidden />
             </div>
-          </div>
-          <div className="matchplay-hub-match-completed-indicator" aria-hidden>
-            ✓
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">14</span>
+            </div>
+            <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Julian Waters', 'surname_short')}</span>
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Carl Pettit', 'surname_short')}</span>
+            </div>
           </div>
         </div>
-        <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending">
-          <div className="matchplay-hub-match-fixture">
-            <div className="matchplay-hub-match-score-btn" style={{ pointerEvents: 'none' }} role="presentation">
-              <div className="matchplay-hub-match-team-lines">
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Jake Thomas', 'surname_short')}</span>
-              </div>
-              <div className="matchplay-hub-match-score-box">
-                <span className="matchplay-hub-match-score-box-num">0</span>
+        <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending matchplay-hub-match--expanded">
+          <div className="matchplay-hub-match-compact">
+            <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Sam Wilson', 'surname_short')}</span>
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Jake Thomas', 'surname_short')}</span>
+            </div>
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">0</span>
+            </div>
+            <div className="matchplay-hub-match-center">
+              <span className="matchplay-hub-match-center-rule" aria-hidden />
+              <span className="matchplay-hub-match-vs">VS</span>
+              <span className="matchplay-hub-match-court">Court 2</span>
+              <span className="matchplay-hub-match-center-rule" aria-hidden />
+            </div>
+            <div className="matchplay-hub-match-score">
+              <span className="matchplay-hub-match-score-num">0</span>
+            </div>
+            <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Mike Brown', 'surname_short')}</span>
+              <span className="matchplay-hub-match-surname">{formatPlayerName('Tom Davis', 'surname_short')}</span>
+            </div>
+          </div>
+          <div className="matchplay-hub-match-entry">
+            <div className="matchplay-hub-match-entry-row">
+              <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}</span>
+              <div className="matchplay-hub-match-stepper">
+                <span className="matchplay-hub-stepper-btn">−</span>
+                <span className="matchplay-hub-stepper-value">12</span>
+                <span className="matchplay-hub-stepper-btn">+</span>
               </div>
             </div>
-            <div className="matchplay-hub-match-fixture-vs">
-              <span className="matchplay-hub-match-fixture-vs-label">vs</span>
-              <span className="matchplay-hub-match-fixture-court">Court 2</span>
+            <div className="matchplay-hub-match-entry-vs">vs</div>
+            <div className="matchplay-hub-match-entry-row">
+              <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}</span>
+              <div className="matchplay-hub-match-stepper">
+                <span className="matchplay-hub-stepper-btn">−</span>
+                <span className="matchplay-hub-stepper-value">20</span>
+                <span className="matchplay-hub-stepper-btn">+</span>
+              </div>
             </div>
-            <div className="matchplay-hub-match-score-btn" style={{ pointerEvents: 'none' }} role="presentation">
-              <div className="matchplay-hub-match-score-box">
-                <span className="matchplay-hub-match-score-box-num">0</span>
-              </div>
-              <div className="matchplay-hub-match-team-lines">
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Mike Brown', 'surname_short')}</span>
-                <span className="matchplay-hub-match-surname">{formatPlayerName('Tom Davis', 'surname_short')}</span>
-              </div>
+            <p className="matchplay-hub-match-entry-result">
+              Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
+            </p>
+            <div className="matchplay-hub-match-entry-actions">
+              <span className="btn btn--secondary btn--full" style={{ pointerEvents: 'none' }}>
+                CANCEL
+              </span>
+              <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
+                CONFIRM
+              </span>
             </div>
           </div>
         </div>
