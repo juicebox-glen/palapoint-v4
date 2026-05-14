@@ -1702,6 +1702,7 @@
   font-size: 1rem;
   color: var(--text-primary);
   width: 100%;
+  min-width: 0;
 }
 
 .matchplay-hub-match-side--a .matchplay-hub-match-names {
@@ -1716,7 +1717,9 @@
 
 .matchplay-hub-match-names .matchplay-hub-match-surname {
   max-width: 100%;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 1.25;
 }
 

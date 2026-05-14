@@ -235,8 +235,8 @@ function HubMatchCard({
     resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
   ].filter(Boolean)
 
-  const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'full'))
-  const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'full'))
+  const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'abbreviated'))
+  const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'abbreviated'))
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
