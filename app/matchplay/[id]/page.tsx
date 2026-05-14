@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
-import { formatPlayerName } from '@/lib/utils/name-format'
+import { formatPlayerName, formatTeamDisplay } from '@/lib/utils/name-format'
 import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -182,6 +182,24 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
   return embedded?.trim() ?? ''
 }
 
+/** Slot-ordered player names for team labels (avoids nondeterministic filter order). */
+function getTeamPlayers(
+  match: MatchplayMatch,
+  team: 'a' | 'b',
+  players: MatchplayPlayer[]
+): [string, string] {
+  if (team === 'a') {
+    return [
+      resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
+      resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
+    ]
+  }
+  return [
+    resolveMatchPlayerName(players, match.team_b_player_1_id, match.team_b_player_1_name),
+    resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
+  ]
+}
+
 function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   return (
     <div className="matchplay-hub-match-center">
@@ -200,14 +218,9 @@ function HubMatchCard({
   maxScore,
   isSetup,
   canEditLineup,
-  isExpanded,
-  draft,
+  scoresInteractive,
   isSubmitting,
-  onToggleExpand,
-  onCancelExpand,
-  onConfirmScores,
-  onScoreAChange,
-  onScoreBChange,
+  onOpenScorePicker,
   onEditLineup,
 }: {
   match: MatchplayMatch
@@ -216,16 +229,14 @@ function HubMatchCard({
   maxScore: number
   isSetup: boolean
   canEditLineup: boolean
-  isExpanded: boolean
-  draft: { a: number; b: number } | undefined
+  scoresInteractive: boolean
   isSubmitting: boolean
-  onToggleExpand: () => void
-  onCancelExpand: () => void
-  onConfirmScores: (teamAScore: number, teamBScore: number) => void
-  onScoreAChange: (next: number) => void
-  onScoreBChange: (next: number) => void
+  onOpenScorePicker: (matchId: string, team: 'a' | 'b') => void
   onEditLineup: () => void
 }) {
+  void isAmericano
+  void maxScore
+
   const teamANames = [
     resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
     resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
@@ -240,20 +251,21 @@ function HubMatchCard({
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
-  const teamADisplay = teamANames.map((n) => formatPlayerName(n, 'first')).join(' & ')
-  const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
-
   const isCompleted = match.status === 'completed'
-  const draftScoreA = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
-  const draftScoreB = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
+  const displayScoreA =
+    typeof match.team_a_score === 'number'
+      ? match.team_a_score
+      : typeof match.team_a_score === 'string'
+        ? Number(match.team_a_score) || 0
+        : 0
+  const displayScoreB =
+    typeof match.team_b_score === 'number'
+      ? match.team_b_score
+      : typeof match.team_b_score === 'string'
+        ? Number(match.team_b_score) || 0
+        : 0
 
-  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : isExpanded ? draftScoreA : 0
-  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : isExpanded ? draftScoreB : 0
-
-  const hasScores = draftScoreA > 0 || draftScoreB > 0
-  const winner = draftScoreA > draftScoreB ? 'a' : draftScoreB > draftScoreA ? 'b' : null
-
-  const confirmDisabled = isSubmitting || !hasScores
+  const scoreBtnsDisabled = !scoresInteractive || isSubmitting
 
   if (isSetup) {
     return (
@@ -298,122 +310,56 @@ function HubMatchCard({
   }
 
   return (
-    <div
-      className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'} ${isExpanded ? 'matchplay-hub-match--expanded' : ''}`}
-      onClick={() => !isExpanded && onToggleExpand()}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault()
-          onToggleExpand()
-        }
-      }}
-    >
-      <div className="matchplay-hub-match-compact">
-        <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
-          {teamASurnames.map((name, i) => (
-            <span key={i} className="matchplay-hub-match-surname">
-              {name}
-            </span>
-          ))}
+    <div className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : ''}`}>
+      <div className="matchplay-hub-match-fixture">
+        <button
+          type="button"
+          className="matchplay-hub-match-score-btn"
+          aria-label={`Enter score Team A (${displayScoreA})`}
+          onClick={() => onOpenScorePicker(match.id, 'a')}
+          disabled={scoreBtnsDisabled}
+        >
+          <div className="matchplay-hub-match-team-lines">
+            {teamASurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
+          <div className="matchplay-hub-match-score-box">
+            <span className="matchplay-hub-match-score-box-num">{displayScoreA}</span>
+          </div>
+        </button>
+
+        <div className="matchplay-hub-match-fixture-vs">
+          <span className="matchplay-hub-match-fixture-vs-label">vs</span>
+          <span className="matchplay-hub-match-fixture-court">{courtLabel}</span>
         </div>
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
-        </div>
-        <HubCompactCenter courtLabel={courtLabel} />
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
-        </div>
-        <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
-          {teamBSurnames.map((name, i) => (
-            <span key={i} className="matchplay-hub-match-surname">
-              {name}
-            </span>
-          ))}
-        </div>
+
+        <button
+          type="button"
+          className="matchplay-hub-match-score-btn"
+          aria-label={`Enter score Team B (${displayScoreB})`}
+          onClick={() => onOpenScorePicker(match.id, 'b')}
+          disabled={scoreBtnsDisabled}
+        >
+          <div className="matchplay-hub-match-score-box">
+            <span className="matchplay-hub-match-score-box-num">{displayScoreB}</span>
+          </div>
+          <div className="matchplay-hub-match-team-lines">
+            {teamBSurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
+        </button>
       </div>
-
-      {isExpanded && (
-        <div className="matchplay-hub-match-entry" onClick={(e) => e.stopPropagation()}>
-          <div className="matchplay-hub-match-entry-row">
-            <span className="matchplay-hub-match-entry-team">{teamADisplay}</span>
-            <div className="matchplay-hub-match-stepper">
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Decrease Team A score"
-                disabled={draftScoreA <= 0}
-                onClick={() => onScoreAChange(draftScoreA - 1)}
-              >
-                −
-              </button>
-              <span className="matchplay-hub-stepper-value">{draftScoreA}</span>
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Increase Team A score"
-                disabled={isAmericano ? draftScoreA >= maxScore : false}
-                onClick={() => onScoreAChange(draftScoreA + 1)}
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <div className="matchplay-hub-match-entry-vs">vs</div>
-
-          <div className="matchplay-hub-match-entry-row">
-            <span className="matchplay-hub-match-entry-team">{teamBDisplay}</span>
-            <div className="matchplay-hub-match-stepper">
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Decrease Team B score"
-                disabled={draftScoreB <= 0}
-                onClick={() => onScoreBChange(draftScoreB - 1)}
-              >
-                −
-              </button>
-              <span className="matchplay-hub-stepper-value">{draftScoreB}</span>
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Increase Team B score"
-                disabled={isAmericano ? draftScoreB >= maxScore : false}
-                onClick={() => onScoreBChange(draftScoreB + 1)}
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          {hasScores && (
-            <p className="matchplay-hub-match-entry-result">
-              Result:{' '}
-              {winner === null
-                ? 'Draw'
-                : winner === 'a'
-                  ? `${teamADisplay} win`
-                  : `${teamBDisplay} win`}
-            </p>
-          )}
-
-          <div className="matchplay-hub-match-entry-actions">
-            <button type="button" onClick={onCancelExpand} className="btn btn--secondary btn--full">
-              CANCEL
-            </button>
-            <button
-              type="button"
-              onClick={() => onConfirmScores(draftScoreA, draftScoreB)}
-              disabled={confirmDisabled}
-              className="btn btn--primary btn--full"
-            >
-              {isSubmitting ? 'SAVING...' : isCompleted ? 'UPDATE' : 'CONFIRM'}
-            </button>
-          </div>
+      {isCompleted ? (
+        <div className="matchplay-hub-match-completed-indicator" aria-hidden>
+          ✓
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -431,9 +377,19 @@ export default function MatchplayEventPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
-  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null)
-  const [draftScores, setDraftScores] = useState<Record<string, { a: number; b: number }>>({})
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null)
+
+  const [scorePickerState, setScorePickerState] = useState<{
+    matchId: string
+    team: 'a' | 'b'
+    match: MatchplayMatch
+  } | null>(null)
+  const [pickerScore, setPickerScore] = useState(0)
+  const [dualScores, setDualScores] = useState({ a: 0, b: 0 })
+
+  const americanoPickerScrollRef = useRef<HTMLDivElement>(null)
+  const dualPickerScrollARef = useRef<HTMLDivElement>(null)
+  const dualPickerScrollBRef = useRef<HTMLDivElement>(null)
 
   const [showEditMatchModal, setShowEditMatchModal] = useState<MatchplayMatch | null>(null)
   const [showMenu, setShowMenu] = useState(false)
@@ -658,28 +614,104 @@ export default function MatchplayEventPage() {
     }
   }
 
-  const handleEnterResult = async (matchId: string, teamAScore: number, teamBScore: number) => {
-    setSubmittingMatchId(matchId)
-    setError(null)
-    const result = await callMatchplayRound({
-      action: 'enter_result',
-      match_id: matchId,
-      team_a_score: teamAScore,
-      team_b_score: teamBScore,
-    })
-    if (result.success) {
-      setExpandedMatchId(null)
-      setDraftScores((prev) => {
-        const next = { ...prev }
-        delete next[matchId]
-        return next
+  const handleCloseScorePicker = useCallback(() => {
+    setScorePickerState(null)
+    setPickerScore(0)
+    setDualScores({ a: 0, b: 0 })
+  }, [])
+
+  const handleEnterResult = useCallback(
+    async (matchId: string, teamAScore: number, teamBScore: number) => {
+      setSubmittingMatchId(matchId)
+      setError(null)
+      const result = await callMatchplayRound({
+        action: 'enter_result',
+        match_id: matchId,
+        team_a_score: teamAScore,
+        team_b_score: teamBScore,
       })
-      loadRounds()
+      if (result.success) {
+        handleCloseScorePicker()
+        loadRounds()
+      } else {
+        setError(result.error || 'Failed to save score')
+      }
+      setSubmittingMatchId(null)
+    },
+    [handleCloseScorePicker, loadRounds]
+  )
+
+  const handleOpenScorePicker = useCallback(
+    (matchId: string, team: 'a' | 'b') => {
+      if (event?.status !== 'in_progress') return
+      const match = viewingRound?.matches?.find((m) => m.id === matchId)
+      if (!match) return
+
+      if (isAmericano) {
+        let initialScore = 0
+        if (match.status === 'completed') {
+          initialScore = team === 'a' ? Number(match.team_a_score) || 0 : Number(match.team_b_score) || 0
+        }
+        setPickerScore(initialScore)
+      } else {
+        setDualScores({
+          a: Number(match.team_a_score ?? 0) || 0,
+          b: Number(match.team_b_score ?? 0) || 0,
+        })
+      }
+      setScorePickerState({ matchId, team, match })
+    },
+    [event?.status, viewingRound?.matches, isAmericano]
+  )
+
+  const handleConfirmScoreFromPicker = useCallback(async () => {
+    if (!scorePickerState || !event) return
+    const max = maxScore
+
+    let scoreA: number
+    let scoreB: number
+
+    if (isAmericano) {
+      scoreA = scorePickerState.team === 'a' ? pickerScore : max - pickerScore
+      scoreB = scorePickerState.team === 'b' ? pickerScore : max - pickerScore
     } else {
-      setError(result.error || 'Failed to save score')
+      scoreA = dualScores.a
+      scoreB = dualScores.b
     }
-    setSubmittingMatchId(null)
-  }
+
+    await handleEnterResult(scorePickerState.matchId, scoreA, scoreB)
+  }, [scorePickerState, event, isAmericano, maxScore, pickerScore, dualScores, handleEnterResult])
+
+  useEffect(() => {
+    if (!scorePickerState) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleCloseScorePicker()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [scorePickerState, handleCloseScorePicker])
+
+  useEffect(() => {
+    if (!scorePickerState || !isAmericano) return
+    queueMicrotask(() => {
+      const el = americanoPickerScrollRef.current?.querySelector(`[data-picker-score="${pickerScore}"]`)
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  }, [scorePickerState, isAmericano, pickerScore])
+
+  useEffect(() => {
+    if (!scorePickerState || isAmericano) return
+    queueMicrotask(() => {
+      dualPickerScrollARef.current?.querySelector(`[data-dual-score="a-${dualScores.a}"]`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth',
+      })
+      dualPickerScrollBRef.current?.querySelector(`[data-dual-score="b-${dualScores.b}"]`)?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth',
+      })
+    })
+  }, [scorePickerState, isAmericano, dualScores])
 
   const getAssignedInRound = (round: MatchplayRound, excludeMatchId?: string) => {
     const assigned = new Set<string>()
@@ -879,62 +911,9 @@ export default function MatchplayEventPage() {
               maxScore={maxScore}
               isSetup={isSetup}
               canEditLineup={canEditLineup}
-              isExpanded={expandedMatchId === match.id}
-              draft={draftScores[match.id]}
+              scoresInteractive={isLive}
               isSubmitting={submittingMatchId === match.id}
-              onToggleExpand={() => {
-                setExpandedMatchId(match.id)
-                setDraftScores((prev) => {
-                  if (prev[match.id]) return prev
-                  if (match.status === 'completed') {
-                    return {
-                      ...prev,
-                      [match.id]: {
-                        a: Number(match.team_a_score) || 0,
-                        b: Number(match.team_b_score) || 0,
-                      },
-                    }
-                  }
-                  return { ...prev, [match.id]: { a: 0, b: 0 } }
-                })
-              }}
-              onCancelExpand={() => {
-                setExpandedMatchId(null)
-                setDraftScores((prev) => {
-                  const next = { ...prev }
-                  delete next[match.id]
-                  return next
-                })
-              }}
-              onConfirmScores={(a, b) => handleEnterResult(match.id, a, b)}
-              onScoreAChange={(nextA) =>
-                setDraftScores((prev) => {
-                  const cur = prev[match.id] ?? { a: 0, b: 0 }
-                  if (isAmericano) {
-                    const a = Math.max(0, Math.min(maxScore, nextA))
-                    if (a === 0) {
-                      return { ...prev, [match.id]: { a: 0, b: 0 } }
-                    }
-                    const b = maxScore - a
-                    return { ...prev, [match.id]: { a, b: Math.max(0, Math.min(maxScore, b)) } }
-                  }
-                  return { ...prev, [match.id]: { ...cur, a: Math.max(0, nextA) } }
-                })
-              }
-              onScoreBChange={(nextB) =>
-                setDraftScores((prev) => {
-                  const cur = prev[match.id] ?? { a: 0, b: 0 }
-                  if (isAmericano) {
-                    const b = Math.max(0, Math.min(maxScore, nextB))
-                    if (b === 0) {
-                      return { ...prev, [match.id]: { a: 0, b: 0 } }
-                    }
-                    const a = maxScore - b
-                    return { ...prev, [match.id]: { a: Math.max(0, Math.min(maxScore, a)), b } }
-                  }
-                  return { ...prev, [match.id]: { ...cur, b: Math.max(0, nextB) } }
-                })
-              }
+              onOpenScorePicker={handleOpenScorePicker}
               onEditLineup={() => openEditMatch(match)}
             />
           ))}
@@ -1010,6 +989,118 @@ export default function MatchplayEventPage() {
           </>
         )}
       </footer>
+
+      {scorePickerState && (
+        <div role="presentation" className="matchplay-score-picker-overlay" onClick={handleCloseScorePicker}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Enter match score"
+            className="matchplay-score-picker-sheet"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="matchplay-score-picker-header">
+              <button type="button" className="matchplay-score-picker-close" onClick={handleCloseScorePicker} aria-label="Close">
+                ✕
+              </button>
+            </div>
+
+            {(() => {
+              const m = scorePickerState.match
+              const pickerMax = maxScore
+              const scoreBand = Array.from({ length: pickerMax + 1 }, (_, i) => i)
+              const side = scorePickerState.team
+              const scoredNames = getTeamPlayers(m, side, players)
+              const otherTeam = side === 'a' ? 'b' : 'a'
+              const otherNames = getTeamPlayers(m, otherTeam, players)
+
+              if (isAmericano) {
+                return (
+                  <>
+                    <div className="matchplay-score-picker-team">
+                      {formatTeamDisplay(scoredNames[0], scoredNames[1], side === 'a' ? 1 : 2, 'first')}
+                    </div>
+                    <div ref={americanoPickerScrollRef} className="matchplay-score-picker-scroll">
+                      {scoreBand.map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          data-picker-score={score}
+                          className={`matchplay-score-picker-option ${pickerScore === score ? 'matchplay-score-picker-option--selected' : ''}`}
+                          onClick={() => setPickerScore(score)}
+                        >
+                          {score}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="matchplay-score-picker-other">
+                      {formatTeamDisplay(otherNames[0], otherNames[1], otherTeam === 'a' ? 1 : 2, 'first')}: {pickerMax - pickerScore}
+                    </div>
+                  </>
+                )
+              }
+
+              const na = getTeamPlayers(m, 'a', players)
+              const nb = getTeamPlayers(m, 'b', players)
+
+              return (
+                <>
+                  <div className="matchplay-score-picker-team matchplay-score-picker-team--dual">Set both scores</div>
+                  <div className="matchplay-score-picker-dual">
+                    <div className="matchplay-score-picker-dual-col">
+                      <div className="matchplay-score-picker-dual-label">{formatTeamDisplay(na[0], na[1], 1, 'first')}</div>
+                      <div
+                        ref={dualPickerScrollARef}
+                        className="matchplay-score-picker-scroll matchplay-score-picker-scroll--compact"
+                      >
+                        {scoreBand.map((score) => (
+                          <button
+                            key={`a-${score}`}
+                            type="button"
+                            data-dual-score={`a-${score}`}
+                            className={`matchplay-score-picker-option ${dualScores.a === score ? 'matchplay-score-picker-option--selected' : ''}`}
+                            onClick={() => setDualScores((prev) => ({ ...prev, a: score }))}
+                          >
+                            {score}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="matchplay-score-picker-dual-col">
+                      <div className="matchplay-score-picker-dual-label">{formatTeamDisplay(nb[0], nb[1], 2, 'first')}</div>
+                      <div
+                        ref={dualPickerScrollBRef}
+                        className="matchplay-score-picker-scroll matchplay-score-picker-scroll--compact"
+                      >
+                        {scoreBand.map((score) => (
+                          <button
+                            key={`b-${score}`}
+                            type="button"
+                            data-dual-score={`b-${score}`}
+                            className={`matchplay-score-picker-option ${dualScores.b === score ? 'matchplay-score-picker-option--selected' : ''}`}
+                            onClick={() => setDualScores((prev) => ({ ...prev, b: score }))}
+                          >
+                            {score}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
+
+            <button
+              type="button"
+              className="matchplay-score-picker-confirm btn btn--primary btn--full"
+              onClick={() => void handleConfirmScoreFromPicker()}
+              disabled={submittingMatchId === scorePickerState.matchId}
+            >
+              {submittingMatchId === scorePickerState.matchId ? 'Saving...' : 'Confirm score'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showEndConfirm && (
         <div
