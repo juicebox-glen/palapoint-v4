@@ -886,10 +886,14 @@
   gap: 0;
 }
 
-.preview-team-a .preview-team-names.preview-team-names--headline,
+.preview-team-a .preview-team-names.preview-team-names--headline {
+  text-align: right;
+  align-items: flex-end;
+}
+
 .preview-team-b .preview-team-names.preview-team-names--headline {
-  text-align: center;
-  align-items: center;
+  text-align: left;
+  align-items: flex-start;
 }
 
 .preview-team-names--headline span {
