@@ -294,28 +294,6 @@ function HubMatchCard({
     }
   }, [isExpanded, match.id, draft?.a])
 
-  const pushPadDigit = (digit: string) => {
-    setScorePadBuffer((prev) => {
-      let next = prev === '0' ? digit : prev + digit
-      const num = parseInt(next, 10)
-      if (Number.isNaN(num)) next = '0'
-      else if (num > maxScore) next = String(maxScore)
-      const fb = draft ?? { a: draftScoreA, b: draftScoreB }
-      onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, next, isAmericano, maxScore, fb))
-      return next
-    })
-  }
-
-  const handleBackspace = () => {
-    setScorePadBuffer((prev) => {
-      let next = prev.slice(0, -1)
-      if (next === '') next = '0'
-      const fb = draft ?? { a: draftScoreA, b: draftScoreB }
-      onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, next, isAmericano, maxScore, fb))
-      return next
-    })
-  }
-
   const handlePadReset = () => {
     setScorePadBuffer('0')
     if (isAmericano) {
@@ -338,8 +316,6 @@ function HubMatchCard({
     setScorePadBuffer(s)
     onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, s, isAmericano, maxScore, baseDraft()))
   }
-
-  const dualDigit = (v: number) => String(v).padStart(2, '0')
 
   if (isSetup) {
     return (
@@ -442,32 +418,35 @@ function HubMatchCard({
             Score for {scoreActiveTeam === 'a' ? teamALabel : teamBLabel}
           </p>
 
-          <div className="matchplay-hub-score-teams">
+          <div className="matchplay-hub-score-side-toggles" role="tablist" aria-label="Choose team">
             <button
               type="button"
-              className={`matchplay-hub-score-team ${scoreActiveTeam === 'a' ? 'matchplay-hub-score-team--active' : ''}`}
+              role="tab"
+              aria-selected={scoreActiveTeam === 'a'}
+              className={`matchplay-hub-score-side-btn ${scoreActiveTeam === 'a' ? 'matchplay-hub-score-side-btn--active' : ''}`}
               onClick={() => handleSelectScoreTeam('a')}
             >
-              <div className="matchplay-hub-score-team-label">{teamALabel}</div>
-              <div className="matchplay-hub-score-team-value">{dualDigit(draftScoreA)}</div>
+              {teamALabel}
             </button>
-
-            <div className="matchplay-hub-score-vs" aria-hidden>
-              vs
-            </div>
-
             <button
               type="button"
-              className={`matchplay-hub-score-team ${scoreActiveTeam === 'b' ? 'matchplay-hub-score-team--active' : ''}`}
+              role="tab"
+              aria-selected={scoreActiveTeam === 'b'}
+              className={`matchplay-hub-score-side-btn ${scoreActiveTeam === 'b' ? 'matchplay-hub-score-side-btn--active' : ''}`}
               onClick={() => handleSelectScoreTeam('b')}
             >
-              <div className="matchplay-hub-score-team-label">{teamBLabel}</div>
-              <div className="matchplay-hub-score-team-value">{dualDigit(draftScoreB)}</div>
+              {teamBLabel}
+            </button>
+          </div>
+
+          <div className="matchplay-hub-score-reset-row">
+            <button type="button" className="matchplay-hub-score-reset" onClick={handlePadReset}>
+              Reset scores
             </button>
           </div>
 
           <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
-            {Array.from({ length: maxScore + 1 }, (_, s) => (
+            {Array.from({ length: maxScore }, (_, i) => i + 1).map((s) => (
               <button
                 key={s}
                 type="button"
@@ -477,40 +456,6 @@ function HubMatchCard({
                 {String(s).padStart(2, '0')}
               </button>
             ))}
-          </div>
-
-          <button
-            type="button"
-            className="matchplay-hub-score-enter-custom"
-            onClick={() => document.getElementById(`matchplay-hub-manual-pad-${match.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-          >
-            Enter custom score
-          </button>
-
-          <p className="matchplay-hub-score-manual-label" id={`matchplay-hub-manual-pad-${match.id}`}>
-            Number pad
-          </p>
-
-          <div className="matchplay-hub-number-pad" role="group" aria-label="Number pad">
-            {(['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const).map((num) => (
-              <button key={num} type="button" className="matchplay-hub-number-btn" onClick={() => pushPadDigit(num)}>
-                {num}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="matchplay-hub-number-btn matchplay-hub-number-btn--backspace"
-              onClick={handleBackspace}
-              aria-label="Backspace"
-            >
-              ⌫
-            </button>
-            <button type="button" className="matchplay-hub-number-btn" onClick={() => pushPadDigit('0')}>
-              0
-            </button>
-            <button type="button" className="matchplay-hub-number-btn matchplay-hub-number-btn--reset" onClick={handlePadReset}>
-              Reset
-            </button>
           </div>
 
           {hasScores && (
