@@ -184,11 +184,9 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
 
 function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   return (
-    <div className="matchplay-hub-match-center">
-      <span className="matchplay-hub-match-center-rule" aria-hidden />
-      <span className="matchplay-hub-match-vs">VS</span>
+    <div className="matchplay-hub-match-vs-column">
+      <span className="matchplay-hub-match-vs-badge">VS</span>
       <span className="matchplay-hub-match-court">{courtLabel}</span>
-      <span className="matchplay-hub-match-center-rule" aria-hidden />
     </div>
   )
 }
@@ -259,38 +257,42 @@ function HubMatchCard({
     return (
       <div className="matchplay-hub-match matchplay-card matchplay-hub-match--setup">
         <div className="matchplay-hub-match-compact">
-          <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
-            {teamASurnames.map((name, i) => (
-              <span key={i} className="matchplay-hub-match-surname">
-                {name}
-              </span>
-            ))}
-          </div>
-          <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-            <span className="matchplay-hub-match-score-num">—</span>
+          <div className="matchplay-hub-match-side">
+            <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+              <span className="matchplay-hub-match-score-num">—</span>
+            </div>
+            <div className="matchplay-hub-match-names">
+              {teamASurnames.map((name, i) => (
+                <span key={i} className="matchplay-hub-match-surname">
+                  {name}
+                </span>
+              ))}
+            </div>
           </div>
           <HubCompactCenter courtLabel={courtLabel} />
-          <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-            <span className="matchplay-hub-match-score-num">—</span>
-          </div>
-          <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
-            {teamBSurnames.map((name, i) => (
-              <span key={i} className="matchplay-hub-match-surname">
-                {name}
-              </span>
-            ))}
-            {canEditLineup && (
-              <button
-                type="button"
-                className="matchplay-hub-match-edit"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEditLineup()
-                }}
-              >
-                EDIT
-              </button>
-            )}
+          <div className="matchplay-hub-match-side">
+            <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
+              <span className="matchplay-hub-match-score-num">—</span>
+            </div>
+            <div className="matchplay-hub-match-names">
+              {teamBSurnames.map((name, i) => (
+                <span key={i} className="matchplay-hub-match-surname">
+                  {name}
+                </span>
+              ))}
+              {canEditLineup && (
+                <button
+                  type="button"
+                  className="matchplay-hub-match-edit"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEditLineup()
+                  }}
+                >
+                  EDIT
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -311,26 +313,30 @@ function HubMatchCard({
       }}
     >
       <div className="matchplay-hub-match-compact">
-        <div className="matchplay-hub-match-team matchplay-hub-match-team--a">
-          {teamASurnames.map((name, i) => (
-            <span key={i} className="matchplay-hub-match-surname">
-              {name}
-            </span>
-          ))}
-        </div>
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
+        <div className="matchplay-hub-match-side">
+          <div className="matchplay-hub-match-score">
+            <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
+          </div>
+          <div className="matchplay-hub-match-names">
+            {teamASurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
         </div>
         <HubCompactCenter courtLabel={courtLabel} />
-        <div className="matchplay-hub-match-score">
-          <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
-        </div>
-        <div className="matchplay-hub-match-team matchplay-hub-match-team--b">
-          {teamBSurnames.map((name, i) => (
-            <span key={i} className="matchplay-hub-match-surname">
-              {name}
-            </span>
-          ))}
+        <div className="matchplay-hub-match-side">
+          <div className="matchplay-hub-match-score">
+            <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
+          </div>
+          <div className="matchplay-hub-match-names">
+            {teamBSurnames.map((name, i) => (
+              <span key={i} className="matchplay-hub-match-surname">
+                {name}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
