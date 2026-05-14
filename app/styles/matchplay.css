@@ -1985,31 +1985,6 @@
   margin: 0;
 }
 
-.matchplay-hub-score-entry-title {
-  margin: 0 0 var(--ui-space-md);
-  font-size: var(--ui-font-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.matchplay-hub-score-reset-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--ui-space-md);
-}
-
-.matchplay-hub-score-reset {
-  padding: var(--ui-space-xs) var(--ui-space-md);
-  font-size: var(--ui-font-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--brand-primary);
-  background: none;
-  border: none;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .matchplay-hub-quick-score-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);

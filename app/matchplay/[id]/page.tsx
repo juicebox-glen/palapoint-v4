@@ -282,16 +282,6 @@ function MatchplayHubScoreModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const handlePadReset = () => {
-    if (isAmericano) {
-      onDraftChange({ a: 0, b: 0 })
-      return
-    }
-    setStandardScorePhase(0)
-    setStandardCorrectNext('b')
-    onDraftChange({ a: 0, b: 0 })
-  }
-
   const handleQuickScore = (score: number) => {
     const n = Math.min(Math.max(score, 0), maxScore)
     const fb = baseDraft()
@@ -319,14 +309,6 @@ function MatchplayHubScoreModal({
     }
   }
 
-  const subtitleTitle = isAmericano
-    ? 'Score'
-    : standardScorePhase === 0
-      ? `Score for ${teamALabel}`
-      : standardScorePhase === 1
-        ? `Score for ${teamBLabel}`
-        : 'Adjust scores'
-
   const courtLabel = match.court_label?.trim() || 'Court'
 
   return (
@@ -343,21 +325,11 @@ function MatchplayHubScoreModal({
         </button>
 
         <h3 className="matchplay-score-modal-title" id="matchplay-score-modal-title">
-          Score · {teamALabel}
-          {' vs '}
-          {teamBLabel}
+          Score for {teamALabel} vs {teamBLabel}
         </h3>
         <p className="matchplay-score-modal-court">{courtLabel}</p>
 
         <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
-          <p className="matchplay-hub-score-entry-title">{subtitleTitle}</p>
-
-          <div className="matchplay-hub-score-reset-row">
-            <button type="button" className="matchplay-hub-score-reset" onClick={handlePadReset}>
-              Reset scores
-            </button>
-          </div>
-
           <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
             {Array.from({ length: maxScore }, (_, i) => i + 1).map((s) => (
               <button
@@ -388,7 +360,7 @@ function MatchplayHubScoreModal({
               disabled={confirmDisabled}
               className="btn btn--primary btn--full"
             >
-              {isSubmitting ? 'Saving...' : isCompleted ? 'Update score' : 'Confirm score'}
+              {isSubmitting ? 'Saving...' : isCompleted ? 'Update' : 'Confirm score'}
             </button>
           </div>
         </div>
