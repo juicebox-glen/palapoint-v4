@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
-import { formatPlayerName } from '@/lib/utils/name-format'
+import { formatPlayerName, formatTeamDisplay } from '@/lib/utils/name-format'
 import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -182,6 +182,24 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
   return embedded?.trim() ?? ''
 }
 
+/** Build `{ a, b }` from whichever team's pad row is active (Americano fills the other score). */
+function buildScoresFromPad(
+  activeTeam: 'a' | 'b',
+  padBuf: string,
+  isAmericano: boolean,
+  maxScore: number,
+  fallback: { a: number; b: number }
+): { a: number; b: number } {
+  const n = Math.min(Math.max(parseInt(padBuf || '0', 10) || 0, 0), maxScore)
+  if (isAmericano && n === 0) {
+    return { a: 0, b: 0 }
+  }
+  if (isAmericano) {
+    return activeTeam === 'a' ? { a: n, b: Math.max(0, maxScore - n) } : { a: Math.max(0, maxScore - n), b: n }
+  }
+  return activeTeam === 'a' ? { ...fallback, a: n } : { ...fallback, b: n }
+}
+
 function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   return (
     <div className="matchplay-hub-match-vs-column">
@@ -206,8 +224,7 @@ function HubMatchCard({
   onToggleExpand,
   onCancelExpand,
   onConfirmScores,
-  onScoreAChange,
-  onScoreBChange,
+  onScoresDraftChange,
   onEditLineup,
 }: {
   match: MatchplayMatch
@@ -222,10 +239,13 @@ function HubMatchCard({
   onToggleExpand: () => void
   onCancelExpand: () => void
   onConfirmScores: (teamAScore: number, teamBScore: number) => void
-  onScoreAChange: (next: number) => void
-  onScoreBChange: (next: number) => void
+  onScoresDraftChange: (scores: { a: number; b: number }) => void
   onEditLineup: () => void
 }) {
+  const [scoreActiveTeam, setScoreActiveTeam] = React.useState<'a' | 'b'>('a')
+  const [scorePadBuffer, setScorePadBuffer] = React.useState('0')
+  const prevExpandedRef = React.useRef(false)
+
   const teamANames = [
     resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
     resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
@@ -237,6 +257,9 @@ function HubMatchCard({
 
   const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'abbreviated'))
   const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'abbreviated'))
+
+  const teamALabel = formatTeamDisplay(teamANames[0] ?? '', teamANames[1] ?? '', 1, 'first')
+  const teamBLabel = formatTeamDisplay(teamBNames[0] ?? '', teamBNames[1] ?? '', 2, 'first')
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
@@ -254,6 +277,69 @@ function HubMatchCard({
   const winner = draftScoreA > draftScoreB ? 'a' : draftScoreB > draftScoreA ? 'b' : null
 
   const confirmDisabled = isSubmitting || !hasScores
+
+  const baseDraft = React.useCallback((): { a: number; b: number } => {
+    return draft ?? { a: draftScoreA, b: draftScoreB }
+  }, [draft, draftScoreA, draftScoreB])
+
+  React.useEffect(() => {
+    if (!isExpanded) {
+      prevExpandedRef.current = false
+      return
+    }
+    if (!prevExpandedRef.current) {
+      prevExpandedRef.current = true
+      setScoreActiveTeam('a')
+      setScorePadBuffer(String(draft?.a ?? 0))
+    }
+  }, [isExpanded, match.id, draft?.a])
+
+  const pushPadDigit = (digit: string) => {
+    setScorePadBuffer((prev) => {
+      let next = prev === '0' ? digit : prev + digit
+      const num = parseInt(next, 10)
+      if (Number.isNaN(num)) next = '0'
+      else if (num > maxScore) next = String(maxScore)
+      const fb = draft ?? { a: draftScoreA, b: draftScoreB }
+      onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, next, isAmericano, maxScore, fb))
+      return next
+    })
+  }
+
+  const handleBackspace = () => {
+    setScorePadBuffer((prev) => {
+      let next = prev.slice(0, -1)
+      if (next === '') next = '0'
+      const fb = draft ?? { a: draftScoreA, b: draftScoreB }
+      onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, next, isAmericano, maxScore, fb))
+      return next
+    })
+  }
+
+  const handlePadReset = () => {
+    setScorePadBuffer('0')
+    if (isAmericano) {
+      onScoresDraftChange({ a: 0, b: 0 })
+    } else {
+      const fb = baseDraft()
+      onScoresDraftChange(scoreActiveTeam === 'a' ? { ...fb, a: 0 } : { ...fb, b: 0 })
+    }
+  }
+
+  const handleSelectScoreTeam = (team: 'a' | 'b') => {
+    const committed = buildScoresFromPad(scoreActiveTeam, scorePadBuffer, isAmericano, maxScore, baseDraft())
+    onScoresDraftChange(committed)
+    setScoreActiveTeam(team)
+    setScorePadBuffer(String(team === 'a' ? committed.a : committed.b))
+  }
+
+  const handleQuickScore = (score: number) => {
+    const s = String(score)
+    setScorePadBuffer(s)
+    onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, s, isAmericano, maxScore, baseDraft()))
+  }
+
+  const dualDigit = (v: number) => String(v).padStart(2, '0')
 
   if (isSetup) {
     return (
@@ -351,73 +437,92 @@ function HubMatchCard({
       </div>
 
       {isExpanded && (
-        <div className="matchplay-hub-match-entry" onClick={(e) => e.stopPropagation()}>
-          <div className="matchplay-hub-match-entry-row">
-            <span className="matchplay-hub-match-entry-team">{teamADisplay}</span>
-            <div className="matchplay-hub-match-stepper">
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Decrease Team A score"
-                disabled={draftScoreA <= 0}
-                onClick={() => onScoreAChange(draftScoreA - 1)}
-              >
-                −
-              </button>
-              <span className="matchplay-hub-stepper-value">{draftScoreA}</span>
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Increase Team A score"
-                disabled={isAmericano ? draftScoreA >= maxScore : false}
-                onClick={() => onScoreAChange(draftScoreA + 1)}
-              >
-                +
-              </button>
+        <div className="matchplay-hub-score-entry" onClick={(e) => e.stopPropagation()}>
+          <p className="matchplay-hub-score-entry-title">
+            Score for {scoreActiveTeam === 'a' ? teamALabel : teamBLabel}
+          </p>
+
+          <div className="matchplay-hub-score-teams">
+            <button
+              type="button"
+              className={`matchplay-hub-score-team ${scoreActiveTeam === 'a' ? 'matchplay-hub-score-team--active' : ''}`}
+              onClick={() => handleSelectScoreTeam('a')}
+            >
+              <div className="matchplay-hub-score-team-label">{teamALabel}</div>
+              <div className="matchplay-hub-score-team-value">{dualDigit(draftScoreA)}</div>
+            </button>
+
+            <div className="matchplay-hub-score-vs" aria-hidden>
+              vs
             </div>
+
+            <button
+              type="button"
+              className={`matchplay-hub-score-team ${scoreActiveTeam === 'b' ? 'matchplay-hub-score-team--active' : ''}`}
+              onClick={() => handleSelectScoreTeam('b')}
+            >
+              <div className="matchplay-hub-score-team-label">{teamBLabel}</div>
+              <div className="matchplay-hub-score-team-value">{dualDigit(draftScoreB)}</div>
+            </button>
           </div>
 
-          <div className="matchplay-hub-match-entry-vs">vs</div>
+          <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
+            {Array.from({ length: maxScore + 1 }, (_, s) => (
+              <button
+                key={s}
+                type="button"
+                className="matchplay-hub-quick-score-cell"
+                onClick={() => handleQuickScore(s)}
+              >
+                {String(s).padStart(2, '0')}
+              </button>
+            ))}
+          </div>
 
-          <div className="matchplay-hub-match-entry-row">
-            <span className="matchplay-hub-match-entry-team">{teamBDisplay}</span>
-            <div className="matchplay-hub-match-stepper">
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Decrease Team B score"
-                disabled={draftScoreB <= 0}
-                onClick={() => onScoreBChange(draftScoreB - 1)}
-              >
-                −
+          <button
+            type="button"
+            className="matchplay-hub-score-enter-custom"
+            onClick={() => document.getElementById(`matchplay-hub-manual-pad-${match.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+          >
+            Enter custom score
+          </button>
+
+          <p className="matchplay-hub-score-manual-label" id={`matchplay-hub-manual-pad-${match.id}`}>
+            Number pad
+          </p>
+
+          <div className="matchplay-hub-number-pad" role="group" aria-label="Number pad">
+            {(['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const).map((num) => (
+              <button key={num} type="button" className="matchplay-hub-number-btn" onClick={() => pushPadDigit(num)}>
+                {num}
               </button>
-              <span className="matchplay-hub-stepper-value">{draftScoreB}</span>
-              <button
-                type="button"
-                className="matchplay-hub-stepper-btn"
-                aria-label="Increase Team B score"
-                disabled={isAmericano ? draftScoreB >= maxScore : false}
-                onClick={() => onScoreBChange(draftScoreB + 1)}
-              >
-                +
-              </button>
-            </div>
+            ))}
+            <button
+              type="button"
+              className="matchplay-hub-number-btn matchplay-hub-number-btn--backspace"
+              onClick={handleBackspace}
+              aria-label="Backspace"
+            >
+              ⌫
+            </button>
+            <button type="button" className="matchplay-hub-number-btn" onClick={() => pushPadDigit('0')}>
+              0
+            </button>
+            <button type="button" className="matchplay-hub-number-btn matchplay-hub-number-btn--reset" onClick={handlePadReset}>
+              Reset
+            </button>
           </div>
 
           {hasScores && (
-            <p className="matchplay-hub-match-entry-result">
+            <p className="matchplay-hub-match-entry-result matchplay-hub-score-result">
               Result:{' '}
-              {winner === null
-                ? 'Draw'
-                : winner === 'a'
-                  ? `${teamADisplay} win`
-                  : `${teamBDisplay} win`}
+              {winner === null ? 'Draw' : winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
             </p>
           )}
 
-          <div className="matchplay-hub-match-entry-actions">
+          <div className="matchplay-hub-score-actions">
             <button type="button" onClick={onCancelExpand} className="btn btn--secondary btn--full">
-              CANCEL
+              Cancel
             </button>
             <button
               type="button"
@@ -425,7 +530,7 @@ function HubMatchCard({
               disabled={confirmDisabled}
               className="btn btn--primary btn--full"
             >
-              {isSubmitting ? 'SAVING...' : isCompleted ? 'UPDATE' : 'CONFIRM'}
+              {isSubmitting ? 'Saving...' : isCompleted ? 'Update score' : 'Confirm score'}
             </button>
           </div>
         </div>
@@ -923,33 +1028,8 @@ export default function MatchplayEventPage() {
                 })
               }}
               onConfirmScores={(a, b) => handleEnterResult(match.id, a, b)}
-              onScoreAChange={(nextA) =>
-                setDraftScores((prev) => {
-                  const cur = prev[match.id] ?? { a: 0, b: 0 }
-                  if (isAmericano) {
-                    const a = Math.max(0, Math.min(maxScore, nextA))
-                    if (a === 0) {
-                      return { ...prev, [match.id]: { a: 0, b: 0 } }
-                    }
-                    const b = maxScore - a
-                    return { ...prev, [match.id]: { a, b: Math.max(0, Math.min(maxScore, b)) } }
-                  }
-                  return { ...prev, [match.id]: { ...cur, a: Math.max(0, nextA) } }
-                })
-              }
-              onScoreBChange={(nextB) =>
-                setDraftScores((prev) => {
-                  const cur = prev[match.id] ?? { a: 0, b: 0 }
-                  if (isAmericano) {
-                    const b = Math.max(0, Math.min(maxScore, nextB))
-                    if (b === 0) {
-                      return { ...prev, [match.id]: { a: 0, b: 0 } }
-                    }
-                    const a = maxScore - b
-                    return { ...prev, [match.id]: { a: Math.max(0, Math.min(maxScore, a)), b } }
-                  }
-                  return { ...prev, [match.id]: { ...cur, b: Math.max(0, nextB) } }
-                })
+              onScoresDraftChange={(scores) =>
+                setDraftScores((prev) => ({ ...prev, [match.id]: scores }))
               }
               onEditLineup={() => openEditMatch(match)}
             />

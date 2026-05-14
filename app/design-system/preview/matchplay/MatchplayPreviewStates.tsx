@@ -258,33 +258,51 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
               </div>
             </div>
           </div>
-          <div className="matchplay-hub-match-entry">
-            <div className="matchplay-hub-match-entry-row">
-              <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}</span>
-              <div className="matchplay-hub-match-stepper">
-                <span className="matchplay-hub-stepper-btn">−</span>
-                <span className="matchplay-hub-stepper-value">12</span>
-                <span className="matchplay-hub-stepper-btn">+</span>
+          <div className="matchplay-hub-score-entry">
+            <p className="matchplay-hub-score-entry-title">Score for Team A</p>
+            <div className="matchplay-hub-score-teams">
+              <div className="matchplay-hub-score-team matchplay-hub-score-team--active" style={{ pointerEvents: 'none' }}>
+                <div className="matchplay-hub-score-team-label">{formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}</div>
+                <div className="matchplay-hub-score-team-value">12</div>
+              </div>
+              <div className="matchplay-hub-score-vs" aria-hidden>
+                vs
+              </div>
+              <div className="matchplay-hub-score-team" style={{ pointerEvents: 'none' }}>
+                <div className="matchplay-hub-score-team-label">{formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}</div>
+                <div className="matchplay-hub-score-team-value">20</div>
               </div>
             </div>
-            <div className="matchplay-hub-match-entry-vs">vs</div>
-            <div className="matchplay-hub-match-entry-row">
-              <span className="matchplay-hub-match-entry-team">{formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}</span>
-              <div className="matchplay-hub-match-stepper">
-                <span className="matchplay-hub-stepper-btn">−</span>
-                <span className="matchplay-hub-stepper-value">20</span>
-                <span className="matchplay-hub-stepper-btn">+</span>
-              </div>
+            <div className="matchplay-hub-quick-score-grid" aria-hidden>
+              {Array.from({ length: 25 }, (_, s) => (
+                <span key={s} className="matchplay-hub-quick-score-cell" style={{ pointerEvents: 'none' }}>
+                  {String(s).padStart(2, '0')}
+                </span>
+              ))}
             </div>
-            <p className="matchplay-hub-match-entry-result">
+            <span className="matchplay-hub-score-enter-custom" style={{ pointerEvents: 'none' }}>
+              Enter custom score
+            </span>
+            <p className="matchplay-hub-score-manual-label">Number pad</p>
+            <div className="matchplay-hub-number-pad" aria-hidden>
+              {(['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const).map((n) => (
+                <span key={n} className="matchplay-hub-number-btn">
+                  {n}
+                </span>
+              ))}
+              <span className="matchplay-hub-number-btn matchplay-hub-number-btn--backspace">⌫</span>
+              <span className="matchplay-hub-number-btn">0</span>
+              <span className="matchplay-hub-number-btn matchplay-hub-number-btn--reset">Reset</span>
+            </div>
+            <p className="matchplay-hub-match-entry-result matchplay-hub-score-result">
               Result: {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')} win
             </p>
-            <div className="matchplay-hub-match-entry-actions">
+            <div className="matchplay-hub-score-actions">
               <span className="btn btn--secondary btn--full" style={{ pointerEvents: 'none' }}>
-                CANCEL
+                Cancel
               </span>
               <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
-                CONFIRM
+                Confirm score
               </span>
             </div>
           </div>

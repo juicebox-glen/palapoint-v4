@@ -1850,6 +1850,204 @@
   align-self: flex-start;
 }
 
+/* ==========================================================================
+   SCORE ENTRY — quick grid + number pad (hub expanded match)
+   ========================================================================== */
+
+.matchplay-hub-score-entry {
+  padding: var(--ui-space-lg);
+  padding-top: var(--ui-space-md);
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  margin-top: 0;
+}
+
+.matchplay-hub-score-entry-title {
+  margin: 0 0 var(--ui-space-md);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.matchplay-hub-score-teams {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ui-space-md);
+  margin-bottom: var(--ui-space-lg);
+}
+
+.matchplay-hub-score-team {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: var(--ui-space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-xs);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.matchplay-hub-score-team:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.matchplay-hub-score-team--active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.matchplay-hub-score-team-label {
+  font-size: var(--ui-font-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.matchplay-hub-score-team-value {
+  font-size: var(--ui-font-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.matchplay-hub-score-team--active .matchplay-hub-score-team-label,
+.matchplay-hub-score-team--active .matchplay-hub-score-team-value {
+  color: var(--text-primary);
+}
+
+.matchplay-hub-score-team--active .matchplay-hub-score-team-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.matchplay-hub-score-team--active .matchplay-hub-score-team-value {
+  color: white;
+}
+
+.matchplay-hub-score-vs {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: var(--ui-font-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.matchplay-hub-quick-score-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--ui-space-xs);
+  margin-bottom: var(--ui-space-md);
+}
+
+.matchplay-hub-quick-score-cell {
+  aspect-ratio: 1;
+  min-height: 44px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.matchplay-hub-quick-score-cell:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-primary);
+}
+
+.matchplay-hub-score-enter-custom {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--ui-space-md);
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: var(--ui-font-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--brand-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+}
+
+.matchplay-hub-score-manual-label {
+  margin: 0 0 var(--ui-space-sm);
+  font-size: var(--ui-font-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.matchplay-hub-number-pad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--ui-space-sm);
+  margin-bottom: var(--ui-space-lg);
+}
+
+.matchplay-hub-number-btn {
+  aspect-ratio: 1;
+  min-height: 48px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform 0.08s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matchplay-hub-number-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-primary);
+}
+
+.matchplay-hub-number-btn:active {
+  transform: scale(0.97);
+}
+
+.matchplay-hub-number-btn--reset {
+  grid-column: span 4;
+}
+
+.matchplay-hub-score-result {
+  margin-top: var(--ui-space-md);
+}
+
+.matchplay-hub-score-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ui-space-md);
+  margin-top: var(--ui-space-lg);
+}
+
+.matchplay-hub-score-actions .btn {
+  font-size: var(--ui-font-base);
+  font-weight: var(--font-weight-semibold);
+}
+
 .matchplay-hub-match-entry {
   padding: var(--ui-space-lg);
   border-top: 1px solid var(--border-default);
