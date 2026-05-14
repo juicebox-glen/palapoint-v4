@@ -247,9 +247,6 @@ function MatchplayHubScoreModal({
     resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
   ].filter(Boolean)
 
-  const teamALabel = formatTeamDisplay(teamANames[0] ?? '', teamANames[1] ?? '', 1, 'first')
-  const teamBLabel = formatTeamDisplay(teamBNames[0] ?? '', teamBNames[1] ?? '', 2, 'first')
-
   const teamADisplay = teamANames.map((n) => formatPlayerName(n, 'first')).join(' & ')
   const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
 
@@ -286,7 +283,11 @@ function MatchplayHubScoreModal({
     const n = Math.min(Math.max(score, 0), maxScore)
     const fb = baseDraft()
     if (isAmericano) {
-      onDraftChange({ a: n, b: Math.max(0, maxScore - n) })
+      if (n === 0) {
+        onDraftChange({ a: 0, b: 0 })
+      } else {
+        onDraftChange({ a: n, b: Math.max(0, maxScore - n) })
+      }
       return
     }
     if (standardScorePhase === 0) {
@@ -311,6 +312,14 @@ function MatchplayHubScoreModal({
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
+  const scoreModalHeading = isAmericano
+    ? 'Score'
+    : standardScorePhase === 0
+      ? `Score for ${teamADisplay}`
+      : standardScorePhase === 1
+        ? `Score for ${teamBDisplay}`
+        : `Score for ${standardCorrectNext === 'a' ? teamADisplay : teamBDisplay}`
+
   return (
     <div className="matchplay-score-modal-overlay" onClick={onClose} role="presentation">
       <div
@@ -325,13 +334,13 @@ function MatchplayHubScoreModal({
         </button>
 
         <h3 className="matchplay-score-modal-title" id="matchplay-score-modal-title">
-          Score for {teamALabel} vs {teamBLabel}
+          {scoreModalHeading}
         </h3>
         <p className="matchplay-score-modal-court">{courtLabel}</p>
 
         <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
           <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
-            {Array.from({ length: maxScore }, (_, i) => i + 1).map((s) => (
+            {Array.from({ length: maxScore + 1 }, (_, i) => i).map((s) => (
               <button
                 key={s}
                 type="button"
@@ -360,7 +369,7 @@ function MatchplayHubScoreModal({
               disabled={confirmDisabled}
               className="btn btn--primary btn--full"
             >
-              {isSubmitting ? 'Saving...' : isCompleted ? 'Update' : 'Confirm score'}
+              {isSubmitting ? 'Saving...' : isCompleted ? 'Update' : 'Confirm'}
             </button>
           </div>
         </div>

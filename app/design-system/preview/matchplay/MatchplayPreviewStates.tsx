@@ -282,12 +282,12 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
             ✕
           </span>
           <h3 className="matchplay-score-modal-title">
-            Score for {formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')} vs {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}
+            Score for {formatPlayerName('Sam Wilson', 'first')} & {formatPlayerName('Jake Thomas', 'first')}
           </h3>
           <p className="matchplay-score-modal-court">Court 2</p>
           <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
             <div className="matchplay-hub-quick-score-grid" aria-hidden>
-              {Array.from({ length: 24 }, (_, i) => i + 1).map((s) => (
+              {Array.from({ length: 25 }, (_, i) => i).map((s) => (
                 <span key={s} className="matchplay-hub-quick-score-cell" style={{ pointerEvents: 'none' }}>
                   {String(s).padStart(2, '0')}
                 </span>
@@ -301,7 +301,7 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
                 Cancel
               </span>
               <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
-                Confirm score
+                Confirm
               </span>
             </div>
           </div>

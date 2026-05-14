@@ -1870,10 +1870,10 @@
 }
 
 /* ==========================================================================
-   SCORE ENTRY MODAL (CENTERED OVERLAY)
+   SCORE ENTRY — BOTTOM SHEET
    ========================================================================== */
 
-@keyframes matchplay-score-modal-fade {
+@keyframes matchplay-sheet-scrim-fade-in {
   from {
     opacity: 0;
   }
@@ -1882,14 +1882,12 @@
   }
 }
 
-@keyframes matchplay-score-modal-slide-up {
+@keyframes slideUpFromBottom {
   from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(100%);
   }
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -1898,28 +1896,39 @@
   inset: 0;
   background: var(--overlay-dark);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   z-index: var(--z-modal);
-  animation: matchplay-score-modal-fade 0.2s ease-out;
+  animation: matchplay-sheet-scrim-fade-in 0.2s ease-out;
 }
 
-/** Design-system demo: constrain scrim + dialog to `.matchplay-event-page` preview. */
+/** Design-system demo: constrain scrim + sheet to `.matchplay-event-page` preview. */
 .matchplay-score-modal-overlay.matchplay-score-modal-overlay--preview {
   position: absolute;
 }
 
 .matchplay-score-modal {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
-  padding: var(--ui-space-xl);
-  max-width: 90%;
-  width: min(400px, 100%);
+  width: 100%;
   max-height: 85vh;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--ui-space-xl);
+  padding-bottom: calc(var(--ui-space-xl) + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   position: relative;
-  border: 1px solid var(--border-default);
-  animation: matchplay-score-modal-slide-up 0.3s ease-out;
+  animation: slideUpFromBottom 0.3s ease-out;
+}
+
+.matchplay-score-modal::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--border-default);
+  border-radius: 2px;
 }
 
 .matchplay-score-modal-close {
@@ -1950,8 +1959,9 @@
   font-size: var(--ui-font-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin: 0 0 var(--ui-space-xs);
-  padding-right: var(--ui-space-2xl);
+  margin-top: var(--ui-space-sm);
+  margin-bottom: var(--ui-space-lg);
+  padding-right: var(--ui-space-xl);
   text-align: center;
   line-height: 1.3;
 }
