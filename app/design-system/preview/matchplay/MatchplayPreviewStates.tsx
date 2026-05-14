@@ -259,15 +259,7 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
             </div>
           </div>
           <div className="matchplay-hub-score-entry">
-            <p className="matchplay-hub-score-entry-title">Score for Team A</p>
-            <div className="matchplay-hub-score-side-toggles" aria-hidden>
-              <span className="matchplay-hub-score-side-btn matchplay-hub-score-side-btn--active" style={{ pointerEvents: 'none' }}>
-                {formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')}
-              </span>
-              <span className="matchplay-hub-score-side-btn" style={{ pointerEvents: 'none' }}>
-                {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}
-              </span>
-            </div>
+            <p className="matchplay-hub-score-entry-title">Adjust scores</p>
             <div className="matchplay-hub-score-reset-row" aria-hidden>
               <span className="matchplay-hub-score-reset" style={{ pointerEvents: 'none' }}>
                 Reset scores

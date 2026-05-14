@@ -182,24 +182,6 @@ function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded
   return embedded?.trim() ?? ''
 }
 
-/** Build `{ a, b }` from whichever team's pad row is active (Americano fills the other score). */
-function buildScoresFromPad(
-  activeTeam: 'a' | 'b',
-  padBuf: string,
-  isAmericano: boolean,
-  maxScore: number,
-  fallback: { a: number; b: number }
-): { a: number; b: number } {
-  const n = Math.min(Math.max(parseInt(padBuf || '0', 10) || 0, 0), maxScore)
-  if (isAmericano && n === 0) {
-    return { a: 0, b: 0 }
-  }
-  if (isAmericano) {
-    return activeTeam === 'a' ? { a: n, b: Math.max(0, maxScore - n) } : { a: Math.max(0, maxScore - n), b: n }
-  }
-  return activeTeam === 'a' ? { ...fallback, a: n } : { ...fallback, b: n }
-}
-
 function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   return (
     <div className="matchplay-hub-match-vs-column">
@@ -242,8 +224,9 @@ function HubMatchCard({
   onScoresDraftChange: (scores: { a: number; b: number }) => void
   onEditLineup: () => void
 }) {
-  const [scoreActiveTeam, setScoreActiveTeam] = React.useState<'a' | 'b'>('a')
-  const [scorePadBuffer, setScorePadBuffer] = React.useState('0')
+  /** Standard (non-Americano): 0 = enter A, 1 = enter B, 2 = both set — further taps alternate A/B. */
+  const [standardScorePhase, setStandardScorePhase] = React.useState<0 | 1 | 2>(0)
+  const [standardCorrectNext, setStandardCorrectNext] = React.useState<'a' | 'b'>('b')
   const prevExpandedRef = React.useRef(false)
 
   const teamANames = [
@@ -289,33 +272,64 @@ function HubMatchCard({
     }
     if (!prevExpandedRef.current) {
       prevExpandedRef.current = true
-      setScoreActiveTeam('a')
-      setScorePadBuffer(String(draft?.a ?? 0))
+      if (isAmericano) return
+      const a = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
+      const b = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
+      if (a === 0 && b === 0) {
+        setStandardScorePhase(0)
+      } else if (b === 0) {
+        setStandardScorePhase(1)
+      } else {
+        setStandardScorePhase(2)
+        setStandardCorrectNext('b')
+      }
     }
-  }, [isExpanded, match.id, draft?.a])
+  }, [isExpanded, match.id, isAmericano, isCompleted, draft?.a, draft?.b])
 
   const handlePadReset = () => {
-    setScorePadBuffer('0')
     if (isAmericano) {
       onScoresDraftChange({ a: 0, b: 0 })
-    } else {
-      const fb = baseDraft()
-      onScoresDraftChange(scoreActiveTeam === 'a' ? { ...fb, a: 0 } : { ...fb, b: 0 })
+      return
     }
-  }
-
-  const handleSelectScoreTeam = (team: 'a' | 'b') => {
-    const committed = buildScoresFromPad(scoreActiveTeam, scorePadBuffer, isAmericano, maxScore, baseDraft())
-    onScoresDraftChange(committed)
-    setScoreActiveTeam(team)
-    setScorePadBuffer(String(team === 'a' ? committed.a : committed.b))
+    setStandardScorePhase(0)
+    setStandardCorrectNext('b')
+    onScoresDraftChange({ a: 0, b: 0 })
   }
 
   const handleQuickScore = (score: number) => {
-    const s = String(score)
-    setScorePadBuffer(s)
-    onScoresDraftChange(buildScoresFromPad(scoreActiveTeam, s, isAmericano, maxScore, baseDraft()))
+    const n = Math.min(Math.max(score, 0), maxScore)
+    const fb = baseDraft()
+    if (isAmericano) {
+      onScoresDraftChange({ a: n, b: Math.max(0, maxScore - n) })
+      return
+    }
+    if (standardScorePhase === 0) {
+      onScoresDraftChange({ ...fb, a: n })
+      setStandardScorePhase(1)
+      return
+    }
+    if (standardScorePhase === 1) {
+      onScoresDraftChange({ ...fb, b: n })
+      setStandardScorePhase(2)
+      setStandardCorrectNext('b')
+      return
+    }
+    if (standardCorrectNext === 'a') {
+      onScoresDraftChange({ ...fb, a: n })
+      setStandardCorrectNext('b')
+    } else {
+      onScoresDraftChange({ ...fb, b: n })
+      setStandardCorrectNext('a')
+    }
   }
+
+  const scoreEntryTitle = isAmericano
+    ? 'Score'
+    : standardScorePhase === 0
+      ? `Score for ${teamALabel}`
+      : standardScorePhase === 1
+        ? `Score for ${teamBLabel}`
+        : 'Adjust scores'
 
   if (isSetup) {
     return (
@@ -414,30 +428,7 @@ function HubMatchCard({
 
       {isExpanded && (
         <div className="matchplay-hub-score-entry" onClick={(e) => e.stopPropagation()}>
-          <p className="matchplay-hub-score-entry-title">
-            Score for {scoreActiveTeam === 'a' ? teamALabel : teamBLabel}
-          </p>
-
-          <div className="matchplay-hub-score-side-toggles" role="tablist" aria-label="Choose team">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={scoreActiveTeam === 'a'}
-              className={`matchplay-hub-score-side-btn ${scoreActiveTeam === 'a' ? 'matchplay-hub-score-side-btn--active' : ''}`}
-              onClick={() => handleSelectScoreTeam('a')}
-            >
-              {teamALabel}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={scoreActiveTeam === 'b'}
-              className={`matchplay-hub-score-side-btn ${scoreActiveTeam === 'b' ? 'matchplay-hub-score-side-btn--active' : ''}`}
-              onClick={() => handleSelectScoreTeam('b')}
-            >
-              {teamBLabel}
-            </button>
-          </div>
+          <p className="matchplay-hub-score-entry-title">{scoreEntryTitle}</p>
 
           <div className="matchplay-hub-score-reset-row">
             <button type="button" className="matchplay-hub-score-reset" onClick={handlePadReset}>
