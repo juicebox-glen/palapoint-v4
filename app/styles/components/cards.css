@@ -40,9 +40,8 @@
   border-left: 3px solid var(--success);
 }
 
-/* Expanded state */
-.card--expanded,
-.matchplay-hub-match.matchplay-card.matchplay-hub-match--expanded {
+/* Expanded state (generic card pattern; hub uses overlay modal instead) */
+.card--expanded {
   border-color: var(--brand-primary);
 }
 

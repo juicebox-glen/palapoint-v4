@@ -193,42 +193,227 @@ function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
   )
 }
 
-function HubMatchCard({
+function initialStandardScoreState(
+  match: MatchplayMatch,
+  draft: { a: number; b: number } | undefined,
+  isAmericano: boolean
+): { phase: 0 | 1 | 2; correctNext: 'a' | 'b' } {
+  if (isAmericano) {
+    return { phase: 0, correctNext: 'b' }
+  }
+  const isCompleted = match.status === 'completed'
+  const a = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
+  const b = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
+  if (a === 0 && b === 0) return { phase: 0, correctNext: 'b' }
+  if (b === 0) return { phase: 1, correctNext: 'b' }
+  return { phase: 2, correctNext: 'b' }
+}
+
+function MatchplayHubScoreModal({
   match,
   players,
   isAmericano,
   maxScore,
-  isSetup,
-  canEditLineup,
-  isExpanded,
   draft,
   isSubmitting,
-  onToggleExpand,
-  onCancelExpand,
-  onConfirmScores,
-  onScoresDraftChange,
-  onEditLineup,
+  onClose,
+  onDraftChange,
+  onConfirm,
 }: {
   match: MatchplayMatch
   players: MatchplayPlayer[]
   isAmericano: boolean
   maxScore: number
-  isSetup: boolean
-  canEditLineup: boolean
-  isExpanded: boolean
   draft: { a: number; b: number } | undefined
   isSubmitting: boolean
-  onToggleExpand: () => void
-  onCancelExpand: () => void
-  onConfirmScores: (teamAScore: number, teamBScore: number) => void
-  onScoresDraftChange: (scores: { a: number; b: number }) => void
-  onEditLineup: () => void
+  onClose: () => void
+  onDraftChange: (scores: { a: number; b: number }) => void
+  onConfirm: (teamAScore: number, teamBScore: number) => void
 }) {
   /** Standard (non-Americano): 0 = enter A, 1 = enter B, 2 = both set — further taps alternate A/B. */
-  const [standardScorePhase, setStandardScorePhase] = React.useState<0 | 1 | 2>(0)
-  const [standardCorrectNext, setStandardCorrectNext] = React.useState<'a' | 'b'>('b')
-  const prevExpandedRef = React.useRef(false)
+  const [standardScorePhase, setStandardScorePhase] = React.useState<0 | 1 | 2>(() =>
+    initialStandardScoreState(match, draft, isAmericano).phase
+  )
+  const [standardCorrectNext, setStandardCorrectNext] = React.useState<'a' | 'b'>(() =>
+    initialStandardScoreState(match, draft, isAmericano).correctNext
+  )
 
+  const teamANames = [
+    resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
+    resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
+  ].filter(Boolean)
+  const teamBNames = [
+    resolveMatchPlayerName(players, match.team_b_player_1_id, match.team_b_player_1_name),
+    resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
+  ].filter(Boolean)
+
+  const teamALabel = formatTeamDisplay(teamANames[0] ?? '', teamANames[1] ?? '', 1, 'first')
+  const teamBLabel = formatTeamDisplay(teamBNames[0] ?? '', teamBNames[1] ?? '', 2, 'first')
+
+  const teamADisplay = teamANames.map((n) => formatPlayerName(n, 'first')).join(' & ')
+  const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
+
+  const isCompleted = match.status === 'completed'
+  const draftScoreA = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
+  const draftScoreB = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
+
+  const hasScores = draftScoreA > 0 || draftScoreB > 0
+  const winner = draftScoreA > draftScoreB ? 'a' : draftScoreB > draftScoreA ? 'b' : null
+
+  const confirmDisabled = isSubmitting || !hasScores
+
+  const baseDraft = React.useCallback((): { a: number; b: number } => {
+    return draft ?? { a: draftScoreA, b: draftScoreB }
+  }, [draft, draftScoreA, draftScoreB])
+
+  React.useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  const handlePadReset = () => {
+    if (isAmericano) {
+      onDraftChange({ a: 0, b: 0 })
+      return
+    }
+    setStandardScorePhase(0)
+    setStandardCorrectNext('b')
+    onDraftChange({ a: 0, b: 0 })
+  }
+
+  const handleQuickScore = (score: number) => {
+    const n = Math.min(Math.max(score, 0), maxScore)
+    const fb = baseDraft()
+    if (isAmericano) {
+      onDraftChange({ a: n, b: Math.max(0, maxScore - n) })
+      return
+    }
+    if (standardScorePhase === 0) {
+      onDraftChange({ ...fb, a: n })
+      setStandardScorePhase(1)
+      return
+    }
+    if (standardScorePhase === 1) {
+      onDraftChange({ ...fb, b: n })
+      setStandardScorePhase(2)
+      setStandardCorrectNext('b')
+      return
+    }
+    if (standardCorrectNext === 'a') {
+      onDraftChange({ ...fb, a: n })
+      setStandardCorrectNext('b')
+    } else {
+      onDraftChange({ ...fb, b: n })
+      setStandardCorrectNext('a')
+    }
+  }
+
+  const subtitleTitle = isAmericano
+    ? 'Score'
+    : standardScorePhase === 0
+      ? `Score for ${teamALabel}`
+      : standardScorePhase === 1
+        ? `Score for ${teamBLabel}`
+        : 'Adjust scores'
+
+  const courtLabel = match.court_label?.trim() || 'Court'
+
+  return (
+    <div className="matchplay-score-modal-overlay" onClick={onClose} role="presentation">
+      <div
+        className="matchplay-score-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="matchplay-score-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="matchplay-score-modal-close" onClick={onClose} aria-label="Close score entry">
+          ✕
+        </button>
+
+        <h3 className="matchplay-score-modal-title" id="matchplay-score-modal-title">
+          Score · {teamALabel}
+          {' vs '}
+          {teamBLabel}
+        </h3>
+        <p className="matchplay-score-modal-court">{courtLabel}</p>
+
+        <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
+          <p className="matchplay-hub-score-entry-title">{subtitleTitle}</p>
+
+          <div className="matchplay-hub-score-reset-row">
+            <button type="button" className="matchplay-hub-score-reset" onClick={handlePadReset}>
+              Reset scores
+            </button>
+          </div>
+
+          <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
+            {Array.from({ length: maxScore }, (_, i) => i + 1).map((s) => (
+              <button
+                key={s}
+                type="button"
+                className="matchplay-hub-quick-score-cell"
+                onClick={() => handleQuickScore(s)}
+              >
+                {String(s).padStart(2, '0')}
+              </button>
+            ))}
+          </div>
+
+          {hasScores && (
+            <p className="matchplay-hub-match-entry-result matchplay-hub-score-result">
+              Result:{' '}
+              {winner === null ? 'Draw' : winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
+            </p>
+          )}
+
+          <div className="matchplay-hub-score-actions">
+            <button type="button" onClick={onClose} className="btn btn--secondary btn--full">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onConfirm(draftScoreA, draftScoreB)}
+              disabled={confirmDisabled}
+              className="btn btn--primary btn--full"
+            >
+              {isSubmitting ? 'Saving...' : isCompleted ? 'Update score' : 'Confirm score'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HubMatchCard({
+  match,
+  players,
+  draft,
+  isSetup,
+  canEditLineup,
+  onOpenScore,
+  onEditLineup,
+}: {
+  match: MatchplayMatch
+  players: MatchplayPlayer[]
+  draft: { a: number; b: number } | undefined
+  isSetup: boolean
+  canEditLineup: boolean
+  onOpenScore: () => void
+  onEditLineup: () => void
+}) {
   const teamANames = [
     resolveMatchPlayerName(players, match.team_a_player_1_id, match.team_a_player_1_name),
     resolveMatchPlayerName(players, match.team_a_player_2_id, match.team_a_player_2_name),
@@ -241,100 +426,19 @@ function HubMatchCard({
   const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'abbreviated'))
   const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'abbreviated'))
 
-  const teamALabel = formatTeamDisplay(teamANames[0] ?? '', teamANames[1] ?? '', 1, 'first')
-  const teamBLabel = formatTeamDisplay(teamBNames[0] ?? '', teamBNames[1] ?? '', 2, 'first')
-
   const courtLabel = match.court_label?.trim() || 'Court'
-
-  const teamADisplay = teamANames.map((n) => formatPlayerName(n, 'first')).join(' & ')
-  const teamBDisplay = teamBNames.map((n) => formatPlayerName(n, 'first')).join(' & ')
 
   const isCompleted = match.status === 'completed'
   const draftScoreA = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
   const draftScoreB = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
 
-  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : isExpanded ? draftScoreA : 0
-  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : isExpanded ? draftScoreB : 0
-
-  const hasScores = draftScoreA > 0 || draftScoreB > 0
-  const winner = draftScoreA > draftScoreB ? 'a' : draftScoreB > draftScoreA ? 'b' : null
-
-  const confirmDisabled = isSubmitting || !hasScores
-
-  const baseDraft = React.useCallback((): { a: number; b: number } => {
-    return draft ?? { a: draftScoreA, b: draftScoreB }
-  }, [draft, draftScoreA, draftScoreB])
-
-  React.useEffect(() => {
-    if (!isExpanded) {
-      prevExpandedRef.current = false
-      return
-    }
-    if (!prevExpandedRef.current) {
-      prevExpandedRef.current = true
-      if (isAmericano) return
-      const a = draft?.a ?? (isCompleted ? Number(match.team_a_score) || 0 : 0)
-      const b = draft?.b ?? (isCompleted ? Number(match.team_b_score) || 0 : 0)
-      if (a === 0 && b === 0) {
-        setStandardScorePhase(0)
-      } else if (b === 0) {
-        setStandardScorePhase(1)
-      } else {
-        setStandardScorePhase(2)
-        setStandardCorrectNext('b')
-      }
-    }
-  }, [isExpanded, match.id, isAmericano, isCompleted, draft?.a, draft?.b])
-
-  const handlePadReset = () => {
-    if (isAmericano) {
-      onScoresDraftChange({ a: 0, b: 0 })
-      return
-    }
-    setStandardScorePhase(0)
-    setStandardCorrectNext('b')
-    onScoresDraftChange({ a: 0, b: 0 })
-  }
-
-  const handleQuickScore = (score: number) => {
-    const n = Math.min(Math.max(score, 0), maxScore)
-    const fb = baseDraft()
-    if (isAmericano) {
-      onScoresDraftChange({ a: n, b: Math.max(0, maxScore - n) })
-      return
-    }
-    if (standardScorePhase === 0) {
-      onScoresDraftChange({ ...fb, a: n })
-      setStandardScorePhase(1)
-      return
-    }
-    if (standardScorePhase === 1) {
-      onScoresDraftChange({ ...fb, b: n })
-      setStandardScorePhase(2)
-      setStandardCorrectNext('b')
-      return
-    }
-    if (standardCorrectNext === 'a') {
-      onScoresDraftChange({ ...fb, a: n })
-      setStandardCorrectNext('b')
-    } else {
-      onScoresDraftChange({ ...fb, b: n })
-      setStandardCorrectNext('a')
-    }
-  }
-
-  const scoreEntryTitle = isAmericano
-    ? 'Score'
-    : standardScorePhase === 0
-      ? `Score for ${teamALabel}`
-      : standardScorePhase === 1
-        ? `Score for ${teamBLabel}`
-        : 'Adjust scores'
+  const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : draftScoreA
+  const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : draftScoreB
 
   if (isSetup) {
     return (
       <div className="matchplay-hub-match matchplay-card matchplay-hub-match--setup">
-        <div className="matchplay-hub-match-compact">
+        <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
           <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
             <div className="matchplay-hub-match-score-row">
               <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
@@ -383,18 +487,18 @@ function HubMatchCard({
 
   return (
     <div
-      className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'} ${isExpanded ? 'matchplay-hub-match--expanded' : ''}`}
-      onClick={() => !isExpanded && onToggleExpand()}
+      className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'}`}
+      onClick={onOpenScore}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (!isExpanded && (e.key === 'Enter' || e.key === ' ')) {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          onToggleExpand()
+          onOpenScore()
         }
       }}
     >
-      <div className="matchplay-hub-match-compact">
+      <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
         <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
           <div className="matchplay-hub-match-score-row">
             <div className="matchplay-hub-match-score">
@@ -425,50 +529,9 @@ function HubMatchCard({
           </div>
         </div>
       </div>
-
-      {isExpanded && (
-        <div className="matchplay-hub-score-entry" onClick={(e) => e.stopPropagation()}>
-          <p className="matchplay-hub-score-entry-title">{scoreEntryTitle}</p>
-
-          <div className="matchplay-hub-score-reset-row">
-            <button type="button" className="matchplay-hub-score-reset" onClick={handlePadReset}>
-              Reset scores
-            </button>
-          </div>
-
-          <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
-            {Array.from({ length: maxScore }, (_, i) => i + 1).map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="matchplay-hub-quick-score-cell"
-                onClick={() => handleQuickScore(s)}
-              >
-                {String(s).padStart(2, '0')}
-              </button>
-            ))}
-          </div>
-
-          {hasScores && (
-            <p className="matchplay-hub-match-entry-result matchplay-hub-score-result">
-              Result:{' '}
-              {winner === null ? 'Draw' : winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
-            </p>
-          )}
-
-          <div className="matchplay-hub-score-actions">
-            <button type="button" onClick={onCancelExpand} className="btn btn--secondary btn--full">
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => onConfirmScores(draftScoreA, draftScoreB)}
-              disabled={confirmDisabled}
-              className="btn btn--primary btn--full"
-            >
-              {isSubmitting ? 'Saving...' : isCompleted ? 'Update score' : 'Confirm score'}
-            </button>
-          </div>
+      {isCompleted && (
+        <div className="matchplay-hub-match-completed-badge" aria-hidden>
+          ✓
         </div>
       )}
     </div>
@@ -488,7 +551,7 @@ export default function MatchplayEventPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
-  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null)
+  const [scoreModalMatch, setScoreModalMatch] = useState<MatchplayMatch | null>(null)
   const [draftScores, setDraftScores] = useState<Record<string, { a: number; b: number }>>({})
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null)
 
@@ -725,7 +788,7 @@ export default function MatchplayEventPage() {
       team_b_score: teamBScore,
     })
     if (result.success) {
-      setExpandedMatchId(null)
+      setScoreModalMatch(null)
       setDraftScores((prev) => {
         const next = { ...prev }
         delete next[matchId]
@@ -932,15 +995,11 @@ export default function MatchplayEventPage() {
               key={match.id}
               match={match}
               players={players}
-              isAmericano={isAmericano}
-              maxScore={maxScore}
+              draft={draftScores[match.id]}
               isSetup={isSetup}
               canEditLineup={canEditLineup}
-              isExpanded={expandedMatchId === match.id}
-              draft={draftScores[match.id]}
-              isSubmitting={submittingMatchId === match.id}
-              onToggleExpand={() => {
-                setExpandedMatchId(match.id)
+              onOpenScore={() => {
+                setScoreModalMatch(match)
                 setDraftScores((prev) => {
                   if (prev[match.id]) return prev
                   if (match.status === 'completed') {
@@ -955,18 +1014,6 @@ export default function MatchplayEventPage() {
                   return { ...prev, [match.id]: { a: 0, b: 0 } }
                 })
               }}
-              onCancelExpand={() => {
-                setExpandedMatchId(null)
-                setDraftScores((prev) => {
-                  const next = { ...prev }
-                  delete next[match.id]
-                  return next
-                })
-              }}
-              onConfirmScores={(a, b) => handleEnterResult(match.id, a, b)}
-              onScoresDraftChange={(scores) =>
-                setDraftScores((prev) => ({ ...prev, [match.id]: scores }))
-              }
               onEditLineup={() => openEditMatch(match)}
             />
           ))}
@@ -1000,6 +1047,31 @@ export default function MatchplayEventPage() {
           </div>
         )
       })()}
+
+      {scoreModalMatch && (
+        <MatchplayHubScoreModal
+          key={scoreModalMatch.id}
+          match={scoreModalMatch}
+          players={players}
+          isAmericano={isAmericano}
+          maxScore={maxScore}
+          draft={draftScores[scoreModalMatch.id]}
+          isSubmitting={submittingMatchId === scoreModalMatch.id}
+          onClose={() => {
+            const mid = scoreModalMatch.id
+            setScoreModalMatch(null)
+            setDraftScores((prev) => {
+              const n = { ...prev }
+              delete n[mid]
+              return n
+            })
+          }}
+          onDraftChange={(scores) =>
+            setDraftScores((prev) => ({ ...prev, [scoreModalMatch.id]: scores }))
+          }
+          onConfirm={(a, b) => handleEnterResult(scoreModalMatch.id, a, b)}
+        />
+      )}
 
       <footer className="matchplay-hub-footer">
         {isSetup && (

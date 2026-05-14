@@ -1631,12 +1631,31 @@
   padding: var(--ui-space-md) var(--ui-space-lg);
 }
 
+.matchplay-hub-match.matchplay-card:not(.matchplay-hub-match--setup) {
+  position: relative;
+}
+
+.matchplay-hub-match.matchplay-card:not(.matchplay-hub-match--setup):hover {
+  border-color: var(--brand-primary);
+}
+
 .matchplay-hub-match--pending {
   cursor: pointer;
 }
 
 .matchplay-hub-match--completed {
   cursor: pointer;
+}
+
+.matchplay-hub-match-completed-badge {
+  position: absolute;
+  top: var(--ui-space-xs);
+  right: var(--ui-space-sm);
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: var(--success);
+  font-weight: var(--font-weight-semibold);
+  pointer-events: none;
 }
 
 .matchplay-hub-match-compact {
@@ -1851,7 +1870,104 @@
 }
 
 /* ==========================================================================
-   SCORE ENTRY — quick grid (hub expanded match)
+   SCORE ENTRY MODAL (CENTERED OVERLAY)
+   ========================================================================== */
+
+@keyframes matchplay-score-modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes matchplay-score-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.matchplay-score-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  animation: matchplay-score-modal-fade 0.2s ease-out;
+}
+
+/** Design-system demo: constrain scrim + dialog to `.matchplay-event-page` preview. */
+.matchplay-score-modal-overlay.matchplay-score-modal-overlay--preview {
+  position: absolute;
+}
+
+.matchplay-score-modal {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--ui-space-xl);
+  max-width: 90%;
+  width: min(400px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid var(--border-default);
+  animation: matchplay-score-modal-slide-up 0.3s ease-out;
+}
+
+.matchplay-score-modal-close {
+  position: absolute;
+  top: var(--ui-space-md);
+  right: var(--ui-space-md);
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ui-font-lg);
+  z-index: 1;
+  line-height: 1;
+}
+
+.matchplay-score-modal-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.matchplay-score-modal-title {
+  font-size: var(--ui-font-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--ui-space-xs);
+  padding-right: var(--ui-space-2xl);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.matchplay-score-modal-court {
+  margin: 0 0 var(--ui-space-md);
+  font-size: var(--ui-font-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ==========================================================================
+   SCORE ENTRY — quick grid (hub modal body)
    ========================================================================== */
 
 .matchplay-hub-score-entry {
@@ -1860,6 +1976,13 @@
   border-top: 1px solid var(--border-default);
   background: var(--bg-tertiary);
   margin-top: 0;
+}
+
+.matchplay-hub-score-entry--modal {
+  border-top: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
 }
 
 .matchplay-hub-score-entry-title {

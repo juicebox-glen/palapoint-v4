@@ -164,7 +164,7 @@ function DsMatchplayAddPlayersPhotoSlot({ hasPhoto }: { hasPhoto: boolean }) {
 /** Event hub scoring UI — shared by `event` and `event_finalize` previews. */
 function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
   return (
-    <div className="matchplay-event-page" style={{ minHeight: '100vh' }}>
+    <div className="matchplay-event-page" style={{ minHeight: '100vh', position: 'relative' }}>
       <header className="matchplay-hub-header">
         <span className="matchplay-hub-back" aria-hidden>
           ←
@@ -196,7 +196,7 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
       </nav>
       <div className="matchplay-hub-matches">
         <div className="matchplay-hub-match matchplay-card matchplay-hub-match--completed">
-          <div className="matchplay-hub-match-compact">
+          <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
             <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
               <div className="matchplay-hub-match-score-row">
                 <div className="matchplay-hub-match-score">
@@ -226,13 +226,16 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
               </div>
             </div>
           </div>
+          <div className="matchplay-hub-match-completed-badge" aria-hidden>
+            ✓
+          </div>
         </div>
-        <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending matchplay-hub-match--expanded">
-          <div className="matchplay-hub-match-compact">
+        <div className="matchplay-hub-match matchplay-card matchplay-hub-match--pending">
+          <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
             <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
               <div className="matchplay-hub-match-score-row">
                 <div className="matchplay-hub-match-score">
-                  <span className="matchplay-hub-match-score-num">0</span>
+                  <span className="matchplay-hub-match-score-num">12</span>
                 </div>
               </div>
               <div className="matchplay-hub-match-names">
@@ -249,7 +252,7 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
             <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
               <div className="matchplay-hub-match-score-row">
                 <div className="matchplay-hub-match-score">
-                  <span className="matchplay-hub-match-score-num">0</span>
+                  <span className="matchplay-hub-match-score-num">20</span>
                 </div>
               </div>
               <div className="matchplay-hub-match-names">
@@ -258,7 +261,31 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
               </div>
             </div>
           </div>
-          <div className="matchplay-hub-score-entry">
+        </div>
+      </div>
+      <div className="matchplay-hub-resting">
+        <div className="matchplay-hub-resting-title">Resting this round</div>
+        <div className="matchplay-hub-resting-list">
+          <span className="matchplay-hub-resting-player">{formatPlayerName('Alex Chen', 'full')}</span>
+        </div>
+      </div>
+      <footer className="matchplay-hub-footer">
+        <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
+          {footerCta}
+        </span>
+      </footer>
+
+      {/* Static demo — score entry as centered overlay (scoped to hub preview shell) */}
+      <div className="matchplay-score-modal-overlay matchplay-score-modal-overlay--preview" role="presentation" aria-hidden style={{ pointerEvents: 'none' }}>
+        <div className="matchplay-score-modal" role="presentation" style={{ pointerEvents: 'none' }}>
+          <span className="matchplay-score-modal-close" aria-hidden>
+            ✕
+          </span>
+          <h3 className="matchplay-score-modal-title">
+            Score · {formatTeamDisplay('Sam Wilson', 'Jake Thomas', 1, 'first')} vs {formatTeamDisplay('Mike Brown', 'Tom Davis', 2, 'first')}
+          </h3>
+          <p className="matchplay-score-modal-court">Court 2</p>
+          <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
             <p className="matchplay-hub-score-entry-title">Adjust scores</p>
             <div className="matchplay-hub-score-reset-row" aria-hidden>
               <span className="matchplay-hub-score-reset" style={{ pointerEvents: 'none' }}>
@@ -286,17 +313,6 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
           </div>
         </div>
       </div>
-      <div className="matchplay-hub-resting">
-        <div className="matchplay-hub-resting-title">Resting this round</div>
-        <div className="matchplay-hub-resting-list">
-          <span className="matchplay-hub-resting-player">{formatPlayerName('Alex Chen', 'full')}</span>
-        </div>
-      </div>
-      <footer className="matchplay-hub-footer">
-        <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none' }}>
-          {footerCta}
-        </span>
-      </footer>
     </div>
   )
 }
