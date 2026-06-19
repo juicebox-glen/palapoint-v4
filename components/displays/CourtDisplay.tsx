@@ -99,6 +99,7 @@ export default function CourtDisplay({
   const prevTeamAPointsRef = useRef(-1)
   const prevTeamBPointsRef = useRef(-1)
   const announcementShownRef = useRef<string | null>(null)
+  const serverOverlayDismissedRef = useRef(false)
   const [leftScoreAnimating, setLeftScoreAnimating] = useState(false)
   const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
   const awaitingButtonPressRef = useRef(awaitingButtonPress)
@@ -297,6 +298,7 @@ export default function CourtDisplay({
 
     if (isNewMatch && hasNoScore) {
       announcementShownRef.current = match.id
+      serverOverlayDismissedRef.current = false
       setShowSetWin(false)
       setShowSideSwap(false)
       const isQuickPlay = !match.session_id
@@ -308,7 +310,9 @@ export default function CourtDisplay({
     }
     if (awaitingButtonPress && (!hasNoScore || match.started_at)) {
       setAwaitingButtonPress(false)
-      setShowServerAnnouncement(true)
+      if (!serverOverlayDismissedRef.current) {
+        setShowServerAnnouncement(true)
+      }
     }
   }, [match, awaitingButtonPress, isPreview])
 
@@ -339,18 +343,32 @@ export default function CourtDisplay({
     }
   }, [match, showSideSwap, isPreview])
 
-  const handleScore = useCallback(
+  const sendCourtPress = useCallback(
     async (team: 'a' | 'b', source: 'button_a' | 'button_b' | 'control_panel' = 'control_panel') => {
-      if (isPreview) return
-      if (!courtId) return
+      if (isPreview) return null
+      if (!courtId) return null
       try {
-        await fetch(`${SUPABASE_URL}/functions/v1/score`, {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ court_id: courtId, team, source }),
         })
+        const data = (await res.json()) as {
+          success?: boolean
+          new_state?: MatchState
+          error?: string
+        }
+        if (!res.ok || !data.success) {
+          console.warn('[CourtDisplay] score request failed:', data.error ?? res.status)
+          return null
+        }
+        if (data.new_state) {
+          setMatch(data.new_state)
+        }
+        return data
       } catch (err) {
         console.error('Error scoring point:', err)
+        return null
       }
     },
     [courtId, isPreview]
@@ -385,11 +403,24 @@ export default function CourtDisplay({
       }
 
       if (awaiting) {
+        e.preventDefault()
         setAwaitingButtonPress(false)
+        serverOverlayDismissedRef.current = false
         setShowServerAnnouncement(true)
+        showServerAnnouncementRef.current = true
+        if (key === 'p') {
+          void sendCourtPress('b', 'button_b')
+        } else {
+          void sendCourtPress('a', 'button_a')
+        }
         return
       }
-      if (serverAnnouncement) return
+      if (serverAnnouncement) {
+        e.preventDefault()
+        setShowServerAnnouncement(false)
+        showServerAnnouncementRef.current = false
+        serverOverlayDismissedRef.current = true
+      }
       if (showMatchWin) return
       if (showSetWin) return
       if (showSideSwap) return
@@ -397,18 +428,22 @@ export default function CourtDisplay({
 
       if (key === 'q' || key === 'a') {
         e.preventDefault()
-        handleScore('a', 'button_a')
+        void sendCourtPress('a', 'button_a')
       } else if (key === 'p') {
         e.preventDefault()
-        handleScore('b', 'button_b')
+        void sendCourtPress('b', 'button_b')
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [match, showSetWin, showSideSwap, handleScore, courtId, isPreview])
+  }, [match, showSetWin, showSideSwap, sendCourtPress, courtId, isPreview])
 
   const handleSideSwapComplete = () => setShowSideSwap(false)
-  const handleServerAnnouncementComplete = () => setShowServerAnnouncement(false)
+  const handleServerAnnouncementComplete = () => {
+    serverOverlayDismissedRef.current = true
+    setShowServerAnnouncement(false)
+    showServerAnnouncementRef.current = false
+  }
 
   useEffect(() => {
     if (isPreview) return
