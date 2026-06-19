@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, PlayerPhotosState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
@@ -152,7 +152,10 @@ export default function MatchConfirmation({
   ) : null
 
   return (
-    <div className={`control-panel${playerView ? ' control-panel--player' : ''}`}>
+    <div
+      className={`control-panel${playerView ? ' control-panel--player' : ''}`}
+      style={brandingStylesFor(branding)}
+    >
       <div className="control-container control-container--preview">
         <div
           className={`control-preview ${idleFooterLayout ? 'control-preview--playing-idle' : ''}${

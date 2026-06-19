@@ -1,7 +1,7 @@
 'use client'
 
 import type { GameMode, PlayerPhotosState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
 import SetupScreenHeader from './SetupScreenHeader'
 import PlayerPhotoCapture from '@/components/ui/PlayerPhotoCapture'
 import '@/app/styles/setup-form.css'
@@ -52,7 +52,7 @@ export default function MatchSetupForm({
   branding,
 }: MatchSetupFormProps) {
   return (
-    <div className="setup-screen">
+    <div className="setup-screen" style={brandingStylesFor(branding)}>
       <div className="setup-screen-inner">
         {showHeader && <SetupScreenHeader branding={branding} />}
 

@@ -12,9 +12,9 @@
      BRAND COLORS
      Override these for venue theming
      ---------------------------------------- */
-  --brand-primary: #5B6CFF;      /* Blue - primary actions */
-  --brand-primary-hover: #4B5AE0;
-  --brand-primary-glow: rgba(91, 108, 255, 0.3);
+  --brand-primary: #3A5FF9;      /* Square One blue — primary actions */
+  --brand-primary-hover: #2A4FE8;
+  --brand-primary-glow: rgba(58, 95, 249, 0.3);
   
   --brand-secondary: #8B5CF6;    /* Purple - secondary accent */
   
@@ -22,17 +22,17 @@
      TEAM COLORS
      Used for scoring, team identification
      ---------------------------------------- */
-  --team-a: #5B6CFF;             /* Blue team */
-  --team-a-light: #7B8AFF;
-  --team-a-dark: #4B5AE0;
-  --team-a-bg: rgba(91, 108, 255, 0.15);
-  --team-a-glow: rgba(91, 108, 255, 0.4);
+  --team-a: #3A5FF9;             /* Blue team */
+  --team-a-light: #5A79FF;
+  --team-a-dark: #2A4FE8;
+  --team-a-bg: rgba(58, 95, 249, 0.15);
+  --team-a-glow: rgba(58, 95, 249, 0.4);
   
-  --team-b: #E84A8A;             /* Pink/Red team */
-  --team-b-light: #FF6BA8;
-  --team-b-dark: #C73D75;
-  --team-b-bg: rgba(232, 74, 138, 0.15);
-  --team-b-glow: rgba(232, 74, 138, 0.4);
+  --team-b: #FF4DA6;             /* Pink team */
+  --team-b-light: #FF6FB8;
+  --team-b-dark: #E03D90;
+  --team-b-bg: rgba(255, 77, 166, 0.15);
+  --team-b-glow: rgba(255, 77, 166, 0.4);
   /* Aliases for layouts that expect --team-*-color (e.g. matchplay hub score borders) */
   --team-a-color: var(--team-a);
   --team-b-color: var(--team-b);

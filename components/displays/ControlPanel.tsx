@@ -12,7 +12,7 @@ import {
   matchPreviewSetsBadgeLabel,
 } from '@/components/shared/MatchConfirmation'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import { isMatchEndgame } from '@/lib/utils/match-status'
@@ -474,7 +474,10 @@ export default function ControlPanel({
 
   if (loading) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+      <div
+        className="page page-padded"
+        style={{ paddingTop: '1rem', ...brandingStylesFor(branding) }}
+      >
         <SetupScreenHeader branding={branding} />
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
@@ -485,7 +488,10 @@ export default function ControlPanel({
 
   if (error && !match) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+      <div
+        className="page page-padded"
+        style={{ paddingTop: '1rem', ...brandingStylesFor(branding) }}
+      >
         <SetupScreenHeader branding={branding} />
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
@@ -554,7 +560,7 @@ export default function ControlPanel({
   const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
 
   return (
-    <div className="control-panel">
+    <div className="control-panel" style={brandingStylesFor(branding)}>
       <div className="control-container control-container--preview">
         <div className="control-preview">
           <SetupScreenHeader branding={branding} />

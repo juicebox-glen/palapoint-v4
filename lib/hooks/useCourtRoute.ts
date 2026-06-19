@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { getCourtBySlug } from '@/lib/supabase'
-import { getVenueBranding, type VenueBranding } from '@/lib/venue'
+import { getVenueBranding, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 
 export interface CourtRouteResult {
   courtId: string | null
@@ -81,8 +81,10 @@ export function useCourtRoute(segments: string[] = []): CourtRouteResult {
           if (cancelled) return
           if (court) {
             setCourtId(court.id)
-            setBranding(null)
-            setCourtName(court.name || slug)
+            const brand = await getVenueBrandingForCourtId(court.id)
+            if (cancelled) return
+            setBranding(brand)
+            setCourtName(brand?.courtName ?? court.name ?? slug)
           } else {
             setError('Court not found')
           }

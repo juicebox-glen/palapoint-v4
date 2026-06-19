@@ -1,4 +1,4 @@
-import { DEFAULT_VENUE_LOGO_SRC, type VenueBranding } from '@/lib/venue'
+import { DEFAULT_TEAM_A_COLOR, DEFAULT_TEAM_B_COLOR, DEFAULT_VENUE_LOGO_SRC, type VenueBranding } from '@/lib/venue'
 
 /**
  * Default venue branding for design-system previews so headers match production
@@ -13,7 +13,7 @@ export const designSystemSquareOneBranding: VenueBranding = {
   courtName: 'Court 1',
   courtId: 'mock-court-id',
   isShowCourt: false,
-  primaryColor: '#5B6CFF',
-  secondaryColor: '#E84A8A',
+  primaryColor: DEFAULT_TEAM_A_COLOR,
+  secondaryColor: DEFAULT_TEAM_B_COLOR,
   logoUrl: DEFAULT_VENUE_LOGO_SRC,
 }

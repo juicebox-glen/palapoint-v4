@@ -394,13 +394,13 @@
 /* Team A - Left side: darker background + blue border */
 .court-ready-team-a {
   background-color: #121212;
-  border-left: clamp(6px, 1vw, 12px) solid var(--team-a, #5B6CFF);
+  border-left: clamp(6px, 1vw, 12px) solid var(--team-a, #3A5FF9);
 }
 
 /* Team B - Right side: lighter background + pink border */
 .court-ready-team-b {
   background-color: #1E1E1F;
-  border-right: clamp(6px, 1vw, 12px) solid var(--team-b, #E84A8A);
+  border-right: clamp(6px, 1vw, 12px) solid var(--team-b, #FF4DA6);
 }
 
 /* Player names container */
