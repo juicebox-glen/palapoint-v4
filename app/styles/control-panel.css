@@ -1124,6 +1124,17 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
 }
 
+.session-review-game-row--centered-score {
+  position: relative;
+}
+
+.session-review-game-row--centered-score .session-review-game-score {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .session-review-game-row--clickable {
   cursor: pointer;
 }

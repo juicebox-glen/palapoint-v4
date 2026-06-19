@@ -10,7 +10,7 @@ import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding
 
 /**
  * Design-system preview: session summary after END SESSION (`/session-review/[id]`).
- * Game rows are tappable — same as production navigation to `/game/[id]`.
+ * Game row navigation is gated by SESSION_REVIEW_GAME_NAV_ENABLED in SessionReviewDisplay.
  */
 export default function SessionReviewPreviewPage() {
   const router = useRouter()

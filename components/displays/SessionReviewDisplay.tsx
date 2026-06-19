@@ -51,6 +51,9 @@ export interface SessionReviewDisplayProps {
   onGameClick?: (gameId: string) => void
 }
 
+/** Temporarily off — re-enable to restore row tap → match stats. */
+export const SESSION_REVIEW_GAME_NAV_ENABLED = false
+
 function getTeamLabel(name: string | null | undefined, fallback: string): string {
   if (!name?.trim()) return fallback
   return abbreviateSurname(name)
@@ -148,6 +151,7 @@ export default function SessionReviewDisplay({
   branding = null,
   onGameClick,
 }: SessionReviewDisplayProps) {
+  const gameClickHandler = SESSION_REVIEW_GAME_NAV_ENABLED ? onGameClick : undefined
   const sessionPlayers = useMemo(() => uniqueSessionPlayers(games), [games])
 
   const totalMinutes =
@@ -222,19 +226,19 @@ export default function SessionReviewDisplay({
                     <div
                       key={game.id}
                       className={`session-review-game-row${
-                        onGameClick
+                        gameClickHandler
                           ? ' session-review-game-row--clickable session-review-game-row--has-chevron'
-                          : ''
+                          : ' session-review-game-row--centered-score'
                       }`}
-                      role={onGameClick ? 'button' : undefined}
-                      tabIndex={onGameClick ? 0 : undefined}
-                      onClick={onGameClick ? () => onGameClick(game.id) : undefined}
+                      role={gameClickHandler ? 'button' : undefined}
+                      tabIndex={gameClickHandler ? 0 : undefined}
+                      onClick={gameClickHandler ? () => gameClickHandler(game.id) : undefined}
                       onKeyDown={
-                        onGameClick
+                        gameClickHandler
                           ? (e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
-                                onGameClick(game.id)
+                                gameClickHandler(game.id)
                               }
                             }
                           : undefined
@@ -276,7 +280,7 @@ export default function SessionReviewDisplay({
                         </span>
                       </div>
 
-                      {onGameClick ? (
+                      {gameClickHandler ? (
                         <div className="session-review-chevron" aria-hidden>
                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path
