@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
+import PlayerFlowShell from '@/components/shared/PlayerFlowShell'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import ControlMatchPreview from '@/components/displays/ControlMatchPreview'
-import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
+import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
+import SessionPromptCard from '@/components/shared/SessionPromptCard'
 import {
   matchPreviewModeBadgeLabel,
   matchPreviewSetsBadgeLabel,
@@ -24,14 +26,38 @@ import '@/app/styles/control-panel.css'
 type ControlStage = 'setup' | 'preview' | 'live'
 
 /** Design-system preview: skips Supabase load/realtime and network actions. */
-export type ControlPanelPreviewScreen = 'setup' | 'preview' | 'live' | 'endgame'
+export type ControlPanelPreviewScreen =
+  | 'loading'
+  | 'setup'
+  | 'preview'
+  | 'live'
+  | 'endgame'
+  | 'endgame_multi'
+  | 'endgame_sweep'
+  | 'end_confirm'
 
 export interface ControlPanelPreviewConfig {
   screen: ControlPanelPreviewScreen
   /** Setup screen only: prefilled player names */
   setupPlayers?: [string, string, string, string]
-  /** Preview / live / endgame: injected match */
+  /** Preview / live / endgame / end_confirm: injected match */
   match?: MatchState | null
+}
+
+function ControlLoadingScreen({
+  message,
+  branding,
+}: {
+  message: string
+  branding?: VenueBranding | null
+}) {
+  return (
+    <PlayerFlowShell branding={branding ?? null}>
+      <div className="player-flow-loading">
+        <p className="page-loading-message">{message}</p>
+      </div>
+    </PlayerFlowShell>
+  )
 }
 
 interface ControlPanelProps {
@@ -63,12 +89,12 @@ function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefine
 function initialStageFromPreview(preview: ControlPanelPreviewConfig | undefined): ControlStage {
   if (!preview) return 'setup'
   if (preview.screen === 'preview') return 'preview'
-  if (preview.screen === 'live') return 'live'
+  if (preview.screen === 'live' || preview.screen === 'end_confirm') return 'live'
   return 'setup'
 }
 
 function initialMatchFromPreview(preview: ControlPanelPreviewConfig | undefined): MatchState | null {
-  if (!preview || preview.screen === 'setup') return null
+  if (!preview || preview.screen === 'setup' || preview.screen === 'loading') return null
   return preview.match ?? null
 }
 
@@ -84,7 +110,7 @@ export default function ControlPanel({
   const [loading, setLoading] = useState(() => !isPreview)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [showEndConfirm, setShowEndConfirm] = useState(false)
+  const [showEndConfirm, setShowEndConfirm] = useState(() => preview?.screen === 'end_confirm')
 
   const [gameMode, setGameMode] = useState<GameMode>(() => preview?.match?.game_mode ?? 'traditional')
   const [setsToWin, setSetsToWin] = useState<1 | 2>(() =>
@@ -472,31 +498,21 @@ export default function ControlPanel({
     />
   )
 
+  if (isPreview && preview?.screen === 'loading') {
+    return <ControlLoadingScreen message="Loading..." branding={branding ?? null} />
+  }
+
   if (loading) {
-    return (
-      <div
-        className="page page-padded"
-        style={{ paddingTop: '1rem', ...brandingStylesFor(branding) }}
-      >
-        <SetupScreenHeader branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
-        </div>
-      </div>
-    )
+    return <ControlLoadingScreen message="Loading..." branding={branding ?? null} />
   }
 
   if (error && !match) {
     return (
-      <div
-        className="page page-padded"
-        style={{ paddingTop: '1rem', ...brandingStylesFor(branding) }}
-      >
-        <SetupScreenHeader branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-loading">
+          <p style={{ fontSize: '1.5rem', color: 'var(--error)', textAlign: 'center' }}>{error}</p>
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 
@@ -625,22 +641,35 @@ export default function ControlPanel({
       </div>
 
       {showEndConfirm && (
-        <div className="control-modal-overlay" onClick={() => setShowEndConfirm(false)}>
-          <div className="control-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="control-modal-title">End Match?</h2>
-            <p className="control-modal-text">Are you sure you want to end this match?</p>
-            <div className="control-modal-buttons">
-              <button className="control-button" onClick={() => setShowEndConfirm(false)}>
-                Cancel
-              </button>
-              <button
-                className="control-button control-button-danger"
-                onClick={endMatch}
-                disabled={actionLoading === 'end'}
-              >
-                {actionLoading === 'end' ? 'Ending...' : 'End Match'}
-              </button>
-            </div>
+        <div
+          className="session-prompt-overlay"
+          onClick={() => !actionLoading && setShowEndConfirm(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <SessionPromptCard
+              title="End Match?"
+              warning="Are you sure you want to end this match?"
+              actions={
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-danger-fill btn-block"
+                    onClick={() => void endMatch()}
+                    disabled={actionLoading === 'end'}
+                  >
+                    {actionLoading === 'end' ? 'Ending...' : 'End Match'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-block"
+                    onClick={() => setShowEndConfirm(false)}
+                    disabled={!!actionLoading}
+                  >
+                    Cancel
+                  </button>
+                </>
+              }
+            />
           </div>
         </div>
       )}

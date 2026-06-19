@@ -45,7 +45,7 @@ export default function SpectatorDisplay({
   }
 
   if (!match) {
-    return <SpectatorIdle branding={branding} />
+    return <SpectatorIdle branding={branding} brandingStyles={brandingStyles} />
   }
 
   if (match.status === 'setup') {

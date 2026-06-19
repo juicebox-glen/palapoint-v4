@@ -10,30 +10,38 @@ export type SpectatorHeaderVariant = 'idle' | 'pregame' | 'live' | 'endgame'
 export interface SpectatorHeaderProps {
   branding: VenueBranding | null
   variant: SpectatorHeaderVariant
-  /** Uppercased court label for pregame / live */
+  /** Uppercased court label for header badges */
   courtLabel?: string
-  /** Endgame: full game mode label (e.g. GOLDEN POINT) */
-  gameModeText?: string
+  /** When false, logo is omitted (idle hero shows logo centered instead) */
+  showLogo?: boolean
 }
 
 export function SpectatorHeader({
   branding,
   variant,
   courtLabel,
-  gameModeText,
+  showLogo = true,
 }: SpectatorHeaderProps) {
+  const court =
+    courtLabel != null && courtLabel !== '' ? (
+      <div className="spectator-court-badge">{courtLabel}</div>
+    ) : null
+
   return (
     <div className="spectator-header">
-      <div className="spectator-logo">
-        <LogoContent branding={branding} />
-      </div>
+      {showLogo && (
+        <div className="spectator-logo">
+          <LogoContent branding={branding} />
+        </div>
+      )}
 
       {variant === 'idle' && (
-        <div className="spectator-header-right">
-          <div className="spectator-live-badge">
+        <div className="spectator-header-badges">
+          <div className="spectator-offline-badge">
             <span className="spectator-offline-dot" aria-hidden />
             <span>OFFLINE</span>
           </div>
+          {court}
         </div>
       )}
 
@@ -43,9 +51,7 @@ export function SpectatorHeader({
             <span className="spectator-ready-dot" aria-hidden />
             <span>READY</span>
           </div>
-          {courtLabel != null && courtLabel !== '' && (
-            <div className="spectator-court-badge">{courtLabel}</div>
-          )}
+          {court}
         </div>
       )}
 
@@ -55,21 +61,17 @@ export function SpectatorHeader({
             <span className="spectator-live-dot" aria-hidden />
             <span>LIVE</span>
           </div>
-          {courtLabel != null && courtLabel !== '' && (
-            <div className="spectator-court-badge">{courtLabel}</div>
-          )}
+          {court}
         </div>
       )}
 
       {variant === 'endgame' && (
-        <div className="spectator-header-right">
-          <div className="spectator-game-info">
-            <span>{gameModeText ?? ''}</span>
-          </div>
+        <div className="spectator-header-badges">
           <div className="spectator-final-badge">
             <span className="spectator-final-dot" aria-hidden />
             <span>FINAL</span>
           </div>
+          {court}
         </div>
       )}
     </div>

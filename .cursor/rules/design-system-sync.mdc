@@ -25,9 +25,10 @@ Hub tabs live in `app/design-system/screens/**` (e.g. `PlayerMobileHub.tsx`, `co
 
 1. **Prefer shared display components** — previews should render the same component as production with a `preview` prop or mock data, not duplicate markup.
 2. **New screen state** — extend the relevant `*-preview-config.ts` / `*-preview-states.ts` and add a hub tab in `ScreenPreview` states.
-3. **CSS / tokens** — if you change shared classes (`.preview-*`, `.session-review-*`, tokens in `app/styles/tokens/`), check component showcase pages under `/design-system/components/*` and foundations pages when tokens change.
-4. **Temporary flags** (e.g. `SESSION_REVIEW_GAME_NAV_ENABLED`) — previews using the same component inherit behaviour; document in preview page comment if non-obvious.
-5. **Mock data** — keep `app/design-system/lib/*-preview-data.ts` aligned with preview states (names, scores, branding via `squareone-mock-branding.ts`).
+3. **CSS / tokens** — if you change shared classes (`.preview-*`, `.session-review-*`, `.player-flow-*`, tokens in `app/styles/tokens/`), check component showcase pages under `/design-system/components/*` and foundations pages when tokens change.
+4. **Player flow shell** — gate/loading screens use `PlayerFlowShell` + `SessionPromptCard`; keep `/setup`, `/playing`, and staff `/control` loading/error states aligned.
+5. **Temporary flags** (e.g. `SESSION_REVIEW_GAME_NAV_ENABLED`) — previews using the same component inherit behaviour; document in preview page comment if non-obvious.
+6. **Mock data** — keep `app/design-system/lib/*-preview-data.ts` aligned with preview states (names, scores, branding via `squareone-mock-branding.ts`).
 
 ## Before finishing
 

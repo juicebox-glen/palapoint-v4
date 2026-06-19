@@ -10,6 +10,7 @@ import {
   getPlayerInitials,
   getTeamSurnameRows,
   getSpectatorTeamSurnameRows,
+  truncateDisplayLabel,
 } from './name-format'
 
 let testsPassed = 0
@@ -42,6 +43,7 @@ test('formatPlayerName full / first / surname_short / initials / abbreviated', (
   assertEqual(formatPlayerName('Glen Noble', 'surname_short'), 'NOB')
   assertEqual(formatPlayerName('Glen Noble', 'initials'), 'GN')
   assertEqual(formatPlayerName('Glen Noble', 'abbreviated'), 'G. Noble')
+  assertEqual(formatPlayerName('Glen Noble', 'initial_surname_short'), 'G. NOB')
 })
 
 test('formatPlayerName single token', () => {
@@ -92,6 +94,24 @@ test('getTeamSurnameRows filters empty', () => {
 
 test('getSpectatorTeamSurnameRows team fallback', () => {
   assertEqual(JSON.stringify(getSpectatorTeamSurnameRows('', '', 2)), JSON.stringify(['Team 2']))
+})
+
+test('getSpectatorTeamSurnameRows abbreviated names', () => {
+  assertEqual(
+    JSON.stringify(getSpectatorTeamSurnameRows('Glen Noble', 'Rob Anderson', 1)),
+    JSON.stringify(['G. NOBLE', 'R. ANDERSON'])
+  )
+})
+
+test('truncateDisplayLabel and pregame max length', () => {
+  assertEqual(truncateDisplayLabel('G. NOBLE', 14), 'G. NOBLE')
+  assertEqual(truncateDisplayLabel('J. CHRISTOPHERSSON', 14), 'J. CHRISTOPHE…')
+  assertEqual(
+    JSON.stringify(
+      getSpectatorTeamSurnameRows('John Christophersson', 'Rob Anderson', 1, 14)
+    ),
+    JSON.stringify(['J. CHRISTOPHE…', 'R. ANDERSON'])
+  )
 })
 
 console.log(`\nName format: ${testsPassed} passed, ${testsFailed} failed`)

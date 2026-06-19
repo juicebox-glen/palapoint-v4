@@ -2,7 +2,7 @@
 
 /**
  * Design-system iframe target: real `ControlPanel` in preview mode (no Supabase actions).
- * States: setup → preview → live → endgame via `?state=`. See `control-preview-config.ts` for mock data.
+ * States: loading → setup → preview → live → endgame (+ multi-set / end-match modal) via `?state=`. See `control-preview-config.ts` for mock data.
  */
 import type { CSSProperties } from 'react'
 import { Suspense, useMemo } from 'react'

@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
-import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import type { VenueBranding } from '@/lib/venue'
 import { formatTeamScoreboard, getTeamDisplayNameRows } from '@/lib/utils/name-format'
@@ -97,74 +96,132 @@ function winnerTeamScoreboardLabel(
   return formatTeamScoreboard(p1, p2, teamNumber)
 }
 
+/** Winner avatars, win line, and score — shared by player post-game and court match win. */
+export function MatchFinishedWinnerCard({
+  match,
+  className = '',
+}: {
+  match: MatchFinishedMatch
+  className?: string
+}) {
+  const winnerTeam = resolveFinishedWinnerSide(match)
+  if (winnerTeam === null) return null
+
+  const scoreRows = normalizedSetScoreRows(match.set_scores, match.team_a_games, match.team_b_games)
+
+  return (
+    <div className={`preview-card playing-finished-card ${className}`.trim()}>
+      <div className="playing-finished-winner-avatars">
+        <div className="preview-team-avatars">
+          {winnerTeam === 'a' ? (
+            <>
+              <MatchPreviewAvatar
+                photo={match.team_a_player_1_photo}
+                name={match.team_a_player_1}
+                team="a"
+              />
+              <MatchPreviewAvatar
+                photo={match.team_a_player_2_photo}
+                name={match.team_a_player_2}
+                team="a"
+              />
+            </>
+          ) : (
+            <>
+              <MatchPreviewAvatar
+                photo={match.team_b_player_1_photo}
+                name={match.team_b_player_1}
+                team="b"
+              />
+              <MatchPreviewAvatar
+                photo={match.team_b_player_2_photo}
+                name={match.team_b_player_2}
+                team="b"
+              />
+            </>
+          )}
+        </div>
+      </div>
+      <p className="playing-finished-win-line">
+        {winnerTeam === 'a'
+          ? `${winnerTeamScoreboardLabel(match.team_a_player_1, match.team_a_player_2, 1)} WIN`
+          : `${winnerTeamScoreboardLabel(match.team_b_player_1, match.team_b_player_2, 2)} WIN`}
+      </p>
+      <MatchFinishedScoresSection
+        setsToWin={match.sets_to_win}
+        rows={scoreRows}
+        winnerSide={winnerTeam}
+      />
+    </div>
+  )
+}
+
+export function formatFinishedScoreLine(rows: { a: number; b: number }[]): string {
+  return rows.map((r) => `${r.a}-${r.b}`).join(' ')
+}
+
+function scoreNumClass(
+  side: 'a' | 'b',
+  row: { a: number; b: number },
+  winnerSide: 'a' | 'b' | null | undefined,
+  singleSet: boolean
+): string {
+  const tie = row.a === row.b
+  if (tie) return 'playing-finished-score-num--tie'
+
+  const aWins = row.a > row.b
+  const bWins = row.b > row.a
+
+  if (singleSet && (winnerSide === 'a' || winnerSide === 'b')) {
+    const sideWins = side === 'a' ? winnerSide === 'a' : winnerSide === 'b'
+    return sideWins ? 'playing-finished-score-num--win' : 'playing-finished-score-num--lose'
+  }
+
+  const sideWins = side === 'a' ? aWins : bWins
+  return sideWins ? 'playing-finished-score-num--win' : 'playing-finished-score-num--lose'
+}
+
 export function MatchFinishedScoresSection({
-  setsToWin,
+  setsToWin: _setsToWin,
   rows,
   winnerSide,
 }: {
   setsToWin: number
   rows: { a: number; b: number }[]
-  /** Single-set headline: mute losing side + dash (multi-set rows infer per set). */
+  /** Mutes the losing side on single-set results; multi-set rows infer per set. */
   winnerSide?: 'a' | 'b' | null
 }) {
-  const multiRow = setsToWin > 1
-  if (!multiRow) {
-    const r = rows[0] ?? { a: 0, b: 0 }
-    if (winnerSide === 'a' || winnerSide === 'b') {
-      const aWins = winnerSide === 'a'
-      return (
-        <p className="playing-finished-score-large playing-finished-score-large--split" aria-label={`Score ${r.a} to ${r.b}`}>
-          <span className={aWins ? 'playing-finished-score-num--win' : 'playing-finished-score-num--lose'}>
+  const ariaLabel = rows.map((r) => `${r.a} to ${r.b}`).join(', ')
+  const singleSet = rows.length === 1
+  const neutral = singleSet && winnerSide !== 'a' && winnerSide !== 'b'
+
+  return (
+    <p
+      className={`playing-finished-score-line${neutral ? ' playing-finished-score-line--neutral' : ''}`}
+      aria-label={`Score ${ariaLabel}`}
+    >
+      {rows.map((r, i) => (
+        <span key={i} className="playing-finished-score-set">
+          <span
+            className={
+              neutral ? 'playing-finished-score-num--neutral' : scoreNumClass('a', r, winnerSide, singleSet)
+            }
+          >
             {r.a}
           </span>
-          <ScoreSepBar className="playing-finished-score-sep" />
-          <span className={aWins ? 'playing-finished-score-num--lose' : 'playing-finished-score-num--win'}>
+          <span className="playing-finished-score-hyphen" aria-hidden>
+            -
+          </span>
+          <span
+            className={
+              neutral ? 'playing-finished-score-num--neutral' : scoreNumClass('b', r, winnerSide, singleSet)
+            }
+          >
             {r.b}
           </span>
-        </p>
-      )
-    }
-    return (
-      <p
-        className="playing-finished-score-large playing-finished-score-large--split playing-finished-score-large--neutral"
-        aria-label={`Score ${r.a} to ${r.b}`}
-      >
-        <span className="playing-finished-score-num--neutral">{r.a}</span>
-        <ScoreSepBar className="playing-finished-score-sep playing-finished-score-sep--neutral" />
-        <span className="playing-finished-score-num--neutral">{r.b}</span>
-      </p>
-    )
-  }
-  return (
-    <div className="playing-finished-set-rows">
-      {rows.map((r, i) => {
-        const aWins = r.a > r.b
-        const bWins = r.b > r.a
-        const tie = r.a === r.b
-        const classA = tie
-          ? 'playing-finished-set-score--tie'
-          : aWins
-            ? 'playing-finished-set-score--win'
-            : 'playing-finished-set-score--lose'
-        const classB = tie
-          ? 'playing-finished-set-score--tie'
-          : bWins
-            ? 'playing-finished-set-score--win'
-            : 'playing-finished-set-score--lose'
-        return (
-          <div key={i} className="playing-finished-set-row">
-            <span className="playing-finished-set-label">SET {i + 1}</span>
-            <div className="playing-finished-set-scores">
-              <span className={classA}>{r.a}</span>
-              <ScoreSepBar
-                className={tie ? 'playing-finished-set-sep playing-finished-set-sep--tie' : 'playing-finished-set-sep'}
-              />
-              <span className={classB}>{r.b}</span>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+        </span>
+      ))}
+    </p>
   )
 }
 
@@ -204,53 +261,10 @@ export default function MatchFinishedPanel({
 
       {error && <div className="control-error-message">{error}</div>}
 
+      {showWinnerHero ? (
+        <MatchFinishedWinnerCard match={match} />
+      ) : (
       <div className="preview-card playing-finished-card">
-        {showWinnerHero ? (
-          <>
-            <div className="playing-finished-winner-avatars">
-              <div className="preview-team-avatars">
-                {winnerTeam === 'a' ? (
-                  <>
-                    <MatchPreviewAvatar
-                      photo={match.team_a_player_1_photo}
-                      name={match.team_a_player_1}
-                      team="a"
-                    />
-                    <MatchPreviewAvatar
-                      photo={match.team_a_player_2_photo}
-                      name={match.team_a_player_2}
-                      team="a"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <MatchPreviewAvatar
-                      photo={match.team_b_player_1_photo}
-                      name={match.team_b_player_1}
-                      team="b"
-                    />
-                    <MatchPreviewAvatar
-                      photo={match.team_b_player_2_photo}
-                      name={match.team_b_player_2}
-                      team="b"
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-            <p className="playing-finished-win-line">
-              {winnerTeam === 'a'
-                ? `${winnerTeamScoreboardLabel(match.team_a_player_1, match.team_a_player_2, 1)} WIN`
-                : `${winnerTeamScoreboardLabel(match.team_b_player_1, match.team_b_player_2, 2)} WIN`}
-            </p>
-            <MatchFinishedScoresSection
-              setsToWin={match.sets_to_win}
-              rows={scoreRows}
-              winnerSide={winnerTeam}
-            />
-          </>
-        ) : (
-          <>
             <div className="preview-matchup">
               <div className="preview-team preview-team-a">
                 <div className="preview-team-avatars">
@@ -302,9 +316,8 @@ export default function MatchFinishedPanel({
             {isAbandoned && !showWinnerHero && (
               <p className="playing-finished-ended-early">Match was ended early</p>
             )}
-          </>
-        )}
       </div>
+      )}
     </>
   )
 

@@ -11,10 +11,7 @@ export default function PlayingReadyHero({ onEditMatch, editDisabled = false }: 
     <div className="playing-ready-state">
       <div className="playing-ready-hero">
         <div className="playing-ready-pulse-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="9" />
-            <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
-          </svg>
+          <img src="/images/button.svg" alt="" width={48} height={72} />
         </div>
         <p
           className="playing-ready-instruction"
@@ -28,11 +25,11 @@ export default function PlayingReadyHero({ onEditMatch, editDisabled = false }: 
       </div>
       <button
         type="button"
-        className="playing-ready-edit-link"
+        className="btn btn-secondary btn-block playing-ready-edit-btn"
         onClick={onEditMatch}
         disabled={editDisabled}
       >
-        Edit Match
+        EDIT MATCH
       </button>
     </div>
   )

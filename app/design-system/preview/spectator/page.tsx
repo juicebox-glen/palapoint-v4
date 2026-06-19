@@ -80,7 +80,12 @@ function SpectatorPreviewContent() {
 
   switch (state) {
     case 'idle':
-      return <SpectatorIdle branding={designSystemSquareOneBranding} />
+      return (
+        <SpectatorIdle
+          branding={designSystemSquareOneBranding}
+          brandingStyles={brandingStyles}
+        />
+      )
     case 'pregame':
       return (
         <SpectatorPregame
@@ -98,7 +103,12 @@ function SpectatorPreviewContent() {
         <SpectatorEndgame match={mockEndgameMatch} branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} />
       )
     default:
-      return <SpectatorIdle branding={designSystemSquareOneBranding} />
+      return (
+        <SpectatorIdle
+          branding={designSystemSquareOneBranding}
+          brandingStyles={brandingStyles}
+        />
+      )
   }
 }
 

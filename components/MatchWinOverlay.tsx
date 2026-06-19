@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import type { MatchState } from '@/lib/types/match'
-import { formatTeamScoreboard } from '@/lib/utils/name-format'
-import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
+import { MatchWinHero } from '@/components/shared/MatchWinHero'
+import { resolveFinishedWinnerSide } from '@/components/shared/MatchFinishedPanel'
 
 interface MatchWinOverlayProps {
   match: MatchState
@@ -19,19 +19,15 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
     onComplete()
   }, [onComplete])
 
-  // Auto-complete after 15 seconds (V3 slide 0 duration)
   useEffect(() => {
     const timer = setTimeout(handleComplete, 15000)
     return () => clearTimeout(timer)
   }, [handleComplete])
 
-  // Key press to skip or start new game (V3: R for new game, Q/P for next)
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase()
-      if (key === 'r') {
-        handleComplete()
-      } else if (key === 'q' || key === 'p' || key === 'a' || key === 'l' || key === ' ') {
+      if (key === 'r' || key === 'q' || key === 'p' || key === 'a' || key === 'l' || key === ' ') {
         handleComplete()
       }
     }
@@ -39,25 +35,10 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [handleComplete])
 
-  const winner = match.winner
-  const setScores = match.set_scores || []
+  const winnerTeam = resolveFinishedWinnerSide(match)
+  if (winnerTeam === null) return null
 
-  const winnerName =
-    winner === 'a'
-      ? formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1)
-      : winner === 'b'
-        ? formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2)
-        : 'MATCH COMPLETE'
-
-  const borderColor = winner === 'a'
-    ? 'var(--team-a)'
-    : winner === 'b'
-      ? 'var(--team-b)'
-      : 'var(--text-secondary)'
-
-  const title = match.status === 'abandoned'
-    ? 'MATCH ABANDONED'
-    : `${winnerName} WINS!`
+  const borderColor = winnerTeam === 'a' ? 'var(--team-a)' : 'var(--team-b)'
 
   return (
     <div className="match-win-overlay screen-wrapper">
@@ -65,31 +46,7 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
         <div className="screen-border" style={{ borderColor }} />
 
         <div className="content-centered">
-          <div className="match-win-text-overlay">
-            <h1 className="match-win-title">{title}</h1>
-
-            {setScores.length > 0 && (
-              <div className="match-win-sets">
-                {setScores.map((set, index) => {
-                  const setNumber = index + 1
-                  const scoreA = set.team_a
-                  const scoreB = set.team_b
-                  const isThreeSets = setScores.length >= 3
-
-                  return (
-                    <div
-                      key={setNumber}
-                      className={`match-win-set-score ${isThreeSets ? 'three-sets' : ''}`}
-                    >
-                      <span className="match-win-score-value">{scoreA}</span>
-                      <ScoreSepBar className="match-win-score-sep" />
-                      <span className="match-win-score-value">{scoreB}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          <MatchWinHero match={match} />
         </div>
       </div>
 

@@ -10,37 +10,43 @@ import { DEFAULT_GAME_PREVIEW_ID } from '../../lib/game-preview-data'
 
 type FlowTab = 'staff' | 'player'
 
-const COURT_IN_USE_PREVIEW: ScreenPreviewState = {
-  name: 'court_in_use',
-  label: 'Court in use',
-  url: '/design-system/preview/setup?state=session_prompt',
-}
-
 const STAFF_MATCH_FLOW_TABS: ScreenPreviewState[] = [
+  { name: 'loading', label: 'Loading', url: '/design-system/preview/control?state=loading' },
   { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
-  COURT_IN_USE_PREVIEW,
   { name: 'preview', label: 'Preview', url: '/design-system/preview/control?state=preview' },
   { name: 'live', label: 'Live', url: '/design-system/preview/control?state=live' },
-  { name: 'endgame', label: 'End game', url: '/design-system/preview/control?state=endgame' },
+  { name: 'endgame', label: 'End', url: '/design-system/preview/control?state=endgame' },
+  {
+    name: 'end_multi',
+    label: 'End 2-1',
+    url: '/design-system/preview/control?state=endgame_multi',
+  },
+  {
+    name: 'end_sweep',
+    label: 'End 2-0',
+    url: '/design-system/preview/control?state=endgame_sweep',
+  },
+  {
+    name: 'end_confirm',
+    label: 'End match?',
+    url: '/design-system/preview/control?state=end_confirm',
+  },
 ]
 
-/** Full player `/setup` → `/playing` → `/session-review` → `/game` flow for design-system review. */
+/** Player flow in the order users see it on `/setup` → `/playing` → session summary. */
 const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
   {
     name: 'checking_court',
     label: 'Checking',
     url: '/design-system/preview/setup?state=checking_court',
   },
-  { name: 'setup', label: 'Setup', url: '/design-system/preview/setup?state=form' },
-  { name: 'review', label: 'Review', url: '/design-system/preview/setup?state=review' },
-  COURT_IN_USE_PREVIEW,
   {
-    name: 'match_join',
-    label: 'Match join',
-    url: '/design-system/preview/setup?state=match_join',
+    name: 'court_in_use',
+    label: 'Court in use',
+    url: '/design-system/preview/setup?state=session_prompt',
   },
-  { name: 'preview', label: 'Preview', url: '/design-system/preview/setup?state=confirmation' },
-  { name: 'ready', label: 'Ready', url: '/design-system/preview/playing?state=ready' },
+  { name: 'setup', label: 'Setup', url: '/design-system/preview/setup?state=form' },
+  { name: 'ready', label: 'Ready', url: '/design-system/preview/setup?state=confirmation' },
   { name: 'live', label: 'Live', url: '/design-system/preview/playing?state=live' },
   { name: 'endgame', label: 'End', url: '/design-system/preview/playing?state=postgame_win' },
   {
@@ -54,14 +60,14 @@ const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
     url: '/design-system/preview/playing?state=postgame_win_3sweep',
   },
   {
-    name: 'abandoned',
-    label: 'Abandoned',
-    url: '/design-system/preview/playing?state=postgame_abandoned',
+    name: 'session_review',
+    label: 'Summary',
+    url: '/design-system/preview/session-review',
   },
   {
-    name: 'no_session',
-    label: 'No session',
-    url: '/design-system/preview/playing?state=no_session',
+    name: 'game_stats',
+    label: 'Game stats',
+    url: `/design-system/preview/game?id=${encodeURIComponent(DEFAULT_GAME_PREVIEW_ID)}`,
   },
   {
     name: 'session_ended',
@@ -74,14 +80,9 @@ const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
     url: '/design-system/preview/playing?state=session_ended_inactivity',
   },
   {
-    name: 'session_review',
-    label: 'Summary',
-    url: '/design-system/preview/session-review',
-  },
-  {
-    name: 'game_stats',
-    label: 'Game stats',
-    url: `/design-system/preview/game?id=${encodeURIComponent(DEFAULT_GAME_PREVIEW_ID)}`,
+    name: 'no_session',
+    label: 'No session',
+    url: '/design-system/preview/playing?state=no_session',
   },
 ]
 
@@ -147,7 +148,7 @@ export function PlayerMobileHub() {
           <h2>Staff — control panel</h2>
           <ScreenPreview
             title="Staff flow"
-            description="Setup → court in use gate → preview (match confirmation) → live scoreboard → end game."
+            description="Loading → setup → preview (match confirmation) → live scoreboard → end game. Best-of-3 finishes and end-match modal at the end."
             viewport="mobile"
             states={STAFF_MATCH_FLOW_TABS}
           />
@@ -175,7 +176,7 @@ export function PlayerMobileHub() {
           <h2>Player — setup &amp; playing</h2>
           <ScreenPreview
             title="Player flow"
-            description="Checking court → setup → gates → confirmation → ready/live → end states → session summary → game stats."
+            description="Checking → court in use (if needed) → setup → ready → live → end → summary → stats. Edge states (session end, inactive, no session) at the end."
             viewport="mobile"
             states={PLAYER_MATCH_FLOW_TABS}
           />
@@ -183,9 +184,9 @@ export function PlayerMobileHub() {
           <h3 style={{ marginTop: 'var(--ui-space-xl)' }}>Opportunities for unification</h3>
           <ul className="ds-component-list">
             <li>
-              Gate screens (<code>session_prompt</code>, <code>match_join</code>, etc.) use{' '}
-              <code>SessionProtectionPrompt</code> — preview via the <strong>Court in use</strong> and{' '}
-              <strong>Match join</strong> tabs.
+              Gate screens use <code>SessionProtectionPrompt</code> — preview via the <strong>Court in use</strong>{' '}
+              tab (active session takeover). Match-in-progress takeover uses the same card with different copy in
+              production.
             </li>
             <li>
               <code>MatchFinishedPanel</code> and post-game CTAs should mirror staff endgame copy and button order to

@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { validateSession, endSession } from '@/lib/api/session'
-import Header from '@/components/ui/Header'
 import MatchConfirmation, {
   type MatchConfirmationMatch,
 } from '@/components/shared/MatchConfirmation'
+import PlayerFlowShell from '@/components/shared/PlayerFlowShell'
+import SessionPromptCard from '@/components/shared/SessionPromptCard'
 import PlayingReadyHero from '@/components/shared/PlayingReadyHero'
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
@@ -528,54 +529,59 @@ export default function PlayingDisplay({
 
   if (loading) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-loading">
+          <p className="page-loading-message">Loading...</p>
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 
   if (sessionState && !sessionState.valid) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div
-          className="stack stack-xl"
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
-        >
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Session Ended</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            {sessionState.reason === 'expired_inactivity'
-              ? 'Your session expired due to inactivity.'
-              : 'This session has ended.'}
-          </p>
-          <button className="btn btn-primary" onClick={() => router.push(`/setup/${courtSlug}`)}>
-            Start New Session
-          </button>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-prompt-wrap">
+          <SessionPromptCard
+            title="Session Ended"
+            warning={
+              sessionState.reason === 'expired_inactivity'
+                ? 'Your session expired due to inactivity.'
+                : 'This session has ended.'
+            }
+            actions={
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={() => router.push(`/setup/${courtSlug}`)}
+              >
+                Start New Session
+              </button>
+            }
+          />
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 
   if (!sessionId) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div
-          className="stack stack-xl"
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}
-        >
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>No Active Session</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Scan the QR code on the court to start a session.
-          </p>
-          <button className="btn btn-primary" onClick={() => router.push(`/setup/${courtSlug}`)}>
-            Set Up Game
-          </button>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-prompt-wrap">
+          <SessionPromptCard
+            title="No Active Session"
+            warning="Scan the QR code on the court to start a session."
+            actions={
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={() => router.push(`/setup/${courtSlug}`)}
+              >
+                Set Up Game
+              </button>
+            }
+          />
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 
@@ -645,21 +651,19 @@ export default function PlayingDisplay({
 
   if (!match) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading match…</p>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-loading">
+          <p className="page-loading-message">Loading match…</p>
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 
   return (
-    <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-      <Header branding={branding} />
-      <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-        <p style={{ color: 'var(--text-secondary)' }}>Waiting for match to start…</p>
+    <PlayerFlowShell branding={branding ?? null}>
+      <div className="player-flow-loading">
+        <p className="page-loading-message">Waiting for match to start…</p>
       </div>
-    </div>
+    </PlayerFlowShell>
   )
 }

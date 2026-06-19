@@ -1,6 +1,8 @@
 'use client'
 
-import '@/app/styles/session-prompt.css'
+import PlayerFlowShell from '@/components/shared/PlayerFlowShell'
+import SessionPromptCard from '@/components/shared/SessionPromptCard'
+import type { VenueBranding } from '@/lib/venue'
 
 export default function SessionProtectionPrompt({
   onCancel,
@@ -10,6 +12,7 @@ export default function SessionProtectionPrompt({
   takeOverLabel = 'Take Over',
   takeOverLoading = false,
   error = null,
+  branding = null,
 }: {
   onCancel: () => void
   onTakeover: () => void
@@ -19,36 +22,39 @@ export default function SessionProtectionPrompt({
   takeOverLabel?: string
   takeOverLoading?: boolean
   error?: string | null
+  branding?: VenueBranding | null
 }) {
   const busy = takeOverLoading
+
   return (
-    <div className="session-prompt-overlay">
-      <div className="session-prompt-card">
-        <div className="session-prompt-body">
-          <h2 className="session-prompt-title">{title}</h2>
-
-          <p className="session-prompt-warning">{warning}</p>
-
-          {error ? (
-            <p
-              className="session-prompt-warning"
-              style={{ color: 'var(--error)', marginTop: '0.5rem', fontSize: '0.875rem' }}
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="session-prompt-actions">
-          <button type="button" className="btn btn-primary btn-block" onClick={onTakeover} disabled={busy}>
-            {busy ? '…' : takeOverLabel}
-          </button>
-          <button type="button" className="btn btn-ghost btn-block" onClick={onCancel} disabled={busy}>
-            Cancel
-          </button>
-        </div>
+    <PlayerFlowShell branding={branding}>
+      <div className="player-flow-prompt-wrap">
+        <SessionPromptCard
+          title={title}
+          warning={warning}
+          error={error}
+          actions={
+            <>
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={onTakeover}
+                disabled={busy}
+              >
+                {busy ? '…' : takeOverLabel}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-block"
+                onClick={onCancel}
+                disabled={busy}
+              >
+                Cancel
+              </button>
+            </>
+          }
+        />
       </div>
-    </div>
+    </PlayerFlowShell>
   )
 }

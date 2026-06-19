@@ -13,7 +13,9 @@
   height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
-  padding: clamp(1rem, 3vh, 3rem) clamp(1.5rem, 4vw, 5rem);
+  --spectator-inset-y: clamp(1rem, 3vh, 3rem);
+  --spectator-inset-x: clamp(1.5rem, 4vw, 5rem);
+  padding: var(--spectator-inset-y) var(--spectator-inset-x);
   display: flex;
   flex-direction: column;
   font-family: var(--font-family);
@@ -98,9 +100,10 @@
   flex-shrink: 0;
 }
 
-/* READY + LIVE: shared green broadcast pill */
+/* READY, LIVE, FINAL: shared broadcast status pills */
 .spectator-ready-badge,
-.spectator-container--live .spectator-live-badge {
+.spectator-container--live .spectator-live-badge,
+.spectator-final-badge {
   display: flex;
   align-items: center;
   gap: clamp(0.4rem, 0.8vw, 0.6rem);
@@ -111,6 +114,20 @@
   font-size: clamp(0.75rem, 1.8vh, 1.1rem);
   font-weight: 600;
   color: var(--success);
+  letter-spacing: 0.05em;
+}
+
+.spectator-offline-badge {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 0.8vw, 0.6rem);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: var(--radius-full);
+  font-size: clamp(0.75rem, 1.8vh, 1.1rem);
+  font-weight: 600;
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
 }
 
@@ -145,6 +162,39 @@
   color: var(--text-muted);
 }
 
+.spectator-container--idle {
+  background: transparent;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.spectator-container--idle .spectator-header {
+  margin-bottom: 0;
+  justify-content: flex-end;
+}
+
+.spectator-container--idle .spectator-header,
+.spectator-container--idle .spectator-idle-hero {
+  position: relative;
+  z-index: 1;
+}
+
+.spectator-idle-hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.spectator-idle-logo-img {
+  height: clamp(140px, 32vh, 420px) !important;
+  max-height: clamp(140px, 32vh, 420px) !important;
+  max-width: min(88vw, 800px) !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
 .spectator-loading,
 .spectator-error {
   flex: 1;
@@ -167,6 +217,7 @@
   background: transparent;
   min-height: 0;
   isolation: isolate;
+  overflow: visible;
 }
 
 .spectator-container--live .spectator-header {
@@ -174,8 +225,7 @@
 }
 
 .spectator-container--live .spectator-header,
-.spectator-container--live .spectator-live-cards,
-.spectator-container--live .spectator-pregame-badges {
+.spectator-container--live .spectator-live-cards {
   position: relative;
   z-index: 1;
 }
@@ -185,43 +235,91 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(0.85rem, 2vh, 1.65rem);
-  padding: clamp(0.5rem, 2vw, 2rem) 0;
+  align-items: stretch;
+  align-self: center;
+  gap: clamp(0.65rem, 1.5vh, 1.35rem);
+  padding: clamp(0.35rem, 1.5vw, 1.25rem) 0;
   min-height: 0;
-  width: 100%;
-  max-width: min(1320px, 92vw);
+  width: fit-content;
+  max-width: min(95vw, 100%);
   margin-inline: auto;
   box-sizing: border-box;
+  overflow: visible;
+}
+
+.spectator-live-card-row {
+  position: relative;
+  width: 100%;
+}
+
+.spectator-live-serve-slot {
+  --spectator-live-serve-size: clamp(14px, 2.3vw, 28px);
+  position: absolute;
+  top: 50%;
+  right: calc(100% + clamp(0.5rem, 1.2vw, 1rem));
+  transform: translateY(-50%);
+  width: var(--spectator-live-serve-size);
+  height: var(--spectator-live-serve-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .spectator-live-card {
+  width: 100%;
+  --spectator-live-card-radius: clamp(10px, 1.4vw, 21px);
   background: var(--bg-secondary);
-  border-radius: clamp(8px, 1.2vw, 18px);
+  border-radius: var(--spectator-live-card-radius);
   border: 1px solid var(--border-default);
   overflow: hidden;
 }
 
 .spectator-live-card-inner {
-  /* Wide enough for two tabular digits + padding at max font-size (points) */
-  --spectator-live-score-col-width: clamp(6.75rem, 14vw, 10.5rem);
-  --spectator-live-inner-pad-y: clamp(0.65rem, 1.35vh, 1.1rem);
-  --spectator-live-inner-pad-x: clamp(0.85rem, 1.5vw, 1.35rem);
-  --spectator-live-inner-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  /* Points: two tabular digits + padding; games: single digit only */
+  --spectator-live-games-col-width: clamp(6.8rem, 13.7vw, 9.75rem);
+  --spectator-live-points-col-width: clamp(7.5rem, 15.5vw, 11.5rem);
+  --spectator-live-names-width: clamp(14rem, 32vw, 24rem);
+  --spectator-live-inner-pad-y: clamp(0.5rem, 1.1vh, 0.9rem);
+  --spectator-live-inner-gap: clamp(0.45rem, 0.85vw, 0.85rem);
+  display: grid;
+  grid-template-columns:
+    auto
+    var(--spectator-live-names-width)
+    auto
+    minmax(
+      calc(var(--spectator-live-games-col-width) + var(--spectator-live-points-col-width)),
+      1fr
+    );
+  align-items: stretch;
+  column-gap: var(--spectator-live-inner-gap);
+  width: 100%;
+  min-height: 100%;
+  padding: var(--spectator-live-inner-pad-y) 0 var(--spectator-live-inner-pad-y) var(--spectator-live-inner-pad-y);
+  box-sizing: border-box;
+}
+
+.spectator-live-score-strip {
   display: flex;
   align-items: stretch;
-  padding: var(--spectator-live-inner-pad-y) var(--spectator-live-inner-pad-x);
-  gap: var(--spectator-live-inner-gap);
+  gap: 0;
+  width: 100%;
+  min-width: calc(var(--spectator-live-games-col-width) + var(--spectator-live-points-col-width));
+  margin-top: calc(-1 * var(--spectator-live-inner-pad-y));
+  margin-bottom: calc(-1 * var(--spectator-live-inner-pad-y));
+  justify-self: stretch;
 }
 
 .spectator-live-photos {
   display: flex;
-  gap: clamp(0.55rem, 1.1vw, 1.1rem);
+  gap: var(--spectator-live-inner-pad-y);
   flex-shrink: 0;
   align-items: center;
+  margin-right: clamp(0.5rem, 1.25vw, 1.25rem);
 }
 
 .spectator-live-photo {
-  width: clamp(52px, 8vw, 118px);
+  width: clamp(60px, 9.2vw, 136px);
   aspect-ratio: 4 / 5;
   height: auto;
   border-radius: clamp(4px, 0.65vw, 9px);
@@ -255,7 +353,7 @@
 }
 
 .spectator-live-initials {
-  font-size: clamp(0.95rem, 2.25vw, 2rem);
+  font-size: clamp(1.1rem, 2.6vw, 2.3rem);
   font-weight: 700;
 }
 
@@ -271,29 +369,33 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.125rem, 0.3vh, 0.25rem);
-  flex: 1;
-  min-width: 0;
   justify-content: center;
+  min-width: 0;
 }
 
 .spectator-live-name-row {
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 1vw, 1rem);
+  min-width: 0;
 }
 
 .spectator-live-name-row span:first-child {
   font-family: 'Space Grotesk', var(--font-family);
-  font-size: clamp(1.35rem, 3.75vw, 3.25rem);
+  font-size: clamp(1.45rem, 3.85vw, 3.35rem);
   font-weight: 500;
   color: var(--text-primary);
   letter-spacing: 0.02em;
   line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .spectator-live-serve {
-  width: clamp(12px, 2vw, 24px);
-  height: clamp(12px, 2vw, 24px);
+  width: var(--spectator-live-serve-size, clamp(14px, 2.3vw, 28px));
+  height: var(--spectator-live-serve-size, clamp(14px, 2.3vw, 28px));
   background: #d0ff14;
   border-radius: 50%;
   flex-shrink: 0;
@@ -320,15 +422,16 @@
 .spectator-live-sets {
   display: flex;
   flex-direction: column;
-  gap: clamp(4px, 0.6vh, 8px);
-  padding: 0 clamp(0.5rem, 1.5vw, 1.5rem);
+  gap: clamp(8px, 1.1vh, 14px);
+  padding: clamp(0.35rem, 0.75vh, 0.65rem) clamp(0.5rem, 1vw, 0.85rem);
+  margin-left: clamp(0.75rem, 2vw, 1.75rem);
   justify-content: center;
   flex-shrink: 0;
 }
 
 .spectator-live-set-dot {
-  width: clamp(10px, 1.5vw, 18px);
-  height: clamp(10px, 1.5vw, 18px);
+  width: clamp(14px, 2vw, 24px);
+  height: clamp(14px, 2vw, 24px);
   border-radius: 50%;
   border: 2px solid var(--text-muted);
   background: transparent;
@@ -345,40 +448,29 @@
   border-color: var(--team-b);
 }
 
-.spectator-live-set-lost {
-  background: transparent;
-  border-color: var(--text-muted);
-  opacity: 0.4;
-}
-
 .spectator-live-set-pending {
   background: transparent;
   border-color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.45;
 }
 
 .spectator-live-games {
-  flex: 0 0 var(--spectator-live-score-col-width);
-  width: var(--spectator-live-score-col-width);
-  min-width: var(--spectator-live-score-col-width);
-  max-width: var(--spectator-live-score-col-width);
+  flex: 0 0 var(--spectator-live-games-col-width);
+  width: var(--spectator-live-games-col-width);
+  min-width: var(--spectator-live-games-col-width);
+  max-width: var(--spectator-live-games-col-width);
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
-  font-size: clamp(2.25rem, 7vw, 6.25rem);
+  font-size: clamp(2.75rem, 8.25vw, 7.5rem);
   font-weight: 500;
   color: var(--text-muted);
   line-height: 1;
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
-  padding: clamp(0.65rem, 2.25vh, 1.35rem) clamp(0.45rem, 1vw, 0.75rem);
-  /* Bleed to card edges; cancel flex gap before points */
-  margin-top: calc(-1 * var(--spectator-live-inner-pad-y));
-  margin-bottom: calc(-1 * var(--spectator-live-inner-pad-y));
-  margin-right: calc(-1 * var(--spectator-live-inner-gap));
+  padding: clamp(0.55rem, 1.85vh, 1.15rem) clamp(1.3rem, 2.7vw, 2rem);
   background: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
   border-right: none;
@@ -386,34 +478,28 @@
 }
 
 .spectator-live-points {
-  flex: 0 0 var(--spectator-live-score-col-width);
-  width: var(--spectator-live-score-col-width);
-  min-width: var(--spectator-live-score-col-width);
-  max-width: var(--spectator-live-score-col-width);
+  flex: 1 1 var(--spectator-live-points-col-width);
+  min-width: var(--spectator-live-points-col-width);
+  width: auto;
+  max-width: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: stretch;
-  /* Cap max size so two digits (15, 30, 40) stay inside --spectator-live-score-col-width */
-  font-size: clamp(2.25rem, 7vw, 6.25rem);
+  font-size: clamp(2.75rem, 8.25vw, 7.5rem);
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1;
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
-  padding: clamp(0.65rem, 2.25vh, 1.35rem) clamp(0.45rem, 1vw, 0.75rem);
-  /* Full height + flush to right inner edge of card (inside the 1px card border) */
-  margin-top: calc(-1 * var(--spectator-live-inner-pad-y));
-  margin-bottom: calc(-1 * var(--spectator-live-inner-pad-y));
-  margin-right: calc(-1 * var(--spectator-live-inner-pad-x));
+  padding: clamp(0.55rem, 1.85vh, 1.15rem) 0;
   background: var(--bg-tertiary);
   border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
   border-left: none;
-  /* Outer edge is the card stroke — no second border line */
   border-right: none;
-  border-radius: 0;
+  border-top-right-radius: var(--spectator-live-card-radius);
+  border-bottom-right-radius: var(--spectator-live-card-radius);
 }
 
 @supports not (background: color-mix(in srgb, black 50%, white)) {
@@ -433,16 +519,7 @@
    PREGAME STATE (setup)
    ------------------------------------------------------------ */
 
-/* Split field — team A lane (left) / team B lane (right), matches live scoreboard */
-.spectator-container--split-field {
-  background: linear-gradient(
-    to right,
-    #13151b 0%,
-    #13151b 50%,
-    #181b22 50%,
-    #181b22 100%
-  );
-}
+/* Split field — team A lane (left) / team B lane (right), matches court scoreboard */
 
 .spectator-container--pregame {
   background: transparent;
@@ -455,9 +532,18 @@
 }
 
 .spectator-container--pregame .spectator-header,
-.spectator-container--pregame .spectator-pregame-broadcast,
-.spectator-container--pregame .spectator-pregame-badges {
+.spectator-container--pregame .spectator-pregame-broadcast {
   position: relative;
+  z-index: 1;
+}
+
+/* Bottom-left game info — inset matches .spectator-container padding (same as header) */
+.spectator-container--pregame .spectator-pregame-badges,
+.spectator-container--live .spectator-pregame-badges,
+.spectator-container--endgame .spectator-pregame-badges {
+  position: absolute;
+  bottom: calc(var(--spectator-inset-y) + clamp(0.75rem, 2vh, 1.5rem));
+  left: var(--spectator-inset-x);
   z-index: 1;
 }
 
@@ -705,11 +791,15 @@
 
 .spectator-pregame-names span {
   font-family: 'Space Grotesk', var(--font-family);
-  font-size: clamp(2rem, 5.75vw, 5.25rem);
+  font-size: clamp(1.9rem, 5.5vw, 5rem);
   font-weight: 500;
   color: #cbccce;
   letter-spacing: 0.02em;
   line-height: 1.02;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .spectator-pregame-names-a {
@@ -764,42 +854,26 @@
   }
 }
 
-/* Bottom left — mode / sets */
-.spectator-pregame-badges {
-  position: absolute;
-  bottom: clamp(1.5rem, 4vh, 3rem);
-  left: clamp(1.5rem, 4vw, 3rem);
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(0.5rem, 1vw, 1rem);
-}
-
-.spectator-pregame-badge {
-  background: var(--bg-tertiary);
-  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 1.5vw, 1.2rem);
-  border-radius: var(--radius-full);
-  font-size: clamp(0.7rem, 1.5vh, 1rem);
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.05em;
-}
+/* Bottom left — mode / sets (uses .spectator-header-badges + .spectator-court-badge) */
 
 /* ------------------------------------------------------------
    ENDGAME STATE (completed / abandoned)
    ------------------------------------------------------------ */
 
 .spectator-container--endgame {
-  flex: 1;
+  background: transparent;
   min-height: 0;
+  isolation: isolate;
 }
 
-.spectator-final-badge {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1vh, 0.75rem);
-  font-size: clamp(1rem, 2.5vh, 1.5rem);
-  font-weight: 700;
-  color: var(--text-primary);
+.spectator-container--endgame .spectator-header {
+  margin-bottom: clamp(0.3rem, 0.85vh, 0.85rem);
+}
+
+.spectator-container--endgame .spectator-header,
+.spectator-container--endgame .spectator-endgame {
+  position: relative;
+  z-index: 1;
 }
 
 .spectator-endgame {
@@ -807,103 +881,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(2rem, 6vw, 6rem);
   min-height: 0;
-}
-
-.spectator-endgame-team {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(1rem, 2vh, 2rem);
-  padding: clamp(1.5rem, 3vh, 3rem);
-  border-radius: var(--radius-xl);
-  background: var(--bg-secondary);
-}
-
-.spectator-endgame-winner {
-  background: var(--bg-tertiary);
-  border: clamp(2px, 0.4vh, 4px) solid var(--success);
-}
-
-.spectator-endgame-players {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1rem, 2vh, 2rem);
-}
-
-.spectator-endgame-player {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1vh, 1rem);
-}
-
-.spectator-endgame-photo {
-  width: clamp(60px, 12vh, 120px);
-  height: clamp(60px, 12vh, 120px);
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.spectator-endgame-avatar {
-  width: clamp(60px, 12vh, 120px);
-  height: clamp(60px, 12vh, 120px);
-  border-radius: 50%;
-  background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.5rem, 5vh, 4rem);
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.spectator-endgame-name {
-  font-size: clamp(1rem, 2.5vh, 1.75rem);
-  font-weight: 500;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.spectator-endgame-winner-label {
-  font-size: clamp(0.75rem, 1.5vh, 1rem);
-  font-weight: 700;
-  color: var(--success);
-  letter-spacing: 0.15em;
-}
-
-.spectator-endgame-score {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1.5vh, 1.5rem);
-}
-
-.spectator-endgame-set {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1.5vw, 1.5rem);
-  font-size: clamp(3rem, 10vh, 8rem);
-  font-weight: 700;
-}
-
-.spectator-endgame-set-winner {
-  color: var(--text-primary);
-}
-
-.spectator-endgame-set > span:not(.spectator-endgame-set-winner):not(.spectator-endgame-set-sep) {
-  color: var(--text-muted);
-}
-
-.spectator-endgame-set-sep {
-  color: var(--text-muted);
-  opacity: 0.9;
-  line-height: 0;
-}
-
-.spectator-endgame-set-sep .score-sep-bar {
-  width: clamp(0.65rem, 1.8vw, 1.25rem);
-  height: clamp(2px, 0.45vh, 8px);
-  min-height: 2px;
+  width: 100%;
 }

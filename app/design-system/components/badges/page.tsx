@@ -66,19 +66,19 @@ export default function BadgesPage() {
 
       <section className="ds-section">
         <h2>Mode Badges</h2>
-        <p>Game mode and set count indicators</p>
+        <p>Game mode and set count — bottom-left on pregame / live (same pills as court badge)</p>
 
         <div className="ds-component-row">
           <div className="ds-component-demo ds-component-demo--dark">
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <span className="spectator-pregame-badge">1 SET</span>
-              <span className="spectator-pregame-badge">TRADITIONAL</span>
+            <div className="spectator-header-badges">
+              <div className="spectator-court-badge">1 SET</div>
+              <div className="spectator-court-badge">TRADITIONAL</div>
             </div>
           </div>
           <div className="ds-component-demo ds-component-demo--dark">
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <span className="spectator-pregame-badge">3 SETS</span>
-              <span className="spectator-pregame-badge">GOLDEN</span>
+            <div className="spectator-header-badges">
+              <div className="spectator-court-badge">3 SETS</div>
+              <div className="spectator-court-badge">GOLDEN</div>
             </div>
           </div>
         </div>

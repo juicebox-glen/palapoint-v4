@@ -46,7 +46,11 @@
   --bg-tertiary: #2A3140;        /* Inputs, inactive buttons, inner elements */
   --bg-hover: #343D4D;           /* Hover states (slightly lighter than tertiary) */
   --bg-active: #3E4859;         /* Active/pressed states */
-  
+
+  /* 50/50 lane split: Team A (left) primary, Team B (right) secondary */
+  --split-bg-a: var(--bg-primary);
+  --split-bg-b: var(--bg-secondary);
+
   /* ----------------------------------------
      TEXT
      ---------------------------------------- */

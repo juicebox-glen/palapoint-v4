@@ -8,6 +8,7 @@ export type NameFormat =
   | 'surname_short'
   | 'initials'
   | 'abbreviated'
+  | 'initial_surname_short'
 
 /**
  * Format a player name for display
@@ -44,6 +45,13 @@ export function formatPlayerName(name: string | null | undefined, format: NameFo
         return `${firstName[0]}. ${lastName}`
       }
       return firstName
+
+    case 'initial_surname_short': {
+      if (hasLastName) {
+        return `${firstName[0]}. ${lastName.slice(0, 3).toUpperCase()}`
+      }
+      return firstName.slice(0, 3).toUpperCase()
+    }
 
     default:
       return trimmed
@@ -128,12 +136,26 @@ export function getTeamSurnameRows(
 }
 
 /**
+ * Spectator pre-game / ready screen: max chars per name line (initial + surname).
+ * Keeps labels on one line within the photo column width.
+ */
+export const SPECTATOR_PREGAME_NAME_MAX_LENGTH = 14
+
+export function truncateDisplayLabel(label: string, maxLength: number): string {
+  if (label.length <= maxLength) return label
+  if (maxLength <= 1) return '…'
+  return `${label.slice(0, maxLength - 1)}…`
+}
+
+/**
  * Spectator columns: both empty → single "Team N" row; otherwise two lines with em dash for empty slot.
+ * Uses first initial + surname in caps (e.g. "G. NOBLE") for readable TV labels.
  */
 export function getSpectatorTeamSurnameRows(
   player1: string | null | undefined,
   player2: string | null | undefined,
-  teamNumber: 1 | 2
+  teamNumber: 1 | 2,
+  maxLength?: number
 ): string[] {
   const has1 = Boolean(player1?.trim())
   const has2 = Boolean(player2?.trim())
@@ -141,7 +163,7 @@ export function getSpectatorTeamSurnameRows(
     return [`Team ${teamNumber}`]
   }
   return [
-    has1 ? formatPlayerName(player1, 'surname_short') : '—',
-    has2 ? formatPlayerName(player2, 'surname_short') : '—',
-  ]
+    has1 ? formatPlayerName(player1, 'abbreviated').toUpperCase() : '—',
+    has2 ? formatPlayerName(player2, 'abbreviated').toUpperCase() : '—',
+  ].map((label) => (maxLength == null ? label : truncateDisplayLabel(label, maxLength)))
 }

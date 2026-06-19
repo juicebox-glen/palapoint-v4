@@ -12,6 +12,20 @@
   --duration-medium: 0.6s;
 }
 
+/* Court overlay / broadcast titles — Space Grotesk (matches pre-game player names) */
+.set-win-title,
+.server-announcement-title,
+.side-swap-title,
+.game-team-name,
+.match-win-line {
+  font-family: 'Space Grotesk', var(--font-family);
+  font-weight: 500;
+  color: #cbccce;
+  letter-spacing: 0.02em;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+
 /* Screen wrapper */
 .screen-wrapper {
   position: absolute;
@@ -28,15 +42,22 @@
   overflow: hidden;
 }
 
+/* Court diagram surface — used on scoreboard + bordered overlays */
+.screen-bordered,
+.game-scoreboard-screen,
+.court-background {
+  background-color: var(--bg-primary);
+  background-image: url('/images/court.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 /* Court background for overlays (screen-bordered) */
 .screen-bordered {
   position: relative;
   width: 100%;
   height: 100%;
-  background-image: url('/images/court.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 .screen-border {
@@ -74,25 +95,17 @@
   position: relative;
 }
 
-/* Team sides - backgrounds fixed by SIDE not team (V3: team-1-dark, team-2-dark) */
+/* Team sides — 50/50 split lanes on primary page background */
 .tile.team-1-dark {
-  background-color: #121212;
+  background-color: var(--split-bg-a);
 }
 
 .tile.team-2-dark {
-  background-color: #1E1E1F;
+  background-color: var(--split-bg-b);
 }
 
 .game-team-side {
   flex-direction: column;
-}
-
-/* Game scoreboard: court background (V3 game-scoreboard-screen) */
-.game-scoreboard-screen {
-  background-image: url('/images/court.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 /* Team name */
@@ -103,12 +116,6 @@
   right: 0;
   text-align: center;
   font-size: 3.7vw;
-  font-weight: 400;
-  color: var(--text-primary);
-  opacity: 0.7;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-family: var(--font-family);
 }
 
 /* Score display container */
@@ -311,7 +318,7 @@
 /* Square One idle design */
 .court-idle-square-one {
   position: relative;
-  background-color: #171A21;
+  background-color: var(--bg-primary);
   justify-content: flex-start;
   padding: 2vw;
   box-sizing: border-box;
@@ -354,14 +361,6 @@
   max-width: 40vw;
 }
 
-.court-idle-instruction {
-  font-size: 2.2vw;
-  font-weight: 600;
-  color: #C0C0C0;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
 .court-idle-square-one .court-idle-qr {
   position: absolute;
   bottom: 2vw;
@@ -379,71 +378,59 @@
   position: absolute;
   inset: 0;
   display: flex;
-  overflow: hidden;
-}
-
-/* Each half of the screen - 50/50 background split (same as scoreboard) */
-.court-ready-half {
-  flex: 1;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
-  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
-/* Team A - Left side: darker background + blue border */
-.court-ready-team-a {
-  background-color: #121212;
+/* 50/50 team backgrounds sit behind the broadcast row */
+.court-ready-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.court-ready-bg-half {
+  flex: 1;
+  min-width: 0;
+}
+
+.court-ready-bg-half-a {
+  background-color: var(--split-bg-a);
   border-left: clamp(6px, 1vw, 12px) solid var(--team-a, #3A5FF9);
 }
 
-/* Team B - Right side: lighter background + pink border */
-.court-ready-team-b {
-  background-color: #1E1E1F;
+.court-ready-bg-half-b {
+  background-color: var(--split-bg-b);
   border-right: clamp(6px, 1vw, 12px) solid var(--team-b, #FF4DA6);
 }
 
-/* Player names container */
-.court-ready-names {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 2vh, 1.5rem);
+/* Same flex + gap as spectator pre-game — keeps team columns clear of VS */
+.court-ready-broadcast {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding-inline: clamp(1rem, 3vw, 2.5rem);
+  box-sizing: border-box;
 }
 
-/* Individual player name */
-.court-ready-name {
-  font-size: clamp(3rem, 8vw, 10rem);
-  font-weight: 500;
-  color: var(--text-primary, #FFFFFF);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-/* VS text in the center */
-.court-ready-vs {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(2rem, 5vw, 6rem);
-  font-weight: 600;
-  color: var(--text-secondary, #606068);
-  letter-spacing: 0.1em;
-  z-index: 10;
-}
-
-/* Instruction text at bottom */
+/* Bottom instruction — idle + ready (Inter, same placement) */
+.court-idle-instruction,
 .court-ready-instruction {
   position: absolute;
   bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
+  font-family: var(--font-family);
   font-size: 48px;
   font-weight: 600;
-  white-space: nowrap;
-  color: var(--text-secondary, #A0A0A8);
+  color: var(--text-secondary, #a0a0a8);
   letter-spacing: 2px;
+  white-space: nowrap;
   text-align: center;
   text-transform: uppercase;
   z-index: 10;
@@ -488,11 +475,6 @@
 
 .set-win-title {
   font-size: 4.5vw;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.2;
   margin: 0 0 1vw 0;
 }
 
@@ -646,11 +628,6 @@
 
 .side-swap-title {
   font-size: var(--font-size-large-title);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.2;
   margin: 0;
 }
 
@@ -676,10 +653,7 @@
 
 /* Court background for overlays */
 .court-background {
-  background-image: url('/images/court.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  position: relative;
 }
 
 /* Dark overlay for better text readability */
@@ -687,7 +661,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-color: rgba(18, 18, 18, 0.7);
+  background-color: var(--overlay-darker);
   z-index: 0;
 }
 
@@ -723,17 +697,7 @@
 
 .server-announcement-title {
   font-size: var(--font-size-large-title);
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.2;
   margin: 0;
-}
-
-.server-announcement-title-selecting {
-  font-size: var(--font-size-large-title);
-  line-height: 1.2;
 }
 
 .server-announcement-pulse {
@@ -899,72 +863,64 @@
   inset: 0;
   background-color: var(--bg-primary);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
   z-index: 150;
   overflow: hidden;
 }
 
-.match-win-text-overlay {
-  background-color: var(--bg-primary);
-  padding: var(--padding-text-overlay);
-  text-align: center;
-  display: inline-block;
-  z-index: 20;
+.match-win-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.35rem, 4vh, 2.75rem);
+  width: 100%;
+  max-width: min(92vw, 72rem);
+  margin-top: clamp(-8rem, -24vh, -26rem);
   animation: fadeInUp 0.5s ease-in-out;
 }
 
-.match-win-title {
-  font-size: 4.5vw;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-  text-align: center;
+.match-win-photos.spectator-pregame-photos {
+  justify-content: center;
+  width: auto;
+  max-width: 100%;
+  gap: clamp(0.85rem, 2.25vw, 2.25rem);
+}
+
+.match-win-line {
   margin: 0;
-  text-transform: uppercase;
-  line-height: 1.2;
-  margin-bottom: var(--spacing-sm, 1rem);
+  text-align: center;
+  font-size: clamp(2rem, 5.75vw, 5.25rem);
 }
 
-.match-win-sets {
+.match-win-scores {
+  width: 100%;
   display: flex;
-  gap: var(--spacing-lg, 2rem);
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
 }
 
-.match-win-set-score {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1vw;
-  font-size: 13vw;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-  position: relative;
+.match-win-scores .playing-finished-score-line {
+  margin: 0;
+  gap: clamp(1.25rem, 5vw, 3.5rem);
+  font-size: clamp(2.5rem, 12vw, 7rem);
+  font-weight: 500;
+  line-height: 1;
 }
 
-.match-win-set-score.three-sets {
-  font-size: 10vw;
+.match-win-scores .playing-finished-score-num--win {
+  font-weight: 500;
+  opacity: 1;
 }
 
-.match-win-score-value {
-  flex: 0 0 auto;
+.match-win-scores .playing-finished-score-num--lose {
+  font-weight: 500;
+  opacity: 0.42;
 }
 
-.match-win-score-sep {
-  flex: 0 0 auto;
-  color: var(--text-primary);
-  opacity: 0.65;
-  line-height: 0;
-}
-
-.match-win-score-sep .score-sep-bar {
-  width: clamp(0.75rem, 2.4vw, 1.5rem);
-  height: clamp(3px, 0.7vw, 7px);
-  min-height: 3px;
+.match-win-scores .playing-finished-score-hyphen {
+  opacity: 0.42;
 }
 
 .match-win-footer {

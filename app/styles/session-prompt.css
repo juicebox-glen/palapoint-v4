@@ -1,4 +1,18 @@
-/* Session protection prompt — compact centered alert (phone + tablet) */
+/* Session protection prompt — inline card on player flow shell (phone + tablet) */
+.session-prompt-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--ui-space-xl);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-lg);
+}
+
+/* Legacy full-screen overlay — prefer PlayerFlowShell + SessionPromptCard */
 .session-prompt-overlay {
   position: fixed;
   inset: 0;
@@ -12,17 +26,8 @@
   box-sizing: border-box;
 }
 
-.session-prompt-card {
-  width: 100%;
+.session-prompt-overlay .session-prompt-card {
   max-width: 360px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: var(--ui-space-xl);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-lg);
 }
 
 .session-prompt-body {
@@ -75,6 +80,7 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  padding-top: var(--ui-space-lg);
 }
 
 .session-prompt-actions .btn {

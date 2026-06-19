@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { checkSession, createSession, takeoverSession, validateSession } from '@/lib/api/session'
-import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import MatchConfirmation from '@/components/shared/MatchConfirmation'
+import PlayerFlowShell from '@/components/shared/PlayerFlowShell'
 import PlayingReadyHero from '@/components/shared/PlayingReadyHero'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
@@ -91,12 +91,11 @@ function SetupLoadingScreen({
   branding?: VenueBranding | null
 }) {
   return (
-    <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-      <Header branding={branding} />
-      <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+    <PlayerFlowShell branding={branding ?? null}>
+      <div className="player-flow-loading">
         <p className="page-loading-message">{message}</p>
       </div>
-    </div>
+    </PlayerFlowShell>
   )
 }
 
@@ -590,13 +589,20 @@ export default function SetupDisplay({
         <SessionProtectionPrompt
           title="Court in Use"
           warning="Another match is using this court. Take over to start fresh."
+          branding={branding ?? null}
           onCancel={() => {}}
           onTakeover={() => {}}
         />
       )
     }
     if (preview.screen === 'session_prompt') {
-      return <SessionProtectionPrompt onCancel={() => {}} onTakeover={() => {}} />
+      return (
+        <SessionProtectionPrompt
+          branding={branding ?? null}
+          onCancel={() => {}}
+          onTakeover={() => {}}
+        />
+      )
     }
     if (preview.screen === 'confirmation') {
       return (
@@ -628,6 +634,7 @@ export default function SetupDisplay({
         takeOverLabel="Take Over"
         takeOverLoading={actionLoading === 'court-takeover' || actionLoading === 'create'}
         error={error}
+        branding={branding ?? null}
         onCancel={handleCancelSetup}
         onTakeover={handleTakeOverCourtMatch}
       />
@@ -638,6 +645,7 @@ export default function SetupDisplay({
     return (
       <SessionProtectionPrompt
         takeOverLoading={actionLoading === 'takeover'}
+        branding={branding ?? null}
         onCancel={handleCancelSetup}
         onTakeover={handleTakeover}
       />
@@ -646,12 +654,11 @@ export default function SetupDisplay({
 
   if (error && !activeMatch && !showSetupForm && !confirmationMatch) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--error)' }}>{error}</p>
+      <PlayerFlowShell branding={branding ?? null}>
+        <div className="player-flow-loading">
+          <p style={{ fontSize: '1.5rem', color: 'var(--error)', textAlign: 'center' }}>{error}</p>
         </div>
-      </div>
+      </PlayerFlowShell>
     )
   }
 

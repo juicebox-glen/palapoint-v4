@@ -10,7 +10,8 @@ import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
-import { formatTeamDisplay, formatTeamScoreboard, getTeamDisplayNameRows } from '@/lib/utils/name-format'
+import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
+import { SpectatorPregameTeamInner } from '@/components/displays/spectator/SpectatorPregameTeamInner'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { VenueLogo } from '@/components/shared/VenueLogo'
 
@@ -544,8 +545,8 @@ export default function CourtDisplay({
           <div className="court-idle-logo">
             <IdleLogo branding={branding ?? null} />
           </div>
-          <div className="court-idle-instruction">HOLD BUTTON TO START</div>
         </div>
+        <div className="court-idle-instruction">HOLD BUTTON TO START</div>
         <div className="court-idle-qr">
           <QRCodeSVG value={setupUrl} size={120} />
         </div>
@@ -557,27 +558,29 @@ export default function CourtDisplay({
     const showButtonInstruction = Boolean(match.session_id)
     return (
       <div className="court-ready-screen">
-        <div className="court-ready-half court-ready-team-a">
-          <div className="court-ready-names">
-            {getTeamDisplayNameRows(match.team_a_player_1, match.team_a_player_2, 1).map(
-              (name, index) => (
-                <span key={`team-a-${index}`} className="court-ready-name">
-                  {name}
-                </span>
-              )
-            )}
-          </div>
+        <div className="court-ready-bg" aria-hidden>
+          <div className="court-ready-bg-half court-ready-bg-half-a" />
+          <div className="court-ready-bg-half court-ready-bg-half-b" />
         </div>
-        <div className="court-ready-vs">VS</div>
-        <div className="court-ready-half court-ready-team-b">
-          <div className="court-ready-names">
-            {getTeamDisplayNameRows(match.team_b_player_1, match.team_b_player_2, 2).map(
-              (name, index) => (
-                <span key={`team-b-${index}`} className="court-ready-name">
-                  {name}
-                </span>
-              )
-            )}
+        <div className="court-ready-broadcast spectator-pregame-broadcast">
+          <div className="spectator-pregame-side spectator-pregame-side-a">
+            <SpectatorPregameTeamInner
+              side="a"
+              player1={match.team_a_player_1}
+              player2={match.team_a_player_2}
+              photo1={match.team_a_player_1_photo}
+              photo2={match.team_a_player_2_photo}
+            />
+          </div>
+          <div className="spectator-pregame-vs">VS</div>
+          <div className="spectator-pregame-side spectator-pregame-side-b">
+            <SpectatorPregameTeamInner
+              side="b"
+              player1={match.team_b_player_1}
+              player2={match.team_b_player_2}
+              photo1={match.team_b_player_1_photo}
+              photo2={match.team_b_player_2_photo}
+            />
           </div>
         </div>
         {showButtonInstruction ? (

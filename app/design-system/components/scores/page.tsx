@@ -19,7 +19,7 @@ export default function ScoresPage() {
         <h2>Spectator Live - Score Card</h2>
         <p>
           Full score row with photos, names, sets, games, points. Name stack uses{' '}
-          <code>getSpectatorTeamSurnameRows</code> (<code>surname_short</code> per player).
+          <code>getSpectatorTeamSurnameRows</code> (<code>abbreviated</code> per player, uppercase — e.g. G. NOBLE).
         </p>
 
         <div className="ds-viewport-demo ds-viewport-demo--tv" style={{ padding: '2rem' }}>

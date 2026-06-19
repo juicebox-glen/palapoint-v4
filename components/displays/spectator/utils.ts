@@ -26,38 +26,20 @@ export const pregameSetsLabel = setsBadgeLabel
 /** @deprecated Use modeBadgeLabel from lib/utils/match-labels */
 export const pregameModeLabel = modeBadgeLabel
 
-export type SetDotStatus = 'won' | 'lost' | 'pending'
+/** Court display parity: 1 dot for single-set matches, otherwise 2. */
+export function spectatorSetDotCount(setsToWin: number): number {
+  return setsToWin === 1 ? 1 : 2
+}
 
-export function getSetIndicators(
+export function countSetsWonByTeam(
   setScores: MatchState['set_scores'] | null | undefined,
-  setsToWin: number
-): { teamA: SetDotStatus[]; teamB: SetDotStatus[] } {
-  const maxSets = Math.max(1, setsToWin * 2 - 1)
-  const scores = setScores ?? []
-  const teamA: SetDotStatus[] = []
-  const teamB: SetDotStatus[] = []
-
-  for (let i = 0; i < maxSets; i++) {
-    const set = scores[i]
-    if (!set) {
-      teamA.push('pending')
-      teamB.push('pending')
-      continue
-    }
-    const a = set.team_a ?? 0
-    const b = set.team_b ?? 0
-    if (a > b) {
-      teamA.push('won')
-      teamB.push('lost')
-    } else if (b > a) {
-      teamA.push('lost')
-      teamB.push('won')
-    } else {
-      teamA.push('pending')
-      teamB.push('pending')
-    }
-  }
-  return { teamA, teamB }
+  team: 'a' | 'b'
+): number {
+  return (setScores ?? []).filter((s) => {
+    const a = s.team_a ?? 0
+    const b = s.team_b ?? 0
+    return team === 'a' ? a > b : b > a
+  }).length
 }
 
 export function formatLivePointDisplay(team: 'a' | 'b', m: MatchState): string {
