@@ -13,9 +13,8 @@ import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import { isMatchPostGame } from '@/lib/utils/match-status'
 import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
+import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 import '@/app/styles/setup-form.css'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 /** Coerce DB / JSON shapes so scoreless + ready checks stay reliable after REMATCH. */
 function normalizePlayingMatch(row: MatchState | null): MatchState | null {
@@ -155,8 +154,6 @@ export default function PlayingDisplay({
   const [sessionState, setSessionState] = useState<SessionState | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isEnding, setIsEnding] = useState(false)
-
-  const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   const matchRef = useRef<MatchState | null>(null)
   matchRef.current = match
@@ -436,7 +433,7 @@ export default function PlayingDisplay({
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: supabaseFunctionHeaders(),
       body: JSON.stringify(body),
     })
     const result = (await response.json()) as { success?: boolean; match?: MatchState }
@@ -482,12 +479,9 @@ export default function PlayingDisplay({
     if (isPreview || !match || !courtId) return
     setIsEnding(true)
     try {
-      const headers: HeadersInit = { 'Content-Type': 'application/json' }
-      if (ANON_KEY) headers.Authorization = `Bearer ${ANON_KEY}`
-
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers,
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({
           action: 'end',
           court_id: courtId,

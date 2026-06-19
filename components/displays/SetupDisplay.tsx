@@ -14,7 +14,7 @@ import { generateUuid } from '@/lib/utils/uuid'
 import type { VenueBranding } from '@/lib/venue'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 
 /** Design-system preview: skips session + match API and submit navigation. */
 export type SetupDisplayPreviewScreen =
@@ -83,7 +83,7 @@ function previewConfirmationMatch(): MatchState {
 async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | null> {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: supabaseFunctionHeaders(),
     body: JSON.stringify({ action: 'status', court_id: courtId }),
   })
   const data = await response.json()
@@ -350,7 +350,7 @@ export default function SetupDisplay({
     try {
       const endRes = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({
           action: 'end',
           court_id: courtId,
@@ -379,7 +379,7 @@ export default function SetupDisplay({
         setActionLoading('create')
         const retryRes = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: supabaseFunctionHeaders(),
           body: JSON.stringify(bodyToRetry),
         })
         const retryData = await retryRes.json()
@@ -514,7 +514,7 @@ export default function SetupDisplay({
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify(body),
       })
       const data = await response.json()

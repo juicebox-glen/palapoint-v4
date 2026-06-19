@@ -17,10 +17,9 @@ import { formatTeamDisplay } from '@/lib/utils/name-format'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import { isMatchEndgame } from '@/lib/utils/match-status'
 import { generateUuid } from '@/lib/utils/uuid'
+import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 type ControlStage = 'setup' | 'preview' | 'live'
 
@@ -265,7 +264,7 @@ export default function ControlPanel({
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify(body),
       })
       const data = await response.json()
@@ -297,7 +296,7 @@ export default function ControlPanel({
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({
           action: 'start',
           match_id: match.id,
@@ -326,7 +325,7 @@ export default function ControlPanel({
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({ court_id: courtId, team, source: 'control_panel' }),
       })
       const data = await response.json()
@@ -346,7 +345,7 @@ export default function ControlPanel({
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({ action: 'undo', court_id: courtId }),
       })
       const data = await response.json()
@@ -367,7 +366,7 @@ export default function ControlPanel({
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({ action: 'end', court_id: courtId, reason: 'abandoned' }),
       })
       const data = await response.json()
@@ -423,7 +422,7 @@ export default function ControlPanel({
 
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify(body),
       })
       const data = await response.json()

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getCourtBySlug, type Court } from '@/lib/supabase'
 import type { GameMode } from '@/lib/types/match'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 
 interface TeamAssignments {
   teamA: (string | null)[]
@@ -178,9 +178,7 @@ export default function TeamsPage() {
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/match`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: supabaseFunctionHeaders(),
         body: JSON.stringify({
           action: 'create',
           court_id: courtId,

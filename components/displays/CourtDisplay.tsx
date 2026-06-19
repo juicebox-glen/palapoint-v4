@@ -14,7 +14,7 @@ import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { VenueLogo } from '@/components/shared/VenueLogo'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 
 /** Design-system / static preview: disables network and forces a specific screen. */
 export type CourtDisplayPreviewUI =
@@ -350,7 +350,7 @@ export default function CourtDisplay({
       try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/score`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: supabaseFunctionHeaders(),
           body: JSON.stringify({ court_id: courtId, team, source }),
         })
         const data = (await res.json()) as {
@@ -390,7 +390,7 @@ export default function CourtDisplay({
         if (courtId) {
           fetch(`${SUPABASE_URL}/functions/v1/score`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: supabaseFunctionHeaders(),
             body: JSON.stringify({
               court_id: courtId,
               team: 'a',
