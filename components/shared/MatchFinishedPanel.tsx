@@ -5,7 +5,7 @@ import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import type { VenueBranding } from '@/lib/venue'
-import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
+import { formatTeamScoreboard, getTeamDisplayNameRows } from '@/lib/utils/name-format'
 import '@/app/styles/control-panel.css'
 
 /** Row shape from DB / API (games per set). */
@@ -266,9 +266,11 @@ export default function MatchFinishedPanel({
                   />
                 </div>
                 <div className="preview-team-names preview-team-names--headline">
-                  <span>
-                    {formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)}
-                  </span>
+                  {getTeamDisplayNameRows(match.team_a_player_1, match.team_a_player_2, 1).map(
+                    (name, index) => (
+                      <span key={`team-a-${index}`}>{name}</span>
+                    )
+                  )}
                 </div>
               </div>
               <div className="preview-vs-column">
@@ -288,9 +290,11 @@ export default function MatchFinishedPanel({
                   />
                 </div>
                 <div className="preview-team-names preview-team-names--headline">
-                  <span>
-                    {formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)}
-                  </span>
+                  {getTeamDisplayNameRows(match.team_b_player_1, match.team_b_player_2, 2).map(
+                    (name, index) => (
+                      <span key={`team-b-${index}`}>{name}</span>
+                    )
+                  )}
                 </div>
               </div>
             </div>

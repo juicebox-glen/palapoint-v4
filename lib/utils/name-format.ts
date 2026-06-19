@@ -71,6 +71,23 @@ export function formatTeamDisplay(
 }
 
 /**
+ * Team names as separate lines for preview / confirmation layouts.
+ * Returns ["Glen", "Rob"], ["Glen"] for one player, or ["Team 1"] when both empty.
+ */
+export function getTeamDisplayNameRows(
+  player1: string | null | undefined,
+  player2: string | null | undefined,
+  teamNumber: 1 | 2,
+  format: 'first' | 'full' = 'first'
+): string[] {
+  const name1 = formatPlayerName(player1, format)
+  const name2 = formatPlayerName(player2, format)
+
+  if (!name1 && !name2) return [`Team ${teamNumber}`]
+  return [name1, name2].filter(Boolean)
+}
+
+/**
  * Format for scoreboard — 3-letter codes
  * Returns "NOB / AND" style for a team, or "TEAM 1" / "TEAM 2" when no names entered
  */

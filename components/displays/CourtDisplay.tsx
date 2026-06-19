@@ -10,7 +10,7 @@ import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
-import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
+import { formatTeamDisplay, formatTeamScoreboard, getTeamDisplayNameRows } from '@/lib/utils/name-format'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
 import { VenueLogo } from '@/components/shared/VenueLogo'
 
@@ -559,17 +559,25 @@ export default function CourtDisplay({
       <div className="court-ready-screen">
         <div className="court-ready-half court-ready-team-a">
           <div className="court-ready-names">
-            <span className="court-ready-name">
-              {formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)}
-            </span>
+            {getTeamDisplayNameRows(match.team_a_player_1, match.team_a_player_2, 1).map(
+              (name, index) => (
+                <span key={`team-a-${index}`} className="court-ready-name">
+                  {name}
+                </span>
+              )
+            )}
           </div>
         </div>
         <div className="court-ready-vs">VS</div>
         <div className="court-ready-half court-ready-team-b">
           <div className="court-ready-names">
-            <span className="court-ready-name">
-              {formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)}
-            </span>
+            {getTeamDisplayNameRows(match.team_b_player_1, match.team_b_player_2, 2).map(
+              (name, index) => (
+                <span key={`team-b-${index}`} className="court-ready-name">
+                  {name}
+                </span>
+              )
+            )}
           </div>
         </div>
         {showButtonInstruction ? (

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import type { MatchState, PlayerPhotosState } from '@/lib/types/match'
 import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
-import { formatTeamDisplay } from '@/lib/utils/name-format'
+import { getTeamDisplayNameRows } from '@/lib/utils/name-format'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import { modeBadgeLabel, setsBadgeLabel } from '@/lib/utils/match-labels'
@@ -93,9 +93,11 @@ export default function MatchConfirmation({
                 />
               </div>
               <div className="preview-team-names preview-team-names--headline">
-                <span>
-                  {formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)}
-                </span>
+                {getTeamDisplayNameRows(match.team_a_player_1, match.team_a_player_2, 1).map(
+                  (name, index) => (
+                    <span key={`team-a-${index}`}>{name}</span>
+                  )
+                )}
               </div>
             </div>
 
@@ -117,9 +119,11 @@ export default function MatchConfirmation({
                 />
               </div>
               <div className="preview-team-names preview-team-names--headline">
-                <span>
-                  {formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)}
-                </span>
+                {getTeamDisplayNameRows(match.team_b_player_1, match.team_b_player_2, 2).map(
+                  (name, index) => (
+                    <span key={`team-b-${index}`}>{name}</span>
+                  )
+                )}
               </div>
             </div>
           </div>

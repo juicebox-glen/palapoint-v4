@@ -883,7 +883,7 @@
 }
 
 .preview-team-names.preview-team-names--headline {
-  gap: 0;
+  gap: 0.125rem;
 }
 
 .preview-team-a .preview-team-names.preview-team-names--headline {

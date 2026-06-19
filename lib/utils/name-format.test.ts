@@ -6,6 +6,7 @@ import {
   formatPlayerName,
   formatTeamDisplay,
   formatTeamScoreboard,
+  getTeamDisplayNameRows,
   getPlayerInitials,
   getTeamSurnameRows,
   getSpectatorTeamSurnameRows,
@@ -60,6 +61,18 @@ test('formatTeamDisplay', () => {
   assertEqual(formatTeamDisplay('Glen Noble', 'Rob Anderson', 1, 'first'), 'Glen & Rob')
   assertEqual(formatTeamDisplay('Glen', '', 1, 'first'), 'Glen')
   assertEqual(formatTeamDisplay('', '', 1, 'first'), 'Team 1')
+})
+
+test('getTeamDisplayNameRows', () => {
+  assertEqual(
+    JSON.stringify(getTeamDisplayNameRows('Glen Noble', 'Rob Anderson', 1, 'first')),
+    JSON.stringify(['Glen', 'Rob'])
+  )
+  assertEqual(
+    JSON.stringify(getTeamDisplayNameRows('Glen', '', 1, 'first')),
+    JSON.stringify(['Glen'])
+  )
+  assertEqual(JSON.stringify(getTeamDisplayNameRows('', '', 1, 'first')), JSON.stringify(['Team 1']))
 })
 
 test('formatTeamScoreboard', () => {
