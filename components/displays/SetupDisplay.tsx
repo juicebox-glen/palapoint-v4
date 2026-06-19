@@ -9,6 +9,7 @@ import MatchConfirmation from '@/components/shared/MatchConfirmation'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
+import { generateUuid } from '@/lib/utils/uuid'
 import type { VenueBranding } from '@/lib/venue'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 
@@ -139,7 +140,7 @@ export default function SetupDisplay({
   const [players, setPlayers] = useState<string[]>(() => initialPlayersFromPreview(preview))
   const [sideSwapEnabled, setSideSwapEnabled] = useState(true)
   const [endGameInTiebreak, setEndGameInTiebreak] = useState(true)
-  const [tempMatchId] = useState(() => crypto.randomUUID())
+  const [tempMatchId] = useState(() => generateUuid())
   const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
 
   const { match: liveCourtMatch } = useLiveMatch<MatchState>(isPreview ? null : courtId, {

@@ -6,11 +6,14 @@ import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { generateAmericanoPairings } from '@/lib/matchplay-americano-pairings'
+import {
+  callMatchplayEvent,
+  callMatchplayPlayer,
+  callMatchplayRound,
+} from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const SESSION_KEY = 'matchplay_setup'
 
 function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Promise<Blob> {
@@ -76,57 +79,6 @@ interface PlayerSlot {
   name: string
   photoBlob: Blob | null
   photoPreview: string | null
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayRound(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-round`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayPlayer(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  const text = await res.text()
-  let parsed: Record<string, unknown>
-  try {
-    parsed = text ? (JSON.parse(text) as Record<string, unknown>) : {}
-  } catch {
-    console.error('[MatchplaySetup] matchplay-player non-JSON body:', text.slice(0, 300))
-    return { success: false, error: 'invalid_server_response' }
-  }
-  if (!res.ok) {
-    return {
-      ...parsed,
-      success: typeof parsed.success === 'boolean' ? parsed.success : false,
-      error: (parsed.error as string | undefined) ?? `HTTP ${res.status}`,
-    }
-  }
-  return parsed
 }
 
 function generateEventName(): string {
@@ -288,7 +240,7 @@ export default function MatchplayPlayersPage() {
         throw new Error(createResult.error || 'Failed to create event')
       }
 
-      const eventId = createResult.event.id as string
+      const eventId = (createResult.event as { id: string }).id
 
       const playerIds: string[] = []
 

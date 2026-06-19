@@ -1,9 +1,11 @@
 'use client'
 
 import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 import { LIVE_MATCH_FULL_SELECT } from '@/lib/live-match-select'
+import { isMatchEndgame } from '@/lib/utils/match-status'
 import { SpectatorIdle } from './SpectatorIdle'
 import { SpectatorPregame } from './SpectatorPregame'
 import { SpectatorLive } from './SpectatorLive'
@@ -24,11 +26,7 @@ export default function SpectatorDisplay({
     pollInterval: 5000,
   })
 
-  const brandingStyles: React.CSSProperties = {
-    '--team-a': branding?.primaryColor || '#5B6CFF',
-    '--team-b': branding?.secondaryColor || '#E84A8A',
-    '--brand-primary': branding?.primaryColor || '#5B6CFF',
-  } as React.CSSProperties
+  const brandingStyles = brandingStylesFor(branding)
 
   if (isLoading) {
     return (
@@ -60,12 +58,7 @@ export default function SpectatorDisplay({
     )
   }
 
-  const showSpectatorEndgame =
-    match.status === 'completed' ||
-    match.status === 'abandoned' ||
-    (match.winner != null && match.status !== 'in_progress')
-
-  if (showSpectatorEndgame) {
+  if (isMatchEndgame(match)) {
     return (
       <SpectatorEndgame
         match={match}

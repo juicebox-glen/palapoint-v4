@@ -8,9 +8,11 @@ import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 import { formatPlayerName, formatTeamDisplay } from '@/lib/utils/name-format'
 import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+import {
+  callMatchplayEvent,
+  callMatchplayPlayer,
+  callMatchplayRound,
+} from '@/lib/api/matchplay'
 
 interface MatchplayEvent {
   id: string
@@ -66,42 +68,6 @@ interface MatchplayPlayer {
   games_lost: number
   game_difference: number
   rank?: number
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayPlayer(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayRound(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-round`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
 }
 
 function MatchplayHubPlayersIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -555,24 +521,30 @@ export default function MatchplayEventPage() {
 
   const loadEvent = useCallback(async () => {
     const result = await callMatchplayEvent({ action: 'get', event_id: eventId })
+    if (result.success === false) {
+      setError(typeof result.error === 'string' ? result.error : 'Event not found')
+      return
+    }
     if (result.event) {
-      console.log('[EventHub] Loaded event status:', (result.event as MatchplayEvent).status)
-      setEvent(result.event)
-    } else setError('Event not found')
+      setEvent(result.event as MatchplayEvent)
+    } else {
+      setError('Event not found')
+    }
   }, [eventId])
 
   const loadPlayers = useCallback(async () => {
     const result = await callMatchplayPlayer({ action: 'list', event_id: eventId })
-    setPlayers(result.players ?? [])
+    setPlayers((result.players as MatchplayPlayer[] | undefined) ?? [])
   }, [eventId])
 
   const loadRounds = useCallback(async () => {
     const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
-    const list = (listResult.rounds ?? []) as MatchplayRound[]
+    const list = (listResult.rounds as MatchplayRound[] | undefined) ?? []
     const withMatches = await Promise.all(
       list.map(async (r) => {
         const getResult = await callMatchplayRound({ action: 'get_round', round_id: r.id })
-        return { ...r, matches: getResult.round?.matches ?? [] } as MatchplayRound
+        const round = getResult.round as { matches?: MatchplayMatch[] } | undefined
+        return { ...r, matches: round?.matches ?? [] } as MatchplayRound
       })
     )
     const sorted = withMatches.sort((a, b) => (a.round_number ?? 0) - (b.round_number ?? 0))
@@ -715,13 +687,20 @@ export default function MatchplayEventPage() {
     setActionLoading('start')
     setError(null)
     const result = await callMatchplayEvent({ action: 'start', event_id: eventId })
+    if (result.success === false) {
+      setError(typeof result.error === 'string' ? result.error : 'Failed to start event')
+      setActionLoading(null)
+      return
+    }
     if (result.event) {
-      setEvent(result.event)
+      setEvent(result.event as MatchplayEvent)
       const firstRound = rounds.find((r) => (r.round_number ?? 0) === 1)
       if (firstRound) {
         await callMatchplayRound({ action: 'start_round', round_id: firstRound.id })
         await loadRounds()
       }
+    } else {
+      setError('Failed to start event')
     }
     setActionLoading(null)
   }
@@ -735,7 +714,7 @@ export default function MatchplayEventPage() {
       if (!result.event) {
         throw new Error(result.error || 'Failed to end event')
       }
-      setEvent(result.event)
+      setEvent(result.event as MatchplayEvent)
       router.push(`/matchplay/${eventId}/results`)
     } catch (err) {
       console.error('End event error:', err)

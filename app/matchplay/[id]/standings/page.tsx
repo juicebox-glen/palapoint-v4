@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
+import { callMatchplayPlayer } from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 interface StandingsPlayer {
   id: string
@@ -15,18 +13,6 @@ interface StandingsPlayer {
   total_points: number
   game_difference: number
   rank: number
-}
-
-async function callMatchplayPlayer(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
 }
 
 export default function MatchplayStandingsPage() {
@@ -47,7 +33,9 @@ export default function MatchplayStandingsPage() {
       try {
         const data = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
         if (cancelled) return
-        if (data.success && Array.isArray(data.standings)) {
+        if (data.success === false) {
+          setError(typeof data.error === 'string' ? data.error : 'Failed to load standings')
+        } else if (Array.isArray(data.standings)) {
           setStandings(data.standings as StandingsPlayer[])
         } else {
           setError(data.error || 'Failed to load standings')

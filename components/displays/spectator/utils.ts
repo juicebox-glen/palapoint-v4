@@ -1,4 +1,5 @@
 import { formatPointDisplay } from '@/lib/utils/score-format'
+import { modeBadgeLabel, setsBadgeLabel } from '@/lib/utils/match-labels'
 import type { MatchState } from '@/lib/types/match'
 
 export function getGameModeText(mode: string): string {
@@ -19,15 +20,11 @@ export function getEndgameSetScores(m: MatchState) {
   return [{ team_a: m.team_a_games ?? 0, team_b: m.team_b_games ?? 0 }]
 }
 
-export function pregameSetsLabel(setsToWin: number | null | undefined): string {
-  return (setsToWin ?? 1) > 1 ? '3 SETS' : '1 SET'
-}
+/** @deprecated Use setsBadgeLabel from lib/utils/match-labels */
+export const pregameSetsLabel = setsBadgeLabel
 
-export function pregameModeLabel(mode: MatchState['game_mode']): string {
-  if (mode === 'golden_point') return 'GOLDEN'
-  if (mode === 'silver_point') return 'SILVER'
-  return 'TRADITIONAL'
-}
+/** @deprecated Use modeBadgeLabel from lib/utils/match-labels */
+export const pregameModeLabel = modeBadgeLabel
 
 export type SetDotStatus = 'won' | 'lost' | 'pending'
 

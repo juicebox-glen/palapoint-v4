@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useCourtRoute } from '@/lib/hooks/useCourtRoute'
 import ControlPanel from '@/components/displays/ControlPanel'
+import { brandingStylesFor } from '@/lib/venue'
 
 export default function ControlPage() {
   const params = useParams()
@@ -33,15 +34,7 @@ export default function ControlPage() {
   }
 
   return (
-    <div
-      style={
-        {
-          '--brand-primary': branding?.primaryColor ?? '#5B6CFF',
-          '--team-a': branding?.primaryColor ?? '#5B6CFF',
-          '--team-b': branding?.secondaryColor ?? '#E84A8A',
-        } as React.CSSProperties
-      }
-    >
+    <div style={brandingStylesFor(branding)}>
       <ControlPanel courtId={courtId} branding={branding} courtName={courtName} />
     </div>
   )

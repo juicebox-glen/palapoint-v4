@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
+import { callMatchplayEvent } from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 interface MatchplayEvent {
   id: string
@@ -18,18 +16,6 @@ interface MatchplayEvent {
   created_at: string
   player_count?: number
   match_count?: number
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
 }
 
 /**
@@ -51,7 +37,7 @@ export default function MatchplayPage() {
     setError(null)
     try {
       const result = await callMatchplayEvent({ action: 'list', venue_id: venueId })
-      const list: MatchplayEvent[] = result.events ?? []
+      const list = (result.events as MatchplayEvent[] | undefined) ?? []
       const activeRow = list.find((e) => e.status === 'setup' || e.status === 'in_progress')
       if (!activeRow) {
         setEvents(list)

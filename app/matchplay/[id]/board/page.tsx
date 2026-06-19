@@ -9,9 +9,11 @@ import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { BoardStandings } from '@/components/matchplay/BoardStandings'
 import { formatTeamDisplay, formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+import {
+  callMatchplayEvent,
+  callMatchplayPlayer,
+  callMatchplayRound,
+} from '@/lib/api/matchplay'
 
 interface MatchplayEvent {
   id: string
@@ -79,38 +81,6 @@ interface MatchplayMatch {
   team_a_score: number | null
   team_b_score: number | null
   updated_at?: string
-}
-
-async function fetchEdgeFunction(path: string, body: Record<string, unknown>) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error('Supabase URL or anon key not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.')
-  }
-  try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify(body),
-    })
-    return res.json()
-  } catch (err) {
-    console.error('Edge function fetch failed:', err)
-    throw err
-  }
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  return fetchEdgeFunction('matchplay-event', body)
-}
-
-async function callMatchplayPlayer(body: Record<string, unknown>) {
-  return fetchEdgeFunction('matchplay-player', body)
-}
-
-async function callMatchplayRound(body: Record<string, unknown>) {
-  return fetchEdgeFunction('matchplay-round', body)
 }
 
 function getMatchFormatText(event: MatchplayEvent): string {
@@ -341,7 +311,7 @@ export default function MatchplayBoardPage() {
     if (!eventId) return
     const result = await callMatchplayEvent({ action: 'get', event_id: eventId })
     if (result.event) {
-      setEvent(result.event)
+      setEvent(result.event as MatchplayEvent)
       setError(null)
     } else {
       setEvent(null)
@@ -352,19 +322,19 @@ export default function MatchplayBoardPage() {
   const loadStandings = useCallback(async () => {
     if (!eventId) return
     const result = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
-    setStandings(result.standings ?? [])
+    setStandings((result.standings as MatchplayPlayer[] | undefined) ?? [])
   }, [eventId])
 
   const loadPlayers = useCallback(async () => {
     if (!eventId) return
     const result = await callMatchplayPlayer({ action: 'list', event_id: eventId })
-    setPlayers(result.players ?? [])
+    setPlayers((result.players as MatchplayPlayer[] | undefined) ?? [])
   }, [eventId])
 
   const loadRounds = useCallback(async () => {
     if (!eventId) return
     const listResult = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
-    const list = listResult.rounds ?? []
+    const list = (listResult.rounds as MatchplayRound[] | undefined) ?? []
     if (list.length === 0) {
       setRounds([])
       setCurrentRound(null)
@@ -374,7 +344,8 @@ export default function MatchplayBoardPage() {
     const withMatches = await Promise.all(
       sorted.map(async (r: MatchplayRound) => {
         const getResult = await callMatchplayRound({ action: 'get_round', round_id: r.id })
-        return { ...r, matches: getResult.round?.matches ?? [] }
+        const round = getResult.round as { matches?: MatchplayMatch[] } | undefined
+        return { ...r, matches: round?.matches ?? [] }
       })
     )
     setRounds(withMatches)

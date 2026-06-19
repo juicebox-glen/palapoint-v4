@@ -1,8 +1,8 @@
-import type { CSSProperties } from 'react'
-
 import type { CourtDisplayPreviewConfig } from '@/components/displays/CourtDisplay'
 import type { MatchState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
+
+export { brandingStylesFor }
 
 const PLAYERS: Pick<
   MatchState,
@@ -51,14 +51,6 @@ function baseMatch(overrides: Partial<MatchState> = {}): MatchState {
     ...PLAYERS,
     ...overrides,
   }
-}
-
-export function brandingStylesFor(branding: VenueBranding): CSSProperties {
-  return {
-    '--brand-primary': branding.primaryColor,
-    '--team-a': branding.primaryColor,
-    '--team-b': branding.secondaryColor,
-  } as CSSProperties
 }
 
 /** Maps design-system ?state= to CourtDisplay preview config */

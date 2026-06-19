@@ -7,18 +7,14 @@ import type { VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
+import { modeBadgeLabel, setsBadgeLabel } from '@/lib/utils/match-labels'
 import '@/app/styles/control-panel.css'
 
-export function matchPreviewSetsBadgeLabel(setsToWin: number | null | undefined): string {
-  const n = setsToWin ?? 1
-  return n > 1 ? '3 SETS' : '1 SET'
-}
+/** @deprecated Use setsBadgeLabel from lib/utils/match-labels */
+export const matchPreviewSetsBadgeLabel = setsBadgeLabel
 
-export function matchPreviewModeBadgeLabel(mode: MatchState['game_mode']): string {
-  if (mode === 'golden_point') return 'GOLDEN'
-  if (mode === 'silver_point') return 'SILVER'
-  return 'TRADITIONAL'
-}
+/** @deprecated Use modeBadgeLabel from lib/utils/match-labels */
+export const matchPreviewModeBadgeLabel = modeBadgeLabel
 
 /** Minimal match fields for the confirmation / live playing preview layout. */
 export type MatchConfirmationMatch = Pick<MatchState, 'game_mode' | 'sets_to_win'> &

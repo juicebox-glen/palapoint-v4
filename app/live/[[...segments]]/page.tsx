@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useCourtRoute } from '@/lib/hooks/useCourtRoute'
 import SpectatorDisplay from '@/components/displays/spectator'
+import { brandingStylesFor } from '@/lib/venue'
 
 export default function LivePage() {
   const params = useParams()
@@ -26,21 +27,9 @@ export default function LivePage() {
     )
   }
 
-  if (branding) {
-    return (
-      <div
-        style={
-          {
-            '--brand-primary': branding.primaryColor,
-            '--team-a': branding.primaryColor,
-            '--team-b': branding.secondaryColor,
-          } as React.CSSProperties
-        }
-      >
-        <SpectatorDisplay courtId={courtId} branding={branding} />
-      </div>
-    )
-  }
-
-  return <SpectatorDisplay courtId={courtId} branding={null} />
+  return (
+    <div style={brandingStylesFor(branding)}>
+      <SpectatorDisplay courtId={courtId} branding={branding} />
+    </div>
+  )
 }

@@ -182,8 +182,8 @@
 }
 
 .setup-error {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: var(--error-bg);
+  color: var(--error);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-xl);
   margin-bottom: 1rem;
@@ -258,7 +258,7 @@
   padding: 6px 0.5rem 16px;
   border-radius: var(--radius-lg);
   border: none;
-  background: #2A3140;
+  background: var(--bg-tertiary);
   color: var(--secondary-foreground);
   min-height: 92px;
 }
@@ -268,7 +268,7 @@
 }
 
 .setup-mode-card.active {
-  background: rgba(57, 95, 249, 1);
+  background: var(--brand-primary);
   color: var(--primary-foreground);
   box-shadow: 0 0 40px var(--primary-glow);
 }
@@ -331,7 +331,7 @@
 }
 
 .setup-sets-pill.active {
-  background: rgba(57, 95, 249, 1);
+  background: var(--brand-primary);
   color: rgba(230, 234, 242, 1);
   box-shadow: 0 0 40px var(--primary-glow);
 }
@@ -372,7 +372,7 @@
 }
 
 .setup-switch.on {
-  background: rgba(57, 95, 249, 1);
+  background: var(--brand-primary);
 }
 
 .setup-switch-knob {
@@ -406,11 +406,11 @@
 }
 
 .setup-team-dot-a {
-  background: rgba(57, 95, 249, 1);
+  background: var(--brand-primary);
 }
 
 .setup-team-dot-b {
-  background: #ec4899;
+  background: var(--team-b);
 }
 
 /* Input fields */
@@ -591,8 +591,8 @@
 }
 
 .setup-pin-error {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: var(--error-bg);
+  color: var(--error);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-xl);
   margin-bottom: 1rem;

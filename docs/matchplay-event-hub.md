@@ -4,7 +4,7 @@ This document describes the **staff event hub** implemented as a single client p
 
 **File:** [`app/matchplay/[id]/page.tsx`](../app/matchplay/[id]/page.tsx)
 
-Related UI styles live in [`app/styles/matchplay.css`](../app/styles/matchplay.css). Data writes go through Supabase Edge Functions (`matchplay-event`, `matchplay-player`, `matchplay-round`), not direct table mutations from this page.
+Related UI styles live in [`app/styles/matchplay.css`](../app/styles/matchplay.css). Data writes go through Supabase Edge Functions via [`lib/api/matchplay.ts`](../lib/api/matchplay.ts) (`matchplay-event`, `matchplay-player`, `matchplay-round`), not direct table mutations from this page.
 
 **Related routes**
 
@@ -27,7 +27,7 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 | **Match list** (`matchplay-event-matches`) | Cards for each match in **`viewingRound`** (derived from `selectedRoundId`) |
 | **Resting block** (`matchplay-event-resting`) | Players not assigned to any match this round + optional sit-out counts |
 | **Footer** (`matchplay-event-footer`) | Context actions (see §5) |
-| **Modals** (conditional overlays) | Edit match lineups, **End Event / Finalize** confirmation (`matchplay-hub-end-modal`) |
+| **Modals** (conditional overlays) | **Score entry** bottom sheet (`MatchplayHubScoreModal`), Edit match lineups, **End Event / Finalize** confirmation (`matchplay-hub-end-modal`) |
 
 **Small shared UI**
 
@@ -52,8 +52,8 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 | `loading`, `error` | Initial load and global errors |
 | `actionLoading` | Single string discriminant for long actions (`'start' \| 'end' \| 'edit'`, …) |
 | **`selectedRoundId`** | Which round tab is active; **`viewingRound`** = `rounds.find(r => r.id === selectedRoundId)` |
-| **`expandedMatchId`** | At most one **pending** match expanded for **inline score entry** |
-| **`draftScores`** | `Record<matchId, { a, b }>` — stepper edits before confirm (American: Team B score derived from `maxScore - scoreA`) |
+| **`scoreModalMatch`** | Pending or completed match open in the **score bottom sheet** (null when closed) |
+| **`draftScores`** | `Record<matchId, { a, b }>` — number-pad edits before confirm (Americano: Team B score derived from `maxScore - scoreA`) |
 | **`submittingMatchId`** | Disables confirm while `enter_result` runs |
 | **`showEditMatchModal`**, **`showMenu`**, **`showEndConfirm`** | Menu dropdown + end-event confirmation (`menuRef`; outside dismiss on pointerdown). |
 | **`editMatchAssignments`** | Form state for Edit Match modal |
@@ -76,20 +76,22 @@ Everything **for rounds / scoring / resting / footer** is rendered by **`Matchpl
 
 ---
 
-## 3. Score entry flow (**inline**, not modal / not separate page)
+## 3. Score entry flow (bottom sheet + number pad)
 
-There is **no** dedicated score route and **no** score modal.
+There is **no** dedicated score route. Scores are entered in a **bottom sheet modal** (`MatchplayHubScoreModal`), not inline on the card.
 
-1. **Pending** match → compact card (`matchplay-event-match-card-pending`). **Tap / Enter** sets **`expandedMatchId`** to that match’s id.
-2. **Expanded** card (`matchplay-event-match-card-expanded`) shows:
-   - **Steppers** for Team A (always) and Team B (**fixed-sum Americano**: only Team A is stepped; Team B display = `maxScore - scoreA`; **non-American**: both teams have steppers).
+1. **Pending** match → compact card (`matchplay-event-match-card-pending`). **Tap / Enter** sets **`scoreModalMatch`** to that match and seeds **`draftScores`** from existing scores (or zeros).
+2. **Score modal** (`.matchplay-score-modal-overlay` / `.matchplay-hub-quick-score-grid`) shows:
+   - **Number pad** — grid of `0…maxScore` tap cells (`.matchplay-hub-quick-score-cell`).
+   - **Americano**: tapping a score sets Team A; Team B is `maxScore - scoreA`.
+   - **Non-American**: two-phase entry — first tap sets Team A, second sets Team B; further taps alternate which team is corrected.
    - Optional **result preview** line when scores &gt; 0.
-   - **CANCEL** — collapses, clears drafts for that match id.
-   - **CONFIRM** — calls **`handleEnterResult`** → Edge Function `matchplay-round` action **`enter_result`** with `team_a_score` / `team_b_score`. On a completed match being corrected, the primary action label is **UPDATE**.
-3. **Completed** match → read-only summary row with scores and ✓.
+   - **Cancel** — closes modal, clears draft for that match id.
+   - **Confirm** — calls **`handleEnterResult`** → Edge Function `matchplay-round` action **`enter_result`** with `team_a_score` / `team_b_score`. On a completed match being corrected, the primary action label is **UPDATE**.
+3. **Completed** match → read-only summary row with scores and ✓; tap opens the same modal to update scores.
 4. **Setup** mode → match rows are preview-only with optional **EDIT** opening the **Edit Match** modal (lineup changes), not score entry.
 
-Only **one** match is expanded at a time (`expandedMatchId` single value).
+The modal supports **Escape to close**, `role="dialog"`, and body scroll lock while open.
 
 ---
 
@@ -99,7 +101,7 @@ Only **one** match is expanded at a time (`expandedMatchId` single value).
 
 Sequential:
 
-1. **`loadEvent`** — `callMatchplayEvent({ action: 'get', event_id })`
+1. **`loadEvent`** — `callMatchplayEvent({ action: 'get', event_id })` — checks `result.success === false` before using `result.event`
 2. **`loadPlayers`** — `callMatchplayPlayer({ action: 'list', event_id })`
 3. **`loadRounds`** — `callMatchplayRound({ action: 'list_rounds', event_id })`, then for **each** round `callMatchplayRound({ action: 'get_round', round_id })` to attach **`matches`**, then sort by `round_number`.
 
@@ -107,7 +109,7 @@ Standings are **not** loaded on this hub screen (they load on **`/standings`** a
 
 ### Pairing generation (client → API)
 
-When **`event`** and **`players`** exist, **`rounds.length === 0`**, status is `setup` or `in_progress`, and **`pairingGeneratedRef`** allows it:
+When **`event`** and **`players`** exist, **`rounds.length === 0`**, status is `setup`, and **`pairingGeneratedRef`** allows it:
 
 1. **`generateAmericanoPairings(playerIds, courtLabels)`** from [`lib/matchplay-americano-pairings.ts`](../lib/matchplay-americano-pairings.ts) runs in the browser (circle method).
 2. Round count is capped by **`getMatchplayTotalRoundsFromStorage()`**, which reads **`localStorage`** key **`palapoint_matchplay_settings`** (`rounds` / `roundsCustom`) — same storage written during `/matchplay/new` setup.
@@ -151,7 +153,7 @@ On **this hub page**, there is no roster mutation beyond navigating to **`/playe
 
 | Button | When | Behavior |
 |--------|------|----------|
-| **START EVENT** | `setup` | `matchplay-event` **`start`**, then **`start_round`** on round 1, `loadRounds()`. Disabled if &lt; 4 players or action in flight. |
+| **START EVENT** | `setup` | `matchplay-event` **`start`**, then **`start_round`** on round 1, `loadRounds()`. Disabled if &lt; 4 players or action in flight. Checks `result.success === false` on start. |
 | **NEXT ROUND** | `in_progress`, not “final end” branch | Selects next round; if next is `pending`, **`start_round`**. Disabled until **all** matches in **current** viewing round are completed **or** already on final round (see JSX). |
 | **FINALIZE RESULTS** / **END EVENT** | `in_progress` **and** on **final** round **and** all matches in that round completed | Label depends on **`allRoundsComplete`**; opens the same confirmation modal as ⋮ **End Event**, then **`complete`** → **`/results`**. |
 | *(none)* | `completed` | No footer CTAs rendered |
@@ -160,13 +162,15 @@ On **this hub page**, there is no roster mutation beyond navigating to **`/playe
 
 | Action | When |
 |--------|------|
-| Tap pending card | Expand inline scorer |
+| Tap pending card | Open score bottom sheet |
+| Tap completed card | Open score bottom sheet to update |
 | **EDIT** (setup) | Open **Edit Match** modal; save calls **`update_match`** |
 
 ### Modals / overlays
 
 | Overlay | Actions |
 |---------|---------|
+| **Score entry** | Number pad + Cancel / Confirm → **`enter_result`** |
 | **End Event confirm** | Copy and primary button style depend on **`allRoundsComplete`** (finalize vs early end); **Cancel** / confirm; see **`handleEndEvent`** above. |
 | **Edit Match** | Four dropdowns (Team A/B × 2 players), save → **`update_match`** |
 
@@ -174,7 +178,7 @@ On **this hub page**, there is no roster mutation beyond navigating to **`/playe
 
 ## 6. API surface (Edge Functions)
 
-All use `POST` to Supabase Functions with anon JWT:
+All use `POST` to Supabase Functions with anon JWT via [`lib/api/matchplay.ts`](../lib/api/matchplay.ts):
 
 | Function | Actions used on this page |
 |----------|---------------------------|
@@ -182,13 +186,15 @@ All use `POST` to Supabase Functions with anon JWT:
 | **`matchplay-player`** | `list` on hub; **`update`** on **`/[id]/players`** (names/photos); **`standings`** on **`/standings`** / **`/results`**; **`add` / `remove`** only on **`/matchplay/new/players`** |
 | **`matchplay-round`** | `list_rounds`, `get_round`, `create_round`, `start_round`, `enter_result`, `delete_round`, `update_match` |
 
+Helpers normalize HTTP errors and non-JSON responses to `{ success: false, error }`.
+
 ---
 
 ## 7. Mental model summary
 
-- **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and overlays (**edit match**, **end-event confirm**). Post-complete UX is **`/results`**.
+- **One big client component** drives header (⋮ menu), tabs, match list, resting, footer, and overlays (**score sheet**, **edit match**, **end-event confirm**). Post-complete UX is **`/results`**.
 - **Players** and **Standings** are **full-screen routes** (`/players`, `/standings`) linked from the menu.
-- **Scores** are entered **inline** by expanding a pending card; submission is **`enter_result`**.
+- **Scores** are entered in a **bottom sheet modal** with a **number pad**; submission is **`enter_result`**.
 - **Rounds/matches** come from the **`matchplay-round`** API; **pairing math** for new rounds is **`generateAmericanoPairings`** in **`lib/matchplay-americano-pairings.ts`**, then persisted via **`create_round`** when the hub first creates rounds from setup (see pairing effect on the hub page).
 
 If this doc drifts from code, treat [`page.tsx`](../app/matchplay/[id]/page.tsx) as source of truth.

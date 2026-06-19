@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { supabase } from './supabase'
 
 export interface VenueBranding {
@@ -12,6 +13,15 @@ export interface VenueBranding {
   primaryColor: string
   secondaryColor: string
   logoUrl: string | null
+}
+
+/** CSS custom properties for venue branding on route wrapper elements. */
+export function brandingStylesFor(branding: VenueBranding | null | undefined): CSSProperties {
+  return {
+    '--brand-primary': branding?.primaryColor ?? '#5B6CFF',
+    '--team-a': branding?.primaryColor ?? '#5B6CFF',
+    '--team-b': branding?.secondaryColor ?? '#E84A8A',
+  } as CSSProperties
 }
 
 export async function getVenueBranding(

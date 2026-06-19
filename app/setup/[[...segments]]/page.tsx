@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useCourtRoute } from '@/lib/hooks/useCourtRoute'
 import SetupDisplay from '@/components/displays/SetupDisplay'
+import { brandingStylesFor } from '@/lib/venue'
 
 export default function SetupPage() {
   const params = useParams()
@@ -33,33 +34,14 @@ export default function SetupPage() {
     )
   }
 
-  if (branding) {
-    return (
-      <div
-        style={
-          {
-            '--brand-primary': branding.primaryColor,
-            '--team-a': branding.primaryColor,
-            '--team-b': branding.secondaryColor,
-          } as React.CSSProperties
-        }
-      >
-        <SetupDisplay
-          courtId={courtId}
-          courtSlug={courtSlug}
-          courtName={courtName}
-          branding={branding}
-        />
-      </div>
-    )
-  }
-
   return (
-    <SetupDisplay
-      courtId={courtId}
-      courtSlug={courtSlug}
-      courtName={courtName}
-      branding={null}
-    />
+    <div style={brandingStylesFor(branding)}>
+      <SetupDisplay
+        courtId={courtId}
+        courtSlug={courtSlug}
+        courtName={courtName}
+        branding={branding}
+      />
+    </div>
   )
 }

@@ -14,7 +14,8 @@ import {
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
-import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
+import { isMatchEndgame } from '@/lib/utils/match-status'
+import { generateUuid } from '@/lib/utils/uuid'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
 
@@ -94,7 +95,7 @@ export default function ControlPanel({
     () => (preview?.match?.tiebreak_at ?? 6) === 6
   )
   const [players, setPlayers] = useState<string[]>(() => initialPlayersFromPreview(preview))
-  const [tempMatchId] = useState(() => crypto.randomUUID())
+  const [tempMatchId] = useState(() => generateUuid())
   const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(() =>
     preview?.match
       ? {
@@ -497,12 +498,7 @@ export default function ControlPanel({
     return renderSetupForm()
   }
 
-  const showEndgame =
-    match.status === 'completed' ||
-    match.status === 'abandoned' ||
-    (match.winner != null && match.status !== 'setup' && match.status !== 'in_progress')
-
-  if (showEndgame) {
+  if (isMatchEndgame(match)) {
     return (
       <MatchFinishedPanel
         match={match}

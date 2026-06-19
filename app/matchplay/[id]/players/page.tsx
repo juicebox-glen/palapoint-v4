@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 interface PlayerSnapshot {
   id: string
@@ -70,30 +68,6 @@ function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Pr
     }
     img.src = objectUrl
   })
-}
-
-async function callMatchplayEvent(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-event`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
-}
-
-async function callMatchplayPlayer(body: Record<string, unknown>) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/matchplay-player`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  })
-  return res.json()
 }
 
 export default function MatchplayEventPlayersPage() {

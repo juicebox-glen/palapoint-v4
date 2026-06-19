@@ -10,6 +10,7 @@ import MatchConfirmation, {
 } from '@/components/shared/MatchConfirmation'
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
+import { isMatchPostGame } from '@/lib/utils/match-status'
 import MatchFinishedPanel from '@/components/shared/MatchFinishedPanel'
 import '@/app/styles/setup-form.css'
 
@@ -291,23 +292,10 @@ export default function PlayingDisplay({
   }, [courtId, courtSlug, isPreview, preview])
 
   useEffect(() => {
-    if (isPreview) return
-    console.log('[PlayingDisplay] match state:', {
-      id: match?.id,
-      status: match?.status,
-      started_at: match?.started_at ?? null,
-    })
-  }, [isPreview, match])
-
-  useEffect(() => {
     if (isPreview || !courtId) return
 
     async function refreshMatchFromDb() {
       const row = await fetchLatestLiveMatchForCourt(courtId)
-      console.log('[PlayingDisplay] refetched live_matches after subscribe:', {
-        id: row?.id,
-        started_at: row?.started_at,
-      })
       setMatch(row)
     }
 
@@ -596,11 +584,7 @@ export default function PlayingDisplay({
     )
   }
 
-  const showPostGame =
-    match &&
-    (match.status === 'completed' || match.status === 'abandoned' || !!match.winner)
-
-  if (showPostGame && match) {
+  if (match && isMatchPostGame(match)) {
     return (
       <MatchFinishedPanel
         match={match}

@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useCourtRoute } from '@/lib/hooks/useCourtRoute'
 import CourtDisplay from '@/components/displays/CourtDisplay'
+import { brandingStylesFor } from '@/lib/venue'
 
 export default function CourtPage() {
   const params = useParams()
@@ -27,27 +28,9 @@ export default function CourtPage() {
     )
   }
 
-  if (branding) {
-    return (
-      <div
-        style={
-          {
-            '--brand-primary': branding.primaryColor,
-            '--team-a': branding.primaryColor,
-            '--team-b': branding.secondaryColor,
-          } as React.CSSProperties
-        }
-      >
-        <CourtDisplay
-          courtId={courtId}
-          setupSlug={courtSlug}
-          branding={branding}
-        />
-      </div>
-    )
-  }
-
   return (
-    <CourtDisplay courtId={courtId} setupSlug={courtSlug} branding={null} />
+    <div style={brandingStylesFor(branding)}>
+      <CourtDisplay courtId={courtId} setupSlug={courtSlug} branding={branding} />
+    </div>
   )
 }
