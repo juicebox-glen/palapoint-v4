@@ -32,7 +32,7 @@
 
 .page-loading-message {
   margin: 0;
-  font-size: var(--ui-font-sm, 0.875rem);
+  font-size: var(--ui-font-base, 1rem);
   font-weight: 500;
   line-height: var(--line-height-snug, 1.35);
   text-align: center;

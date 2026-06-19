@@ -590,11 +590,7 @@ export default function SetupDisplay({
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
           <p className="page-loading-message">
             {sessionLoading ? (
-              <>
-                check court
-                <br />
-                availability
-              </>
+              'Checking Court Availability'
             ) : (
               'Loading...'
             )}
