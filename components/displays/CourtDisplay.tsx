@@ -12,6 +12,7 @@ import MatchWinOverlay from '@/components/MatchWinOverlay'
 import { getPointSituation } from '@/lib/utils/point-situation'
 import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
+import { VenueLogo } from '@/components/shared/VenueLogo'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -69,27 +70,7 @@ function calculateSidesSwapped(match: MatchState): boolean {
 }
 
 function IdleLogo({ branding }: { branding?: VenueBranding | null }) {
-  if (!branding) {
-    return (
-      <img
-        src="/images/squareone-logo.png"
-        alt="Square One"
-        className="court-idle-logo-img"
-      />
-    )
-  }
-  if (branding.logoUrl) {
-    return (
-      <img
-        src={branding.logoUrl}
-        alt={branding.companyName}
-        className="court-idle-logo-img"
-      />
-    )
-  }
-  return (
-    <span className="court-idle-logo-text">{branding.companyName}</span>
-  )
+  return <VenueLogo branding={branding ?? null} className="court-idle-logo-img" />
 }
 
 export default function CourtDisplay({

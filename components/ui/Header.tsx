@@ -1,6 +1,7 @@
 'use client'
 
 import type { VenueBranding } from '@/lib/venue'
+import { VenueLogo } from '@/components/shared/VenueLogo'
 
 interface HeaderProps {
   showLogo?: boolean
@@ -17,15 +18,7 @@ export default function Header({
   courtName,
   branding,
 }: HeaderProps) {
-  const logoContent = branding ? (
-    branding.logoUrl ? (
-      <img src={branding.logoUrl} alt={branding.companyName} className="setup-logo-img" />
-    ) : (
-      <span className="setup-logo-text">{branding.companyName}</span>
-    )
-  ) : (
-    <img src="/images/squareone-logo.png" alt="Square One" className="setup-logo-img" />
-  )
+  const logoContent = <VenueLogo branding={branding} />
 
   return (
     <>

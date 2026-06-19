@@ -8,6 +8,7 @@ import { formatTeamDisplay } from '@/lib/utils/name-format'
 import ControlScoreboard from '@/components/shared/ControlScoreboard'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import { modeBadgeLabel, setsBadgeLabel } from '@/lib/utils/match-labels'
+import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
 
 /** @deprecated Use setsBadgeLabel from lib/utils/match-labels */

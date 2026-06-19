@@ -1,4 +1,4 @@
-import type { VenueBranding } from '@/lib/venue'
+import { DEFAULT_VENUE_LOGO_SRC, type VenueBranding } from '@/lib/venue'
 
 /**
  * Default venue branding for design-system previews so headers match production
@@ -15,5 +15,5 @@ export const designSystemSquareOneBranding: VenueBranding = {
   isShowCourt: false,
   primaryColor: '#5B6CFF',
   secondaryColor: '#E84A8A',
-  logoUrl: '/images/squareone-logo.png',
+  logoUrl: DEFAULT_VENUE_LOGO_SRC,
 }

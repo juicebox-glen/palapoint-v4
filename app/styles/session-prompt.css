@@ -1,58 +1,41 @@
-/* Session Protection Prompt — phone-first, thumb-zone actions (matches setup form pattern) */
+/* Session protection prompt — compact centered alert (phone + tablet) */
 .session-prompt-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: var(--overlay-darker);
+  z-index: var(--z-modal);
+  background: var(--overlay-dark);
   display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  align-items: center;
+  justify-content: center;
+  padding: var(--ui-space-lg);
+  padding-bottom: max(var(--ui-space-lg), env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
 .session-prompt-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
   width: 100%;
-  max-width: min(28rem, 100%);
-  margin: 0 auto;
+  max-width: 360px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 2rem 1.25rem 1.25rem;
+  padding: var(--ui-space-xl);
   box-sizing: border-box;
-}
-
-@media (min-width: 600px) {
-  .session-prompt-card {
-    max-width: min(40rem, 100%);
-    padding: 2rem 1.5rem 1.5rem;
-  }
-}
-
-@media (min-width: 900px) {
-  .session-prompt-card {
-    max-width: min(48rem, 100%);
-  }
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-lg);
 }
 
 .session-prompt-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-md);
 }
 
 .session-prompt-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 1.5rem;
+  margin: 0;
   text-align: center;
 }
 
@@ -60,7 +43,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
 
 .session-prompt-stat {
@@ -85,16 +67,13 @@
   color: var(--text-secondary);
   font-size: 0.875rem;
   text-align: center;
-  margin: 0 0 1.5rem;
+  margin: 0;
 }
 
 .session-prompt-actions {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-top: auto;
-  flex-shrink: 0;
-  padding-top: 1rem;
   width: 100%;
 }
 

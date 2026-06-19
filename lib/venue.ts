@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react'
 import { supabase } from './supabase'
 
+/** Bundled fallback when venue branding has no logo or remote URL fails. */
+export const DEFAULT_VENUE_LOGO_SRC = '/images/squareone-logo.png'
+
 export interface VenueBranding {
   companyName: string
   companySlug: string

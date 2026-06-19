@@ -1,29 +1,8 @@
 import type { VenueBranding } from '@/lib/venue'
+import { VenueLogo } from '@/components/shared/VenueLogo'
 
 function LogoContent({ branding }: { branding: VenueBranding | null }) {
-  if (!branding) {
-    return (
-      <img
-        src="/images/squareone-logo.png"
-        alt="Square One"
-        className="spectator-logo-img"
-      />
-    )
-  }
-  if (branding.logoUrl) {
-    return (
-      <img
-        src={branding.logoUrl}
-        alt={branding.companyName}
-        className="spectator-logo-img"
-      />
-    )
-  }
-  return (
-    <span className="spectator-logo-text" style={{ color: 'inherit' }}>
-      {branding.companyName}
-    </span>
-  )
+  return <VenueLogo branding={branding} className="spectator-logo-img" />
 }
 
 export type SpectatorHeaderVariant = 'idle' | 'pregame' | 'live' | 'endgame'
