@@ -288,7 +288,6 @@ export default function CourtDisplay({
       setAwaitingButtonPress(false)
       return
     }
-    const isNewMatch = match.id !== announcementShownRef.current
     const hasNoScore =
       match.team_a_points === 0 &&
       match.team_b_points === 0 &&
@@ -296,6 +295,13 @@ export default function CourtDisplay({
       match.team_b_games === 0 &&
       (match.set_scores || []).length === 0
 
+    if (match.status === 'setup') {
+      setShowServerAnnouncement(false)
+      setAwaitingButtonPress(true)
+      return
+    }
+
+    const isNewMatch = match.id !== announcementShownRef.current
     if (isNewMatch && hasNoScore) {
       announcementShownRef.current = match.id
       serverOverlayDismissedRef.current = false
@@ -404,6 +410,8 @@ export default function CourtDisplay({
 
       if (awaiting) {
         e.preventDefault()
+        // Staff setup (no session): wait for Start Match on control panel, not court buttons.
+        if (!match?.session_id) return
         setAwaitingButtonPress(false)
         serverOverlayDismissedRef.current = false
         setShowServerAnnouncement(true)
@@ -546,6 +554,7 @@ export default function CourtDisplay({
   }
 
   if (awaitingButtonPress && match) {
+    const showButtonInstruction = Boolean(match.session_id)
     return (
       <div className="court-ready-screen">
         <div className="court-ready-half court-ready-team-a">
@@ -563,7 +572,9 @@ export default function CourtDisplay({
             </span>
           </div>
         </div>
-        <div className="court-ready-instruction">PRESS BUTTON TO START</div>
+        {showButtonInstruction ? (
+          <div className="court-ready-instruction">PRESS BUTTON TO START</div>
+        ) : null}
       </div>
     )
   }
