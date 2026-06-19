@@ -588,8 +588,16 @@ export default function SetupDisplay({
       <div className="page page-padded" style={{ paddingTop: '1rem' }}>
         <Header branding={branding} />
         <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>
-            {sessionLoading ? 'Checking court availability...' : 'Loading...'}
+          <p className="page-loading-message">
+            {sessionLoading ? (
+              <>
+                check court
+                <br />
+                availability
+              </>
+            ) : (
+              'Loading...'
+            )}
           </p>
         </div>
       </div>
