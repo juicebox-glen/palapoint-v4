@@ -1,0 +1,38 @@
+---
+description: Keep app/design-system previews in sync when changing UI or visual behaviour
+alwaysApply: true
+---
+
+# Design system sync
+
+When you change **visual UI** (layout, copy, colours, typography, spacing, interaction states, or new screens), update the design system in the **same change** unless the user explicitly says to skip it.
+
+## Production → preview mapping
+
+| Production surface | Shared component(s) | Design-system preview |
+|--------------------|---------------------|------------------------|
+| `/control` | `ControlPanel`, `MatchConfirmation` | `/design-system/preview/control?state=` |
+| `/setup`, `/playing` | `SetupDisplay`, `PlayingDisplay`, `MatchConfirmation` | `/design-system/preview/setup`, `/playing` |
+| Court TV | `CourtDisplay` | `/design-system/preview/court?state=` + `court-preview-states.ts` |
+| Spectator TV | `SpectatorDisplay` | `/design-system/preview/spectator?state=` |
+| `/session-review` | `SessionReviewDisplay` | `/design-system/preview/session-review` |
+| `/game/[id]` | `GameDetailDisplay` | `/design-system/preview/game` |
+| Matchplay | matchplay pages | `/design-system/preview/matchplay?state=` |
+
+Hub tabs live in `app/design-system/screens/**` (e.g. `PlayerMobileHub.tsx`, `court/page.tsx`). Add or relabel tabs when a new state or route is user-visible.
+
+## How to stay in sync
+
+1. **Prefer shared display components** — previews should render the same component as production with a `preview` prop or mock data, not duplicate markup.
+2. **New screen state** — extend the relevant `*-preview-config.ts` / `*-preview-states.ts` and add a hub tab in `ScreenPreview` states.
+3. **CSS / tokens** — if you change shared classes (`.preview-*`, `.session-review-*`, tokens in `app/styles/tokens/`), check component showcase pages under `/design-system/components/*` and foundations pages when tokens change.
+4. **Temporary flags** (e.g. `SESSION_REVIEW_GAME_NAV_ENABLED`) — previews using the same component inherit behaviour; document in preview page comment if non-obvious.
+5. **Mock data** — keep `app/design-system/lib/*-preview-data.ts` aligned with preview states (names, scores, branding via `squareone-mock-branding.ts`).
+
+## Before finishing
+
+- [ ] Identified which preview route(s) mirror the changed UI
+- [ ] Updated preview config, mock data, or hub tabs if needed
+- [ ] Did not leave production-only markup that previews no longer exercise
+
+Reference: `docs/design-system-audit.md` for route inventory.
