@@ -1125,14 +1125,23 @@
 }
 
 .session-review-game-row--centered-score {
-  position: relative;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.session-review-game-row--centered-score .session-review-game-names--a {
+  grid-column: 1;
+  justify-self: stretch;
 }
 
 .session-review-game-row--centered-score .session-review-game-score {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  grid-column: 2;
+  justify-self: center;
+}
+
+.session-review-game-row--centered-score .session-review-game-names--end {
+  grid-column: 3;
+  justify-self: stretch;
 }
 
 .session-review-game-row--clickable {

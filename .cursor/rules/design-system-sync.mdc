@@ -12,7 +12,7 @@ When you change **visual UI** (layout, copy, colours, typography, spacing, inter
 | Production surface | Shared component(s) | Design-system preview |
 |--------------------|---------------------|------------------------|
 | `/control` | `ControlPanel`, `MatchConfirmation` | `/design-system/preview/control?state=` |
-| `/setup`, `/playing` | `SetupDisplay`, `PlayingDisplay`, `MatchConfirmation` | `/design-system/preview/setup`, `/playing` |
+| `/setup`, `/playing` | `SetupDisplay`, `PlayingDisplay`, `MatchConfirmation` | `/design-system/preview/setup?state=`, `/playing?state=` |
 | Court TV | `CourtDisplay` | `/design-system/preview/court?state=` + `court-preview-states.ts` |
 | Spectator TV | `SpectatorDisplay` | `/design-system/preview/spectator?state=` |
 | `/session-review` | `SessionReviewDisplay` | `/design-system/preview/session-review` |

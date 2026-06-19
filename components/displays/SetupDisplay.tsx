@@ -23,12 +23,15 @@ export type SetupDisplayPreviewScreen =
   | 'confirmation'
   | 'match_join_prompt'
   | 'session_prompt'
+  | 'checking_court'
+  | 'loading'
 
 export interface SetupDisplayPreviewConfig {
   /**
    * `form` / `review`: `MatchSetupForm` states.
    * `confirmation`: shared pre-game confirmation (player flow).
    * `match_join_prompt` / `session_prompt`: same modals as production (`SessionProtectionPrompt`).
+   * `checking_court` / `loading`: initial load screens before setup form.
    */
   screen: SetupDisplayPreviewScreen
 }
@@ -78,6 +81,23 @@ function previewConfirmationMatch(): MatchState {
     side_swap_enabled: true,
     session_id: 'preview-session',
   }
+}
+
+function SetupLoadingScreen({
+  message,
+  branding,
+}: {
+  message: string
+  branding?: VenueBranding | null
+}) {
+  return (
+    <div className="page page-padded" style={{ paddingTop: '1rem' }}>
+      <Header branding={branding} />
+      <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
+        <p className="page-loading-message">{message}</p>
+      </div>
+    </div>
+  )
 }
 
 async function fetchActiveMatchForCourt(courtId: string): Promise<MatchState | null> {
@@ -557,6 +577,14 @@ export default function SetupDisplay({
   }
 
   if (isPreview && preview) {
+    if (preview.screen === 'checking_court') {
+      return (
+        <SetupLoadingScreen message="Checking Court Availability" branding={branding ?? null} />
+      )
+    }
+    if (preview.screen === 'loading') {
+      return <SetupLoadingScreen message="Loading..." branding={branding ?? null} />
+    }
     if (preview.screen === 'match_join_prompt') {
       return (
         <SessionProtectionPrompt
@@ -585,18 +613,10 @@ export default function SetupDisplay({
 
   if (loading || sessionLoading) {
     return (
-      <div className="page page-padded" style={{ paddingTop: '1rem' }}>
-        <Header branding={branding} />
-        <div className="page-loading" style={{ flex: 1, marginTop: '0px', paddingTop: '20px' }}>
-          <p className="page-loading-message">
-            {sessionLoading ? (
-              'Checking Court Availability'
-            ) : (
-              'Loading...'
-            )}
-          </p>
-        </div>
-      </div>
+      <SetupLoadingScreen
+        message={sessionLoading ? 'Checking Court Availability' : 'Loading...'}
+        branding={branding ?? null}
+      />
     )
   }
 
