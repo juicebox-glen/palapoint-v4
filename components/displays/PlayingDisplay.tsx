@@ -8,6 +8,7 @@ import Header from '@/components/ui/Header'
 import MatchConfirmation, {
   type MatchConfirmationMatch,
 } from '@/components/shared/MatchConfirmation'
+import PlayingReadyHero from '@/components/shared/PlayingReadyHero'
 import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import { isMatchPostGame } from '@/lib/utils/match-status'
@@ -634,34 +635,24 @@ export default function PlayingDisplay({
         courtName={courtName}
         idleFooterLayout
         statusLabel={isPreviewReady ? 'READY' : 'LIVE'}
-        primaryMessage={
-          isPreviewReady ? (
-            <p
-              className="preview-court-start-headline"
-              role="status"
-              aria-label="Press button on court to start"
-            >
-              Press button on
-              <br />
-              court to start
-            </p>
-          ) : undefined
+        readyStateFooter={
+          isPreviewReady ? <PlayingReadyHero onEditMatch={handleNewGame} /> : undefined
         }
         actions={
-          isPreviewReady ? (
-            <button type="button" className="btn btn-secondary btn-block" onClick={handleNewGame}>
-              EDIT MATCH
-            </button>
-          ) : isLive ? (
-            <button
-              type="button"
-              className="btn btn-danger btn-block"
-              onClick={handleEndGame}
-              disabled={isEnding || isPreview}
-            >
-              {isEnding ? 'ENDING…' : 'END GAME'}
-            </button>
-          ) : null
+          isPreviewReady
+            ? undefined
+            : isLive
+              ? (
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-block"
+                    onClick={handleEndGame}
+                    disabled={isEnding || isPreview}
+                  >
+                    {isEnding ? 'ENDING…' : 'END GAME'}
+                  </button>
+                )
+              : null
         }
       />
     )

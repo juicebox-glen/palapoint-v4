@@ -39,6 +39,8 @@ export interface MatchConfirmationProps {
   actions?: ReactNode
   /** Pin headline + actions to bottom with scrollable matchup above (player ready / setup confirmation). */
   idleFooterLayout?: boolean
+  /** Centered hero + edit link while awaiting court ack (replaces primaryMessage/actions footer). */
+  readyStateFooter?: ReactNode
   /** Live play: same `.control-scoreboard` as staff control (replaces VS matchup card). */
   scoreboardMatch?: MatchState | null
   /** Adds `.control-panel--player` for player-route spacing. */
@@ -54,6 +56,7 @@ export default function MatchConfirmation({
   primaryMessage,
   actions,
   idleFooterLayout = false,
+  readyStateFooter,
   scoreboardMatch,
   playerView = false,
 }: MatchConfirmationProps) {
@@ -133,7 +136,7 @@ export default function MatchConfirmation({
   const hasPrimary =
     primaryMessage != null && primaryMessage !== false
   const hasActions = actions != null && actions !== false
-  const showFooter = hasPrimary || hasActions
+  const showFooter = !readyStateFooter && (hasPrimary || hasActions)
 
   const footer = showFooter ? (
     <div className={`preview-footer ${idleFooterLayout ? 'playing-idle-footer' : ''}`}>
@@ -152,12 +155,14 @@ export default function MatchConfirmation({
     <div className={`control-panel${playerView ? ' control-panel--player' : ''}`}>
       <div className="control-container control-container--preview">
         <div
-          className={`control-preview ${idleFooterLayout ? 'control-preview--playing-idle' : ''}`}
+          className={`control-preview ${idleFooterLayout ? 'control-preview--playing-idle' : ''}${
+            readyStateFooter ? ' control-preview--playing-ready' : ''
+          }`}
         >
           {idleFooterLayout ? (
             <>
               <div className="playing-idle-content">{previewInner}</div>
-              {footer}
+              {readyStateFooter ?? footer}
             </>
           ) : (
             <>

@@ -979,7 +979,7 @@
   width: 100%;
 }
 
-/* Player pre-game: two-line instruction (break after “on”) */
+/* Player pre-game: two-line instruction (setup confirmation — not /playing ready hero) */
 .preview-court-start-headline {
   margin: 0 0 1rem;
   padding: 0 0.25rem;
@@ -992,12 +992,102 @@
   text-transform: uppercase;
 }
 
+/* Player /playing: awaiting court FLIC ack — hero instruction + demoted edit link */
+.control-preview--playing-ready {
+  gap: 0;
+}
+
+.control-preview--playing-ready .playing-idle-content {
+  flex: 0 0 auto;
+}
+
+.playing-ready-state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+  padding-top: var(--ui-space-md);
+  padding-bottom: calc(var(--ui-space-md) + env(safe-area-inset-bottom, 0px));
+}
+
+.playing-ready-hero {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-lg);
+  width: 100%;
+  text-align: center;
+}
+
+.playing-ready-pulse-icon {
+  width: 56px;
+  height: 56px;
+  color: var(--text-primary);
+  animation: readyPulse 2s ease-in-out infinite;
+}
+
+.playing-ready-pulse-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.playing-ready-instruction {
+  margin: 0;
+  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  color: var(--text-primary);
+  animation: readyPulse 2s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.playing-ready-edit-link {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--ui-font-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: var(--ui-space-md);
+  cursor: pointer;
+}
+
+.playing-ready-edit-link:hover {
+  color: var(--text-secondary);
+}
+
+.playing-ready-edit-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Preview / finished CTAs use shared `.btn` from components/buttons.css */
 
 @media (prefers-reduced-motion: reduce) {
   .control-score-button,
   .control-button {
     transition: none !important;
+  }
+
+  .playing-ready-pulse-icon,
+  .playing-ready-instruction {
+    animation: none;
   }
 }
 
