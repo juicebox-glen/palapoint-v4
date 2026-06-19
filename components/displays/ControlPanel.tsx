@@ -14,6 +14,7 @@ import {
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
+import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import { isMatchEndgame } from '@/lib/utils/match-status'
 import { generateUuid } from '@/lib/utils/uuid'
 import '@/app/styles/setup-form.css'
