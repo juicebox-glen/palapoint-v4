@@ -6,6 +6,7 @@ import { checkSession, createSession, takeoverSession, validateSession } from '@
 import Header from '@/components/ui/Header'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import MatchConfirmation from '@/components/shared/MatchConfirmation'
+import PlayingReadyHero from '@/components/shared/PlayingReadyHero'
 import SessionProtectionPrompt from '@/components/SessionProtectionPrompt'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
@@ -576,22 +577,7 @@ export default function SetupDisplay({
           branding={branding ?? null}
           courtName={displayCourtName}
           idleFooterLayout
-          primaryMessage={
-            <p
-              className="preview-court-start-headline"
-              role="status"
-              aria-label="Press button on court to start"
-            >
-              Press button on
-              <br />
-              court to start
-            </p>
-          }
-          actions={
-            <button type="button" className="btn btn-secondary btn-block" disabled>
-              EDIT MATCH
-            </button>
-          }
+          readyStateFooter={<PlayingReadyHero onEditMatch={() => {}} editDisabled />}
         />
       )
     }
@@ -653,27 +639,11 @@ export default function SetupDisplay({
         courtName={displayCourtName}
         error={error}
         idleFooterLayout
-        primaryMessage={
-          <p
-            className="preview-court-start-headline"
-            role="status"
-            aria-live="polite"
-            aria-label="Press button on court to start"
-          >
-            Press button on
-            <br />
-            court to start
-          </p>
-        }
-        actions={
-          <button
-            type="button"
-            className="btn btn-secondary btn-block"
-            onClick={handleEditFromConfirmation}
-            disabled={!!actionLoading}
-          >
-            EDIT MATCH
-          </button>
+        readyStateFooter={
+          <PlayingReadyHero
+            onEditMatch={handleEditFromConfirmation}
+            editDisabled={!!actionLoading}
+          />
         }
       />
     )

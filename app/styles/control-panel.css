@@ -932,7 +932,7 @@
   width: 100%;
 }
 
-.preview-footer .preview-court-start-headline {
+.preview-footer .preview-primary-message {
   margin-bottom: 0;
 }
 
@@ -967,29 +967,11 @@
   text-align: center;
 }
 
-.playing-idle-footer .playing-idle-message .preview-court-start-headline {
-  margin-bottom: 0;
-  color: inherit;
-}
-
 .preview-actions {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
-}
-
-/* Player pre-game: two-line instruction (setup confirmation — not /playing ready hero) */
-.preview-court-start-headline {
-  margin: 0 0 1rem;
-  padding: 0 0.25rem;
-  text-align: center;
-  font-size: clamp(0.9375rem, 4vw, 1.125rem);
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: 0.05em;
-  color: var(--text-primary);
-  text-transform: uppercase;
 }
 
 /* Player /playing: awaiting court FLIC ack — hero instruction + demoted edit link */

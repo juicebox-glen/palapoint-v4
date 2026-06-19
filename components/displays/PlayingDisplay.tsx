@@ -610,17 +610,8 @@ export default function PlayingDisplay({
   }
 
   if (match?.status === 'in_progress' || match?.status === 'setup') {
-    const isScoreless =
-      Number(match.team_a_points) === 0 &&
-      Number(match.team_b_points) === 0 &&
-      Number(match.team_a_games) === 0 &&
-      Number(match.team_b_games) === 0 &&
-      (match.set_scores || []).length === 0
-    /** Pre–first-FLIC: Edit Match only; after court ack (`started_at`): End Game */
-    const isPreviewReady =
-      !match.started_at &&
-      isScoreless &&
-      (match.status === 'setup' || match.status === 'in_progress')
+    /** Pre–first-FLIC: hero instruction + Edit Match; after court ack (`started_at`): End Game */
+    const isPreviewReady = isAwaitingCourtAck(match)
 
     const isLive =
       Boolean(match.started_at) &&

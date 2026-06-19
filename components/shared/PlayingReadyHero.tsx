@@ -2,10 +2,11 @@
 
 interface PlayingReadyHeroProps {
   onEditMatch: () => void
+  editDisabled?: boolean
 }
 
-/** Player /playing preview: awaiting first court FLIC ack. */
-export default function PlayingReadyHero({ onEditMatch }: PlayingReadyHeroProps) {
+/** Awaiting first court FLIC ack (setup confirmation + /playing ready). */
+export default function PlayingReadyHero({ onEditMatch, editDisabled = false }: PlayingReadyHeroProps) {
   return (
     <div className="playing-ready-state">
       <div className="playing-ready-hero">
@@ -25,7 +26,12 @@ export default function PlayingReadyHero({ onEditMatch }: PlayingReadyHeroProps)
           to start
         </p>
       </div>
-      <button type="button" className="playing-ready-edit-link" onClick={onEditMatch}>
+      <button
+        type="button"
+        className="playing-ready-edit-link"
+        onClick={onEditMatch}
+        disabled={editDisabled}
+      >
         Edit Match
       </button>
     </div>
