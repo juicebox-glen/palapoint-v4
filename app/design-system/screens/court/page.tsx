@@ -23,6 +23,11 @@ export default function CourtScreensPage() {
           states={[
             { name: 'idle', label: 'Idle', url: '/design-system/preview/court?state=idle' },
             { name: 'ready', label: 'Ready', url: '/design-system/preview/court?state=ready' },
+            {
+              name: 'staff_ready',
+              label: 'Staff Ready',
+              url: '/design-system/preview/court?state=staff_ready',
+            },
             { name: 'server_select', label: 'Server Select', url: '/design-system/preview/court?state=server_select' },
             { name: 'live', label: 'Live', url: '/design-system/preview/court?state=live' },
             { name: 'deuce', label: 'Deuce', url: '/design-system/preview/court?state=deuce' },

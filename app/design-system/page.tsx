@@ -59,7 +59,7 @@ export default function DesignSystemHome() {
             </li>
             <li>
               <Link href="/design-system/screens/player-mobile">Staff &amp; player control</Link>
-              <span className="ds-nav-route-hint"> — /control, /setup, /playing, /session-review</span>
+              <span className="ds-nav-route-hint"> — /control, /setup, /playing, /session-review, /game</span>
             </li>
           </ul>
         </section>

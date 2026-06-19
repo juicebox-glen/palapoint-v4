@@ -6,6 +6,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenPreview'
 
+import { DEFAULT_GAME_PREVIEW_ID } from '../../lib/game-preview-data'
+
 type FlowTab = 'staff' | 'player'
 
 const COURT_IN_USE_PREVIEW: ScreenPreviewState = {
@@ -34,9 +36,24 @@ const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
     url: '/design-system/preview/playing?state=postgame_win_3split',
   },
   {
+    name: 'session_ended',
+    label: 'Session End',
+    url: '/design-system/preview/playing?state=session_ended',
+  },
+  {
+    name: 'session_inactivity',
+    label: 'Inactive',
+    url: '/design-system/preview/playing?state=session_ended_inactivity',
+  },
+  {
     name: 'session_review',
-    label: 'Session',
+    label: 'Summary',
     url: '/design-system/preview/session-review',
+  },
+  {
+    name: 'game_stats',
+    label: 'Game Stats',
+    url: `/design-system/preview/game?id=${encodeURIComponent(DEFAULT_GAME_PREVIEW_ID)}`,
   },
 ]
 
@@ -130,7 +147,7 @@ export function PlayerMobileHub() {
           <h2>Player — setup &amp; playing</h2>
           <ScreenPreview
             title="Player flow"
-            description="Setup → court in use gate → confirmation → live → finished (1 set and best-of-3) → session summary."
+            description="Setup → court in use → confirmation → live → finished → session summary (tap a game) → match stats."
             viewport="mobile"
             states={PLAYER_MATCH_FLOW_TABS}
           />
