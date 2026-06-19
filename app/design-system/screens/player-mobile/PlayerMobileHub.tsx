@@ -8,8 +8,15 @@ import { ScreenPreview, type ScreenPreviewState } from '../../components/ScreenP
 
 type FlowTab = 'staff' | 'player'
 
+const COURT_IN_USE_PREVIEW: ScreenPreviewState = {
+  name: 'court_in_use',
+  label: 'Court in use',
+  url: '/design-system/preview/setup?state=session_prompt',
+}
+
 const STAFF_MATCH_FLOW_TABS: ScreenPreviewState[] = [
   { name: 'setup', label: 'Setup', url: '/design-system/preview/control?state=setup' },
+  COURT_IN_USE_PREVIEW,
   { name: 'preview', label: 'Preview', url: '/design-system/preview/control?state=preview' },
   { name: 'live', label: 'Live', url: '/design-system/preview/control?state=live' },
   { name: 'endgame', label: 'End game', url: '/design-system/preview/control?state=endgame' },
@@ -17,6 +24,7 @@ const STAFF_MATCH_FLOW_TABS: ScreenPreviewState[] = [
 
 const PLAYER_MATCH_FLOW_TABS: ScreenPreviewState[] = [
   { name: 'setup', label: 'Setup', url: '/design-system/preview/setup?state=form' },
+  COURT_IN_USE_PREVIEW,
   { name: 'preview', label: 'Preview', url: '/design-system/preview/setup?state=confirmation' },
   { name: 'live', label: 'Live', url: '/design-system/preview/playing?state=live' },
   { name: 'endgame', label: 'End', url: '/design-system/preview/playing?state=postgame_win' },
@@ -94,7 +102,7 @@ export function PlayerMobileHub() {
           <h2>Staff — control panel</h2>
           <ScreenPreview
             title="Staff flow"
-            description="Setup → preview (match confirmation) → live scoreboard → end game."
+            description="Setup → court in use gate → preview (match confirmation) → live scoreboard → end game."
             viewport="mobile"
             states={STAFF_MATCH_FLOW_TABS}
           />
@@ -122,7 +130,7 @@ export function PlayerMobileHub() {
           <h2>Player — setup &amp; playing</h2>
           <ScreenPreview
             title="Player flow"
-            description="Setup → confirmation → live → finished (1 set and best-of-3) → session summary."
+            description="Setup → court in use gate → confirmation → live → finished (1 set and best-of-3) → session summary."
             viewport="mobile"
             states={PLAYER_MATCH_FLOW_TABS}
           />
@@ -130,8 +138,9 @@ export function PlayerMobileHub() {
           <h3 style={{ marginTop: 'var(--ui-space-xl)' }}>Opportunities for unification</h3>
           <ul className="ds-component-list">
             <li>
-              Gate screens (<code>no_session</code>, <code>session_ended</code>, etc.) could share one “empty state”
-              component with staff PIN / venue errors for faster iteration.
+              Gate screens (<code>session_prompt</code>, <code>match_join</code>, etc.) use{' '}
+              <code>SessionProtectionPrompt</code> — preview via the <strong>Court in use</strong> tab; other empty
+              states could share one component with staff PIN / venue errors.
             </li>
             <li>
               <code>MatchFinishedPanel</code> and post-game CTAs should mirror staff endgame copy and button order to

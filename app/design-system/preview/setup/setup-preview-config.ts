@@ -10,6 +10,7 @@ export function getSetupPreviewConfig(state: string): SetupDisplayPreviewConfig 
     case 'match_join':
       return { screen: 'match_join_prompt' }
     case 'session_prompt':
+    case 'court_in_use':
       return { screen: 'session_prompt' }
     case 'form':
     default:
