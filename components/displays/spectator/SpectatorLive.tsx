@@ -2,6 +2,7 @@ import type { VenueBranding } from '@/lib/venue'
 import type { MatchState } from '@/lib/types/match'
 import GradientWaveDrift from '@/components/backgrounds/GradientWaveDrift'
 import { getPlayerInitials, getSpectatorTeamSurnameRows } from '@/lib/utils/name-format'
+import { getPointSituation, type PointSituation } from '@/lib/utils/point-situation'
 import { SpectatorGameInfoBadges } from './SpectatorGameInfoBadges'
 import { SpectatorHeader } from './SpectatorHeader'
 import {
@@ -16,6 +17,23 @@ interface SpectatorLiveProps {
   brandingStyles: React.CSSProperties
 }
 
+function SpectatorLivePointPill({
+  team,
+  pointSituation,
+}: {
+  team: 'a' | 'b'
+  pointSituation: PointSituation | null
+}) {
+  if (!pointSituation || pointSituation.team !== team) return null
+  if (pointSituation.type !== 'SET POINT' && pointSituation.type !== 'MATCH POINT') return null
+
+  return (
+    <div className={`spectator-live-point-pill spectator-live-point-pill-${team}`}>
+      {pointSituation.type}
+    </div>
+  )
+}
+
 export function SpectatorLive({
   match,
   branding,
@@ -25,6 +43,7 @@ export function SpectatorLive({
   const setDotCount = spectatorSetDotCount(setsToWin)
   const setsWonA = countSetsWonByTeam(match.set_scores, 'a')
   const setsWonB = countSetsWonByTeam(match.set_scores, 'b')
+  const pointSituation = getPointSituation(match)
   const courtLabel = (branding?.courtName ?? 'Court 1').toUpperCase()
   const isServing = (team: 'a' | 'b') => match.serving_team === team
 
@@ -79,6 +98,7 @@ export function SpectatorLive({
           <div className="spectator-live-card">
             <div className="spectator-live-card-inner">
               <div className="spectator-live-photos">
+                <SpectatorLivePointPill team="a" pointSituation={pointSituation} />
                 <div className="spectator-live-photo spectator-live-photo-a">
                   {match.team_a_player_1_photo ? (
                     <img src={match.team_a_player_1_photo} alt="" />
@@ -131,6 +151,7 @@ export function SpectatorLive({
           <div className="spectator-live-card">
             <div className="spectator-live-card-inner">
               <div className="spectator-live-photos">
+                <SpectatorLivePointPill team="b" pointSituation={pointSituation} />
                 <div className="spectator-live-photo spectator-live-photo-b">
                   {match.team_b_player_1_photo ? (
                     <img src={match.team_b_player_1_photo} alt="" />

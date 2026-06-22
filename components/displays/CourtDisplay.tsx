@@ -9,7 +9,7 @@ import SideSwapOverlay from '@/components/SideSwapOverlay'
 import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
 import MatchWinOverlay from '@/components/MatchWinOverlay'
-import { getPointSituation } from '@/lib/utils/point-situation'
+import { getPointSituation, type PointSituation } from '@/lib/utils/point-situation'
 import { formatTeamDisplay, formatTeamScoreboard } from '@/lib/utils/name-format'
 import { SpectatorPregameTeamInner } from '@/components/displays/spectator/SpectatorPregameTeamInner'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
@@ -72,6 +72,38 @@ function calculateSidesSwapped(match: MatchState): boolean {
 
 function IdleLogo({ branding }: { branding?: VenueBranding | null }) {
   return <VenueLogo branding={branding ?? null} className="court-idle-logo-img" />
+}
+
+/** Center badge between point scores — set/match point wins over tie-break label. */
+function renderCenterScoreBadge(
+  pointSituation: PointSituation | null,
+  isTiebreak: boolean
+): React.ReactNode | null {
+  if (pointSituation?.type === 'MATCH POINT') {
+    return (
+      <>
+        <span className="point-situation-line">MATCH</span>
+        <span className="point-situation-line">POINT</span>
+      </>
+    )
+  }
+  if (pointSituation?.type === 'SET POINT') {
+    return (
+      <>
+        <span className="point-situation-line">SET</span>
+        <span className="point-situation-line">POINT</span>
+      </>
+    )
+  }
+  if (isTiebreak) {
+    return (
+      <>
+        <span className="point-situation-line">TIE</span>
+        <span className="point-situation-line">BREAK</span>
+      </>
+    )
+  }
+  return null
 }
 
 export default function CourtDisplay({
@@ -707,11 +739,11 @@ export default function CourtDisplay({
   const setsToWin = match.sets_to_win || 1
   const setDotsCount = setsToWin === 1 ? 1 : 2
   const pointSituation = getPointSituation(match)
+  const centerScoreBadge = renderCenterScoreBadge(pointSituation, isTiebreak)
 
   return (
     <div className="screen-wrapper">
       <div className="screen-content game-scoreboard-screen layout-split-50-horizontal">
-        {isTiebreak && <div className="tiebreak-indicator">TIE-BREAK</div>}
         <div
           className={`screen-border-serving-${servingBorderSide}`}
           style={{ borderColor: servingBorderColor }}
@@ -769,13 +801,9 @@ export default function CourtDisplay({
           <ScoreSepBar className="game-games-center-sep" />
           <span>{rightTeamData.games}</span>
         </div>
-        {pointSituation && (
+        {centerScoreBadge && (
           <div className="point-situation-overlay">
-            <div
-              className={`point-situation-badge ${pointSituation.team === 'a' ? 'team-a' : 'team-b'}`}
-            >
-              {pointSituation.type}
-            </div>
+            <div className="point-situation-badge">{centerScoreBadge}</div>
           </div>
         )}
       </div>

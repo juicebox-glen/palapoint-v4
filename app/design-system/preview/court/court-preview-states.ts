@@ -117,42 +117,6 @@ export function getCourtPreviewConfig(state: string): CourtDisplayPreviewConfig 
         ui: 'scoreboard',
       }
 
-    case 'deuce':
-      return {
-        match: baseMatch({
-          team_a_points: 3,
-          team_b_points: 3,
-          team_a_games: 5,
-          team_b_games: 4,
-          serving_team: 'b',
-        }),
-        ui: 'scoreboard',
-      }
-
-    case 'advantage':
-      return {
-        match: baseMatch({
-          team_a_points: 4,
-          team_b_points: 3,
-          team_a_games: 5,
-          team_b_games: 4,
-          serving_team: 'b',
-        }),
-        ui: 'scoreboard',
-      }
-
-    case 'game_point':
-      return {
-        match: baseMatch({
-          team_a_points: 3,
-          team_b_points: 1,
-          team_a_games: 4,
-          team_b_games: 4,
-          serving_team: 'a',
-        }),
-        ui: 'scoreboard',
-      }
-
     case 'set_point':
       return {
         match: baseMatch({
@@ -206,18 +170,6 @@ export function getCourtPreviewConfig(state: string): CourtDisplayPreviewConfig 
           set_scores: [],
         }),
         ui: 'side_swap',
-      }
-
-    case 'game_won':
-      return {
-        match: baseMatch({
-          team_a_points: 0,
-          team_b_points: 0,
-          team_a_games: 4,
-          team_b_games: 2,
-          serving_team: 'b',
-        }),
-        ui: 'scoreboard',
       }
 
     case 'set_won':

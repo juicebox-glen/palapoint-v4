@@ -106,6 +106,24 @@ export default function TypographyPage() {
       </section>
 
       <section className="ds-section">
+        <h2>Court overlay titles</h2>
+        <p>
+          Space Grotesk, weight 500, <code>#cbccce</code>, letter-spacing 0.02em — used on set won, server select, swap
+          sides, scoreboard team names, and match win hero. Bottom idle/ready instructions use Inter instead.
+        </p>
+
+        <div className="ds-name-samples">
+          <div>
+            <div className="point-situation-badge">
+              <span className="point-situation-line">MATCH</span>
+              <span className="point-situation-line">POINT</span>
+            </div>
+            <code>.point-situation-badge — set/match point or tie-break (court-ball yellow, no background)</code>
+          </div>
+        </div>
+      </section>
+
+      <section className="ds-section">
         <h2>Player names</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
           Derived via{' '}

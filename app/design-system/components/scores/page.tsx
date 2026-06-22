@@ -142,6 +142,96 @@ export default function ScoresPage() {
       </section>
 
       <section className="ds-section">
+        <h2>Spectator Live — Set / Match Point Pill</h2>
+        <p>
+          Team-colored pill centered over the photo row on the team at set/match point. Uses{' '}
+          <code>.spectator-live-point-pill</code> with <code>getPointSituation()</code> — subtle opacity pulse.
+        </p>
+
+        <div className="ds-component-row">
+          <div className="ds-component-demo ds-component-demo--dark" style={{ minHeight: '8rem', position: 'relative', width: '100%', maxWidth: '18rem' }}>
+            <div
+              className="spectator-live-photos"
+              style={{ position: 'absolute', left: '50%', top: '55%', transform: 'translate(-50%, -50%)', margin: 0 }}
+            >
+              <div className="spectator-live-point-pill spectator-live-point-pill-b">MATCH POINT</div>
+              <div
+                className="spectator-live-photo spectator-live-photo-a"
+                style={{ width: '72px', height: '90px' }}
+              >
+                <span className="spectator-live-initials">GN</span>
+              </div>
+              <div
+                className="spectator-live-photo spectator-live-photo-a"
+                style={{ width: '72px', height: '90px' }}
+              >
+                <span className="spectator-live-initials">RA</span>
+              </div>
+            </div>
+            <code>Match point (team B)</code>
+          </div>
+        </div>
+
+        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          Live previews:{' '}
+          <Link href="/design-system/preview/spectator?state=set_point">Set point</Link>
+          {' · '}
+          <Link href="/design-system/preview/spectator?state=match_point">Match point</Link>
+        </p>
+      </section>
+
+      <section className="ds-section">
+        <h2>Court Live — Set / Match Point / Tie-break</h2>
+        <p>
+          Centered between the two point scores on the court scoreboard. Uses{' '}
+          <code>.point-situation-badge</code> — Space Grotesk, <code>var(--court-ball)</code>, no background or
+          border, two stacked lines, subtle opacity pulse. Set/match point replaces tie-break when both apply.
+        </p>
+
+        <div className="ds-component-row">
+          <div className="ds-component-demo ds-component-demo--dark" style={{ minHeight: '12rem', position: 'relative' }}>
+            <div
+              className="point-situation-badge"
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            >
+              <span className="point-situation-line">TIE</span>
+              <span className="point-situation-line">BREAK</span>
+            </div>
+            <code>Tie-break</code>
+          </div>
+          <div className="ds-component-demo ds-component-demo--dark" style={{ minHeight: '12rem', position: 'relative' }}>
+            <div
+              className="point-situation-badge"
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            >
+              <span className="point-situation-line">SET</span>
+              <span className="point-situation-line">POINT</span>
+            </div>
+            <code>Set point</code>
+          </div>
+          <div className="ds-component-demo ds-component-demo--dark" style={{ minHeight: '12rem', position: 'relative' }}>
+            <div
+              className="point-situation-badge"
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            >
+              <span className="point-situation-line">MATCH</span>
+              <span className="point-situation-line">POINT</span>
+            </div>
+            <code>Match point</code>
+          </div>
+        </div>
+
+        <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          Live previews:{' '}
+          <Link href="/design-system/preview/court?state=tiebreak">Tie-break</Link>
+          {' · '}
+          <Link href="/design-system/preview/court?state=set_point">Set point</Link>
+          {' · '}
+          <Link href="/design-system/preview/court?state=match_point">Match point</Link>
+        </p>
+      </section>
+
+      <section className="ds-section">
         <h2>Score Typography</h2>
 
         <div className="ds-component-row">

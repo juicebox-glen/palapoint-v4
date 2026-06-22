@@ -60,6 +60,25 @@ const mockLiveMatch: MatchState = {
   started_at: new Date().toISOString(),
 }
 
+const mockSetPointMatch: MatchState = {
+  ...mockLiveMatch,
+  team_a_points: 3,
+  team_b_points: 0,
+  team_a_games: 5,
+  team_b_games: 3,
+  set_scores: [],
+}
+
+const mockMatchPointMatch: MatchState = {
+  ...mockLiveMatch,
+  team_a_points: 1,
+  team_b_points: 3,
+  team_a_games: 3,
+  team_b_games: 5,
+  serving_team: 'b',
+  set_scores: [{ team_a: 4, team_b: 6 }],
+}
+
 const mockEndgameMatch: MatchState = {
   ...mockPregameMatch,
   status: 'completed',
@@ -97,6 +116,22 @@ function SpectatorPreviewContent() {
     case 'live':
       return (
         <SpectatorLive match={mockLiveMatch} branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} />
+      )
+    case 'set_point':
+      return (
+        <SpectatorLive
+          match={mockSetPointMatch}
+          branding={designSystemSquareOneBranding}
+          brandingStyles={brandingStyles}
+        />
+      )
+    case 'match_point':
+      return (
+        <SpectatorLive
+          match={mockMatchPointMatch}
+          branding={designSystemSquareOneBranding}
+          brandingStyles={brandingStyles}
+        />
       )
     case 'endgame':
       return (

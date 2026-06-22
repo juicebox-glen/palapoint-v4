@@ -266,6 +266,10 @@
   pointer-events: none;
 }
 
+.spectator-container--live .spectator-live-card {
+  overflow: visible;
+}
+
 .spectator-live-card {
   width: 100%;
   --spectator-live-card-radius: clamp(10px, 1.4vw, 21px);
@@ -311,11 +315,68 @@
 }
 
 .spectator-live-photos {
+  position: relative;
   display: flex;
   gap: var(--spectator-live-inner-pad-y);
   flex-shrink: 0;
   align-items: center;
   margin-right: clamp(0.5rem, 1.25vw, 1.25rem);
+}
+
+.spectator-live-point-pill {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -42%);
+  z-index: 3;
+  padding: clamp(0.28rem, 0.6vh, 0.48rem) clamp(0.9rem, 1.75vw, 1.35rem);
+  border-radius: 999px;
+  font-family: 'Space Grotesk', var(--font-family);
+  font-size: clamp(0.72rem, 1.45vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: spectator-live-point-pill-pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes spectator-live-point-pill-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.spectator-live-point-pill-a {
+  background: color-mix(in srgb, var(--team-a) 24%, rgba(8, 10, 18, 0.72));
+  border: 1px solid color-mix(in srgb, var(--team-a) 88%, white);
+  box-shadow:
+    0 0 14px rgba(91, 108, 255, 0.42),
+    0 0 28px rgba(91, 108, 255, 0.18);
+}
+
+.spectator-live-point-pill-b {
+  background: color-mix(in srgb, var(--team-b) 24%, rgba(8, 10, 18, 0.72));
+  border: 1px solid color-mix(in srgb, var(--team-b) 88%, white);
+  box-shadow:
+    0 0 14px rgba(232, 74, 138, 0.42),
+    0 0 28px rgba(232, 74, 138, 0.18);
+}
+
+@supports not (background: color-mix(in srgb, black 50%, white)) {
+  .spectator-live-point-pill-a {
+    background: rgba(91, 108, 255, 0.2);
+  }
+
+  .spectator-live-point-pill-b {
+    background: rgba(232, 74, 138, 0.2);
+  }
 }
 
 .spectator-live-photo {
@@ -510,8 +571,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .spectator-container--live .spectator-live-dot,
-  .spectator-live-serve {
+  .spectator-live-serve,
+  .spectator-live-point-pill {
     animation: none !important;
+    opacity: 1;
   }
 }
 

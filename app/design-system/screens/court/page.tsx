@@ -30,18 +30,35 @@ export default function CourtScreensPage() {
             },
             { name: 'server_select', label: 'Server Select', url: '/design-system/preview/court?state=server_select' },
             { name: 'live', label: 'Live', url: '/design-system/preview/court?state=live' },
-            { name: 'deuce', label: 'Deuce', url: '/design-system/preview/court?state=deuce' },
-            { name: 'advantage', label: 'Advantage', url: '/design-system/preview/court?state=advantage' },
-            { name: 'game_point', label: 'Game Point', url: '/design-system/preview/court?state=game_point' },
             { name: 'set_point', label: 'Set Point', url: '/design-system/preview/court?state=set_point' },
             { name: 'match_point', label: 'Match Point', url: '/design-system/preview/court?state=match_point' },
             { name: 'tiebreak', label: 'Tiebreak', url: '/design-system/preview/court?state=tiebreak' },
             { name: 'side_swap', label: 'Side Swap', url: '/design-system/preview/court?state=side_swap' },
-            { name: 'game_won', label: 'Game Won', url: '/design-system/preview/court?state=game_won' },
             { name: 'set_won', label: 'Set Won', url: '/design-system/preview/court?state=set_won' },
             { name: 'match_won', label: 'Match Won', url: '/design-system/preview/court?state=match_won' },
           ]}
         />
+      </section>
+
+      <section className="ds-section">
+        <h2>Live score overlays</h2>
+        <p>
+          Set, match point, and tie-break labels sit between the two point scores — Space Grotesk,{' '}
+          <code>var(--court-ball)</code>, uppercase, stacked on two lines, no pill background. Set/match point replaces
+          tie-break when both apply. See{' '}
+          <Link href="/design-system/components/scores">Score Displays → Set / Match Point / Tie-break</Link>.
+        </p>
+        <ul className="ds-component-list">
+          <li>
+            <Link href="/design-system/preview/court?state=tiebreak">Tie-break preview</Link>
+          </li>
+          <li>
+            <Link href="/design-system/preview/court?state=set_point">Set point preview</Link>
+          </li>
+          <li>
+            <Link href="/design-system/preview/court?state=match_point">Match point preview</Link>
+          </li>
+        </ul>
       </section>
 
       <section className="ds-section">

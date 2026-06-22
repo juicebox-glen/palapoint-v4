@@ -55,6 +55,17 @@
   font-size: 1.25rem;
 }
 
+.ds-header-hint {
+  margin-top: 0.75rem;
+  font-size: 0.95rem !important;
+}
+
+.ds-header-hint a {
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9rem;
+}
+
 .ds-nav {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

@@ -6,6 +6,9 @@ export default function DesignSystemHome() {
       <header className="ds-header">
         <h1>PalaPoint Design System</h1>
         <p>Living documentation of screens, components, and tokens</p>
+        <p className="ds-header-hint">
+          Local hub: <a href="http://localhost:3000/design-system">http://localhost:3000/design-system</a>
+        </p>
       </header>
 
       <nav className="ds-nav">

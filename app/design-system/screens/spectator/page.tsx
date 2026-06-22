@@ -24,6 +24,8 @@ export default function SpectatorScreensPage() {
             { name: 'idle', label: 'Idle', url: '/design-system/preview/spectator?state=idle' },
             { name: 'pregame', label: 'Pre-game', url: '/design-system/preview/spectator?state=pregame' },
             { name: 'live', label: 'Live', url: '/design-system/preview/spectator?state=live' },
+            { name: 'set_point', label: 'Set Point', url: '/design-system/preview/spectator?state=set_point' },
+            { name: 'match_point', label: 'Match Point', url: '/design-system/preview/spectator?state=match_point' },
             { name: 'endgame', label: 'End Game', url: '/design-system/preview/spectator?state=endgame' },
           ]}
         />
