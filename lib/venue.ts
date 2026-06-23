@@ -22,6 +22,25 @@ export interface VenueBranding {
   logoUrl: string | null
 }
 
+/** Production app origin for court idle QR codes (override with NEXT_PUBLIC_APP_URL). */
+export const DEFAULT_APP_BASE_URL = 'https://palapoint-v4.vercel.app'
+
+/** Player setup URL for court idle QR — always uses the public app base, not the display origin. */
+export function buildSetupPageUrl(
+  setupSlug: string,
+  branding?: VenueBranding | null
+): string {
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || DEFAULT_APP_BASE_URL
+
+  const slug =
+    branding?.companySlug && branding?.venueSlug && branding.courtNumber != null
+      ? `${branding.companySlug}/${branding.venueSlug}/${branding.courtNumber}`
+      : setupSlug
+
+  return `${base}/setup/${slug}`
+}
+
 function parseHexColor(hex: string): [number, number, number] | null {
   const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
   if (!match) return null

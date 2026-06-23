@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react
 import { supabase } from '@/lib/supabase'
 import { QRCodeSVG } from 'qrcode.react'
 import type { MatchState } from '@/lib/types/match'
-import type { VenueBranding } from '@/lib/venue'
+import { buildSetupPageUrl, type VenueBranding } from '@/lib/venue'
 import SideSwapOverlay from '@/components/SideSwapOverlay'
 import SetWinOverlay from '@/components/SetWinOverlay'
 import ServerAnnouncementOverlay from '@/components/ServerAnnouncementOverlay'
@@ -591,10 +591,7 @@ export default function CourtDisplay({
   }
 
   if (!match) {
-    const setupUrl =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/setup/${setupSlug}`
-        : `/setup/${setupSlug}`
+    const setupUrl = buildSetupPageUrl(setupSlug, branding ?? null)
 
     return (
       <div className="court-idle court-idle-square-one">
