@@ -323,7 +323,7 @@
 .court-idle-border {
   position: absolute;
   inset: 0;
-  border: 0.5vw solid #3F66F4;
+  border: 0.5vw solid var(--brand-primary);
   pointer-events: none;
 }
 

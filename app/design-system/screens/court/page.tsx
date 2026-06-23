@@ -31,6 +31,11 @@ export default function CourtScreensPage() {
               label: 'Staff Ready',
               url: '/design-system/preview/court?state=staff_ready',
             },
+            {
+              name: 'quick_play',
+              label: 'Quick Play',
+              url: '/design-system/preview/court?state=quick_play',
+            },
             { name: 'server_select', label: 'Server Select', url: '/design-system/preview/court?state=server_select' },
             { name: 'live', label: 'Live', url: '/design-system/preview/court?state=live' },
             { name: 'set_point', label: 'Set Point', url: '/design-system/preview/court?state=set_point' },

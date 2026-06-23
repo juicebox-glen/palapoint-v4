@@ -17,6 +17,20 @@ import { VenueLogo } from '@/components/shared/VenueLogo'
 
 import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 
+function matchHasConfiguredPlayers(match: MatchState): boolean {
+  return [
+    match.team_a_player_1,
+    match.team_a_player_2,
+    match.team_b_player_1,
+    match.team_b_player_2,
+  ].some((name) => typeof name === 'string' && name.trim() !== '')
+}
+
+/** Idle hold quick play: no session, no names — skip ready screen, go to server select. */
+function isQuickPlaySetupMatch(match: MatchState): boolean {
+  return match.status === 'setup' && !match.session_id && !matchHasConfiguredPlayers(match)
+}
+
 /** Design-system / static preview: disables network and forces a specific screen. */
 export type CourtDisplayPreviewUI =
   | 'idle'
@@ -329,8 +343,20 @@ export default function CourtDisplay({
       (match.set_scores || []).length === 0
 
     if (match.status === 'setup') {
-      setShowServerAnnouncement(false)
-      setAwaitingButtonPress(true)
+      if (isQuickPlaySetupMatch(match)) {
+        const isFirstQuickPlayEntry = match.id !== announcementShownRef.current
+        if (isFirstQuickPlayEntry) {
+          announcementShownRef.current = match.id
+          serverOverlayDismissedRef.current = false
+          setShowSetWin(false)
+          setShowSideSwap(false)
+        }
+        setAwaitingButtonPress(false)
+        setShowServerAnnouncement(!serverOverlayDismissedRef.current)
+      } else {
+        setShowServerAnnouncement(false)
+        setAwaitingButtonPress(true)
+      }
       return
     }
 

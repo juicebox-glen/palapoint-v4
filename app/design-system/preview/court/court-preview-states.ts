@@ -89,6 +89,25 @@ export function getCourtPreviewConfig(state: string): CourtDisplayPreviewConfig 
         ui: 'ready',
       }
 
+    case 'quick_play':
+      return {
+        match: baseMatch({
+          status: 'setup',
+          team_a_points: 0,
+          team_b_points: 0,
+          team_a_games: 0,
+          team_b_games: 0,
+          serving_team: 'a',
+          started_at: null,
+          session_id: null,
+          team_a_player_1: null,
+          team_a_player_2: null,
+          team_b_player_1: null,
+          team_b_player_2: null,
+        }),
+        ui: 'server_announcement',
+      }
+
     case 'server_select':
       return {
         match: baseMatch({
