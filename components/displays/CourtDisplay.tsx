@@ -354,8 +354,21 @@ export default function CourtDisplay({
         setAwaitingButtonPress(false)
         setShowServerAnnouncement(!serverOverlayDismissedRef.current)
       } else {
-        setShowServerAnnouncement(false)
-        setAwaitingButtonPress(true)
+        // Phone setup: ready screen until first court press (score API sets started_at only).
+        if (match.started_at) {
+          const isFirstServerEntry = match.id !== announcementShownRef.current
+          if (isFirstServerEntry) {
+            announcementShownRef.current = match.id
+            serverOverlayDismissedRef.current = false
+            setShowSetWin(false)
+            setShowSideSwap(false)
+          }
+          setAwaitingButtonPress(false)
+          setShowServerAnnouncement(!serverOverlayDismissedRef.current)
+        } else {
+          setShowServerAnnouncement(false)
+          setAwaitingButtonPress(true)
+        }
       }
       return
     }
@@ -487,6 +500,7 @@ export default function CourtDisplay({
         setShowServerAnnouncement(false)
         showServerAnnouncementRef.current = false
         serverOverlayDismissedRef.current = true
+        return
       }
       if (showMatchWin) return
       if (showSetWin) return
