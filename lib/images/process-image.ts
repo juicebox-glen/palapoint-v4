@@ -1,3 +1,9 @@
+import {
+  drawImageWithExifOrientation,
+  orientedSourceSize,
+  readJpegExifOrientation,
+} from '@/lib/images/exif-orientation'
+
 /** Gallery picker — no `capture` so Android/iOS can browse photos. */
 export const PLAYER_PHOTO_GALLERY_ACCEPT = 'image/jpeg,image/png,image/webp,image/*'
 
@@ -58,10 +64,20 @@ function drawSquareCropToCanvas(
   return canvas
 }
 
-function loadImageElementFromFile(file: File): Promise<HTMLImageElement> {
+async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
+  const buffer = await file.arrayBuffer()
+  if (buffer.byteLength === 0) throw new Error('Photo file is empty')
+  return buffer
+}
+
+function fileToBlob(file: File, buffer: ArrayBuffer): Blob {
+  return new Blob([buffer], { type: file.type || 'image/jpeg' })
+}
+
+function loadImageElementFromBlob(blob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    const objectUrl = URL.createObjectURL(file)
+    const objectUrl = URL.createObjectURL(blob)
     img.onload = () => {
       URL.revokeObjectURL(objectUrl)
       resolve(img)
@@ -83,9 +99,9 @@ function loadImageElementFromDataUrl(dataUrl: string): Promise<HTMLImageElement>
   })
 }
 
-async function loadImageElement(file: File): Promise<HTMLImageElement> {
+async function loadImageElement(file: File, buffer: ArrayBuffer): Promise<HTMLImageElement> {
   try {
-    return await loadImageElementFromFile(file)
+    return await loadImageElementFromBlob(fileToBlob(file, buffer))
   } catch {
     const dataUrl = await readFileAsDataUrl(file)
     return loadImageElementFromDataUrl(dataUrl)
@@ -104,6 +120,43 @@ function readFileAsDataUrl(file: File): Promise<string> {
   })
 }
 
+function drawOrientedSquareCrop(
+  img: HTMLImageElement,
+  orientation: number,
+  maxWidth: number,
+  maxHeight: number
+): HTMLCanvasElement {
+  const sourceWidth = img.naturalWidth
+  const sourceHeight = img.naturalHeight
+  const { width: orientedWidth, height: orientedHeight } = orientedSourceSize(
+    sourceWidth,
+    sourceHeight,
+    orientation
+  )
+
+  const orientedCanvas = document.createElement('canvas')
+  orientedCanvas.width = orientedWidth
+  orientedCanvas.height = orientedHeight
+  const orientedCtx = orientedCanvas.getContext('2d')
+  if (!orientedCtx) throw new Error('Canvas not supported')
+
+  drawImageWithExifOrientation(
+    orientedCtx,
+    img,
+    sourceWidth,
+    sourceHeight,
+    orientation
+  )
+
+  return drawSquareCropToCanvas(
+    orientedCanvas,
+    orientedWidth,
+    orientedHeight,
+    maxWidth,
+    maxHeight
+  )
+}
+
 /** Crop to square and encode as JPEG — handles EXIF orientation on mobile when supported. */
 export async function processImageToJpeg(
   file: File,
@@ -111,74 +164,50 @@ export async function processImageToJpeg(
   maxHeight: number,
   quality = 0.85
 ): Promise<File> {
-  let bitmap: ImageBitmap | null = null
+  const buffer = await fileToArrayBuffer(file)
+  const blob = fileToBlob(file, buffer)
 
   if (typeof createImageBitmap === 'function') {
     try {
-      bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
-    } catch {
-      try {
-        bitmap = await createImageBitmap(file)
-      } catch {
-        bitmap = null
+      const bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' })
+      const canvas = drawSquareCropToCanvas(bitmap, bitmap.width, bitmap.height, maxWidth, maxHeight)
+      bitmap.close()
+      const jpegBlob = await canvasToJpegBlob(canvas, quality)
+      if (jpegBlob.size > 0) {
+        return new File([jpegBlob], 'photo.jpg', { type: 'image/jpeg', lastModified: Date.now() })
       }
+    } catch (err) {
+      console.warn('[processImageToJpeg] createImageBitmap failed', err)
     }
   }
 
-  let blob: Blob
+  const img = await loadImageElement(file, buffer)
+  const orientation = readJpegExifOrientation(buffer)
+  const canvas = drawOrientedSquareCrop(img, orientation, maxWidth, maxHeight)
+  const jpegBlob = await canvasToJpegBlob(canvas, quality)
+  if (jpegBlob.size === 0) throw new Error('Processed photo is empty')
 
-  if (bitmap) {
-    const canvas = drawSquareCropToCanvas(bitmap, bitmap.width, bitmap.height, maxWidth, maxHeight)
-    bitmap.close()
-    blob = await canvasToJpegBlob(canvas, quality)
-  } else {
-    const img = await loadImageElement(file)
-    const canvas = drawSquareCropToCanvas(img, img.naturalWidth, img.naturalHeight, maxWidth, maxHeight)
-    blob = await canvasToJpegBlob(canvas, quality)
-  }
-
-  if (blob.size === 0) throw new Error('Processed photo is empty')
-
-  return new File([blob], 'photo.jpg', { type: 'image/jpeg', lastModified: Date.now() })
+  return new File([jpegBlob], 'photo.jpg', { type: 'image/jpeg', lastModified: Date.now() })
 }
 
 export interface PreparedPlayerPhoto {
   body: ArrayBuffer
-  contentType: string
-  extension: string
+  contentType: 'image/jpeg'
+  extension: 'jpg'
 }
 
-/** Normalize to JPEG for upload; fall back to the original bytes if processing fails. */
+/** Normalize gallery/camera picks to JPEG bytes for storage and display. */
 export async function preparePlayerPhotoForUpload(
   file: File,
   maxWidth = 400,
   maxHeight = 400
 ): Promise<PreparedPlayerPhoto> {
-  if (file.size === 0) throw new Error('Photo file is empty')
+  const processed = await processImageToJpeg(file, maxWidth, maxHeight)
+  const body = await processed.arrayBuffer()
+  if (body.byteLength === 0) throw new Error('Processed photo is empty')
+  return { body, contentType: 'image/jpeg', extension: 'jpg' }
+}
 
-  try {
-    const processed = await processImageToJpeg(file, maxWidth, maxHeight)
-    const body = await processed.arrayBuffer()
-    if (body.byteLength > 0) {
-      return { body, contentType: 'image/jpeg', extension: 'jpg' }
-    }
-  } catch (err) {
-    console.warn('[preparePlayerPhotoForUpload] processing failed, uploading original', err)
-  }
-
-  const body = await file.arrayBuffer()
-  if (body.byteLength === 0) throw new Error('Photo file is empty')
-
-  const contentType = file.type || 'image/jpeg'
-  const rawExt = file.name.split('.').pop()?.toLowerCase()
-  const extension =
-    rawExt && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(rawExt)
-      ? rawExt === 'jpeg'
-        ? 'jpg'
-        : rawExt
-      : contentType.includes('png')
-        ? 'png'
-        : 'jpg'
-
-  return { body, contentType, extension }
+export function playerPhotoPreviewUrl(prepared: PreparedPlayerPhoto): string {
+  return URL.createObjectURL(new Blob([prepared.body], { type: prepared.contentType }))
 }
