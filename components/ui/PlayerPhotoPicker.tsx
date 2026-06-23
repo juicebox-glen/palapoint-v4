@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import {
   PLAYER_PHOTO_CAMERA_ACCEPT,
   PLAYER_PHOTO_GALLERY_ACCEPT,
+  snapshotPlayerPhotoFile,
 } from '@/lib/images/process-image'
 import '@/app/styles/setup-form.css'
 
@@ -70,7 +71,14 @@ export default function PlayerPhotoPicker({
   const handleSelectedFile = useCallback(
     (file: File | undefined, input: HTMLInputElement | null) => {
       if (input) input.value = ''
-      if (file) onFile(file)
+      if (!file) return
+
+      void snapshotPlayerPhotoFile(file)
+        .then(onFile)
+        .catch((err) => {
+          console.warn('[PlayerPhotoPicker] snapshot failed, using original file', err)
+          onFile(file)
+        })
     },
     [onFile]
   )

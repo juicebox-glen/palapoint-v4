@@ -61,12 +61,7 @@ export default function PlayerPhotoCapture({
       } catch (err) {
         revokeLocalPreview()
         setPreview(currentPhotoUrl ?? null)
-        const message =
-          err instanceof Error
-            ? err.message === 'Image load failed'
-              ? 'This photo could not be read. Try a different image or use the camera.'
-              : err.message
-            : 'Failed to upload photo'
+        const message = err instanceof Error ? err.message : 'Failed to upload photo'
         console.error('[PlayerPhotoCapture] upload failed:', err)
         setError(message)
       } finally {
