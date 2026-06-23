@@ -397,12 +397,10 @@
 
 .court-ready-bg-half-a {
   background-color: var(--split-bg-a);
-  border-left: clamp(6px, 1vw, 12px) solid var(--team-a, #3A5FF9);
 }
 
 .court-ready-bg-half-b {
   background-color: var(--split-bg-b);
-  border-right: clamp(6px, 1vw, 12px) solid var(--team-b, #FF4DA6);
 }
 
 /* Same flex + gap as spectator pre-game — keeps team columns clear of VS */
