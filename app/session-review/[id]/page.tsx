@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 import SessionReviewDisplay, {
   type SessionReviewGame,
   type SessionReviewSession,
@@ -17,6 +18,7 @@ export default function SessionReviewPage() {
   const [session, setSession] = useState<SessionReviewSession | null>(null)
   const [games, setGames] = useState<SessionReviewGame[]>([])
   const [courtName, setCourtName] = useState('')
+  const [branding, setBranding] = useState<VenueBranding | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -29,14 +31,21 @@ export default function SessionReviewPage() {
       if (sessionData) {
         setSession(sessionData as SessionReviewSession)
 
-        const { data: court } = await supabase
-          .from('courts')
-          .select('name, slug')
-          .eq('id', sessionData.court_id)
-          .single()
+        const brand = await getVenueBrandingForCourtId(sessionData.court_id)
+        setBranding(brand)
 
-        if (court) {
-          setCourtName(court.name || 'Court')
+        if (brand?.courtName) {
+          setCourtName(brand.courtName)
+        } else {
+          const { data: court } = await supabase
+            .from('courts')
+            .select('name')
+            .eq('id', sessionData.court_id)
+            .single()
+
+          if (court) {
+            setCourtName(court.name || 'Court')
+          }
         }
       }
 
@@ -83,6 +92,7 @@ export default function SessionReviewPage() {
       session={session}
       games={games}
       loading={loading}
+      branding={branding}
       onGameClick={(gameId) => router.push(`/game/${gameId}`)}
     />
   )

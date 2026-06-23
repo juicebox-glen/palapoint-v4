@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchPreviewAvatar } from '@/components/shared/MatchPreviewAvatar'
 import { ScoreSepBar } from '@/components/ui/ScoreSepBar'
-import type { VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
 import { abbreviateSurname } from '@/lib/utils/player-names'
 import { normalizedSetScoreRows } from '@/components/shared/MatchFinishedPanel'
 import '@/app/styles/control-panel.css'
@@ -165,7 +165,7 @@ export default function SessionReviewDisplay({
 
   if (loading) {
     return (
-      <div className="control-panel">
+      <div className="control-panel" style={brandingStylesFor(branding)}>
         <div className="control-container control-container--preview">
           <div className="control-preview control-preview--session-review">
             <SetupScreenHeader branding={branding} />
@@ -177,7 +177,7 @@ export default function SessionReviewDisplay({
   }
 
   return (
-    <div className="control-panel">
+    <div className="control-panel" style={brandingStylesFor(branding)}>
       <div className="control-container control-container--preview">
         <div className="control-preview control-preview--session-review">
           <SetupScreenHeader branding={branding} />

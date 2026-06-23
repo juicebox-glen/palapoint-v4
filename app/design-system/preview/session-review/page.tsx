@@ -1,9 +1,9 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 
 import SessionReviewDisplay from '@/components/displays/SessionReviewDisplay'
+import { brandingStylesFor } from '@/lib/venue'
 
 import { PREVIEW_GAMES, PREVIEW_SESSION } from '../../lib/session-preview-data'
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
@@ -14,11 +14,7 @@ import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding
  */
 export default function SessionReviewPreviewPage() {
   const router = useRouter()
-  const brandingStyles = {
-    '--team-a': designSystemSquareOneBranding.primaryColor,
-    '--team-b': designSystemSquareOneBranding.secondaryColor,
-    '--brand-primary': designSystemSquareOneBranding.primaryColor,
-  } as CSSProperties
+  const brandingStyles = brandingStylesFor(designSystemSquareOneBranding)
 
   return (
     <div style={{ minHeight: '100vh', ...brandingStyles }}>

@@ -198,6 +198,20 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           }
         );
+      } else if (match.status === 'setup' && match.session_id) {
+        // Phone pre-game (ready / server select / 0–0): ignore hold so a long press cannot abandon setup.
+        return new Response(
+          JSON.stringify({
+            success: true,
+            action: 'hold_ignored',
+            reason: 'phone_pregame_setup',
+            match_id: match.id,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       } else {
         // Active match exists - end it
         const reason = match.winner ? 'completed' : 'abandoned';

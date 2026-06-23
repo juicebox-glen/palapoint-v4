@@ -31,6 +31,11 @@ function isQuickPlaySetupMatch(match: MatchState): boolean {
   return match.status === 'setup' && !match.session_id && !matchHasConfiguredPlayers(match)
 }
 
+/** Phone setup pre-game — hold must not abandon (ready, server select, 0–0 before first point). */
+function isPhonePreGameSetup(match: MatchState): boolean {
+  return match.status === 'setup' && Boolean(match.session_id)
+}
+
 /** Design-system / static preview: disables network and forces a specific screen. */
 export type CourtDisplayPreviewUI =
   | 'idle'
@@ -465,6 +470,8 @@ export default function CourtDisplay({
 
       if (key === 'r') {
         e.preventDefault()
+        // Phone pre-game: short vs hold is easy to confuse — only tap starts; use phone to cancel.
+        if (match && isPhonePreGameSetup(match)) return
         if (courtId) {
           fetch(`${SUPABASE_URL}/functions/v1/score`, {
             method: 'POST',
