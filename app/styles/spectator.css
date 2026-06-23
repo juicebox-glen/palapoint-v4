@@ -931,36 +931,6 @@
   }
 }
 
-/* Pregame TV — ~15% smaller hero vs base broadcast tokens (1920×1080) */
-.spectator-container--pregame .spectator-logo-img {
-  height: clamp(34px, 5.1vh, 68px) !important;
-  max-height: clamp(34px, 5.1vh, 68px) !important;
-}
-
-.spectator-container--pregame .spectator-pregame-broadcast {
-  gap: clamp(1.28rem, 3.4vw, 4.25rem);
-}
-
-.spectator-container--pregame .spectator-pregame-side-inner {
-  gap: clamp(1.15rem, 3.4vh, 2.35rem);
-}
-
-.spectator-container--pregame .spectator-pregame-photo-wrap {
-  width: clamp(85px, 13.5vw, 238px);
-}
-
-.spectator-container--pregame .spectator-pregame-initials {
-  font-size: clamp(1.7rem, 4.7vw, 4.25rem);
-}
-
-.spectator-container--pregame .spectator-pregame-names span {
-  font-size: clamp(1.62rem, 4.7vw, 4.25rem);
-}
-
-.spectator-container--pregame .spectator-pregame-vs {
-  font-size: clamp(1.49rem, 3.8vw, 3.85rem);
-}
-
 /* Bottom left — mode / sets (uses .spectator-header-badges + .spectator-court-badge) */
 
 /* ------------------------------------------------------------
@@ -990,4 +960,118 @@
   justify-content: center;
   min-height: 0;
   width: 100%;
+}
+
+/* ============================================================
+   TV SCALE (~15% vs base tokens at 1920×1080 court displays)
+   ============================================================ */
+
+/* Shared header logo */
+.spectator-container--idle .spectator-logo-img,
+.spectator-container--pregame .spectator-logo-img,
+.spectator-container--live .spectator-logo-img,
+.spectator-container--endgame .spectator-logo-img {
+  height: clamp(34px, 5.1vh, 68px) !important;
+  max-height: clamp(34px, 5.1vh, 68px) !important;
+}
+
+/* Idle */
+.spectator-container--idle .spectator-idle-hero {
+  gap: clamp(0.64rem, 1.7vh, 1.28rem);
+}
+
+.spectator-container--idle .spectator-idle-logo-img {
+  height: clamp(85px, 10.2vw, 204px) !important;
+  max-height: clamp(85px, 10.2vw, 204px) !important;
+  max-width: min(36vw, 476px) !important;
+}
+
+/* Pregame */
+.spectator-container--pregame .spectator-pregame-broadcast {
+  gap: clamp(1.28rem, 3.4vw, 4.25rem);
+}
+
+.spectator-container--pregame .spectator-pregame-side-inner {
+  gap: clamp(1.15rem, 3.4vh, 2.35rem);
+}
+
+.spectator-container--pregame .spectator-pregame-photo-wrap,
+.spectator-container--endgame .spectator-pregame-photo-wrap {
+  width: clamp(85px, 13.5vw, 238px);
+}
+
+.spectator-container--pregame .spectator-pregame-initials,
+.spectator-container--endgame .spectator-pregame-initials {
+  font-size: clamp(1.7rem, 4.7vw, 4.25rem);
+}
+
+.spectator-container--pregame .spectator-pregame-names span {
+  font-size: clamp(1.62rem, 4.7vw, 4.25rem);
+}
+
+.spectator-container--pregame .spectator-pregame-vs {
+  font-size: clamp(1.49rem, 3.8vw, 3.85rem);
+}
+
+/* Live scoreboard */
+.spectator-container--live .spectator-live-cards {
+  gap: clamp(0.55rem, 1.28vh, 1.15rem);
+}
+
+.spectator-container--live .spectator-live-serve-slot {
+  --spectator-live-serve-size: clamp(12px, 2vw, 24px);
+}
+
+.spectator-container--live .spectator-live-card {
+  --spectator-live-card-radius: clamp(9px, 1.2vw, 18px);
+}
+
+.spectator-container--live .spectator-live-card-inner {
+  --spectator-live-games-col-width: clamp(5.78rem, 11.65vw, 8.29rem);
+  --spectator-live-points-col-width: clamp(6.38rem, 13.2vw, 9.78rem);
+  --spectator-live-names-width: clamp(11.9rem, 27.2vw, 20.4rem);
+  --spectator-live-inner-pad-y: clamp(0.43rem, 0.94vh, 0.77rem);
+  --spectator-live-inner-gap: clamp(0.38rem, 0.72vw, 0.72rem);
+}
+
+.spectator-container--live .spectator-live-photo {
+  width: clamp(51px, 7.8vw, 116px);
+  border-radius: clamp(3px, 0.55vw, 8px);
+}
+
+.spectator-container--live .spectator-live-initials {
+  font-size: clamp(0.94rem, 2.2vw, 1.96rem);
+}
+
+.spectator-container--live .spectator-live-name-row span:first-child {
+  font-size: clamp(1.23rem, 3.27vw, 2.85rem);
+}
+
+.spectator-container--live .spectator-live-games,
+.spectator-container--live .spectator-live-points {
+  font-size: clamp(2.34rem, 7.01vw, 6.38rem);
+}
+
+.spectator-container--live .spectator-live-point-pill {
+  font-size: clamp(0.61rem, 1.23vw, 0.89rem);
+  padding: clamp(0.24rem, 0.51vh, 0.41rem) clamp(0.77rem, 1.49vw, 1.15rem);
+}
+
+/* Endgame (MatchWinHero) */
+.spectator-container--endgame .match-win-hero {
+  gap: clamp(1.15rem, 3.4vh, 2.35rem);
+  margin-top: clamp(-6.8rem, -20.4vh, -22.1rem);
+}
+
+.spectator-container--endgame .match-win-photos.spectator-pregame-photos {
+  gap: clamp(0.72rem, 1.9vw, 1.9rem);
+}
+
+.spectator-container--endgame .match-win-line {
+  font-size: clamp(1.7rem, 4.9vw, 4.46rem);
+}
+
+.spectator-container--endgame .match-win-scores .playing-finished-score-line {
+  gap: clamp(1.06rem, 4.25vw, 2.98rem);
+  font-size: clamp(2.13rem, 10.2vw, 5.95rem);
 }
