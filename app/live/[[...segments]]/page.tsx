@@ -12,7 +12,7 @@ export default function LivePage() {
 
   const { courtId, branding, isLoading, error } = useCourtRoute(segments)
 
-  if (isLoading && !courtId) {
+  if (isLoading) {
     return (
       <div style={brandingStylesFor(branding)}>
         <SpectatorIdle branding={branding} brandingStyles={brandingStylesFor(branding)} loading />
