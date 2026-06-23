@@ -253,6 +253,8 @@
   align-self: center;
   gap: clamp(0.65rem, 1.5vh, 1.35rem);
   padding: clamp(0.35rem, 1.5vw, 1.25rem) 0;
+  /* Nudge up — header + bottom badges make pure flex center feel low on TV */
+  margin-top: clamp(-2rem, -5vh, -1rem);
   min-height: 0;
   width: fit-content;
   max-width: min(95vw, 100%);
@@ -368,7 +370,7 @@
 }
 
 .spectator-live-point-pill-a {
-  background: color-mix(in srgb, var(--team-a) 24%, rgba(8, 10, 18, 0.72));
+  background: color-mix(in srgb, var(--team-a) 22%, var(--bg-secondary));
   border: 1px solid color-mix(in srgb, var(--team-a) 88%, white);
   box-shadow:
     0 0 14px rgba(91, 108, 255, 0.42),
@@ -376,7 +378,7 @@
 }
 
 .spectator-live-point-pill-b {
-  background: color-mix(in srgb, var(--team-b) 24%, rgba(8, 10, 18, 0.72));
+  background: color-mix(in srgb, var(--team-b) 22%, var(--bg-secondary));
   border: 1px solid color-mix(in srgb, var(--team-b) 88%, white);
   box-shadow:
     0 0 14px rgba(232, 74, 138, 0.42),
@@ -385,11 +387,13 @@
 
 @supports not (background: color-mix(in srgb, black 50%, white)) {
   .spectator-live-point-pill-a {
-    background: rgba(91, 108, 255, 0.2);
+    background: var(--bg-secondary);
+    border-color: var(--team-a);
   }
 
   .spectator-live-point-pill-b {
-    background: rgba(232, 74, 138, 0.2);
+    background: var(--bg-secondary);
+    border-color: var(--team-b);
   }
 }
 
@@ -546,8 +550,8 @@
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
   padding: clamp(0.55rem, 1.85vh, 1.15rem) clamp(1.3rem, 2.7vw, 2rem);
-  background: color-mix(in srgb, var(--bg-tertiary) 58%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
   border-right: none;
   border-radius: 0;
 }
@@ -570,7 +574,7 @@
   font-feature-settings: 'tnum' 1;
   padding: clamp(0.55rem, 1.85vh, 1.15rem) 0;
   background: var(--bg-tertiary);
-  border: 1px solid color-mix(in srgb, var(--border-default) 55%, transparent);
+  border: 1px solid var(--border-default);
   border-left: none;
   border-right: none;
   border-top-right-radius: var(--spectator-live-card-radius);
@@ -579,7 +583,7 @@
 
 @supports not (background: color-mix(in srgb, black 50%, white)) {
   .spectator-live-games {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-tertiary);
   }
 }
 
