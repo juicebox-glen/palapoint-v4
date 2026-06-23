@@ -16,6 +16,7 @@ function calculateSidesSwapped(match: {
   is_tiebreak?: boolean;
   team_a_points?: number;
   team_b_points?: number;
+  tiebreak_scores?: { team_a?: number; team_b?: number } | null;
 }): boolean {
   if (match.side_swap_enabled === false) return false;
   const setScores = match.set_scores || [];
@@ -25,7 +26,8 @@ function calculateSidesSwapped(match: {
   }
   totalGames += (match.team_a_games ?? 0) + (match.team_b_games ?? 0);
   if (match.is_tiebreak) {
-    const tiebreakPoints = (match.team_a_points ?? 0) + (match.team_b_points ?? 0);
+    const tiebreakPoints =
+      (match.tiebreak_scores?.team_a ?? 0) + (match.tiebreak_scores?.team_b ?? 0);
     const tiebreakSwaps = Math.floor(tiebreakPoints / 6);
     const gameSwaps = Math.floor((totalGames + 1) / 2);
     return (gameSwaps + tiebreakSwaps) % 2 === 1;

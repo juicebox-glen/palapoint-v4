@@ -71,6 +71,19 @@ function formatPoints(points: number, isAdvantage: boolean, isTiebreak: boolean)
   return pointMap[points] ?? '40'
 }
 
+function displayPointsForTeam(match: MatchState, team: 'a' | 'b'): number {
+  if (match.is_tiebreak) {
+    return team === 'a'
+      ? (match.tiebreak_scores?.team_a ?? 0)
+      : (match.tiebreak_scores?.team_b ?? 0)
+  }
+  return team === 'a' ? match.team_a_points : match.team_b_points
+}
+
+function totalTiebreakPoints(match: MatchState): number {
+  return (match.tiebreak_scores?.team_a ?? 0) + (match.tiebreak_scores?.team_b ?? 0)
+}
+
 function calculateSidesSwapped(match: MatchState): boolean {
   if (match.side_swap_enabled === false) return false
   const setScores = match.set_scores || []
@@ -80,7 +93,7 @@ function calculateSidesSwapped(match: MatchState): boolean {
   }
   totalGames += match.team_a_games + match.team_b_games
   if (match.is_tiebreak) {
-    const tiebreakPoints = match.team_a_points + match.team_b_points
+    const tiebreakPoints = totalTiebreakPoints(match)
     const tiebreakSwaps = Math.floor(tiebreakPoints / 6)
     const gameSwaps = Math.floor((totalGames + 1) / 2)
     return (gameSwaps + tiebreakSwaps) % 2 === 1
@@ -410,12 +423,12 @@ export default function CourtDisplay({
     totalGames += match.team_a_games + match.team_b_games
 
     if (match.is_tiebreak) {
-      const totalTiebreakPoints = match.team_a_points + match.team_b_points
-      const isAtSwapCondition = totalTiebreakPoints > 0 && totalTiebreakPoints % 6 === 0
-      if (isAtSwapCondition && totalTiebreakPoints !== prevTiebreakPointsRef.current) {
+      const totalTiebreakPointsCount = totalTiebreakPoints(match)
+      const isAtSwapCondition = totalTiebreakPointsCount > 0 && totalTiebreakPointsCount % 6 === 0
+      if (isAtSwapCondition && totalTiebreakPointsCount !== prevTiebreakPointsRef.current) {
         setShowSideSwap(true)
       }
-      prevTiebreakPointsRef.current = totalTiebreakPoints
+      prevTiebreakPointsRef.current = totalTiebreakPointsCount
     } else {
       const isAtSwapCondition = totalGames % 2 === 1
       if (isAtSwapCondition && totalGames !== prevTotalGamesRef.current) {
@@ -556,8 +569,8 @@ export default function CourtDisplay({
   useEffect(() => {
     if (isPreview) return
     if (!match || showSetWin || showSideSwap || showServerAnnouncement) return
-    const pa = match.team_a_points
-    const pb = match.team_b_points
+    const pa = displayPointsForTeam(match, 'a')
+    const pb = displayPointsForTeam(match, 'b')
     const prevPa = prevTeamAPointsRef.current
     const prevPb = prevTeamBPointsRef.current
     if (prevPa >= 0 && prevPb >= 0) {
@@ -584,6 +597,8 @@ export default function CourtDisplay({
   }, [
     match?.team_a_points,
     match?.team_b_points,
+    match?.tiebreak_scores,
+    match?.is_tiebreak,
     match,
     showSetWin,
     showSideSwap,
@@ -703,7 +718,7 @@ export default function CourtDisplay({
     totalGames += match.team_a_games + match.team_b_games
     let sidesBeforeSwap: boolean
     if (match.is_tiebreak) {
-      const tiebreakPoints = match.team_a_points + match.team_b_points
+      const tiebreakPoints = totalTiebreakPoints(match)
       const tiebreakSwaps = Math.floor(tiebreakPoints / 6)
       const gameSwaps = Math.floor((totalGames + 1) / 2)
       sidesBeforeSwap = (gameSwaps + tiebreakSwaps - 1) % 2 === 1
@@ -730,14 +745,14 @@ export default function CourtDisplay({
     teamOnLeft === 'a'
       ? {
           name: formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1),
-          points: match.team_a_points,
+          points: displayPointsForTeam(match, 'a'),
           games: match.team_a_games,
           setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
           team: 'a' as const,
         }
       : {
           name: formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2),
-          points: match.team_b_points,
+          points: displayPointsForTeam(match, 'b'),
           games: match.team_b_games,
           setsWon: setScores.filter((s) => s.team_b > s.team_a).length,
           team: 'b' as const,
@@ -747,14 +762,14 @@ export default function CourtDisplay({
     teamOnRight === 'a'
       ? {
           name: formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1),
-          points: match.team_a_points,
+          points: displayPointsForTeam(match, 'a'),
           games: match.team_a_games,
           setsWon: setScores.filter((s) => s.team_a > s.team_b).length,
           team: 'a' as const,
         }
       : {
           name: formatTeamScoreboard(match.team_b_player_1, match.team_b_player_2, 2),
-          points: match.team_b_points,
+          points: displayPointsForTeam(match, 'b'),
           games: match.team_b_games,
           setsWon: setScores.filter((s) => s.team_b > s.team_a).length,
           team: 'b' as const,
