@@ -18,7 +18,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
-  --shadow-glow-primary: 0 0 20px var(--brand-primary-glow);
+  --shadow-glow-primary: 0 0 20px color-mix(in srgb, var(--brand-primary) 35%, transparent);
   --shadow-glow-team-a: 0 0 20px var(--team-a-glow);
   --shadow-glow-team-b: 0 0 20px var(--team-b-glow);
   

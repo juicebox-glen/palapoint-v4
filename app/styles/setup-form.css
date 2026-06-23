@@ -441,7 +441,7 @@
 }
 
 .setup-input-wrap:focus-within {
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
 .setup-input-wrap.setup-input-wrap--player-name {
@@ -453,7 +453,7 @@
 }
 
 .setup-input-wrap.setup-input-wrap--player-name:focus-within {
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
 .setup-input-icon {
@@ -516,7 +516,7 @@
 
 .setup-randomize-btn:hover {
   color: var(--primary);
-  border-color: hsl(228 94% 60% / 0.5);
+  border-color: color-mix(in srgb, var(--brand-primary) 50%, transparent);
 }
 
 /* Active when any name is filled — primary blue like CTA */
@@ -583,7 +583,7 @@
 
 .setup-pin-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
 .setup-pin-input::placeholder {
@@ -636,7 +636,7 @@
 
 .setup-photo-trigger:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.4);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 40%, transparent);
 }
 
 .setup-photo-trigger:active:not(:disabled) {
@@ -692,7 +692,7 @@
 
 .setup-photo-thumb:hover:not(:disabled),
 .setup-photo-thumb:focus-visible {
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.4);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 40%, transparent);
 }
 
 .setup-photo-thumb:focus-visible {
@@ -736,7 +736,7 @@
 
 .setup-photo-remove:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px hsl(228 94% 60% / 0.5);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 50%, transparent);
 }
 
 .setup-photo-remove:active {

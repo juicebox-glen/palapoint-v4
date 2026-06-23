@@ -14,7 +14,7 @@
      ---------------------------------------- */
   --brand-primary: #3A5FF9;      /* Square One blue — primary actions */
   --brand-primary-hover: #2A4FE8;
-  --brand-primary-glow: rgba(58, 95, 249, 0.3);
+  --brand-primary-glow: color-mix(in srgb, var(--brand-primary) 30%, transparent);
   
   --brand-secondary: #8B5CF6;    /* Purple - secondary accent */
   
@@ -25,14 +25,14 @@
   --team-a: #3A5FF9;             /* Blue team */
   --team-a-light: #5A79FF;
   --team-a-dark: #2A4FE8;
-  --team-a-bg: rgba(58, 95, 249, 0.15);
-  --team-a-glow: rgba(58, 95, 249, 0.4);
+  --team-a-bg: color-mix(in srgb, var(--team-a) 15%, transparent);
+  --team-a-glow: color-mix(in srgb, var(--team-a) 40%, transparent);
   
   --team-b: #FF4DA6;             /* Pink team */
   --team-b-light: #FF6FB8;
   --team-b-dark: #E03D90;
-  --team-b-bg: rgba(255, 77, 166, 0.15);
-  --team-b-glow: rgba(255, 77, 166, 0.4);
+  --team-b-bg: color-mix(in srgb, var(--team-b) 15%, transparent);
+  --team-b-glow: color-mix(in srgb, var(--team-b) 40%, transparent);
   /* Aliases for layouts that expect --team-*-color (e.g. matchplay hub score borders) */
   --team-a-color: var(--team-a);
   --team-b-color: var(--team-b);

@@ -414,7 +414,7 @@
   box-sizing: border-box;
 }
 
-/* Bottom instruction — idle + ready (Inter, same placement) */
+/* Bottom instruction — idle + ready (Inter, same placement; vw-scaled at 1920×1080) */
 .court-idle-instruction,
 .court-ready-instruction {
   position: absolute;
@@ -422,10 +422,10 @@
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-family);
-  font-size: 48px;
+  font-size: clamp(1.125rem, 1.75vw, 1.75rem);
   font-weight: 600;
   color: var(--text-secondary, #a0a0a8);
-  letter-spacing: 2px;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   text-align: center;
   text-transform: uppercase;

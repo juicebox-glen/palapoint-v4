@@ -29,12 +29,6 @@ function parseHexColor(hex: string): [number, number, number] | null {
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255]
 }
 
-function rgbaFromHex(hex: string, alpha: number, fallback: string): string {
-  const rgb = parseHexColor(hex)
-  if (!rgb) return fallback
-  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`
-}
-
 function shiftHex(hex: string, delta: number): string {
   const rgb = parseHexColor(hex)
   if (!rgb) return hex
@@ -52,18 +46,18 @@ export function brandingStylesFor(branding: VenueBranding | null | undefined): C
   return {
     '--brand-primary': teamA,
     '--brand-primary-hover': shiftHex(teamA, -16),
-    '--brand-primary-glow': rgbaFromHex(teamA, 0.3, 'rgba(58, 95, 249, 0.3)'),
+    '--brand-primary-glow': `color-mix(in srgb, ${teamA} 30%, transparent)`,
     '--team-a': teamA,
     '--team-a-light': shiftHex(teamA, 24),
     '--team-a-dark': shiftHex(teamA, -16),
-    '--team-a-bg': rgbaFromHex(teamA, 0.15, 'rgba(58, 95, 249, 0.15)'),
-    '--team-a-glow': rgbaFromHex(teamA, 0.4, 'rgba(58, 95, 249, 0.4)'),
+    '--team-a-bg': `color-mix(in srgb, ${teamA} 15%, transparent)`,
+    '--team-a-glow': `color-mix(in srgb, ${teamA} 40%, transparent)`,
     '--team-a-color': teamA,
     '--team-b': teamB,
     '--team-b-light': shiftHex(teamB, 24),
     '--team-b-dark': shiftHex(teamB, -16),
-    '--team-b-bg': rgbaFromHex(teamB, 0.15, 'rgba(255, 77, 166, 0.15)'),
-    '--team-b-glow': rgbaFromHex(teamB, 0.4, 'rgba(255, 77, 166, 0.4)'),
+    '--team-b-bg': `color-mix(in srgb, ${teamB} 15%, transparent)`,
+    '--team-b-glow': `color-mix(in srgb, ${teamB} 40%, transparent)`,
     '--team-b-color': teamB,
   } as CSSProperties
 }
