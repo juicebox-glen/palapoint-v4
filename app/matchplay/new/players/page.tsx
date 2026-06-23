@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
-import { PLAYER_PHOTO_ACCEPT, processImageToJpeg } from '@/lib/images/process-image'
+import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
+import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { generateAmericanoPairings } from '@/lib/matchplay-americano-pairings'
 import {
@@ -16,25 +17,6 @@ import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
 const SESSION_KEY = 'matchplay_setup'
-
-function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </svg>
-  )
-}
 
 interface MatchplaySetupSession {
   playerCount: number
@@ -124,15 +106,16 @@ export default function MatchplayPlayersPage() {
   const applyFileToSlot = useCallback(async (slot: number, file: File) => {
     setProcessingSlot(slot)
     try {
-      const processed = await processImageToJpeg(file, 400, 400)
-      const previewUrl = URL.createObjectURL(processed)
+      const prepared = await preparePlayerPhotoForUpload(file)
+      const blob = new Blob([prepared.body], { type: prepared.contentType })
+      const previewUrl = URL.createObjectURL(blob)
       setPlayers((prev) => {
         const updated = [...prev]
         const prevPreview = updated[slot]?.photoPreview
         if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
         updated[slot] = {
           ...updated[slot],
-          photoBlob: processed,
+          photoBlob: blob,
           photoPreview: previewUrl,
         }
         return updated
@@ -145,9 +128,9 @@ export default function MatchplayPlayersPage() {
     }
   }, [])
 
-  const handleRemovePhoto = (index: number, ev: React.MouseEvent) => {
-    ev.preventDefault()
-    ev.stopPropagation()
+  const handleRemovePhoto = (index: number, ev?: React.MouseEvent) => {
+    ev?.preventDefault()
+    ev?.stopPropagation()
     clearSlotPhoto(index)
   }
   const handleStartEvent = async () => {
@@ -368,59 +351,12 @@ export default function MatchplayPlayersPage() {
                 const busy = processingSlot === index
                 return (
                   <div key={index} className="setup-player-row">
-                    {player.photoPreview ? (
-                      <div className="setup-photo-circle-wrap">
-                        <label
-                          className={`setup-photo-thumb${busy ? ' setup-photo-thumb--busy' : ''}`}
-                          aria-label={busy ? 'Processing photo' : 'Change photo'}
-                        >
-                          <input
-                            type="file"
-                            accept={PLAYER_PHOTO_ACCEPT}
-                            disabled={busy}
-                            className="setup-photo-file-input"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              e.target.value = ''
-                              if (file) void applyFileToSlot(index, file)
-                            }}
-                          />
-                          {busy ? (
-                            <span className="setup-photo-thumb-loading">…</span>
-                          ) : (
-                            <img src={player.photoPreview} alt="" />
-                          )}
-                        </label>
-                        {!busy ? (
-                          <button
-                            type="button"
-                            className="setup-photo-remove"
-                            onClick={(e) => handleRemovePhoto(index, e)}
-                            aria-label="Remove photo"
-                          >
-                            <span aria-hidden>×</span>
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <label
-                        className={`setup-photo-trigger${busy ? ' setup-photo-trigger--busy' : ''}`}
-                        aria-label={busy ? 'Processing photo' : 'Add player photo'}
-                      >
-                        <input
-                          type="file"
-                          accept={PLAYER_PHOTO_ACCEPT}
-                          disabled={busy}
-                          className="setup-photo-file-input"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            e.target.value = ''
-                            if (file) void applyFileToSlot(index, file)
-                          }}
-                        />
-                        {busy ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
-                      </label>
-                    )}
+                    <PlayerPhotoPicker
+                      previewUrl={player.photoPreview}
+                      busy={busy}
+                      onFile={(file) => void applyFileToSlot(index, file)}
+                      onRemove={player.photoPreview ? () => handleRemovePhoto(index) : undefined}
+                    />
 
                   <div className="setup-input-wrap setup-input-wrap--player-name">
                     <input

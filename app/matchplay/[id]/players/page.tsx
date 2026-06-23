@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { PLAYER_PHOTO_ACCEPT, processImageToJpeg } from '@/lib/images/process-image'
+import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
+import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -18,25 +19,6 @@ type EditablePlayer = PlayerSnapshot & {
   photoBlob: Blob | null
   photoPreview: string | null
   photoRemoved: boolean
-}
-
-function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-    >
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </svg>
-  )
 }
 
 export default function MatchplayEventPlayersPage() {
@@ -145,15 +127,16 @@ export default function MatchplayEventPlayersPage() {
   const applyFileToSlot = useCallback(async (slot: number, file: File) => {
     setProcessingSlot(slot)
     try {
-      const processed = await processImageToJpeg(file, 400, 400)
-      const previewUrl = URL.createObjectURL(processed)
+      const prepared = await preparePlayerPhotoForUpload(file)
+      const blob = new Blob([prepared.body], { type: prepared.contentType })
+      const previewUrl = URL.createObjectURL(blob)
       setPlayers((prev) => {
         const updated = [...prev]
         const prevPreview = updated[slot]?.photoPreview
         if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
         updated[slot] = {
           ...updated[slot]!,
-          photoBlob: processed,
+          photoBlob: blob,
           photoPreview: previewUrl,
           photoRemoved: false,
         }
@@ -167,9 +150,7 @@ export default function MatchplayEventPlayersPage() {
     }
   }, [])
 
-  const handleRemovePhoto = (index: number, ev: React.MouseEvent) => {
-    ev.preventDefault()
-    ev.stopPropagation()
+  const handleRemovePhoto = (index: number) => {
     const cur = players[index]
     if (!cur) return
 
@@ -283,69 +264,13 @@ export default function MatchplayEventPlayersPage() {
 
                 return (
                   <div key={player.id} className="setup-player-row">
-                    {displayUrl ? (
-                      <div className="setup-photo-circle-wrap">
-                        {isEditable ? (
-                          <label
-                            className={`setup-photo-thumb${busy ? ' setup-photo-thumb--busy' : ''}`}
-                            aria-label={busy ? 'Processing photo' : 'Change photo'}
-                          >
-                            <input
-                              type="file"
-                              accept={PLAYER_PHOTO_ACCEPT}
-                              disabled={busy}
-                              className="setup-photo-file-input"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                e.target.value = ''
-                                if (file) void applyFileToSlot(index, file)
-                              }}
-                            />
-                            {busy ? (
-                              <span className="setup-photo-thumb-loading">…</span>
-                            ) : (
-                              <img src={displayUrl} alt="" />
-                            )}
-                          </label>
-                        ) : (
-                          <div className="setup-photo-thumb setup-photo-trigger--static">
-                            <img src={displayUrl} alt="" />
-                          </div>
-                        )}
-                        {isEditable && !busy ? (
-                          <button
-                            type="button"
-                            className="setup-photo-remove"
-                            onClick={(e) => handleRemovePhoto(index, e)}
-                            aria-label="Remove photo"
-                          >
-                            <span aria-hidden>×</span>
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : isEditable ? (
-                      <label
-                        className={`setup-photo-trigger${busy ? ' setup-photo-trigger--busy' : ''}`}
-                        aria-label={busy ? 'Processing photo' : 'Add player photo'}
-                      >
-                        <input
-                          type="file"
-                          accept={PLAYER_PHOTO_ACCEPT}
-                          disabled={busy}
-                          className="setup-photo-file-input"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            e.target.value = ''
-                            if (file) void applyFileToSlot(index, file)
-                          }}
-                        />
-                        {busy ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
-                      </label>
-                    ) : (
-                      <div className="setup-photo-trigger setup-photo-trigger--static" aria-hidden>
-                        <CameraIcon />
-                      </div>
-                    )}
+                    <PlayerPhotoPicker
+                      previewUrl={displayUrl}
+                      busy={busy}
+                      disabled={!isEditable}
+                      onFile={(file) => void applyFileToSlot(index, file)}
+                      onRemove={displayUrl && isEditable ? () => handleRemovePhoto(index) : undefined}
+                    />
 
                     <div className="setup-input-wrap setup-input-wrap--player-name">
                       <input
