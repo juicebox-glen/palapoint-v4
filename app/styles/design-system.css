@@ -483,6 +483,12 @@
   font-size: 0.875rem;
 }
 
+.ds-screen-note {
+  margin-top: 0.5rem !important;
+  color: var(--text-muted) !important;
+  font-size: 0.8125rem !important;
+}
+
 .ds-screen-meta {
   display: flex;
   gap: 0.75rem;
@@ -559,6 +565,37 @@
 
 .ds-open-link:hover {
   text-decoration: underline;
+}
+
+/* TV preview canvas — fixed 1920×1080 so vh/vw match venue displays */
+html.ds-tv-embed,
+body.ds-tv-embed {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  margin: 0;
+}
+
+html.ds-tv-fit,
+body.ds-tv-fit {
+  margin: 0;
+  overflow: hidden;
+  background: #050505;
+}
+
+.ds-tv-viewport-fit-root {
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050505;
+}
+
+.ds-tv-viewport-canvas {
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-primary);
 }
 
 .ds-nav-route-hint {

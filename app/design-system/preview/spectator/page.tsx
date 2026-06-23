@@ -10,6 +10,7 @@ import { SpectatorLive } from '@/components/displays/spectator/SpectatorLive'
 import { SpectatorEndgame } from '@/components/displays/spectator/SpectatorEndgame'
 import type { MatchState } from '@/lib/types/match'
 
+import { TvViewportCanvas } from '../../components/TvViewportCanvas'
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
 
 const brandingStyles: CSSProperties = {
@@ -96,55 +97,70 @@ const mockEndgameMatch: MatchState = {
 function SpectatorPreviewContent() {
   const searchParams = useSearchParams()
   const state = searchParams.get('state') || 'idle'
+  const embed = searchParams.get('embed') === '1'
+
+  let content
 
   switch (state) {
     case 'idle':
-      return (
+      content = (
         <SpectatorIdle
           branding={designSystemSquareOneBranding}
           brandingStyles={brandingStyles}
         />
       )
+      break
     case 'pregame':
-      return (
+      content = (
         <SpectatorPregame
           match={mockPregameMatch}
           branding={designSystemSquareOneBranding}
           brandingStyles={brandingStyles}
         />
       )
+      break
     case 'live':
-      return (
+      content = (
         <SpectatorLive match={mockLiveMatch} branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} />
       )
+      break
     case 'set_point':
-      return (
+      content = (
         <SpectatorLive
           match={mockSetPointMatch}
           branding={designSystemSquareOneBranding}
           brandingStyles={brandingStyles}
         />
       )
+      break
     case 'match_point':
-      return (
+      content = (
         <SpectatorLive
           match={mockMatchPointMatch}
           branding={designSystemSquareOneBranding}
           brandingStyles={brandingStyles}
         />
       )
+      break
     case 'endgame':
-      return (
+      content = (
         <SpectatorEndgame match={mockEndgameMatch} branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} />
       )
+      break
     default:
-      return (
+      content = (
         <SpectatorIdle
           branding={designSystemSquareOneBranding}
           brandingStyles={brandingStyles}
         />
       )
   }
+
+  return (
+    <TvViewportCanvas embed={embed} style={brandingStyles}>
+      {content}
+    </TvViewportCanvas>
+  )
 }
 
 export default function SpectatorPreviewPage() {

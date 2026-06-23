@@ -1,6 +1,6 @@
 /* ============================================================
-   SPECTATOR DISPLAY - TV / large screen
-   Scales with viewport to fill the screen
+   SPECTATOR DISPLAY - TV / large screen (1920×1080 canonical)
+   Scales with viewport — vw for hero elements, vh/clamp elsewhere
    ============================================================ */
 
 /* ------------------------------------------------------------
@@ -200,9 +200,10 @@
 }
 
 .spectator-idle-logo-img {
-  height: clamp(140px, 32vh, 420px) !important;
-  max-height: clamp(140px, 32vh, 420px) !important;
-  max-width: min(88vw, 800px) !important;
+  /* Hero logo — vw-based at 1920×1080 (aligned with court idle, slightly larger). */
+  height: clamp(100px, 12vw, 240px) !important;
+  max-height: clamp(100px, 12vw, 240px) !important;
+  max-width: min(42vw, 560px) !important;
   width: auto !important;
   object-fit: contain !important;
 }

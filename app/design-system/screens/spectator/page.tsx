@@ -12,6 +12,10 @@ export default function SpectatorScreensPage() {
       <header className="ds-page-header">
         <h1>Spectator display</h1>
         <p>Lounge / bar TV for a court match — not the matchplay event board (1920×1080).</p>
+        <p className="ds-screen-note">
+          All sizing uses a 1920×1080 viewport. Design-system previews render at true TV dimensions; open a preview in
+          a new tab to check before deploying to a screen.
+        </p>
       </header>
 
       <section className="ds-section">

@@ -12,6 +12,9 @@ export default function CourtScreensPage() {
       <header className="ds-page-header">
         <h1>Court display</h1>
         <p>On-court TV for players — scoreboard and overlays (1920×1080).</p>
+        <p className="ds-screen-note">
+          Previews use a fixed 1920×1080 canvas so sizing matches production on venue TVs.
+        </p>
       </header>
 
       <section className="ds-section">
