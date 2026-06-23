@@ -931,6 +931,36 @@
   }
 }
 
+/* Pregame TV — scale hero down vs shared broadcast tokens (1920×1080 reads oversized on court TVs) */
+.spectator-container--pregame .spectator-logo-img {
+  height: clamp(36px, 5vh, 68px) !important;
+  max-height: clamp(36px, 5vh, 68px) !important;
+}
+
+.spectator-container--pregame .spectator-pregame-broadcast {
+  gap: clamp(1.25rem, 3vw, 4rem);
+}
+
+.spectator-container--pregame .spectator-pregame-side-inner {
+  gap: clamp(1rem, 3vh, 2.25rem);
+}
+
+.spectator-container--pregame .spectator-pregame-photo-wrap {
+  width: clamp(80px, 12vw, 220px);
+}
+
+.spectator-container--pregame .spectator-pregame-initials {
+  font-size: clamp(1.6rem, 4.25vw, 3.75rem);
+}
+
+.spectator-container--pregame .spectator-pregame-names span {
+  font-size: clamp(1.5rem, 4.25vw, 3.75rem);
+}
+
+.spectator-container--pregame .spectator-pregame-vs {
+  font-size: clamp(1.4rem, 3.5vw, 3.5rem);
+}
+
 /* Bottom left — mode / sets (uses .spectator-header-badges + .spectator-court-badge) */
 
 /* ------------------------------------------------------------
