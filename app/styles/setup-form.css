@@ -612,6 +612,7 @@
 }
 
 .setup-photo-trigger {
+  position: relative;
   width: var(--setup-photo-circle-size, 48px);
   height: var(--setup-photo-circle-size, 48px);
   flex-shrink: 0;
@@ -627,6 +628,19 @@
   align-items: center;
   justify-content: center;
   transition: background 0.2s, box-shadow 0.2s, transform 0.15s, color 0.2s;
+}
+
+label.setup-photo-trigger,
+label.setup-photo-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setup-photo-trigger--busy,
+.setup-photo-thumb--busy {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .setup-photo-trigger:hover:not(:disabled) {
@@ -670,6 +684,7 @@
 }
 
 .setup-photo-thumb {
+  position: relative;
   width: var(--setup-photo-circle-size, 48px);
   height: var(--setup-photo-circle-size, 48px);
   flex-shrink: 0;
@@ -756,14 +771,21 @@
 
 .setup-photo-file-input {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+  z-index: 1;
   border: 0;
+}
+
+.setup-photo-file-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 @keyframes setup-photo-fade-in {

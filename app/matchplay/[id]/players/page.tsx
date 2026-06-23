@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { PLAYER_PHOTO_ACCEPT, processImageToJpeg } from '@/lib/images/process-image'
 import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -38,38 +39,6 @@ function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: str
   )
 }
 
-function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const objectUrl = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl)
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Canvas not supported'))
-        return
-      }
-      canvas.width = maxWidth
-      canvas.height = maxHeight
-      const size = Math.min(img.width, img.height)
-      const x = (img.width - size) / 2
-      const y = (img.height - size) / 2
-      ctx.drawImage(img, x, y, size, size, 0, 0, maxWidth, maxHeight)
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('Canvas to blob failed'))),
-        'image/jpeg',
-        0.85
-      )
-    }
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl)
-      reject(new Error('Image load failed'))
-    }
-    img.src = objectUrl
-  })
-}
-
 export default function MatchplayEventPlayersPage() {
   const router = useRouter()
   const params = useParams()
@@ -82,8 +51,6 @@ export default function MatchplayEventPlayersPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const photoPickSlotRef = useRef<number | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
   const originalById = useMemo(() => new Map(originalPlayers.map((p) => [p.id, p])), [originalPlayers])
@@ -159,11 +126,6 @@ export default function MatchplayEventPlayersPage() {
     })
   }
 
-  const openPhotoPicker = (index: number) => {
-    photoPickSlotRef.current = index
-    fileInputRef.current?.click()
-  }
-
   const clearSlotPhoto = (index: number) => {
     setPlayers((prev) => {
       const updated = [...prev]
@@ -183,15 +145,15 @@ export default function MatchplayEventPlayersPage() {
   const applyFileToSlot = useCallback(async (slot: number, file: File) => {
     setProcessingSlot(slot)
     try {
-      const blob = await processImageToJpeg(file, 400, 400)
-      const previewUrl = URL.createObjectURL(blob)
+      const processed = await processImageToJpeg(file, 400, 400)
+      const previewUrl = URL.createObjectURL(processed)
       setPlayers((prev) => {
         const updated = [...prev]
         const prevPreview = updated[slot]?.photoPreview
         if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
         updated[slot] = {
           ...updated[slot]!,
-          photoBlob: blob,
+          photoBlob: processed,
           photoPreview: previewUrl,
           photoRemoved: false,
         }
@@ -204,15 +166,6 @@ export default function MatchplayEventPlayersPage() {
       setProcessingSlot(null)
     }
   }, [])
-
-  const handlePhotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    const slot = photoPickSlotRef.current
-    photoPickSlotRef.current = null
-    if (!file || slot === null) return
-    await applyFileToSlot(slot, file)
-  }
 
   const handleRemovePhoto = (index: number, ev: React.MouseEvent) => {
     ev.preventDefault()
@@ -332,31 +285,66 @@ export default function MatchplayEventPlayersPage() {
                   <div key={player.id} className="setup-player-row">
                     {displayUrl ? (
                       <div className="setup-photo-circle-wrap">
-                        <button
-                          type="button"
-                          className="setup-photo-thumb"
-                          onClick={() => isEditable && openPhotoPicker(index)}
-                          disabled={!isEditable || busy}
-                          aria-label={busy ? 'Processing photo' : 'Change photo'}
-                        >
-                          {busy ? <span className="setup-photo-thumb-loading">…</span> : <img src={displayUrl} alt="" />}
-                        </button>
+                        {isEditable ? (
+                          <label
+                            className={`setup-photo-thumb${busy ? ' setup-photo-thumb--busy' : ''}`}
+                            aria-label={busy ? 'Processing photo' : 'Change photo'}
+                          >
+                            <input
+                              type="file"
+                              accept={PLAYER_PHOTO_ACCEPT}
+                              disabled={busy}
+                              className="setup-photo-file-input"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                e.target.value = ''
+                                if (file) void applyFileToSlot(index, file)
+                              }}
+                            />
+                            {busy ? (
+                              <span className="setup-photo-thumb-loading">…</span>
+                            ) : (
+                              <img src={displayUrl} alt="" />
+                            )}
+                          </label>
+                        ) : (
+                          <div className="setup-photo-thumb setup-photo-trigger--static">
+                            <img src={displayUrl} alt="" />
+                          </div>
+                        )}
                         {isEditable && !busy ? (
-                          <button type="button" className="setup-photo-remove" onClick={(e) => handleRemovePhoto(index, e)} aria-label="Remove photo">
+                          <button
+                            type="button"
+                            className="setup-photo-remove"
+                            onClick={(e) => handleRemovePhoto(index, e)}
+                            aria-label="Remove photo"
+                          >
                             <span aria-hidden>×</span>
                           </button>
                         ) : null}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="setup-photo-trigger"
-                        onClick={() => isEditable && openPhotoPicker(index)}
-                        disabled={!isEditable || busy}
+                    ) : isEditable ? (
+                      <label
+                        className={`setup-photo-trigger${busy ? ' setup-photo-trigger--busy' : ''}`}
                         aria-label={busy ? 'Processing photo' : 'Add player photo'}
                       >
+                        <input
+                          type="file"
+                          accept={PLAYER_PHOTO_ACCEPT}
+                          disabled={busy}
+                          className="setup-photo-file-input"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            e.target.value = ''
+                            if (file) void applyFileToSlot(index, file)
+                          }}
+                        />
                         {busy ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
-                      </button>
+                      </label>
+                    ) : (
+                      <div className="setup-photo-trigger setup-photo-trigger--static" aria-hidden>
+                        <CameraIcon />
+                      </div>
                     )}
 
                     <div className="setup-input-wrap setup-input-wrap--player-name">
@@ -388,8 +376,6 @@ export default function MatchplayEventPlayersPage() {
           </button>
         </footer>
       ) : null}
-
-      <input ref={fileInputRef} type="file" accept="image/*" className="setup-photo-file-input" onChange={(e) => void handlePhotoFileChange(e)} />
     </div>
   )
 }

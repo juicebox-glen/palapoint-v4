@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { PLAYER_PHOTO_ACCEPT, processImageToJpeg } from '@/lib/images/process-image'
 import '@/app/styles/setup-form.css'
 
 interface Props {
@@ -9,42 +10,6 @@ interface Props {
   matchId: string
   currentPhotoUrl?: string | null
   onPhotoChange: (url: string | null) => void
-}
-
-function processImage(file: File, maxWidth: number, maxHeight: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const objectUrl = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl)
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Canvas not supported'))
-        return
-      }
-
-      canvas.width = maxWidth
-      canvas.height = maxHeight
-
-      const size = Math.min(img.width, img.height)
-      const x = (img.width - size) / 2
-      const y = (img.height - size) / 2
-
-      ctx.drawImage(img, x, y, size, size, 0, 0, maxWidth, maxHeight)
-
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('Canvas to blob failed'))),
-        'image/jpeg',
-        0.8
-      )
-    }
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl)
-      reject(new Error('Image load failed'))
-    }
-    img.src = objectUrl
-  })
 }
 
 function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: string }) {
@@ -66,6 +31,28 @@ function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: str
   )
 }
 
+function PhotoFileInput({
+  disabled,
+  onFile,
+}: {
+  disabled?: boolean
+  onFile: (file: File) => void
+}) {
+  return (
+    <input
+      type="file"
+      accept={PLAYER_PHOTO_ACCEPT}
+      disabled={disabled}
+      className="setup-photo-file-input"
+      onChange={(e) => {
+        const file = e.target.files?.[0]
+        e.target.value = ''
+        if (file) onFile(file)
+      }}
+    />
+  )
+}
+
 export default function PlayerPhotoCapture({
   playerId,
   matchId,
@@ -74,7 +61,6 @@ export default function PlayerPhotoCapture({
 }: Props) {
   const [preview, setPreview] = useState<string | null>(currentPhotoUrl ?? null)
   const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setPreview(currentPhotoUrl ?? null)
@@ -84,15 +70,14 @@ export default function PlayerPhotoCapture({
     async (file: File) => {
       setUploading(true)
       try {
-        const processedBlob = await processImage(file, 400, 400)
+        const processedFile = await processImageToJpeg(file, 400, 400)
         const filename = `${matchId}/${playerId}-${Date.now()}.jpg`
 
-        const { error } = await supabase.storage
-          .from('player-photos')
-          .upload(filename, processedBlob, {
-            contentType: 'image/jpeg',
-            upsert: true,
-          })
+        const { error } = await supabase.storage.from('player-photos').upload(filename, processedFile, {
+          contentType: 'image/jpeg',
+          upsert: true,
+          cacheControl: '3600',
+        })
 
         if (error) throw error
 
@@ -113,72 +98,48 @@ export default function PlayerPhotoCapture({
     [matchId, playerId, onPhotoChange]
   )
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (file) void processAndUpload(file)
-  }
-
-  const handleRemove = (e?: React.MouseEvent) => {
-    e?.preventDefault()
-    e?.stopPropagation()
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setPreview(null)
     onPhotoChange(null)
   }
 
-  const openPicker = () => {
-    console.log('[PlayerPhotoCapture] open native picker', { playerId })
-    fileInputRef.current?.click()
+  if (preview) {
+    return (
+      <div className="setup-photo-circle-wrap">
+        <label
+          className={`setup-photo-thumb${uploading ? ' setup-photo-thumb--busy' : ''}`}
+          aria-label={uploading ? 'Uploading photo' : 'Change photo'}
+        >
+          <PhotoFileInput disabled={uploading} onFile={(file) => void processAndUpload(file)} />
+          {uploading ? (
+            <span className="setup-photo-thumb-loading">…</span>
+          ) : (
+            <img src={preview} alt="" />
+          )}
+        </label>
+        {!uploading && (
+          <button
+            type="button"
+            className="setup-photo-remove"
+            onClick={handleRemove}
+            aria-label="Remove photo"
+          >
+            <span aria-hidden>×</span>
+          </button>
+        )}
+      </div>
+    )
   }
 
   return (
-    <>
-      {preview ? (
-        <div className="setup-photo-circle-wrap">
-          <button
-            type="button"
-            className="setup-photo-thumb"
-            onClick={openPicker}
-            disabled={uploading}
-            aria-label={uploading ? 'Uploading photo' : 'Change photo'}
-          >
-            {uploading ? (
-              <span className="setup-photo-thumb-loading">…</span>
-            ) : (
-              <img src={preview} alt="" />
-            )}
-          </button>
-          {!uploading && (
-            <button
-              type="button"
-              className="setup-photo-remove"
-              onClick={handleRemove}
-              disabled={uploading}
-              aria-label="Remove photo"
-            >
-              <span aria-hidden>×</span>
-            </button>
-          )}
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="setup-photo-trigger"
-          onClick={openPicker}
-          disabled={uploading}
-          aria-label={uploading ? 'Uploading photo' : 'Add player photo'}
-        >
-          {uploading ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
-        </button>
-      )}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="setup-photo-file-input"
-      />
-    </>
+    <label
+      className={`setup-photo-trigger${uploading ? ' setup-photo-trigger--busy' : ''}`}
+      aria-label={uploading ? 'Uploading photo' : 'Add player photo'}
+    >
+      <PhotoFileInput disabled={uploading} onFile={(file) => void processAndUpload(file)} />
+      {uploading ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
+    </label>
   )
 }

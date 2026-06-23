@@ -864,6 +864,41 @@
   overflow: hidden;
 }
 
+.match-win-overlay-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-primary);
+}
+
+.match-win-overlay .match-win-hero {
+  gap: clamp(1rem, 2.5vh, 2rem);
+  max-width: min(88vw, 58rem);
+  margin-top: 0;
+  animation: fadeInUp 0.5s ease-in-out;
+}
+
+.match-win-overlay .match-win-photos.spectator-pregame-photos {
+  gap: clamp(0.65rem, 1.75vw, 1.75rem);
+}
+
+.match-win-overlay .spectator-pregame-photo-wrap {
+  width: clamp(75px, 11.5vw, 200px);
+}
+
+.match-win-overlay .spectator-pregame-initials {
+  font-size: clamp(1.45rem, 4vw, 3.5rem);
+}
+
+.match-win-overlay .match-win-line {
+  font-size: clamp(1.6rem, 4.5vw, 3.75rem);
+}
+
+.match-win-overlay .match-win-scores .playing-finished-score-line {
+  gap: clamp(1rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 9vw, 5.5rem);
+}
+
 .match-win-hero {
   display: flex;
   flex-direction: column;

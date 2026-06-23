@@ -38,20 +38,12 @@ export default function MatchWinOverlay({ match, onComplete }: MatchWinOverlayPr
   const winnerTeam = resolveFinishedWinnerSide(match)
   if (winnerTeam === null) return null
 
-  const borderColor = winnerTeam === 'a' ? 'var(--team-a)' : 'var(--team-b)'
-
   return (
     <div className="match-win-overlay screen-wrapper">
-      <div className="screen-content screen-bordered" style={{ borderColor }}>
-        <div className="screen-border" style={{ borderColor }} />
-
+      <div className="screen-content match-win-overlay-content">
         <div className="content-centered">
           <MatchWinHero match={match} />
         </div>
-      </div>
-
-      <div className="match-win-footer">
-        <p className="match-win-instruction">Press any key to continue</p>
       </div>
     </div>
   )

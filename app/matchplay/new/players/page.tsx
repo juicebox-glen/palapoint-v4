@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react'
+import { useState, useEffect, useCallback, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
+import { PLAYER_PHOTO_ACCEPT, processImageToJpeg } from '@/lib/images/process-image'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { generateAmericanoPairings } from '@/lib/matchplay-americano-pairings'
 import {
@@ -15,38 +16,6 @@ import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
 const SESSION_KEY = 'matchplay_setup'
-
-function processImageToJpeg(file: File, maxWidth: number, maxHeight: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const objectUrl = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl)
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Canvas not supported'))
-        return
-      }
-      canvas.width = maxWidth
-      canvas.height = maxHeight
-      const size = Math.min(img.width, img.height)
-      const x = (img.width - size) / 2
-      const y = (img.height - size) / 2
-      ctx.drawImage(img, x, y, size, size, 0, 0, maxWidth, maxHeight)
-      canvas.toBlob(
-        (blob) => (blob ? resolve(blob) : reject(new Error('Canvas to blob failed'))),
-        'image/jpeg',
-        0.85
-      )
-    }
-    img.onerror = () => {
-      URL.revokeObjectURL(objectUrl)
-      reject(new Error('Image load failed'))
-    }
-    img.src = objectUrl
-  })
-}
 
 function CameraIcon({ className = 'setup-photo-trigger-svg' }: { className?: string }) {
   return (
@@ -89,8 +58,6 @@ function generateEventName(): string {
 export default function MatchplayPlayersPage() {
   const router = useRouter()
   const branding = useMatchplaySetupBranding()
-  const photoPickSlotRef = useRef<number | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
   const [config, setConfig] = useState<MatchplaySetupSession | null>(null)
@@ -144,11 +111,6 @@ export default function MatchplayPlayersPage() {
     })
   }
 
-  const openPhotoPicker = (index: number) => {
-    photoPickSlotRef.current = index
-    fileInputRef.current?.click()
-  }
-
   const clearSlotPhoto = (index: number) => {
     setPlayers((prev) => {
       const updated = [...prev]
@@ -162,15 +124,15 @@ export default function MatchplayPlayersPage() {
   const applyFileToSlot = useCallback(async (slot: number, file: File) => {
     setProcessingSlot(slot)
     try {
-      const blob = await processImageToJpeg(file, 400, 400)
-      const previewUrl = URL.createObjectURL(blob)
+      const processed = await processImageToJpeg(file, 400, 400)
+      const previewUrl = URL.createObjectURL(processed)
       setPlayers((prev) => {
         const updated = [...prev]
         const prevPreview = updated[slot]?.photoPreview
         if (prevPreview?.startsWith('blob:')) URL.revokeObjectURL(prevPreview)
         updated[slot] = {
           ...updated[slot],
-          photoBlob: blob,
+          photoBlob: processed,
           photoPreview: previewUrl,
         }
         return updated
@@ -182,15 +144,6 @@ export default function MatchplayPlayersPage() {
       setProcessingSlot(null)
     }
   }, [])
-
-  const handlePhotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    const slot = photoPickSlotRef.current
-    photoPickSlotRef.current = null
-    if (!file || slot === null) return
-    await applyFileToSlot(slot, file)
-  }
 
   const handleRemovePhoto = (index: number, ev: React.MouseEvent) => {
     ev.preventDefault()
@@ -417,19 +370,27 @@ export default function MatchplayPlayersPage() {
                   <div key={index} className="setup-player-row">
                     {player.photoPreview ? (
                       <div className="setup-photo-circle-wrap">
-                        <button
-                          type="button"
-                          className="setup-photo-thumb"
-                          onClick={() => openPhotoPicker(index)}
-                          disabled={busy}
+                        <label
+                          className={`setup-photo-thumb${busy ? ' setup-photo-thumb--busy' : ''}`}
                           aria-label={busy ? 'Processing photo' : 'Change photo'}
                         >
+                          <input
+                            type="file"
+                            accept={PLAYER_PHOTO_ACCEPT}
+                            disabled={busy}
+                            className="setup-photo-file-input"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              e.target.value = ''
+                              if (file) void applyFileToSlot(index, file)
+                            }}
+                          />
                           {busy ? (
                             <span className="setup-photo-thumb-loading">…</span>
                           ) : (
                             <img src={player.photoPreview} alt="" />
                           )}
-                        </button>
+                        </label>
                         {!busy ? (
                           <button
                             type="button"
@@ -442,15 +403,23 @@ export default function MatchplayPlayersPage() {
                         ) : null}
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        className="setup-photo-trigger"
-                        onClick={() => openPhotoPicker(index)}
-                        disabled={busy}
+                      <label
+                        className={`setup-photo-trigger${busy ? ' setup-photo-trigger--busy' : ''}`}
                         aria-label={busy ? 'Processing photo' : 'Add player photo'}
                       >
+                        <input
+                          type="file"
+                          accept={PLAYER_PHOTO_ACCEPT}
+                          disabled={busy}
+                          className="setup-photo-file-input"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            e.target.value = ''
+                            if (file) void applyFileToSlot(index, file)
+                          }}
+                        />
                         {busy ? <span className="setup-photo-thumb-loading">…</span> : <CameraIcon />}
-                      </button>
+                      </label>
                     )}
 
                   <div className="setup-input-wrap setup-input-wrap--player-name">
@@ -483,14 +452,6 @@ export default function MatchplayPlayersPage() {
           {isSubmitting ? 'Creating Event…' : 'Start Event'}
         </button>
       </footer>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="setup-photo-file-input"
-        onChange={(e) => void handlePhotoFileChange(e)}
-      />
     </div>
   )
 }
