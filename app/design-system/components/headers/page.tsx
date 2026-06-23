@@ -14,7 +14,27 @@ export default function HeadersPage() {
 
       <section className="ds-section">
         <h2>Spectator Display Header</h2>
-        <p>Full-width header for TV displays (1920×1080)</p>
+        <p>Full-width header for TV displays (1920×1080). Idle omits the logo — it sits centered in the hero instead.</p>
+
+        <div className="ds-viewport-demo ds-viewport-demo--tv" style={{ marginBottom: '1.5rem' }}>
+          <div className="spectator-container spectator-container--idle" style={{ height: '280px', minHeight: '280px', padding: '1rem 1.5rem' }}>
+            <div className="spectator-header" style={{ marginBottom: 0, justifyContent: 'flex-end' }}>
+              <div className="spectator-header-badges">
+                <div className="spectator-offline-badge" style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}>
+                  <span className="spectator-offline-dot" style={{ width: '8px', height: '8px' }} aria-hidden />
+                  <span>OFFLINE</span>
+                </div>
+                <div className="spectator-court-badge" style={{ padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}>
+                  COURT 1
+                </div>
+              </div>
+            </div>
+            <div className="spectator-idle-hero" style={{ flex: 1 }}>
+              <span style={{ fontSize: '2rem', fontWeight: 700 }}>VENUE LOGO</span>
+            </div>
+          </div>
+          <p style={{ marginTop: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Idle — logo centered, OFFLINE + court top-right</p>
+        </div>
 
         <div className="ds-viewport-demo ds-viewport-demo--tv">
           <div
@@ -78,8 +98,8 @@ export default function HeadersPage() {
           <tbody>
             <tr>
               <td>Spectator - Idle</td>
-              <td>Left</td>
-              <td>OFFLINE badge</td>
+              <td>Centered (hero)</td>
+              <td>OFFLINE + Court (header right)</td>
             </tr>
             <tr>
               <td>Spectator - Pregame</td>
@@ -89,7 +109,7 @@ export default function HeadersPage() {
             <tr>
               <td>Spectator - Live</td>
               <td>Left</td>
-              <td>Game Mode + LIVE</td>
+              <td>LIVE + Court</td>
             </tr>
             <tr>
               <td>Spectator - Endgame</td>

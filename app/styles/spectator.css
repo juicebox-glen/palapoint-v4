@@ -164,8 +164,10 @@
 
 .spectator-container--idle {
   background: transparent;
-  min-height: 0;
+  min-height: 100vh;
+  height: 100vh;
   isolation: isolate;
+  overflow: hidden;
 }
 
 .spectator-container--idle .spectator-header {
@@ -182,9 +184,19 @@
 .spectator-idle-hero {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: clamp(0.75rem, 2vh, 1.5rem);
   min-height: 0;
+}
+
+.spectator-idle-loading {
+  margin: 0;
+  font-size: clamp(0.875rem, 2vh, 1.25rem);
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
 }
 
 .spectator-idle-logo-img {
@@ -215,7 +227,8 @@
 
 .spectator-container--live {
   background: transparent;
-  min-height: 0;
+  min-height: 100vh;
+  height: 100vh;
   isolation: isolate;
   overflow: visible;
 }

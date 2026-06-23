@@ -30,9 +30,11 @@ export default function SpectatorDisplay({
 
   if (isLoading) {
     return (
-      <div className="spectator-container" style={brandingStyles}>
-        <p className="spectator-loading">Loading...</p>
-      </div>
+      <SpectatorIdle
+        branding={branding}
+        brandingStyles={brandingStyles}
+        loading
+      />
     )
   }
 

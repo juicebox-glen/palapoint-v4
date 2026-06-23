@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useCourtRoute } from '@/lib/hooks/useCourtRoute'
 import SpectatorDisplay from '@/components/displays/spectator'
+import { SpectatorIdle } from '@/components/displays/spectator/SpectatorIdle'
 import { brandingStylesFor } from '@/lib/venue'
 
 export default function LivePage() {
@@ -11,10 +12,10 @@ export default function LivePage() {
 
   const { courtId, branding, isLoading, error } = useCourtRoute(segments)
 
-  if (isLoading) {
+  if (isLoading && !courtId) {
     return (
-      <div className="spectator-container">
-        <p className="spectator-loading">Loading...</p>
+      <div style={brandingStylesFor(branding)}>
+        <SpectatorIdle branding={branding} brandingStyles={brandingStylesFor(branding)} loading />
       </div>
     )
   }

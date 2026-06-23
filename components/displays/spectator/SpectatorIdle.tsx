@@ -9,9 +9,15 @@ import { SpectatorHeader } from './SpectatorHeader'
 interface SpectatorIdleProps {
   branding: VenueBranding | null
   brandingStyles?: CSSProperties
+  /** When true, keep idle chrome visible while match data loads */
+  loading?: boolean
 }
 
-export function SpectatorIdle({ branding, brandingStyles }: SpectatorIdleProps) {
+export function SpectatorIdle({
+  branding,
+  brandingStyles,
+  loading = false,
+}: SpectatorIdleProps) {
   const courtLabel = (branding?.courtName ?? 'Court 1').toUpperCase()
 
   return (
@@ -28,6 +34,7 @@ export function SpectatorIdle({ branding, brandingStyles }: SpectatorIdleProps) 
       />
       <div className="spectator-idle-hero">
         <VenueLogo branding={branding} className="spectator-idle-logo-img" />
+        {loading ? <p className="spectator-idle-loading">Loading...</p> : null}
       </div>
     </div>
   )
