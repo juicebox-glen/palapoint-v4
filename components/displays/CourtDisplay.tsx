@@ -17,6 +17,22 @@ import { VenueLogo } from '@/components/shared/VenueLogo'
 
 import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
 
+async function fetchLatestMatchForCourt(courtId: string): Promise<MatchState | null> {
+  const { data, error } = await supabase
+    .from('live_matches')
+    .select('*')
+    .eq('court_id', courtId)
+    .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) {
+    console.warn('[CourtDisplay] fetchLatestMatch:', error.message)
+    return null
+  }
+  return data as MatchState | null
+}
+
 function matchHasConfiguredPlayers(match: MatchState): boolean {
   return [
     match.team_a_player_1,
@@ -169,8 +185,34 @@ export default function CourtDisplay({
   const [rightScoreAnimating, setRightScoreAnimating] = useState(false)
   const awaitingButtonPressRef = useRef(awaitingButtonPress)
   const showServerAnnouncementRef = useRef(showServerAnnouncement)
+  const matchRef = useRef<MatchState | null>(match)
   awaitingButtonPressRef.current = awaitingButtonPress
   showServerAnnouncementRef.current = showServerAnnouncement
+  matchRef.current = match
+
+  const applyFetchedMatch = useCallback((row: MatchState | null) => {
+    if (!row || row.status === 'abandoned') {
+      setMatch(null)
+      setAwaitingButtonPress(false)
+      setShowServerAnnouncement(false)
+      return
+    }
+    const prev = matchRef.current
+    if (prev?.id !== row.id) {
+      setAwaitingButtonPress(false)
+      setShowSetWin(false)
+      setShowSideSwap(false)
+      setShowServerAnnouncement(false)
+      setSetWinData(null)
+    }
+    setMatch(row)
+  }, [])
+
+  const fetchLatestMatch = useCallback(async () => {
+    if (!courtId) return
+    const row = await fetchLatestMatchForCourt(courtId)
+    applyFetchedMatch(row)
+  }, [courtId, applyFetchedMatch])
 
   useLayoutEffect(() => {
     if (!preview) return
@@ -216,18 +258,8 @@ export default function CourtDisplay({
       return
     }
     if (!courtId) return
-    async function loadMatch() {
-      const { data } = await supabase
-        .from('live_matches')
-        .select('*')
-        .eq('court_id', courtId)
-        .in('status', ['setup', 'in_progress'])
-        .maybeSingle()
-      setMatch(data as MatchState | null)
-      setLoading(false)
-    }
-    loadMatch()
-  }, [courtId, isPreview])
+    void fetchLatestMatch().finally(() => setLoading(false))
+  }, [courtId, isPreview, fetchLatestMatch])
 
   useEffect(() => {
     if (isPreview) return
@@ -301,11 +333,63 @@ export default function CourtDisplay({
           }
         }
     )
-    ch.subscribe()
+    ch.subscribe((status: string) => {
+      console.log('[CourtDisplay] Realtime status:', status)
+
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('[CourtDisplay] Realtime issue, refetching...')
+        void fetchLatestMatch()
+      }
+
+      if (status === 'SUBSCRIBED') {
+        void fetchLatestMatch()
+      }
+    })
     return () => {
       supabase.removeChannel(ch)
     }
+  }, [courtId, isPreview, fetchLatestMatch])
+
+  useEffect(() => {
+    if (!courtId || isPreview) return
+
+    const interval = setInterval(() => {
+      void fetchLatestMatch()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [courtId, isPreview, fetchLatestMatch])
+
+  useEffect(() => {
+    if (!courtId || isPreview) return
+
+    const warmUp = () => {
+      void fetch(`${SUPABASE_URL}/functions/v1/score`, {
+        method: 'POST',
+        headers: supabaseFunctionHeaders(),
+        body: JSON.stringify({ ping: true }),
+      }).catch(() => {})
+    }
+
+    warmUp()
+    const interval = setInterval(warmUp, 90 * 1000)
+
+    return () => clearInterval(interval)
   }, [courtId, isPreview])
+
+  useEffect(() => {
+    if (!courtId || isPreview) return
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[CourtDisplay] Visible, refetching...')
+        void fetchLatestMatch()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [courtId, isPreview, fetchLatestMatch])
 
   useEffect(() => {
     if (isPreview) return

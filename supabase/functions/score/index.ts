@@ -43,9 +43,10 @@ const corsHeaders = {
 };
 
 interface ScoreRequest {
-  court_id: string;
-  team: 'a' | 'b';
-  source: 'button_a' | 'button_b' | 'control_panel';
+  ping?: boolean;
+  court_id?: string;
+  team?: 'a' | 'b';
+  source?: 'button_a' | 'button_b' | 'control_panel';
   gesture?: 'click' | 'double_click' | 'hold';  // defaults to 'click'
   event_id?: string;
 }
@@ -59,6 +60,14 @@ Deno.serve(async (req) => {
   try {
     // Parse request body
     const body: ScoreRequest = await req.json();
+
+    if (body.ping) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { court_id, team, source, gesture = 'click', event_id } = body;
 
     // Validate required fields
