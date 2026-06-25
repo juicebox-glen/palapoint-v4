@@ -74,6 +74,32 @@ async function fetchLatestLiveMatchForCourt(courtId: string): Promise<MatchState
   return normalizePlayingMatch(data as MatchState | null)
 }
 
+/** Prefer the phone's match row so a later setup row doesn't mask a completed game. */
+async function fetchPlayingMatchForCourt(
+  courtId: string,
+  preferMatchId?: string | null
+): Promise<MatchState | null> {
+  if (preferMatchId) {
+    const { data, error } = await supabase
+      .from('live_matches')
+      .select('*')
+      .eq('id', preferMatchId)
+      .eq('court_id', courtId)
+      .maybeSingle()
+    if (!error && data) {
+      return normalizePlayingMatch(data as MatchState)
+    }
+  }
+  return fetchLatestLiveMatchForCourt(courtId)
+}
+
+/** Keep polling until post-game so completion isn't missed when Realtime drops (common on Android). */
+function shouldPollPlayingMatch(m: MatchState | null): boolean {
+  if (!m) return false
+  if (isMatchPostGame(m)) return false
+  return isAwaitingCourtAck(m) || isLivePlayingMatch(m) || m.session_id != null
+}
+
 type LiveMatchesRealtimePayload = {
   eventType: string
   new?: MatchState
@@ -294,7 +320,8 @@ export default function PlayingDisplay({
     if (isPreview || !courtId) return
 
     async function refreshMatchFromDb() {
-      const row = await fetchLatestLiveMatchForCourt(courtId)
+      const preferId = matchRef.current?.id ?? null
+      const row = await fetchPlayingMatchForCourt(courtId, preferId)
       setMatch(row)
     }
 
@@ -362,20 +389,19 @@ export default function PlayingDisplay({
   }, [courtId, isPreview])
 
   /**
-   * Poll while awaiting first FLIC ack (fast) and during live play (slower) so completion reaches the player
-   * screen even when realtime misses updates. Stops when match leaves those states (e.g. completed).
+   * Poll while awaiting court ack, during live play, or for any phone-setup session match until post-game.
+   * Android often suspends Realtime while the tab is in the background.
    */
   useEffect(() => {
     if (isPreview || !courtId || !match) return
+    if (!shouldPollPlayingMatch(match)) return
 
     const awaitingAck = isAwaitingCourtAck(match)
-    const livePlaying = isLivePlayingMatch(match)
-    if (!awaitingAck && !livePlaying) return
-
     const intervalMs = awaitingAck ? 2000 : 5000
 
     const poll = async () => {
-      const row = await fetchLatestLiveMatchForCourt(courtId)
+      const preferId = matchRef.current?.id ?? match.id
+      const row = await fetchPlayingMatchForCourt(courtId, preferId)
       if (!row) return
       setMatch(row)
     }
@@ -383,20 +409,15 @@ export default function PlayingDisplay({
     void poll()
     const iv = setInterval(() => void poll(), intervalMs)
     return () => clearInterval(iv)
-  }, [isPreview, courtId, match?.id, match?.started_at, match?.status])
+  }, [isPreview, courtId, match?.id, match?.started_at, match?.status, match?.session_id, match?.winner])
 
   useEffect(() => {
     if (isPreview || !courtId) return
     const onVisible = () => {
       if (document.visibilityState !== 'visible') return
-      const prev = matchRef.current
-      if (!prev) return
-      const shouldRefetch =
-        isAwaitingCourtAck(prev) || isLivePlayingMatch(prev)
-      if (!shouldRefetch) return
-      void fetchLatestLiveMatchForCourt(courtId).then((row) => {
-        if (!row) return
-        setMatch(row)
+      const preferId = matchRef.current?.id ?? null
+      void fetchPlayingMatchForCourt(courtId, preferId).then((row) => {
+        if (row) setMatch(row)
       })
     }
     document.addEventListener('visibilitychange', onVisible)

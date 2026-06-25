@@ -164,7 +164,8 @@ export default function SetupDisplay({
   const [playerPhotos, setPlayerPhotos] = useState<PlayerPhotosState>(EMPTY_PLAYER_PHOTOS)
 
   const { match: liveCourtMatch } = useLiveMatch<MatchState>(isPreview ? null : courtId, {
-    enablePolling: false,
+    enablePolling: Boolean(confirmationMatch),
+    pollInterval: 3000,
   })
 
   const handlePlayerPhotoChange = useCallback(
@@ -244,7 +245,14 @@ export default function SetupDisplay({
     if (isPreview || !confirmationMatch) return
     const id = confirmationMatch.id
     const row = liveCourtMatch
-    if (row && row.id === id && row.status === 'in_progress') {
+    if (!row || row.id !== id) return
+    if (
+      row.started_at ||
+      row.status === 'in_progress' ||
+      row.status === 'completed' ||
+      row.status === 'abandoned' ||
+      row.winner
+    ) {
       router.push(`/playing/${courtSlug}`)
     }
   }, [isPreview, confirmationMatch, liveCourtMatch, courtSlug, router])
