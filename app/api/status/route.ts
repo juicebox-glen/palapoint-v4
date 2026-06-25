@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import type { StatusPayload, StatusRecentGame } from '@/lib/api/status'
 
-type CourtJoin = { name?: string | null; venues?: { name?: string | null; location?: string | null } | null }
+type CourtJoin = { name?: string | null; venues?: { name?: string | null; slug?: string | null } | null }
 
 type LiveRow = {
   id: string
@@ -61,7 +61,7 @@ function courtLabel(courts: LiveRow['courts']): { court: string; venue: string }
   const venue = unwrapJoin(court?.venues)
   return {
     court: court?.name?.trim() || 'Court',
-    venue: venue?.location?.trim() || venue?.name?.trim() || 'Venue',
+    venue: venue?.name?.trim() || venue?.slug?.trim() || 'Venue',
   }
 }
 
@@ -83,14 +83,14 @@ export async function GET() {
   const [liveRes, archivedRes, activeRes] = await Promise.all([
     supabase
       .from('live_matches')
-      .select('id, started_at, status, courts(name, venues(name, location))')
+      .select('id, started_at, status, courts(name, venues(name, slug))')
       .not('started_at', 'is', null)
       .gte('started_at', monthStart.toISOString())
       .order('started_at', { ascending: false })
       .limit(2000),
     supabase
       .from('matches')
-      .select('id, started_at, courts(name, venues(name, location))')
+      .select('id, started_at, courts(name, venues(name, slug))')
       .gte('started_at', monthStart.toISOString())
       .order('started_at', { ascending: false })
       .limit(2000),
