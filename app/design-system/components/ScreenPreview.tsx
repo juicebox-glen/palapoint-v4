@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 import {
+  COURT_VIEWPORT_HEIGHT,
+  COURT_VIEWPORT_WIDTH,
   TV_VIEWPORT_HEIGHT,
   TV_VIEWPORT_WIDTH,
 } from '@/lib/display/tv-viewport'
@@ -12,13 +14,13 @@ export interface ScreenPreviewState {
   label: string
   url: string
   /** When set, overrides the default `viewport` for this tab only (e.g. TV for venue “show”). */
-  viewport?: 'mobile' | 'tablet' | 'tv'
+  viewport?: 'mobile' | 'tablet' | 'tv' | 'court'
 }
 
 interface ScreenPreviewProps {
   title: string
   description: string
-  viewport: 'mobile' | 'tablet' | 'tv'
+  viewport: 'mobile' | 'tablet' | 'tv' | 'court'
   states: ScreenPreviewState[]
 }
 
@@ -26,6 +28,7 @@ const viewportSizes = {
   mobile: { width: 375, height: 667, scale: 1 },
   tablet: { width: 768, height: 1024, scale: 0.6 },
   tv: { width: TV_VIEWPORT_WIDTH, height: TV_VIEWPORT_HEIGHT, scale: 1 },
+  court: { width: COURT_VIEWPORT_WIDTH, height: COURT_VIEWPORT_HEIGHT, scale: 1 },
 } as const
 
 function withEmbedParam(url: string): string {
@@ -45,7 +48,7 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
   const iframeSrc = withEmbedParam(activeUrl)
 
   useEffect(() => {
-    if (effectiveViewport !== 'tv') return
+    if (effectiveViewport !== 'tv' && effectiveViewport !== 'court') return
 
     const frame = frameRef.current
     if (!frame) return
@@ -53,17 +56,19 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
     const updateScale = () => {
       const width = frame.clientWidth
       if (width <= 0) return
-      setFrameScale(Math.min(width / TV_VIEWPORT_WIDTH, 1))
+      setFrameScale(Math.min(width / size.width, 1))
     }
 
     updateScale()
     const observer = new ResizeObserver(updateScale)
     observer.observe(frame)
     return () => observer.disconnect()
-  }, [effectiveViewport, iframeSrc])
+  }, [effectiveViewport, iframeSrc, size.width])
 
   const displayScale =
-    effectiveViewport === 'tv' ? frameScale : size.scale
+    effectiveViewport === 'tv' || effectiveViewport === 'court'
+      ? frameScale
+      : size.scale
   const frameWidth = size.width * displayScale
   const frameHeight = size.height * displayScale
 
@@ -73,10 +78,12 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
         <div>
           <h3>{title}</h3>
           <p>{description}</p>
-          {effectiveViewport === 'tv' ? (
+          {effectiveViewport === 'tv' || effectiveViewport === 'court' ? (
             <p className="ds-screen-note">
-              Preview renders at 1920×1080 (same as venue TV). Scale below is for this page only — proportions match
-              production.
+              Preview renders at {size.width}×{size.height}
+              {effectiveViewport === 'court'
+                ? ' (AOC Q32V4 — on-court monitor). Open in a new tab on that display for a 1:1 pixel preview.'
+                : ' (1080p lounge TV). Scale below is for this page only — proportions match production.'}
             </p>
           ) : null}
         </div>
@@ -84,7 +91,7 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
           <span className="ds-viewport-label">{effectiveViewport.toUpperCase()}</span>
           <span className="ds-viewport-size">
             {size.width} × {size.height}
-            {effectiveViewport === 'tv' ? ` · ${Math.round(displayScale * 100)}%` : null}
+            {effectiveViewport === 'tv' || effectiveViewport === 'court' ? ` · ${Math.round(displayScale * 100)}%` : null}
           </span>
         </div>
       </div>

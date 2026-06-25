@@ -11,9 +11,10 @@ export default function CourtScreensPage() {
 
       <header className="ds-page-header">
         <h1>Court display</h1>
-        <p>On-court TV for players — scoreboard and overlays (1920×1080).</p>
+        <p>On-court monitor for players — scoreboard and overlays (2560×1440, 16:9).</p>
         <p className="ds-screen-note">
-          Previews use a fixed 1920×1080 canvas so sizing matches production on venue TVs.
+          Previews match the AOC Q32V4 panel (2560×1440). Use <strong>Open at TV size ↗</strong> on that monitor for a
+          pixel-perfect 1:1 preview; embedded frames scale down on this page only.
         </p>
       </header>
 
@@ -22,7 +23,7 @@ export default function CourtScreensPage() {
         <ScreenPreview
           title="Court display"
           description="Idle through match won — same preview routes as production states."
-          viewport="tv"
+          viewport="court"
           states={[
             { name: 'idle', label: 'Idle', url: '/design-system/preview/court?state=idle' },
             { name: 'ready', label: 'Ready', url: '/design-system/preview/court?state=ready' },

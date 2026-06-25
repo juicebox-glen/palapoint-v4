@@ -567,11 +567,11 @@
   text-decoration: underline;
 }
 
-/* TV preview canvas — fixed 1920×1080 so vh/vw match venue displays */
+/* TV preview canvas — fixed embed size so vh/vw match target displays (see lib/display/tv-viewport.ts) */
 html.ds-tv-embed,
 body.ds-tv-embed {
-  width: 1920px;
-  height: 1080px;
+  width: var(--ds-tv-embed-width, 1920px);
+  height: var(--ds-tv-embed-height, 1080px);
   overflow: hidden;
   margin: 0;
 }

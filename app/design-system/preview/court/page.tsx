@@ -18,7 +18,7 @@ function CourtPreviewContent() {
   const brandingStyles = useMemo(() => brandingStylesFor(designSystemSquareOneBranding), [])
 
   return (
-    <TvViewportCanvas embed={embed} style={brandingStyles}>
+    <TvViewportCanvas embed={embed} preset="court" style={brandingStyles}>
       <CourtDisplay
         key={state}
         courtId="mock-court-id"
