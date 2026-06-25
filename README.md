@@ -31,6 +31,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Court URLs (Padel4All)
+
+| Purpose | URL |
+|---------|-----|
+| **Eastbourne production** | `/court/padel4all/eastbourne/1` |
+| **Dev / test sandbox** | `/court/court-1` or `/court/padel4all/dev/1` |
+
+These use **different court IDs** in Supabase — scoring on one does not affect the other.
+
 ## Tests
 
 ```bash
