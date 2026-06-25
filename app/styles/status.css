@@ -1,0 +1,106 @@
+.status-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 2rem 1rem 3rem;
+}
+
+.status-shell {
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.status-header h1 {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 0.25rem;
+}
+
+.status-header p,
+.status-muted {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.status-error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+.status-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.status-stat {
+  padding: 1rem 0.75rem;
+  text-align: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.status-stat-num {
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.status-stat-label {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-last {
+  margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.status-recent h2 {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.status-recent ul {
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.status-recent li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+}
+
+.status-recent li + li {
+  border-top: 1px solid var(--border-default);
+}
+
+.status-recent-main {
+  font-weight: var(--font-weight-semibold);
+}
+
+.status-recent-meta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.status-page code {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}

@@ -17,6 +17,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 # Optional: default venue for matchplay when not inferred from DB
 NEXT_PUBLIC_MATCHPLAY_VENUE_ID=
+
+# Server-only: required for /status page (never expose to the browser)
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 ## Development
@@ -47,6 +50,7 @@ Runs scoring engine and name-format unit tests.
 | `/live/{...}` | Spectator TV | Read-only match view |
 | `/matchplay` | Staff | Event launcher and hub |
 | `/session-review/{id}` | Player | Post-session game summary |
+| `/status` | Ops | Simple games-started counter (today / week / live) |
 
 Design system previews: `/design-system`.
 
