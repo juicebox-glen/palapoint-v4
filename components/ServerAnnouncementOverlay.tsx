@@ -22,12 +22,14 @@ export default function ServerAnnouncementOverlay({
 
   const positionRef = useRef({ x: 50, y: 50 })
   const velocityRef = useRef({ x: 0.3, y: 0.2 })
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   const handleComplete = useCallback(() => {
     if (completedRef.current) return
     completedRef.current = true
-    onComplete()
-  }, [onComplete])
+    onCompleteRef.current()
+  }, [])
 
   // Phase 1: Bouncing ball animation (3s)
   useEffect(() => {

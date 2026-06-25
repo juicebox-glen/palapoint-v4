@@ -264,6 +264,8 @@ export default function CourtDisplay({
   useEffect(() => {
     if (isPreview) return
     if (typeof window === 'undefined') return
+    // Local ws-bridge only (dev Pi setup). HTTPS pages cannot use ws:// (mixed content).
+    if (window.location.protocol === 'https:') return
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT || '4001'
     const wsUrl = `ws://${window.location.hostname}:${wsPort}`
     let ws: WebSocket | null = null
@@ -452,9 +454,11 @@ export default function CourtDisplay({
           serverOverlayDismissedRef.current = false
           setShowSetWin(false)
           setShowSideSwap(false)
+          setShowServerAnnouncement(true)
+        } else if (!serverOverlayDismissedRef.current) {
+          setShowServerAnnouncement(true)
         }
         setAwaitingButtonPress(false)
-        setShowServerAnnouncement(!serverOverlayDismissedRef.current)
       } else {
         // Phone setup: ready screen until first court press (score API sets started_at only).
         if (match.started_at) {
@@ -464,15 +468,26 @@ export default function CourtDisplay({
             serverOverlayDismissedRef.current = false
             setShowSetWin(false)
             setShowSideSwap(false)
+            setShowServerAnnouncement(true)
+          } else if (!serverOverlayDismissedRef.current) {
+            setShowServerAnnouncement(true)
           }
           setAwaitingButtonPress(false)
-          setShowServerAnnouncement(!serverOverlayDismissedRef.current)
         } else {
           setShowServerAnnouncement(false)
           setAwaitingButtonPress(true)
         }
       }
       return
+    }
+
+    // Live scoring started — hide server announcement if still visible.
+    if (!hasNoScore || match.status === 'in_progress') {
+      if (!serverOverlayDismissedRef.current) {
+        serverOverlayDismissedRef.current = true
+        setShowServerAnnouncement(false)
+        showServerAnnouncementRef.current = false
+      }
     }
 
     const isNewMatch = match.id !== announcementShownRef.current
@@ -623,12 +638,12 @@ export default function CourtDisplay({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [match, showSetWin, showSideSwap, sendCourtPress, courtId, isPreview])
 
-  const handleSideSwapComplete = () => setShowSideSwap(false)
-  const handleServerAnnouncementComplete = () => {
+  const handleSideSwapComplete = useCallback(() => setShowSideSwap(false), [])
+  const handleServerAnnouncementComplete = useCallback(() => {
     serverOverlayDismissedRef.current = true
     setShowServerAnnouncement(false)
     showServerAnnouncementRef.current = false
-  }
+  }, [])
 
   useEffect(() => {
     if (isPreview) return
