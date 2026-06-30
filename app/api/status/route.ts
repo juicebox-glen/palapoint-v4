@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import type { StatusPayload, StatusRecentGame } from '@/lib/api/status'
 
+/** Route uses live DB counts — must not be statically cached at build time (Vercel CDN). */
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 type CourtJoin = { name?: string | null; venues?: { name?: string | null; slug?: string | null } | null }
 
 type LiveRow = {
