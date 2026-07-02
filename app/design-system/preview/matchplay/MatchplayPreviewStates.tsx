@@ -5,8 +5,9 @@ import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
 import { BoardStandings, type BoardStandingsPlayer } from '@/components/matchplay/BoardStandings'
-import SetupScreenHeader from '@/components/SetupScreenHeader'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
+import '@/app/styles/staff-controller.css'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 import { formatPlayerName, formatTeamDisplay, getPlayerInitials } from '@/lib/utils/name-format'
 
@@ -164,12 +165,10 @@ function DsMatchplayAddPlayersPhotoSlot({ hasPhoto }: { hasPhoto: boolean }) {
 /** Event hub scoring UI — shared by `event` and `event_finalize` previews. */
 function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
   return (
-    <div className="matchplay-event-page" style={{ minHeight: '100vh', position: 'relative' }}>
-      <header className="matchplay-hub-header">
-        <span className="matchplay-hub-back" aria-hidden>
-          ←
-        </span>
-        <h1 className="matchplay-hub-title">Event</h1>
+    <StaffAppFrame
+      venueSlug="dev"
+      backHref="/staff/dev"
+      headerRight={
         <div className="matchplay-hub-menu-container">
           <span className="matchplay-hub-menu-btn" aria-hidden style={{ pointerEvents: 'none' }}>
             <svg width={22} height={22} viewBox="0 0 24 24" fill="currentColor">
@@ -179,7 +178,9 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
             </svg>
           </span>
         </div>
-      </header>
+      }
+    >
+      <div className="matchplay-event-page" style={{ position: 'relative' }}>
       <nav className="matchplay-hub-rounds">
         <button type="button" className="matchplay-hub-round-tab matchplay-hub-round-tab--completed">
           ROUND 1<span className="matchplay-hub-round-check">✓</span>
@@ -307,7 +308,8 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </StaffAppFrame>
   )
 }
 
@@ -317,21 +319,25 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
   if (s === 'launcher') {
     return (
-      <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
-        <SetupScreenHeader />
+      <StaffAppFrame venueSlug="dev" backHref="/staff/dev">
         <MatchplayLauncherModePicker />
-      </div>
+      </StaffAppFrame>
     )
   }
 
   if (s === 'format') {
     return (
-      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <div className="matchplay-page-header">
-          <span className="matchplay-back-btn">← Back</span>
-          <h1 className="matchplay-page-title">New Americano</h1>
-          <span className="matchplay-page-header-spacer" aria-hidden />
-        </div>
+      <StaffAppFrame
+        venueSlug="dev"
+        backHref="/staff/dev"
+        footer={
+          <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
+            Continue
+          </span>
+        }
+      >
+      <div className="matchplay-page matchplay-page--setup">
+        <h1 className="matchplay-page-title">New Americano</h1>
 
         <div className="matchplay-setup-inner">
           <div className="matchplay-setup-content">
@@ -416,13 +422,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
           </div>
         </div>
-
-        <footer className="matchplay-footer">
-          <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
-            Continue
-          </span>
-        </footer>
       </div>
+      </StaffAppFrame>
     )
   }
 
@@ -439,12 +440,17 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     ]
     const filled = slots.filter((row) => row.name.trim()).length
     return (
-      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <div className="matchplay-page-header">
-          <span className="matchplay-back-btn">← Back</span>
-          <h1 className="matchplay-page-title">Players</h1>
-          <span className="matchplay-page-header-spacer" aria-hidden />
-        </div>
+      <StaffAppFrame
+        venueSlug="dev"
+        backHref="/staff/dev"
+        footer={
+          <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
+            Start Event
+          </span>
+        }
+      >
+      <div className="matchplay-page matchplay-page--setup">
+        <h1 className="matchplay-page-title">Players</h1>
 
         <div className="matchplay-setup-inner">
           <div className="matchplay-setup-content">
@@ -474,13 +480,8 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
           </div>
         </div>
-
-        <footer className="matchplay-footer">
-          <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
-            Start Event
-          </span>
-        </footer>
       </div>
+      </StaffAppFrame>
     )
   }
 
@@ -498,12 +499,20 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
       hasPhoto: i < 2,
     }))
     return (
-      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <div className="matchplay-page-header">
-          <span className="matchplay-back-btn">← Back</span>
-          <h1 className="matchplay-page-title">Players</h1>
-          <span className="matchplay-page-header-spacer" aria-hidden />
-        </div>
+      <StaffAppFrame
+        venueSlug="dev"
+        backHref="/staff/dev"
+        footer={
+          <span
+            className="matchplay-btn-primary"
+            style={{ pointerEvents: 'none', opacity: 0.5, display: 'block', textAlign: 'center' }}
+          >
+            Save Changes
+          </span>
+        }
+      >
+      <div className="matchplay-page matchplay-page--setup">
+        <h1 className="matchplay-page-title">Players</h1>
 
         <div className="matchplay-setup-inner">
           <div className="matchplay-setup-content">
@@ -531,27 +540,16 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
             </div>
           </div>
         </div>
-
-        <footer className="matchplay-footer">
-          <span
-            className="matchplay-btn-primary"
-            style={{ pointerEvents: 'none', opacity: 0.5, display: 'block', textAlign: 'center' }}
-          >
-            Save Changes
-          </span>
-        </footer>
       </div>
+      </StaffAppFrame>
     )
   }
 
   if (s === 'hub_standings') {
     return (
-      <div className="matchplay-page matchplay-page--setup" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-page-header">
-          <span className="matchplay-back-btn">← Back</span>
-          <h1 className="matchplay-page-title">Standings</h1>
-          <span className="matchplay-page-header-spacer" aria-hidden />
-        </header>
+      <StaffAppFrame venueSlug="dev" backHref="/staff/dev">
+      <div className="matchplay-page matchplay-page--setup">
+        <h1 className="matchplay-page-title">Standings</h1>
 
         <div className="matchplay-setup-inner matchplay-standings-content">
           <div className="matchplay-standings-list">
@@ -593,6 +591,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
           </div>
         </div>
       </div>
+      </StaffAppFrame>
     )
   }
 
@@ -896,8 +895,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   }
 
   return (
-    <div className="matchplay-launcher matchplay-launcher--compact" style={{ minHeight: '100vh' }}>
-      <SetupScreenHeader />
+    <StaffAppFrame venueSlug="dev" backHref="/staff/dev">
       <p className="matchplay-loading-text" style={{ marginBottom: 'var(--ui-space-md)' }}>
         Unknown preview state &quot;{state}&quot; — showing launcher. Try{' '}
         <code>
@@ -909,6 +907,6 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
         <code>/matchplay/[id]/players</code>).
       </p>
       <MatchplayLauncherModePicker />
-    </div>
+    </StaffAppFrame>
   )
 }

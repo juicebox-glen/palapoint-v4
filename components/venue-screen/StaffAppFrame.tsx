@@ -2,7 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeader, type StaffFlowHeaderProps } from '@/components/venue-screen/StaffFlowHeader'
 
 import '@/app/styles/staff-controller.css'
 
@@ -15,6 +15,9 @@ export interface StaffAppFrameProps {
   style?: CSSProperties
   /** Sticky footer slot (primary CTA, safe-area padded). */
   footer?: ReactNode
+  onBack?: StaffFlowHeaderProps['onBack']
+  backHref?: StaffFlowHeaderProps['backHref']
+  headerRight?: StaffFlowHeaderProps['headerRight']
 }
 
 /** Single-column staff controller shell — shared header inset and body width. */
@@ -25,12 +28,21 @@ export function StaffAppFrame({
   className,
   style,
   footer,
+  onBack,
+  backHref,
+  headerRight,
 }: StaffAppFrameProps) {
   return (
     <div className={['staff-app-frame', className].filter(Boolean).join(' ')} style={style}>
       <div className="staff-app-column">
         <header className="staff-app-header">
-          <StaffFlowHeader isHomeScreen={isHomeScreen} venueSlug={venueSlug} />
+          <StaffFlowHeader
+            isHomeScreen={isHomeScreen}
+            venueSlug={venueSlug}
+            onBack={onBack}
+            backHref={backHref}
+            headerRight={headerRight}
+          />
         </header>
 
         <main className="staff-app-body">{children}</main>

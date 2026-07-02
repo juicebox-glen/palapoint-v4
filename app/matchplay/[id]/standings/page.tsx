@@ -63,15 +63,9 @@ export default function MatchplayStandingsPage() {
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
+    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={() => router.back()}>
       <div className="matchplay-page matchplay-page--setup">
-      <header className="matchplay-page-header">
-        <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
-          ← Back
-        </button>
-        <h1 className="matchplay-page-title">Standings</h1>
-        <span className="matchplay-page-header-spacer" aria-hidden />
-      </header>
+      <h1 className="matchplay-page-title">Standings</h1>
 
       <div className="matchplay-setup-inner matchplay-standings-content">
         {error && <div className="matchplay-error">{error}</div>}

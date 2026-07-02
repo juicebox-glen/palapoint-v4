@@ -858,13 +858,10 @@ export default function MatchplayEventPage() {
   const canEditLineup = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
-      <div className="matchplay-event-page">
-      <header className="matchplay-hub-header">
-        <button type="button" onClick={() => router.push(staffBase ?? '/matchplay')} className="matchplay-hub-back" aria-label="Back">
-          ←
-        </button>
-        <h1 className="matchplay-hub-title">Event</h1>
+    <StaffAppFrame
+      venueSlug={venueSlug ?? undefined}
+      onBack={() => router.push(staffBase ?? '/matchplay')}
+      headerRight={
         <div className="matchplay-hub-menu-container" ref={menuRef}>
           <button
             type="button"
@@ -923,7 +920,9 @@ export default function MatchplayEventPage() {
             </div>
           )}
         </div>
-      </header>
+      }
+    >
+      <div className="matchplay-event-page">
 
       {rounds.length > 0 ? (
       <nav className="matchplay-hub-rounds" ref={roundTabsRef}>

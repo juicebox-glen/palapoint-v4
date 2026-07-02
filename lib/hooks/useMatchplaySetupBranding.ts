@@ -20,9 +20,14 @@ function readStoredBranding(): MatchplayVenueHeaderBranding | null {
 
 /** Venue / company header for matchplay setup (cached in sessionStorage). */
 export function useMatchplaySetupBranding() {
-  const [branding, setBranding] = useState<MatchplayVenueHeaderBranding | null>(() => readStoredBranding())
+  const [branding, setBranding] = useState<MatchplayVenueHeaderBranding | null>(null)
 
   useEffect(() => {
+    const stored = readStoredBranding()
+    if (stored) {
+      setBranding(stored)
+    }
+
     let cancelled = false
     void (async () => {
       const b = await getMatchplayVenueHeaderBranding()

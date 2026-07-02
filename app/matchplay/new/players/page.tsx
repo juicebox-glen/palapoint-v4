@@ -339,6 +339,7 @@ export default function MatchplayPlayersPage() {
   return (
     <StaffAppFrame
       venueSlug={venueSlug ?? undefined}
+      onBack={() => router.back()}
       style={brandVars}
       footer={
         <button
@@ -352,13 +353,7 @@ export default function MatchplayPlayersPage() {
       }
     >
       <div className="matchplay-page matchplay-page--setup">
-      <div className="matchplay-page-header">
-        <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
-          ← Back
-        </button>
-        <h1 className="matchplay-page-title">Players</h1>
-        <span className="matchplay-page-header-spacer" aria-hidden />
-      </div>
+      <h1 className="matchplay-page-title">Players</h1>
 
       <div className="matchplay-setup-inner">
         <div className="matchplay-setup-content">
