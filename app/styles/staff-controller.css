@@ -302,30 +302,29 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Embedded matchplay / control panel inside staff frame                      */
+/* Control panel / setup inside staff frame — avoid double column inset       */
 /* -------------------------------------------------------------------------- */
 
-.staff-app-frame .control-panel--embedded,
-.staff-app-frame .control-panel.control-panel--embedded {
+.staff-app-frame .staff-app-body .setup-screen,
+.staff-app-frame .staff-app-body .control-panel {
   min-height: auto;
   padding: 0;
   background: transparent;
 }
 
-.staff-app-frame .control-panel--embedded .control-container {
+.staff-app-frame .staff-app-body .setup-screen-inner,
+.staff-app-frame .staff-app-body .control-container {
   max-width: none;
+  width: 100%;
   margin: 0;
+  padding: 0;
 }
 
-.staff-app-frame .control-panel--embedded .setup-screen {
-  min-height: auto;
-  padding: 0;
-  background: transparent;
-}
-
-.staff-app-frame .control-panel--embedded .setup-screen-inner {
-  max-width: none;
-  padding: 0;
+.staff-app-frame .staff-app-body .control-preview {
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
 }
 
 .staff-app-frame .matchplay-event-page {
