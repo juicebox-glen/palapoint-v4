@@ -48,14 +48,17 @@ function ControlLoadingScreen({
   message,
   branding,
   showHeader = true,
+  embedded = false,
 }: {
   message: string
   branding?: VenueBranding | null
   showHeader?: boolean
+  embedded?: boolean
 }) {
   if (!showHeader) {
+    const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
     return (
-      <div className="control-panel" style={brandingStylesFor(branding)}>
+      <div className={panelClass} style={brandingStylesFor(branding)}>
         <div className="player-flow-loading">
           <p className="page-loading-message">{message}</p>
         </div>
@@ -85,6 +88,8 @@ interface ControlPanelProps {
   onMatchStarted?: (matchId: string) => void | Promise<void>
   /** Called when match completes or is abandoned. */
   onMatchEnded?: (matchId: string) => void | Promise<void>
+  /** Inside StaffAppFrame — drop full-viewport chrome and duplicate horizontal padding. */
+  embedded?: boolean
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -124,8 +129,10 @@ export default function ControlPanel({
   showSetupHeader = true,
   onMatchStarted,
   onMatchEnded,
+  embedded = false,
 }: ControlPanelProps) {
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
+  const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
   const isPreview = Boolean(preview)
   const [match, setMatch] = useState<MatchState | null>(() => initialMatchFromPreview(preview))
   const [loading, setLoading] = useState(() => !isPreview)
@@ -539,6 +546,7 @@ export default function ControlPanel({
         message="Loading..."
         branding={branding ?? null}
         showHeader={showSetupHeader}
+        embedded={embedded}
       />
     )
   }
@@ -549,6 +557,7 @@ export default function ControlPanel({
         message="Loading..."
         branding={branding ?? null}
         showHeader={showSetupHeader}
+        embedded={embedded}
       />
     )
   }
@@ -556,7 +565,7 @@ export default function ControlPanel({
   if (error && !match) {
     if (!showSetupHeader) {
       return (
-        <div className="control-panel" style={brandingStylesFor(branding)}>
+        <div className={panelClass} style={brandingStylesFor(branding)}>
           <div className="player-flow-loading">
             <p style={{ fontSize: '1.5rem', color: 'var(--error)', textAlign: 'center' }}>{error}</p>
           </div>
@@ -634,7 +643,7 @@ export default function ControlPanel({
   const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
 
   return (
-    <div className="control-panel" style={brandingStylesFor(branding)}>
+    <div className={panelClass} style={brandingStylesFor(branding)}>
       <div className="control-container control-container--preview">
         <div className="control-preview">
           {showSetupHeader ? <SetupScreenHeader branding={branding} /> : null}

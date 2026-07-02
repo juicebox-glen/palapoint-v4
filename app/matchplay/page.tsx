@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
-import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { callMatchplayEvent } from '@/lib/api/matchplay'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
@@ -134,19 +134,19 @@ export default function MatchplayPage() {
 
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
-      <StaffPageShell>
+      <StaffAppFrame>
         <p className="matchplay-loading-text">Loading...</p>
-      </StaffPageShell>
+      </StaffAppFrame>
     )
   }
 
   if (!venueId && error) {
     return (
-      <StaffPageShell>
-        <div className="matchplay-error" role="alert" style={{ margin: '1rem' }}>
+      <StaffAppFrame>
+        <div className="matchplay-error" role="alert">
           {error}
         </div>
-      </StaffPageShell>
+      </StaffAppFrame>
     )
   }
 
@@ -195,15 +195,13 @@ export default function MatchplayPage() {
   }
 
   return (
-    <StaffPageShell>
+    <StaffAppFrame>
       {error ? (
-        <div className="matchplay-error" role="alert" style={{ margin: '0 0 1rem' }}>
+        <div className="matchplay-error" role="alert">
           {error}
         </div>
       ) : null}
-      <div className="matchplay-launcher matchplay-launcher--compact">
-        <MatchplayLauncherModePicker />
-      </div>
-    </StaffPageShell>
+      <MatchplayLauncherModePicker />
+    </StaffAppFrame>
   )
 }

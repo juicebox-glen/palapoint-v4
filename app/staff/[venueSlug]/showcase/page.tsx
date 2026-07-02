@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import ControlPanel from '@/components/displays/ControlPanel'
-import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { supabase } from '@/lib/supabase'
 import { VENUE_SCREEN_PUBLIC_SELECT } from '@/lib/types/venue-screen'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
@@ -84,24 +84,24 @@ export default function StaffShowcasePage() {
 
   if (loading) {
     return (
-      <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+      <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
         <p className="staff-muted">Loading…</p>
-      </StaffPageShell>
+      </StaffAppFrame>
     )
   }
 
   if (loadError || !courtId) {
     return (
-      <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+      <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
         <div className="staff-error">
           <p>{loadError ?? 'Court not found for this screen.'}</p>
         </div>
-      </StaffPageShell>
+      </StaffAppFrame>
     )
   }
 
   return (
-    <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+    <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
       {linkError ? (
         <div className="staff-error">
           <p>{linkError}</p>
@@ -113,9 +113,10 @@ export default function StaffShowcasePage() {
         branding={branding}
         courtName={branding?.courtName}
         showSetupHeader={false}
+        embedded
         onMatchStarted={handleMatchStarted}
         onMatchEnded={handleMatchEnded}
       />
-    </StaffPageShell>
+    </StaffAppFrame>
   )
 }

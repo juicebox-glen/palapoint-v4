@@ -1,25 +1,198 @@
-.staff-page {
+/* ============================================================
+   PalaPoint Live — Staff controller app frame
+   One column, one horizontal inset, native-app feel on phone
+   ============================================================ */
+
+:root {
+  --staff-column-max: 28rem;
+  --staff-page-pad-x: var(--ui-space-lg);
+  --staff-page-pad-top: calc(var(--ui-space-xl) + env(safe-area-inset-top, 0px));
+  --staff-page-pad-bottom: calc(var(--ui-space-3xl) + env(safe-area-inset-bottom, 0px));
+  --staff-header-pad-bottom: var(--ui-space-md);
+  --staff-section-gap: var(--ui-space-md);
+  --staff-block-gap: var(--ui-space-xl);
+}
+
+/* -------------------------------------------------------------------------- */
+/* App frame                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.staff-app-frame {
   min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
   background: var(--bg-primary);
   color: var(--text-primary);
-  padding: 1.5rem 1rem 3rem;
+  padding:
+    var(--staff-page-pad-top)
+    var(--staff-page-pad-x)
+    var(--staff-page-pad-bottom);
+  font-family: var(--font-family);
+}
+
+.staff-app-column {
+  max-width: var(--staff-column-max);
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(
+    100dvh - var(--staff-page-pad-top) - var(--staff-page-pad-bottom)
+  );
+  display: flex;
+  flex-direction: column;
+}
+
+.staff-app-header {
+  flex-shrink: 0;
+  padding-bottom: var(--staff-header-pad-bottom);
+}
+
+.staff-app-header .setup-header {
+  margin-bottom: 0;
+}
+
+.staff-app-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--staff-block-gap);
+}
+
+.staff-app-footer {
+  flex-shrink: 0;
+  margin-top: var(--staff-block-gap);
+  padding-top: var(--ui-space-lg);
+  border-top: 1px solid var(--border-default);
+}
+
+/* Legacy aliases — migrate callers to staff-app-frame */
+.staff-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding:
+    var(--staff-page-pad-top)
+    var(--staff-page-pad-x)
+    var(--staff-page-pad-bottom);
 }
 
 .staff-shell {
-  max-width: 28rem;
+  max-width: var(--staff-column-max);
   margin: 0 auto;
+  width: 100%;
 }
 
-.staff-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.5rem;
+.staff-flow-header-wrap,
+.staff-flow-header-wrap--wide {
+  max-width: none;
+  margin: 0;
+  padding: 0 0 var(--staff-header-pad-bottom);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Typography                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.staff-muted {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.staff-section-label {
+  margin: 0 0 var(--staff-section-gap);
+  font-size: var(--ui-font-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.staff-prompt {
+  margin: 0 0 var(--staff-section-gap);
+  font-size: var(--ui-font-lg, 1.125rem);
   font-weight: var(--font-weight-bold);
 }
 
-.staff-header p {
-  margin: 0;
-  color: var(--text-secondary);
+/* -------------------------------------------------------------------------- */
+/* List rows (home actions, game mode picker, menus)                          */
+/* -------------------------------------------------------------------------- */
+
+.staff-list-group {
+  display: grid;
+  gap: var(--staff-section-gap);
+}
+
+.staff-list-row,
+.staff-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-md);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  min-height: var(--touch-target-min, 44px);
+  text-align: left;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font: inherit;
+  text-decoration: none;
+}
+
+.staff-list-row:hover:not(:disabled):not([aria-disabled='true']),
+.staff-action:hover:not(:disabled) {
+  border-color: var(--brand-primary, var(--team-a));
+}
+
+.staff-list-row:disabled,
+.staff-list-row[aria-disabled='true'],
+.staff-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.staff-list-row-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.staff-list-row-title,
+.staff-action-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 0.25rem;
+}
+
+.staff-list-row-desc,
+.staff-action-desc {
+  display: block;
   font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.staff-list-row-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.staff-list-row--secondary,
+.staff-action--secondary {
+  justify-content: center;
+  text-align: center;
+  background: transparent;
+}
+
+.staff-actions {
+  display: grid;
+  gap: var(--staff-section-gap);
 }
 
 .staff-flow-home-link {
@@ -43,25 +216,11 @@
   outline-offset: 2px;
 }
 
-.staff-flow-header-wrap {
-  max-width: 28rem;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 0;
-}
-
-.staff-flow-header-wrap--wide {
-  max-width: none;
-  padding-left: var(--ui-space-lg, 1rem);
-  padding-right: var(--ui-space-lg, 1rem);
-}
-
-.staff-muted {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
+/* -------------------------------------------------------------------------- */
+/* Blocks: status, forms, feedback                                            */
+/* -------------------------------------------------------------------------- */
 
 .staff-error {
-  margin-top: 1.5rem;
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
   border-radius: var(--radius-md);
@@ -69,7 +228,6 @@
 }
 
 .staff-status {
-  margin: 1.5rem 0;
   padding: 1rem;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
@@ -90,62 +248,9 @@
   font-weight: var(--font-weight-bold);
 }
 
-.staff-prompt {
-  margin: 1.5rem 0 1rem;
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.staff-actions {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.staff-action {
-  display: block;
-  width: 100%;
-  padding: 1rem;
-  text-align: left;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-  color: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.staff-action:hover:not(:disabled) {
-  border-color: var(--brand-primary, var(--team-a));
-}
-
-.staff-action:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.staff-action-title {
-  display: block;
-  font-size: 1rem;
-  font-weight: var(--font-weight-bold);
-  margin-bottom: 0.25rem;
-}
-
-.staff-action-desc {
-  display: block;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.staff-action--secondary {
-  margin-top: 0.5rem;
-  text-align: center;
-  background: transparent;
-}
-
 .staff-pairing-form {
-  margin-top: 1.5rem;
   display: grid;
-  gap: 0.75rem;
+  gap: var(--staff-section-gap);
 }
 
 .staff-pairing-form label {
@@ -161,10 +266,10 @@
   background: var(--bg-secondary);
   color: inherit;
   font: inherit;
+  box-sizing: border-box;
 }
 
 .staff-feedback {
-  margin-top: 1rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -181,7 +286,8 @@
 }
 
 .staff-screen-picker {
-  margin: 1rem 0 0;
+  display: grid;
+  gap: var(--staff-section-gap);
 }
 
 .staff-screen-picker select {
@@ -192,4 +298,69 @@
   background: var(--bg-secondary);
   color: inherit;
   font: inherit;
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Embedded matchplay / control panel inside staff frame                      */
+/* -------------------------------------------------------------------------- */
+
+.staff-app-frame .control-panel--embedded,
+.staff-app-frame .control-panel.control-panel--embedded {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.staff-app-frame .control-panel--embedded .control-container {
+  max-width: none;
+  margin: 0;
+}
+
+.staff-app-frame .control-panel--embedded .setup-screen {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.staff-app-frame .control-panel--embedded .setup-screen-inner {
+  max-width: none;
+  padding: 0;
+}
+
+.staff-app-frame .matchplay-event-page {
+  min-height: auto;
+  padding-bottom: 0;
+}
+
+.staff-app-frame .matchplay-page.matchplay-page--setup {
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.staff-app-frame .matchplay-page--setup > .matchplay-page-header {
+  padding-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.staff-app-frame .matchplay-setup-inner {
+  max-width: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.staff-app-frame .matchplay-launcher--compact {
+  max-width: none;
+  margin: 0;
+}
+
+.staff-app-frame .matchplay-launcher .matchplay-launcher-modes.setup-section {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }

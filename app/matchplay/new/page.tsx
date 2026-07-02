@@ -6,7 +6,7 @@ import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
@@ -19,7 +19,7 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 export default function NewMatchplayPage() {
   const router = useRouter()
-  const { path: staffPath } = useStaffSocialNightPaths()
+  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
   const branding = useMatchplaySetupBranding()
 
   const [playerCount, setPlayerCount] = useState(8)
@@ -123,18 +123,30 @@ export default function NewMatchplayPage() {
       : undefined
 
   return (
-    <div className="staff-page matchplay-page matchplay-page--setup" style={brandVars}>
-      <StaffFlowHeaderBar />
-      <div className="staff-shell">
-      <div className="matchplay-page-header">
-        <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
-          ← Back
+    <StaffAppFrame
+      venueSlug={venueSlug ?? undefined}
+      style={brandVars}
+      footer={
+        <button
+          type="button"
+          className="matchplay-btn-primary"
+          onClick={handleContinue}
+          disabled={!canContinue}
+        >
+          Continue
         </button>
-        <h1 className="matchplay-page-title">New Americano</h1>
-        <span className="matchplay-page-header-spacer" aria-hidden />
-      </div>
+      }
+    >
+      <div className="matchplay-page matchplay-page--setup">
+        <div className="matchplay-page-header">
+          <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
+            ← Back
+          </button>
+          <h1 className="matchplay-page-title">New Americano</h1>
+          <span className="matchplay-page-header-spacer" aria-hidden />
+        </div>
 
-      <div className="matchplay-setup-inner">
+        <div className="matchplay-setup-inner">
         <div className="matchplay-setup-content">
           <div className="matchplay-card">
             <span className="matchplay-card-label">Players</span>
@@ -256,13 +268,7 @@ export default function NewMatchplayPage() {
           ))}
         </div>
       ) : null}
-
-      <footer className="matchplay-footer">
-        <button type="button" className="matchplay-btn-primary" onClick={handleContinue} disabled={!canContinue}>
-          Continue
-        </button>
-      </footer>
       </div>
-    </div>
+    </StaffAppFrame>
   )
 }

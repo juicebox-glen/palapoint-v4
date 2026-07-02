@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/matchplay'
 import { resetVenueScreenAfterEventEnd } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 
 interface MatchplayEvent {
   id: string
@@ -491,7 +491,7 @@ function HubMatchCard({
 export default function MatchplayEventPage() {
   const params = useParams()
   const router = useRouter()
-  const { path: staffPath, base: staffBase } = useStaffSocialNightPaths()
+  const { path: staffPath, base: staffBase, venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [event, setEvent] = useState<MatchplayEvent | null>(null)
@@ -858,8 +858,8 @@ export default function MatchplayEventPage() {
   const canEditLineup = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
 
   return (
-    <div className="staff-page matchplay-event-page">
-      <StaffFlowHeaderBar wide />
+    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
+      <div className="matchplay-event-page">
       <header className="matchplay-hub-header">
         <button type="button" onClick={() => router.push(staffBase ?? '/matchplay')} className="matchplay-hub-back" aria-label="Back">
           ←
@@ -1239,6 +1239,7 @@ export default function MatchplayEventPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </StaffAppFrame>
   )
 }

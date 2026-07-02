@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/matchplay'
 import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -42,7 +42,7 @@ function generateEventName(): string {
 
 export default function MatchplayPlayersPage() {
   const router = useRouter()
-  const { path: staffPath } = useStaffSocialNightPaths()
+  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
   const branding = useMatchplaySetupBranding()
   const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
@@ -337,9 +337,21 @@ export default function MatchplayPlayersPage() {
   }
 
   return (
-    <div className="staff-page matchplay-page matchplay-page--setup" style={brandVars}>
-      <StaffFlowHeaderBar />
-      <div className="staff-shell">
+    <StaffAppFrame
+      venueSlug={venueSlug ?? undefined}
+      style={brandVars}
+      footer={
+        <button
+          type="button"
+          className="matchplay-btn-primary"
+          onClick={() => void handleStartEvent()}
+          disabled={!canStart || isSubmitting}
+        >
+          {isSubmitting ? 'Creating Event…' : 'Start Event'}
+        </button>
+      }
+    >
+      <div className="matchplay-page matchplay-page--setup">
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -388,18 +400,7 @@ export default function MatchplayPlayersPage() {
           {error ? <p className="matchplay-error">{error}</p> : null}
         </div>
       </div>
-
-      <footer className="matchplay-footer">
-        <button
-          type="button"
-          className="matchplay-btn-primary"
-          onClick={() => void handleStartEvent()}
-          disabled={!canStart || isSubmitting}
-        >
-          {isSubmitting ? 'Creating Event…' : 'Start Event'}
-        </button>
-      </footer>
       </div>
-    </div>
+    </StaffAppFrame>
   )
 }

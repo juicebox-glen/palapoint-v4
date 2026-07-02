@@ -11,9 +11,7 @@ import {
   pairingStorageKey,
   saveVenueScreenStaffContext,
 } from '@/lib/venue-screen-staff-context'
-import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
-
-import '@/app/styles/staff-controller.css'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 
 const MODE_LABELS: Record<VenueScreenMode, string> = {
   idle: 'Idle',
@@ -163,7 +161,7 @@ export default function StaffPage() {
   }
 
   return (
-    <StaffPageShell venueSlug={venueSlug} isHomeScreen>
+    <StaffAppFrame venueSlug={venueSlug} isHomeScreen>
         {loading ? <p className="staff-muted">Loading…</p> : null}
 
         {loadError ? (
@@ -271,6 +269,6 @@ export default function StaffPage() {
             ) : null}
           </>
         ) : null}
-    </StaffPageShell>
+    </StaffAppFrame>
   )
 }

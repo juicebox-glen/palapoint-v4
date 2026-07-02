@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase'
 import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
 import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -25,6 +26,7 @@ type EditablePlayer = PlayerSnapshot & {
 export default function MatchplayEventPlayersPage() {
   const router = useRouter()
   const params = useParams()
+  const { venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [eventStatus, setEventStatus] = useState<string | null>(null)
@@ -241,9 +243,8 @@ export default function MatchplayEventPlayersPage() {
   }
 
   return (
-    <div className="staff-page matchplay-page matchplay-page--setup">
-      <StaffFlowHeaderBar />
-      <div className="staff-shell">
+    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
+      <div className="matchplay-page matchplay-page--setup">
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -305,6 +306,6 @@ export default function MatchplayEventPlayersPage() {
         </footer>
       ) : null}
       </div>
-    </div>
+    </StaffAppFrame>
   )
 }

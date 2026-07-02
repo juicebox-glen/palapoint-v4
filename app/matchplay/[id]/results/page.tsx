@@ -9,7 +9,7 @@ import {
   callMatchplayRound,
 } from '@/lib/api/matchplay'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import '@/app/styles/matchplay.css'
 
 interface StandingsPlayer {
@@ -24,7 +24,7 @@ interface StandingsPlayer {
 export default function MatchplayResultsPage() {
   const router = useRouter()
   const params = useParams()
-  const { path: staffPath, base: staffBase } = useStaffSocialNightPaths()
+  const { path: staffPath, base: staffBase, venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [playerCount, setPlayerCount] = useState(0)
@@ -88,9 +88,8 @@ export default function MatchplayResultsPage() {
   const gdSigned = `${winnerGd >= 0 ? '+' : ''}${winnerGd}`
 
   return (
-    <div className="staff-page matchplay-page matchplay-page--setup matchplay-results-page">
-      <StaffFlowHeaderBar />
-      <div className="staff-shell">
+    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
+      <div className="matchplay-page matchplay-page--setup matchplay-results-page">
       <header className="matchplay-results-header">
         <h1 className="matchplay-results-title">Event complete</h1>
         <p className="matchplay-results-subtitle">
@@ -183,6 +182,6 @@ export default function MatchplayResultsPage() {
         </div>
       </footer>
       </div>
-    </div>
+    </StaffAppFrame>
   )
 }

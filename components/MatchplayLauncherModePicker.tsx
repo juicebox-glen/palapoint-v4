@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 
-function LauncherChevron() {
+function ListRowChevron() {
   return (
-    <div className="session-review-chevron" aria-hidden>
+    <span className="staff-list-row-chevron" aria-hidden>
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path
           d="M7 5l5 5-5 5"
@@ -14,7 +14,7 @@ function LauncherChevron() {
           strokeLinejoin="round"
         />
       </svg>
-    </div>
+    </span>
   )
 }
 
@@ -24,8 +24,7 @@ interface MatchplayLauncherModePickerProps {
 }
 
 /**
- * Matchplay launcher — “select game mode” list.
- * Uses setup-section / setup-section-title and session-review-game-row (same pattern as session review).
+ * Matchplay launcher — game mode list using staff list-row chrome.
  */
 export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLauncherModePickerProps) {
   const americanoHref = staffVenueSlug
@@ -33,56 +32,48 @@ export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLaunche
     : '/matchplay/new'
 
   return (
-    <section className="setup-section matchplay-launcher-modes">
-      <h2 className="setup-section-title">Select game mode</h2>
-      <div className="session-review-game-rows">
-        <Link
-          href={americanoHref}
-          className="session-review-game-row session-review-game-row--launcher session-review-game-row--clickable"
-        >
-          <div className="matchplay-launcher-mode-copy">
-            <span className="matchplay-launcher-mode-name">Americano</span>
-            <span className="matchplay-launcher-mode-desc">Everyone plays with everyone once</span>
-          </div>
-          <LauncherChevron />
-        </Link>
+    <div className="staff-list-group">
+      <p className="staff-section-label">Select game mode</p>
 
-        <div
-          className="session-review-game-row session-review-game-row--launcher session-review-game-row--disabled"
-          aria-disabled
-          aria-label="King of the Court, coming soon"
-        >
-          <div className="matchplay-launcher-mode-copy">
-            <span className="matchplay-launcher-mode-name">King of the Court</span>
-            <span className="matchplay-launcher-mode-desc">Elimination-style rotation</span>
-          </div>
-          <LauncherChevron />
-        </div>
+      <Link href={americanoHref} className="staff-list-row">
+        <span className="staff-list-row-copy">
+          <span className="staff-list-row-title">Americano</span>
+          <span className="staff-list-row-desc">Everyone plays with everyone once</span>
+        </span>
+        <ListRowChevron />
+      </Link>
 
-        <div
-          className="session-review-game-row session-review-game-row--launcher session-review-game-row--disabled"
-          aria-disabled
-          aria-label="Matchplay format, coming soon"
-        >
-          <div className="matchplay-launcher-mode-copy">
-            <span className="matchplay-launcher-mode-name">Matchplay</span>
-            <span className="matchplay-launcher-mode-desc">Curated social play with manual pairings</span>
-          </div>
-          <LauncherChevron />
-        </div>
-
-        <div
-          className="session-review-game-row session-review-game-row--launcher session-review-game-row--disabled"
-          aria-disabled
-          aria-label="Mexicano, coming soon"
-        >
-          <div className="matchplay-launcher-mode-copy">
-            <span className="matchplay-launcher-mode-name">Mexicano</span>
-            <span className="matchplay-launcher-mode-desc">Coming soon</span>
-          </div>
-          <LauncherChevron />
-        </div>
+      <div
+        className="staff-list-row"
+        aria-disabled
+        aria-label="King of the Court, coming soon"
+      >
+        <span className="staff-list-row-copy">
+          <span className="staff-list-row-title">King of the Court</span>
+          <span className="staff-list-row-desc">Elimination-style rotation</span>
+        </span>
+        <ListRowChevron />
       </div>
-    </section>
+
+      <div
+        className="staff-list-row"
+        aria-disabled
+        aria-label="Matchplay format, coming soon"
+      >
+        <span className="staff-list-row-copy">
+          <span className="staff-list-row-title">Matchplay</span>
+          <span className="staff-list-row-desc">Curated social play with manual pairings</span>
+        </span>
+        <ListRowChevron />
+      </div>
+
+      <div className="staff-list-row" aria-disabled aria-label="Mexicano, coming soon">
+        <span className="staff-list-row-copy">
+          <span className="staff-list-row-title">Mexicano</span>
+          <span className="staff-list-row-desc">Coming soon</span>
+        </span>
+        <ListRowChevron />
+      </div>
+    </div>
   )
 }

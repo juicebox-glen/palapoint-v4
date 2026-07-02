@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 import { callMatchplayPlayer } from '@/lib/api/matchplay'
-import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import '@/app/styles/matchplay.css'
 
 interface StandingsPlayer {
@@ -19,6 +20,7 @@ interface StandingsPlayer {
 export default function MatchplayStandingsPage() {
   const router = useRouter()
   const params = useParams()
+  const { venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [standings, setStandings] = useState<StandingsPlayer[]>([])
@@ -61,9 +63,8 @@ export default function MatchplayStandingsPage() {
   }
 
   return (
-    <div className="staff-page matchplay-page matchplay-page--setup">
-      <StaffFlowHeaderBar />
-      <div className="staff-shell">
+    <StaffAppFrame venueSlug={venueSlug ?? undefined}>
+      <div className="matchplay-page matchplay-page--setup">
       <header className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -122,6 +123,6 @@ export default function MatchplayStandingsPage() {
         )}
       </div>
       </div>
-    </div>
+    </StaffAppFrame>
   )
 }
