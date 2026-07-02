@@ -19,7 +19,7 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 export default function NewMatchplayPage() {
   const router = useRouter()
-  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
+  const { path: staffPath, base: staffBase, venueSlug } = useStaffSocialNightPaths()
   const branding = useMatchplaySetupBranding()
 
   const [playerCount, setPlayerCount] = useState(8)
@@ -125,7 +125,7 @@ export default function NewMatchplayPage() {
   return (
     <StaffAppFrame
       venueSlug={venueSlug ?? undefined}
-      onBack={() => router.back()}
+      onBack={() => router.push(staffBase ?? '/matchplay')}
       style={brandVars}
       footer={
         <button

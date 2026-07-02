@@ -20,7 +20,10 @@ export default function StaffSocialNightPage() {
   }, [router, venueSlug])
 
   return (
-    <StaffAppFrame venueSlug={venueSlug}>
+    <StaffAppFrame
+      venueSlug={venueSlug}
+      onBack={() => router.push(`/staff/${venueSlug}`)}
+    >
       <MatchplayLauncherModePicker staffVenueSlug={venueSlug} />
     </StaffAppFrame>
   )

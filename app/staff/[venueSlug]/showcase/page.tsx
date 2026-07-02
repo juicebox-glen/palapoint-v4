@@ -85,11 +85,21 @@ export default function StaffShowcasePage() {
     scheduleShowcaseScreenIdleReset(matchId)
   }, [])
 
+  const goBackToStaffHome = useCallback(() => {
+    router.push(`/staff/${venueSlug}`)
+  }, [router, venueSlug])
+
   const brandingStyles = brandingStylesFor(branding)
+
+  const frameProps = {
+    venueSlug,
+    onBack: goBackToStaffHome,
+    style: brandingStyles,
+  } as const
 
   if (loading) {
     return (
-      <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
+      <StaffAppFrame {...frameProps}>
         <p className="staff-muted">Loading…</p>
       </StaffAppFrame>
     )
@@ -97,7 +107,7 @@ export default function StaffShowcasePage() {
 
   if (loadError || !courtId) {
     return (
-      <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
+      <StaffAppFrame {...frameProps}>
         <div className="staff-error">
           <p>{loadError ?? 'Court not found for this screen.'}</p>
         </div>
@@ -106,7 +116,7 @@ export default function StaffShowcasePage() {
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug} style={brandingStyles}>
+    <StaffAppFrame {...frameProps}>
       {linkError ? (
         <div className="staff-error">
           <p>{linkError}</p>

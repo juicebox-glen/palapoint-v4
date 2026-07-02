@@ -26,6 +26,7 @@ export default function MatchplayResultsPage() {
   const params = useParams()
   const { path: staffPath, base: staffBase, venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
+  const goBackToEventHub = () => router.push(staffPath(`/${eventId}`))
 
   const [playerCount, setPlayerCount] = useState(0)
   const [totalRounds, setTotalRounds] = useState(0)
@@ -88,7 +89,7 @@ export default function MatchplayResultsPage() {
   const gdSigned = `${winnerGd >= 0 ? '+' : ''}${winnerGd}`
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={() => router.back()}>
+    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
       <div className="matchplay-page matchplay-page--setup matchplay-results-page">
       <header className="matchplay-results-header">
         <h1 className="matchplay-results-title">Event complete</h1>

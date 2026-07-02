@@ -26,8 +26,9 @@ type EditablePlayer = PlayerSnapshot & {
 export default function MatchplayEventPlayersPage() {
   const router = useRouter()
   const params = useParams()
-  const { venueSlug } = useStaffSocialNightPaths()
+  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
+  const goBackToEventHub = () => router.push(staffPath(`/${eventId}`))
 
   const [eventStatus, setEventStatus] = useState<string | null>(null)
   const [originalPlayers, setOriginalPlayers] = useState<PlayerSnapshot[]>([])
@@ -243,7 +244,7 @@ export default function MatchplayEventPlayersPage() {
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={() => router.back()}>
+    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
       <div className="matchplay-page matchplay-page--setup">
       <h1 className="matchplay-page-title">Players</h1>
 

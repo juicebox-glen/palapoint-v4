@@ -167,7 +167,7 @@ function MatchplayDsEventHubPreview({ footerCta }: { footerCta: string }) {
   return (
     <StaffAppFrame
       venueSlug="dev"
-      backHref="/staff/dev"
+      backHref="/staff/dev/social-night"
       headerRight={
         <div className="matchplay-hub-menu-container">
           <span className="matchplay-hub-menu-btn" aria-hidden style={{ pointerEvents: 'none' }}>
@@ -329,7 +329,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     return (
       <StaffAppFrame
         venueSlug="dev"
-        backHref="/staff/dev"
+        backHref="/staff/dev/social-night"
         footer={
           <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
             Continue
@@ -442,7 +442,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     return (
       <StaffAppFrame
         venueSlug="dev"
-        backHref="/staff/dev"
+        backHref="/staff/dev/social-night/new"
         footer={
           <span className="matchplay-btn-primary" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
             Start Event
@@ -501,7 +501,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     return (
       <StaffAppFrame
         venueSlug="dev"
-        backHref="/staff/dev"
+        backHref="/design-system/preview/matchplay?state=event"
         footer={
           <span
             className="matchplay-btn-primary"
@@ -547,7 +547,7 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
 
   if (s === 'hub_standings') {
     return (
-      <StaffAppFrame venueSlug="dev" backHref="/staff/dev">
+      <StaffAppFrame venueSlug="dev" backHref="/design-system/preview/matchplay?state=event">
       <div className="matchplay-page matchplay-page--setup">
         <h1 className="matchplay-page-title">Standings</h1>
 

@@ -26,7 +26,14 @@ interface MatchplayEvent {
  */
 export default function MatchplayPage() {
   const router = useRouter()
-  const { path: staffPath } = useStaffSocialNightPaths()
+  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
+  const staffHomeHref = venueSlug ? `/staff/${venueSlug}` : null
+  const frameNavProps = venueSlug && staffHomeHref
+    ? {
+        venueSlug,
+        onBack: () => router.push(staffHomeHref),
+      }
+    : {}
   const [venueId, setVenueId] = useState<string | null>(null)
   const [venueResolveDone, setVenueResolveDone] = useState(false)
   const [events, setEvents] = useState<MatchplayEvent[]>([])
@@ -134,7 +141,7 @@ export default function MatchplayPage() {
 
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
-      <StaffAppFrame>
+      <StaffAppFrame {...frameNavProps}>
         <p className="matchplay-loading-text">Loading...</p>
       </StaffAppFrame>
     )
@@ -142,7 +149,7 @@ export default function MatchplayPage() {
 
   if (!venueId && error) {
     return (
-      <StaffAppFrame>
+      <StaffAppFrame {...frameNavProps}>
         <div className="matchplay-error" role="alert">
           {error}
         </div>
@@ -195,7 +202,7 @@ export default function MatchplayPage() {
   }
 
   return (
-    <StaffAppFrame>
+    <StaffAppFrame {...frameNavProps}>
       {error ? (
         <div className="matchplay-error" role="alert">
           {error}

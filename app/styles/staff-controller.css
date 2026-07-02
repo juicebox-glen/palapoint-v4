@@ -63,6 +63,14 @@
   grid-template-columns: 1fr;
 }
 
+.staff-flow-header--sub.setup-header {
+  grid-template-columns: 1fr;
+}
+
+.staff-flow-header--with-back.setup-header {
+  grid-template-columns: var(--touch-target-min, 44px) 1fr var(--touch-target-min, 44px);
+}
+
 .staff-flow-header-center {
   display: flex;
   justify-content: center;

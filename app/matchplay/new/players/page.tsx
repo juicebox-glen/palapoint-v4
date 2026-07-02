@@ -339,7 +339,7 @@ export default function MatchplayPlayersPage() {
   return (
     <StaffAppFrame
       venueSlug={venueSlug ?? undefined}
-      onBack={() => router.back()}
+      onBack={() => router.push(staffPath('/new'))}
       style={brandVars}
       footer={
         <button

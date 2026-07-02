@@ -24,9 +24,9 @@ export interface StaffFlowHeaderProps {
   isHomeScreen?: boolean
   /** Override venue slug (e.g. from route params on /staff). */
   venueSlug?: string
-  /** Custom back action (e.g. router.back()). */
+  /** One level up in the current flow — must be set explicitly per route. */
   onBack?: () => void
-  /** Link-based back (overrides default staff-home link). */
+  /** Link-based back when preferred over onBack (also explicit; no defaults). */
   backHref?: string
   /** Right slot — event hub menu, etc. */
   headerRight?: ReactNode
@@ -66,21 +66,28 @@ export function StaffFlowHeader({
   }, [])
 
   const resolvedVenueSlug = venueSlug ?? staffCtx?.venueSlug ?? null
-  const defaultBackHref =
+  const staffHomeHref =
     !isHomeScreen && resolvedVenueSlug ? `/staff/${resolvedVenueSlug}` : null
-  const resolvedBackHref = backHref ?? defaultBackHref
-  const showBack = !isHomeScreen && (onBack != null || resolvedBackHref != null)
+  const showBack = !isHomeScreen && (onBack != null || backHref != null)
 
   const logoBranding = useMemo(() => brandingForLogo(matchplayBranding), [matchplayBranding])
-  const logo = <VenueLogo branding={logoBranding} />
+  const logoNode = <VenueLogo branding={logoBranding} />
+  const logo =
+    staffHomeHref != null ? (
+      <Link href={staffHomeHref} className="staff-flow-home-link" aria-label="Staff home">
+        {logoNode}
+      </Link>
+    ) : (
+      logoNode
+    )
 
   const backControl =
     onBack != null ? (
       <button type="button" className="staff-flow-back" onClick={onBack} aria-label="Back">
         <StaffBackArrowIcon />
       </button>
-    ) : resolvedBackHref ? (
-      <Link href={resolvedBackHref} className="staff-flow-back" aria-label="Back">
+    ) : backHref ? (
+      <Link href={backHref} className="staff-flow-back" aria-label="Back">
         <StaffBackArrowIcon />
       </Link>
     ) : null
@@ -91,7 +98,7 @@ export function StaffFlowHeader({
         'setup-header',
         'staff-flow-header',
         isHomeScreen ? 'staff-flow-header--home' : '',
-        showBack ? 'staff-flow-header--with-back' : '',
+        showBack ? 'staff-flow-header--with-back' : 'staff-flow-header--sub',
       ]
         .filter(Boolean)
         .join(' ')}

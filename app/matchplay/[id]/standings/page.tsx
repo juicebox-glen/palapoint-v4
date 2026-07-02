@@ -20,8 +20,9 @@ interface StandingsPlayer {
 export default function MatchplayStandingsPage() {
   const router = useRouter()
   const params = useParams()
-  const { venueSlug } = useStaffSocialNightPaths()
+  const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
   const eventId = params.id as string
+  const goBackToEventHub = () => router.push(staffPath(`/${eventId}`))
 
   const [standings, setStandings] = useState<StandingsPlayer[]>([])
   const [loading, setLoading] = useState(true)
@@ -63,7 +64,7 @@ export default function MatchplayStandingsPage() {
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={() => router.back()}>
+    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
       <div className="matchplay-page matchplay-page--setup">
       <h1 className="matchplay-page-title">Standings</h1>
 
