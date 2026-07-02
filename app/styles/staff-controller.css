@@ -48,6 +48,7 @@
 
 .staff-app-header .setup-header {
   margin-bottom: 0;
+  animation: none;
 }
 
 .staff-flow-header.setup-header {

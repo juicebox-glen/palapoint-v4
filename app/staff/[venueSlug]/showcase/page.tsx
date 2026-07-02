@@ -13,6 +13,7 @@ import {
   linkVenueScreenToShowcaseGame,
   resetVenueScreenAfterShowcaseEnd,
 } from '@/lib/venue-screen-staff-context'
+import { resolveShowcaseResumeMatchId } from '@/lib/venue-screen-resume'
 
 export default function StaffShowcasePage() {
   const router = useRouter()
@@ -20,6 +21,7 @@ export default function StaffShowcasePage() {
   const venueSlug = (params.venueSlug as string | undefined) ?? ''
 
   const [courtId, setCourtId] = useState<string | null>(null)
+  const [resumeMatchId, setResumeMatchId] = useState<string | null>(null)
   const [branding, setBranding] = useState<VenueBranding | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -57,7 +59,10 @@ export default function StaffShowcasePage() {
       const brand = await getVenueBrandingForCourtId(data.court_id)
       if (cancelled) return
 
+      const showcaseMatchId = await resolveShowcaseResumeMatchId(data)
+
       setCourtId(data.court_id)
+      setResumeMatchId(showcaseMatchId)
       setBranding(brand)
       setLoading(false)
     }
@@ -110,6 +115,7 @@ export default function StaffShowcasePage() {
 
       <ControlPanel
         courtId={courtId}
+        resumeMatchId={resumeMatchId}
         branding={branding}
         courtName={branding?.courtName}
         showSetupHeader={false}

@@ -90,6 +90,8 @@ interface ControlPanelProps {
   onMatchEnded?: (matchId: string) => void | Promise<void>
   /** Inside StaffAppFrame — drop full-viewport chrome and duplicate horizontal padding. */
   embedded?: boolean
+  /** Load this match instead of the latest match on the court (showcase resume). */
+  resumeMatchId?: string | null
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -130,6 +132,7 @@ export default function ControlPanel({
   onMatchStarted,
   onMatchEnded,
   embedded = false,
+  resumeMatchId = null,
 }: ControlPanelProps) {
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
@@ -181,14 +184,19 @@ export default function ControlPanel({
 
     async function loadMatch() {
       try {
-        const { data, error: fetchError } = await supabase
-          .from('live_matches')
-          .select('*')
-          .eq('court_id', courtId)
-          .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
+        let fetchQuery = supabase.from('live_matches').select('*')
+
+        if (resumeMatchId) {
+          fetchQuery = fetchQuery.eq('id', resumeMatchId)
+        } else {
+          fetchQuery = fetchQuery
+            .eq('court_id', courtId)
+            .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+            .order('created_at', { ascending: false })
+            .limit(1)
+        }
+
+        const { data, error: fetchError } = await fetchQuery.maybeSingle()
 
         if (fetchError) {
           console.error('Error loading match:', fetchError)
@@ -243,25 +251,29 @@ export default function ControlPanel({
 
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
-        supabase
-          .from('live_matches')
-          .select('*')
-          .eq('court_id', courtId)
-          .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data) {
-              const m = { ...data } as MatchState
-              setMatch(m)
-              if (m.status === 'in_progress') setStage('live')
-              else if (m.status === 'setup') setStage('preview')
-            } else {
-              setMatch(null)
-              setStage('setup')
-            }
-          })
+        let refreshQuery = supabase.from('live_matches').select('*')
+
+        if (resumeMatchId) {
+          refreshQuery = refreshQuery.eq('id', resumeMatchId)
+        } else {
+          refreshQuery = refreshQuery
+            .eq('court_id', courtId)
+            .in('status', ['setup', 'in_progress', 'completed', 'abandoned'])
+            .order('created_at', { ascending: false })
+            .limit(1)
+        }
+
+        refreshQuery.maybeSingle().then(({ data }) => {
+          if (data) {
+            const m = { ...data } as MatchState
+            setMatch(m)
+            if (m.status === 'in_progress') setStage('live')
+            else if (m.status === 'setup') setStage('preview')
+          } else {
+            setMatch(null)
+            setStage('setup')
+          }
+        })
       }
     }
     document.addEventListener('visibilitychange', onVisibility)
@@ -270,7 +282,7 @@ export default function ControlPanel({
       document.removeEventListener('visibilitychange', onVisibility)
       if (channel) supabase.removeChannel(channel)
     }
-  }, [courtId, isPreview])
+  }, [courtId, isPreview, resumeMatchId])
 
   useEffect(() => {
     if (isPreview || !onMatchEnded || !match || !isMatchEndgame(match)) return

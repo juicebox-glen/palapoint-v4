@@ -12,6 +12,12 @@ import {
   saveVenueScreenStaffContext,
 } from '@/lib/venue-screen-staff-context'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
+import { staffSocialNightHref } from '@/lib/hooks/useStaffSocialNightPaths'
+import {
+  fetchStaffModeResumeHints,
+  resolveSocialNightResumeEventId,
+  type StaffModeResumeHints,
+} from '@/lib/venue-screen-resume'
 
 const MODE_LABELS: Record<VenueScreenMode, string> = {
   idle: 'Idle',
@@ -32,6 +38,11 @@ export default function StaffPage() {
   const [pairingCode, setPairingCode] = useState('')
   const [pairingReady, setPairingReady] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [modeBusy, setModeBusy] = useState<'social_night' | 'showcase_game' | null>(null)
+  const [resumeHints, setResumeHints] = useState<StaffModeResumeHints>({
+    socialNightLive: false,
+    showcaseLive: false,
+  })
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; text: string } | null>(
     null
   )
@@ -68,6 +79,22 @@ export default function StaffPage() {
   useEffect(() => {
     void loadScreens()
   }, [loadScreens])
+
+  useEffect(() => {
+    if (!selectedScreen) {
+      setResumeHints({ socialNightLive: false, showcaseLive: false })
+      return
+    }
+
+    let cancelled = false
+    void fetchStaffModeResumeHints(selectedScreen).then((hints) => {
+      if (!cancelled) setResumeHints(hints)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedScreen])
 
   useEffect(() => {
     const fromUrl = searchParams.get('code')?.trim()
@@ -128,7 +155,7 @@ export default function StaffPage() {
     })
   }
 
-  const startSocialNight = () => {
+  const startSocialNight = async () => {
     if (!selectedScreen) return
     if (!pairingCode.trim()) {
       setFeedback({ kind: 'err', text: 'Enter a pairing code first.' })
@@ -141,7 +168,17 @@ export default function StaffPage() {
       pairingCode: pairingCode.trim(),
     })
 
-    router.push(`/staff/${venueSlug}/social-night`)
+    setModeBusy('social_night')
+    setFeedback(null)
+
+    const resumeEventId = await resolveSocialNightResumeEventId(selectedScreen)
+
+    setModeBusy(null)
+    router.push(
+      resumeEventId
+        ? staffSocialNightHref(venueSlug, `/${resumeEventId}`)
+        : `/staff/${venueSlug}/social-night`
+    )
   }
 
   const startShowcaseGame = () => {
@@ -227,24 +264,32 @@ export default function StaffPage() {
                   <button
                     type="button"
                     className="staff-action"
-                    disabled={busy}
-                    onClick={startSocialNight}
+                    disabled={busy || modeBusy !== null}
+                    onClick={() => void startSocialNight()}
                   >
-                    <span className="staff-action-title">Social Night</span>
+                    <span className="staff-action-title">
+                      {resumeHints.socialNightLive ? 'Continue Social Night' : 'Social Night'}
+                    </span>
                     <span className="staff-action-desc">
-                      Set up a new Americano and show it on screen.
+                      {resumeHints.socialNightLive
+                        ? 'Return to the live Americano on screen.'
+                        : 'Set up a new Americano and show it on screen.'}
                     </span>
                   </button>
 
                   <button
                     type="button"
                     className="staff-action"
-                    disabled={busy}
+                    disabled={busy || modeBusy !== null}
                     onClick={startShowcaseGame}
                   >
-                    <span className="staff-action-title">Showcase Game</span>
+                    <span className="staff-action-title">
+                      {resumeHints.showcaseLive ? 'Continue Showcase Game' : 'Showcase Game'}
+                    </span>
                     <span className="staff-action-desc">
-                      Live scoreboard for a single match.
+                      {resumeHints.showcaseLive
+                        ? 'Return to the live showcase match on screen.'
+                        : 'Live scoreboard for a single match.'}
                     </span>
                   </button>
 
