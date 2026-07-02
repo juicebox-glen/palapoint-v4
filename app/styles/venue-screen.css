@@ -1,0 +1,84 @@
+.venue-screen {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.venue-screen--idle,
+.venue-screen--mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.venue-screen-idle-inner,
+.venue-screen-mode-inner,
+.venue-screen-error-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+  max-width: 42rem;
+}
+
+.venue-screen-kicker {
+  margin: 0 0 1.5rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.venue-screen-idle-logo {
+  width: min(280px, 60vw);
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
+.venue-screen-idle-venue {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.venue-screen-idle-message {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+.venue-screen-mode-title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: var(--font-weight-bold);
+}
+
+.venue-screen-mode-screen {
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+}
+
+.venue-screen-mode-subtitle {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.venue-screen--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.venue-screen-error-inner h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+}
+
+.venue-screen-error-inner p {
+  margin: 0;
+  color: var(--text-secondary);
+}

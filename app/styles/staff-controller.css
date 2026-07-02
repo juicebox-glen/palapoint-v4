@@ -1,0 +1,195 @@
+.staff-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 1.5rem 1rem 3rem;
+}
+
+.staff-shell {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.staff-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.staff-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.staff-flow-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.25rem 0.5rem;
+  margin: -0.25rem -0.5rem;
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+
+.staff-flow-home-link:hover {
+  background: var(--bg-secondary);
+}
+
+.staff-flow-home-link:focus-visible {
+  outline: 2px solid var(--brand-primary, var(--team-a));
+  outline-offset: 2px;
+}
+
+.staff-flow-header-wrap {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 0;
+}
+
+.staff-flow-header-wrap--wide {
+  max-width: none;
+  padding-left: var(--ui-space-lg, 1rem);
+  padding-right: var(--ui-space-lg, 1rem);
+}
+
+.staff-muted {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.staff-error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+.staff-status {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.staff-status-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.staff-status-value {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.staff-prompt {
+  margin: 1.5rem 0 1rem;
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.staff-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.staff-action {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.staff-action:hover:not(:disabled) {
+  border-color: var(--brand-primary, var(--team-a));
+}
+
+.staff-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.staff-action-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 0.25rem;
+}
+
+.staff-action-desc {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.staff-action--secondary {
+  margin-top: 0.5rem;
+  text-align: center;
+  background: transparent;
+}
+
+.staff-pairing-form {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.staff-pairing-form label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.staff-pairing-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: inherit;
+  font: inherit;
+}
+
+.staff-feedback {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.staff-feedback--ok {
+  border: 1px solid color-mix(in srgb, var(--success, #22c55e) 40%, transparent);
+  background: color-mix(in srgb, var(--success, #22c55e) 10%, transparent);
+}
+
+.staff-feedback--err {
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+.staff-screen-picker {
+  margin: 1rem 0 0;
+}
+
+.staff-screen-picker select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: inherit;
+  font: inherit;
+}

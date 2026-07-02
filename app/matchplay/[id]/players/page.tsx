@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
 import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
+import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -241,6 +242,9 @@ export default function MatchplayEventPlayersPage() {
 
   return (
     <div className="matchplay-page matchplay-page--setup">
+      <div className="staff-flow-header-wrap">
+        <StaffFlowHeader />
+      </div>
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back

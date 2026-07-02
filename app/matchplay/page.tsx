@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
-import SetupScreenHeader from '@/components/SetupScreenHeader'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
+import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
 import { callMatchplayEvent } from '@/lib/api/matchplay'
+import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -30,6 +31,7 @@ export default function MatchplayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [closingActiveEvent, setClosingActiveEvent] = useState(false)
+  const [staffLaunch, setStaffLaunch] = useState(false)
 
   const loadEvents = useCallback(async () => {
     if (!venueId) return
@@ -65,6 +67,15 @@ export default function MatchplayPage() {
     }
     setLoading(false)
   }, [venueId])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    captureVenueScreenStaffContext({
+      venueSlug: params.get('venue'),
+      screenSlug: params.get('screen'),
+    })
+    setStaffLaunch(Boolean(params.get('venue')?.trim() && params.get('screen')?.trim()))
+  }, [])
 
   useEffect(() => {
     async function resolve() {
@@ -119,7 +130,9 @@ export default function MatchplayPage() {
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
       <div className="matchplay-launcher matchplay-launcher--compact">
-        <SetupScreenHeader />
+        <div className="staff-flow-header-wrap">
+          <StaffFlowHeader />
+        </div>
         <p className="matchplay-loading-text">Loading...</p>
       </div>
     )
@@ -128,7 +141,9 @@ export default function MatchplayPage() {
   if (!venueId && error) {
     return (
       <div className="matchplay-launcher matchplay-launcher--compact">
-        <SetupScreenHeader />
+        <div className="staff-flow-header-wrap">
+          <StaffFlowHeader />
+        </div>
         <div className="matchplay-error" role="alert" style={{ margin: '1rem' }}>
           {error}
         </div>
@@ -136,7 +151,7 @@ export default function MatchplayPage() {
     )
   }
 
-  if (activeEvent) {
+  if (activeEvent && !staffLaunch) {
     return (
       <div className="matchplay-launcher">
         <h1 className="matchplay-launcher-title">Matchplay</h1>
@@ -182,7 +197,9 @@ export default function MatchplayPage() {
 
   return (
     <div className="matchplay-launcher matchplay-launcher--compact">
-      <SetupScreenHeader />
+      <div className="staff-flow-header-wrap">
+        <StaffFlowHeader />
+      </div>
       {error ? (
         <div className="matchplay-error" role="alert" style={{ margin: '0 1rem 1rem' }}>
           {error}

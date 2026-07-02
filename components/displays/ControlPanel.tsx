@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchSetupForm from '@/components/MatchSetupForm'
 import PlayerFlowShell from '@/components/shared/PlayerFlowShell'
@@ -67,6 +67,12 @@ interface ControlPanelProps {
   courtName?: string
   /** When set, skips Supabase/realtime and uses static data for design system previews. */
   preview?: ControlPanelPreviewConfig
+  /** Hide SetupScreenHeader in live view; MatchSetupForm header when false. */
+  showSetupHeader?: boolean
+  /** Called when staff starts a match (after successful start action). */
+  onMatchStarted?: (matchId: string) => void | Promise<void>
+  /** Called when match completes or is abandoned. */
+  onMatchEnded?: (matchId: string) => void | Promise<void>
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -103,6 +109,9 @@ export default function ControlPanel({
   branding,
   courtName,
   preview,
+  showSetupHeader = true,
+  onMatchStarted,
+  onMatchEnded,
 }: ControlPanelProps) {
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const isPreview = Boolean(preview)
@@ -133,6 +142,7 @@ export default function ControlPanel({
       : EMPTY_PLAYER_PHOTOS
   )
   const [stage, setStage] = useState<ControlStage>(() => initialStageFromPreview(preview))
+  const endNotifiedRef = useRef<string | null>(null)
 
   const handlePlayerPhotoChange = useCallback(
     (key: keyof PlayerPhotosState, url: string | null) => {
@@ -243,6 +253,14 @@ export default function ControlPanel({
     }
   }, [courtId, isPreview])
 
+  useEffect(() => {
+    if (isPreview || !onMatchEnded || !match || !isMatchEndgame(match)) return
+    const key = `${match.id}:${match.status}`
+    if (endNotifiedRef.current === key) return
+    endNotifiedRef.current = key
+    void onMatchEnded(match.id)
+  }, [isPreview, match, onMatchEnded])
+
   function handlePlayerChange(index: number, value: string) {
     const next = [...players]
     next[index] = value
@@ -335,6 +353,10 @@ export default function ControlPanel({
       } else if (data.match) {
         setMatch(data.match as MatchState)
         setStage('live')
+        endNotifiedRef.current = null
+        if (onMatchStarted) {
+          await onMatchStarted(data.match.id)
+        }
       }
     } catch (err) {
       console.error('Error starting match:', err)
@@ -397,6 +419,7 @@ export default function ControlPanel({
       })
       const data = await response.json()
       if (!data.success) setError(data.error || 'Failed to end match')
+      else if (onMatchEnded && match?.id) await onMatchEnded(match.id)
     } catch (err) {
       console.error('Error ending match:', err)
       setError('Failed to end match')
@@ -493,7 +516,7 @@ export default function ControlPanel({
       submitLoading={actionLoading === 'continue'}
       submitLabel="Continue"
       error={error}
-      showHeader
+      showHeader={showSetupHeader}
       branding={branding}
     />
   )
@@ -579,7 +602,7 @@ export default function ControlPanel({
     <div className="control-panel" style={brandingStylesFor(branding)}>
       <div className="control-container control-container--preview">
         <div className="control-preview">
-          <SetupScreenHeader branding={branding} />
+          {showSetupHeader ? <SetupScreenHeader branding={branding} /> : null}
 
           <div className="preview-header">
             <div className="preview-status">

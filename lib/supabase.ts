@@ -156,6 +156,18 @@ export async function getMatchplayVenueId(): Promise<string | null> {
   return data.id
 }
 
+/** Resolve venue UUID from URL slug (e.g. eastbourne → venues.id). */
+export async function getVenueIdBySlug(venueSlug: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('venues')
+    .select('id')
+    .eq('slug', venueSlug)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return data.id
+}
+
 /** Company branding for matchplay setup header (logo + colours from company config). */
 export interface MatchplayVenueHeaderBranding {
   venueName: string

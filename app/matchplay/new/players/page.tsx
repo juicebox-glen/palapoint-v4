@@ -13,6 +13,8 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
+import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
+import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -297,6 +299,11 @@ export default function MatchplayPlayersPage() {
         }
       }
 
+      const screenLink = await linkVenueScreenToSocialNight(eventId)
+      if (!screenLink.ok) {
+        console.warn('[MatchplaySetup] Venue screen link failed:', screenLink.error)
+      }
+
       console.log('[MatchplaySetup] Navigating to event hub…')
 
       try {
@@ -329,6 +336,9 @@ export default function MatchplayPlayersPage() {
 
   return (
     <div className="matchplay-page matchplay-page--setup" style={brandVars}>
+      <div className="staff-flow-header-wrap">
+        <StaffFlowHeader />
+      </div>
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back

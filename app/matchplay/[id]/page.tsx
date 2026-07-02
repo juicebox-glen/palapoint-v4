@@ -13,6 +13,8 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
+import { resetVenueScreenAfterEventEnd } from '@/lib/venue-screen-staff-context'
+import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
 
 interface MatchplayEvent {
   id: string
@@ -714,6 +716,7 @@ export default function MatchplayEventPage() {
       if (!result.event) {
         throw new Error(result.error || 'Failed to end event')
       }
+      await resetVenueScreenAfterEventEnd(eventId)
       setEvent(result.event as MatchplayEvent)
       router.push(`/matchplay/${eventId}/results`)
     } catch (err) {
@@ -854,6 +857,9 @@ export default function MatchplayEventPage() {
 
   return (
     <div className="matchplay-event-page">
+      <div className="staff-flow-header-wrap staff-flow-header-wrap--wide">
+        <StaffFlowHeader />
+      </div>
       <header className="matchplay-hub-header">
         <button type="button" onClick={() => router.push('/matchplay')} className="matchplay-hub-back" aria-label="Back">
           ←

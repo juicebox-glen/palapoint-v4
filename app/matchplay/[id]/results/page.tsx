@@ -8,6 +8,7 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
+import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
 import '@/app/styles/matchplay.css'
 
 interface StandingsPlayer {
@@ -86,6 +87,9 @@ export default function MatchplayResultsPage() {
 
   return (
     <div className="matchplay-page matchplay-page--setup matchplay-results-page">
+      <div className="staff-flow-header-wrap">
+        <StaffFlowHeader />
+      </div>
       <header className="matchplay-results-header">
         <h1 className="matchplay-results-title">Event complete</h1>
         <p className="matchplay-results-subtitle">
