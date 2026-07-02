@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -18,6 +19,7 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 
 export default function NewMatchplayPage() {
   const router = useRouter()
+  const { path: staffPath } = useStaffSocialNightPaths()
   const branding = useMatchplaySetupBranding()
 
   const [playerCount, setPlayerCount] = useState(8)
@@ -94,7 +96,7 @@ export default function NewMatchplayPage() {
     } catch {
       /* ignore quota */
     }
-    router.push('/matchplay/new/players')
+    router.push(staffPath('/new/players'))
   }
 
   const hasNoCourts = selectedCourts.length === 0

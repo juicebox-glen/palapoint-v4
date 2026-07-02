@@ -8,6 +8,7 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 
@@ -23,6 +24,7 @@ interface StandingsPlayer {
 export default function MatchplayResultsPage() {
   const router = useRouter()
   const params = useParams()
+  const { path: staffPath, base: staffBase } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [playerCount, setPlayerCount] = useState(0)
@@ -172,10 +174,10 @@ export default function MatchplayResultsPage() {
 
       <footer className="matchplay-results-footer">
         <div className="matchplay-results-footer-actions">
-          <button type="button" className="btn btn--secondary btn--full" onClick={() => router.push(`/matchplay/${eventId}/standings`)}>
+          <button type="button" className="btn btn--secondary btn--full" onClick={() => router.push(staffPath(`/${eventId}/standings`))}>
             Detailed standings
           </button>
-          <button type="button" className="btn btn--primary btn--full" onClick={() => router.push('/matchplay')}>
+          <button type="button" className="btn btn--primary btn--full" onClick={() => router.push(staffBase ?? '/matchplay')}>
             Start new event
           </button>
         </div>

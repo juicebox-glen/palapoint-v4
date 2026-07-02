@@ -627,7 +627,7 @@ export default function ControlPanel({
   }
 
   if (match.status !== 'in_progress') {
-    return null
+    return renderSetupForm()
   }
 
   const teamAName = formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)

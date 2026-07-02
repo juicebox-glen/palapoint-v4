@@ -19,21 +19,25 @@ function LauncherChevron() {
 }
 
 interface MatchplayLauncherModePickerProps {
-  /** Query string for staff venue-screen context (e.g. ?venue=eastbourne&screen=eastbourne-main). */
-  staffQuery?: string
+  /** When set, links stay under /staff/[venue]/social-night/… for home-screen PWA continuity. */
+  staffVenueSlug?: string
 }
 
 /**
  * Matchplay launcher — “select game mode” list.
  * Uses setup-section / setup-section-title and session-review-game-row (same pattern as session review).
  */
-export function MatchplayLauncherModePicker({ staffQuery = '' }: MatchplayLauncherModePickerProps) {
+export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLauncherModePickerProps) {
+  const americanoHref = staffVenueSlug
+    ? `/staff/${staffVenueSlug}/social-night/new`
+    : '/matchplay/new'
+
   return (
     <section className="setup-section matchplay-launcher-modes">
       <h2 className="setup-section-title">Select game mode</h2>
       <div className="session-review-game-rows">
         <Link
-          href={`/matchplay/new${staffQuery}`}
+          href={americanoHref}
           className="session-review-game-row session-review-game-row--launcher session-review-game-row--clickable"
         >
           <div className="matchplay-launcher-mode-copy">

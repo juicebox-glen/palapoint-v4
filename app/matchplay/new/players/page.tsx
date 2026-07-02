@@ -14,6 +14,7 @@ import {
   callMatchplayRound,
 } from '@/lib/api/matchplay'
 import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
@@ -41,6 +42,7 @@ function generateEventName(): string {
 
 export default function MatchplayPlayersPage() {
   const router = useRouter()
+  const { path: staffPath } = useStaffSocialNightPaths()
   const branding = useMatchplaySetupBranding()
   const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
@@ -312,7 +314,7 @@ export default function MatchplayPlayersPage() {
         /* ignore */
       }
 
-      router.push(`/matchplay/${eventId}`)
+      router.push(staffPath(`/${eventId}`))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create event')
       setIsSubmitting(false)

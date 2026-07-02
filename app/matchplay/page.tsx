@@ -7,6 +7,7 @@ import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModeP
 import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
 import { callMatchplayEvent } from '@/lib/api/matchplay'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -25,6 +26,7 @@ interface MatchplayEvent {
  */
 export default function MatchplayPage() {
   const router = useRouter()
+  const { path: staffPath } = useStaffSocialNightPaths()
   const [venueId, setVenueId] = useState<string | null>(null)
   const [venueResolveDone, setVenueResolveDone] = useState(false)
   const [events, setEvents] = useState<MatchplayEvent[]>([])
@@ -174,7 +176,7 @@ export default function MatchplayPage() {
             <button
               type="button"
               className="btn btn-primary matchplay-continue-btn"
-              onClick={() => router.push(`/matchplay/${activeEvent.id}`)}
+              onClick={() => router.push(staffPath(`/${activeEvent.id}`))}
             >
               CONTINUE EVENT
             </button>
@@ -199,7 +201,9 @@ export default function MatchplayPage() {
           {error}
         </div>
       ) : null}
-      <MatchplayLauncherModePicker />
+      <div className="matchplay-launcher matchplay-launcher--compact">
+        <MatchplayLauncherModePicker />
+      </div>
     </StaffPageShell>
   )
 }

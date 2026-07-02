@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import ControlPanel from '@/components/displays/ControlPanel'
-import { StaffFlowHeaderBar, StaffPageShell } from '@/components/venue-screen/StaffPageShell'
+import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
 import { supabase } from '@/lib/supabase'
 import { VENUE_SCREEN_PUBLIC_SELECT } from '@/lib/types/venue-screen'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
@@ -31,7 +31,10 @@ export default function StaffShowcasePage() {
     async function load() {
       const ctx = getVenueScreenStaffContext()
       if (!ctx || ctx.venueSlug !== venueSlug) {
-        router.replace(`/staff/${venueSlug}`)
+        if (!cancelled) {
+          setLoading(false)
+          router.replace(`/staff/${venueSlug}`)
+        }
         return
       }
 
@@ -98,15 +101,12 @@ export default function StaffShowcasePage() {
   }
 
   return (
-    <div style={brandingStyles}>
-      <div className="staff-page">
-        <StaffFlowHeaderBar venueSlug={venueSlug} wide />
-        {linkError ? (
-          <div className="staff-error staff-flow-header-wrap staff-flow-header-wrap--wide">
-            <p>{linkError}</p>
-          </div>
-        ) : null}
-      </div>
+    <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+      {linkError ? (
+        <div className="staff-error">
+          <p>{linkError}</p>
+        </div>
+      ) : null}
 
       <ControlPanel
         courtId={courtId}
@@ -116,6 +116,6 @@ export default function StaffShowcasePage() {
         onMatchStarted={handleMatchStarted}
         onMatchEnded={handleMatchEnded}
       />
-    </div>
+    </StaffPageShell>
   )
 }

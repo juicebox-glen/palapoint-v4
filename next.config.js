@@ -17,6 +17,34 @@ const nextConfig = {
       },
     ]
   },
+  async rewrites() {
+    return [
+      {
+        source: '/staff/:venueSlug/social-night/new/players',
+        destination: '/matchplay/new/players',
+      },
+      {
+        source: '/staff/:venueSlug/social-night/new',
+        destination: '/matchplay/new',
+      },
+      {
+        source: '/staff/:venueSlug/social-night/:eventId/results',
+        destination: '/matchplay/:eventId/results',
+      },
+      {
+        source: '/staff/:venueSlug/social-night/:eventId/standings',
+        destination: '/matchplay/:eventId/standings',
+      },
+      {
+        source: '/staff/:venueSlug/social-night/:eventId/players',
+        destination: '/matchplay/:eventId/players',
+      },
+      {
+        source: '/staff/:venueSlug/social-night/:eventId',
+        destination: '/matchplay/:eventId',
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
 import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
-import {
-  getVenueScreenStaffContext,
-  saveVenueScreenStaffContext,
-} from '@/lib/venue-screen-staff-context'
+import { getVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
+
+import '@/app/styles/matchplay.css'
+import '@/app/styles/setup-form.css'
 
 export default function StaffSocialNightPage() {
   const router = useRouter()
@@ -22,21 +22,11 @@ export default function StaffSocialNightPage() {
     }
   }, [router, venueSlug])
 
-  const staffQuery = useMemo(() => {
-    const ctx = getVenueScreenStaffContext()
-    if (!ctx) return ''
-    saveVenueScreenStaffContext(ctx)
-    const qs = new URLSearchParams({
-      venue: ctx.venueSlug,
-      screen: ctx.screenSlug,
-    })
-    return `?${qs.toString()}`
-  }, [venueSlug])
-
   return (
     <StaffPageShell venueSlug={venueSlug}>
-      <p className="staff-prompt">Select game mode</p>
-      <MatchplayLauncherModePicker staffQuery={staffQuery} />
+      <div className="matchplay-launcher matchplay-launcher--compact">
+        <MatchplayLauncherModePicker staffVenueSlug={venueSlug} />
+      </div>
     </StaffPageShell>
   )
 }

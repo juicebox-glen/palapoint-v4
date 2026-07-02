@@ -14,6 +14,7 @@ import {
   callMatchplayRound,
 } from '@/lib/api/matchplay'
 import { resetVenueScreenAfterEventEnd } from '@/lib/venue-screen-staff-context'
+import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 
 interface MatchplayEvent {
@@ -490,6 +491,7 @@ function HubMatchCard({
 export default function MatchplayEventPage() {
   const params = useParams()
   const router = useRouter()
+  const { path: staffPath, base: staffBase } = useStaffSocialNightPaths()
   const eventId = params.id as string
 
   const [event, setEvent] = useState<MatchplayEvent | null>(null)
@@ -718,7 +720,7 @@ export default function MatchplayEventPage() {
       }
       await resetVenueScreenAfterEventEnd(eventId)
       setEvent(result.event as MatchplayEvent)
-      router.push(`/matchplay/${eventId}/results`)
+      router.push(staffPath(`/${eventId}/results`))
     } catch (err) {
       console.error('End event error:', err)
       setError(err instanceof Error ? err.message : 'Failed to end event')
@@ -843,7 +845,7 @@ export default function MatchplayEventPage() {
       <div className="matchplay-event-page matchplay-event-page--centered-state">
         <p className="matchplay-error-text">{error}</p>
         <div className="matchplay-modal-actions">
-          <Link href="/matchplay" className="btn btn-secondary">
+          <Link href={staffBase ?? '/matchplay'} className="btn btn-secondary">
             Back to list
           </Link>
         </div>
@@ -859,7 +861,7 @@ export default function MatchplayEventPage() {
     <div className="staff-page matchplay-event-page">
       <StaffFlowHeaderBar wide />
       <header className="matchplay-hub-header">
-        <button type="button" onClick={() => router.push('/matchplay')} className="matchplay-hub-back" aria-label="Back">
+        <button type="button" onClick={() => router.push(staffBase ?? '/matchplay')} className="matchplay-hub-back" aria-label="Back">
           ←
         </button>
         <h1 className="matchplay-hub-title">Event</h1>
@@ -881,7 +883,7 @@ export default function MatchplayEventPage() {
                 className="matchplay-hub-menu-item"
                 onClick={() => {
                   setShowMenu(false)
-                  router.push(`/matchplay/${eventId}/players`)
+                  router.push(staffPath(`/${eventId}/players`))
                 }}
               >
                 <MatchplayHubPlayersIcon className="matchplay-hub-menu-icon" />
@@ -894,7 +896,7 @@ export default function MatchplayEventPage() {
                   className="matchplay-hub-menu-item"
                   onClick={() => {
                     setShowMenu(false)
-                    router.push(`/matchplay/${eventId}/standings`)
+                    router.push(staffPath(`/${eventId}/standings`))
                   }}
                 >
                   <MatchplayHubStandingsIcon className="matchplay-hub-menu-icon" />

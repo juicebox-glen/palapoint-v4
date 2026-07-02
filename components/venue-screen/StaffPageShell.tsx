@@ -47,10 +47,6 @@ export function StaffPageShell({
   className,
   style,
 }: StaffPageShellProps) {
-  const headerWrapClass = wideHeader
-    ? 'staff-flow-header-wrap staff-flow-header-wrap--wide'
-    : 'staff-flow-header-wrap'
-
   return (
     <div className={['staff-page', className].filter(Boolean).join(' ')} style={style}>
       <div className={wideHeader ? undefined : 'staff-shell'}>
