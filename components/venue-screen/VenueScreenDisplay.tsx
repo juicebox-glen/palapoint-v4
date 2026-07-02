@@ -7,6 +7,7 @@ import SpectatorDisplay from '@/components/displays/spectator/SpectatorDisplay'
 import { ScreenIdle } from '@/components/venue-screen/ScreenIdle'
 import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useVenueScreen } from '@/lib/hooks/useVenueScreen'
+import { SHOWCASE_VENUE_ENDGAME_HOLD_MS } from '@/lib/showcase-timing'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 
 import '@/app/styles/venue-screen.css'
@@ -88,7 +89,11 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
   if (screen.active_mode === 'showcase_game') {
     if (screen.court_id && screen.active_showcase_match_id) {
       return (
-        <SpectatorDisplay courtId={screen.court_id} branding={branding} />
+        <SpectatorDisplay
+          courtId={screen.court_id}
+          branding={branding}
+          endgameDisplayMs={SHOWCASE_VENUE_ENDGAME_HOLD_MS}
+        />
       )
     }
 

@@ -11,7 +11,7 @@ import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } fro
 import {
   getVenueScreenStaffContext,
   linkVenueScreenToShowcaseGame,
-  resetVenueScreenAfterShowcaseEnd,
+  scheduleShowcaseScreenIdleReset,
 } from '@/lib/venue-screen-staff-context'
 import { resolveShowcaseResumeMatchId } from '@/lib/venue-screen-resume'
 
@@ -81,8 +81,8 @@ export default function StaffShowcasePage() {
     }
   }, [])
 
-  const handleMatchEnded = useCallback(async (matchId: string) => {
-    await resetVenueScreenAfterShowcaseEnd(matchId)
+  const handleMatchEnded = useCallback((matchId: string) => {
+    scheduleShowcaseScreenIdleReset(matchId)
   }, [])
 
   const brandingStyles = brandingStylesFor(branding)
@@ -116,6 +116,7 @@ export default function StaffShowcasePage() {
       <ControlPanel
         courtId={courtId}
         resumeMatchId={resumeMatchId}
+        freshEntryActiveOnly={resumeMatchId == null}
         branding={branding}
         courtName={branding?.courtName}
         showSetupHeader={false}

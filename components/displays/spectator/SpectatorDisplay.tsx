@@ -14,13 +14,18 @@ import { SpectatorEndgame } from './SpectatorEndgame'
 interface SpectatorDisplayProps {
   courtId: string
   branding?: VenueBranding | null
+  /** Override endgame hold duration (venue showcase uses a longer hold). */
+  endgameDisplayMs?: number
 }
 
 export default function SpectatorDisplay({
   courtId,
   branding = null,
+  endgameDisplayMs,
 }: SpectatorDisplayProps) {
-  const endgameMatch = useSpectatorEndgame(courtId)
+  const endgameMatch = useSpectatorEndgame(courtId, {
+    displayMs: endgameDisplayMs,
+  })
 
   const { match, isLoading, error } = useLiveMatch<MatchState>(courtId, {
     select: LIVE_MATCH_FULL_SELECT,

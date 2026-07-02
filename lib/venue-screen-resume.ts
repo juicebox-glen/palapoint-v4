@@ -2,7 +2,8 @@ import { supabase } from '@/lib/supabase'
 import type { VenueScreen } from '@/lib/types/venue-screen'
 
 const LIVE_EVENT_STATUSES = new Set(['setup', 'in_progress'])
-const LIVE_MATCH_STATUSES = new Set(['setup', 'in_progress'])
+/** Active scoring, or post-game hold while venue_screens still links the showcase match. */
+const SHOWCASE_RESUME_MATCH_STATUSES = new Set(['setup', 'in_progress', 'completed'])
 
 export interface StaffModeResumeHints {
   socialNightLive: boolean
@@ -59,7 +60,7 @@ export async function resolveShowcaseResumeMatchId(
     .eq('id', screen.active_showcase_match_id)
     .maybeSingle()
 
-  if (error || !data?.id || !LIVE_MATCH_STATUSES.has(data.status)) {
+  if (error || !data?.id || !SHOWCASE_RESUME_MATCH_STATUSES.has(data.status)) {
     return null
   }
 

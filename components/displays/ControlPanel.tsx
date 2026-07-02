@@ -92,6 +92,11 @@ interface ControlPanelProps {
   embedded?: boolean
   /** Load this match instead of the latest match on the court (showcase resume). */
   resumeMatchId?: string | null
+  /**
+   * Showcase fresh entry only — court load ignores completed/abandoned rows.
+   * Does not apply when `resumeMatchId` is set. Other ControlPanel callers unchanged.
+   */
+  freshEntryActiveOnly?: boolean
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -133,7 +138,9 @@ export default function ControlPanel({
   onMatchEnded,
   embedded = false,
   resumeMatchId = null,
+  freshEntryActiveOnly = false,
 }: ControlPanelProps) {
+  const useActiveOnlyCourtLoad = freshEntryActiveOnly && !resumeMatchId
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
   const isPreview = Boolean(preview)
@@ -188,6 +195,12 @@ export default function ControlPanel({
 
         if (resumeMatchId) {
           fetchQuery = fetchQuery.eq('id', resumeMatchId)
+        } else if (useActiveOnlyCourtLoad) {
+          fetchQuery = fetchQuery
+            .eq('court_id', courtId)
+            .in('status', ['setup', 'in_progress'])
+            .order('created_at', { ascending: false })
+            .limit(1)
         } else {
           fetchQuery = fetchQuery
             .eq('court_id', courtId)
@@ -242,7 +255,10 @@ export default function ControlPanel({
         if (updatedMatch.status === 'setup' || updatedMatch.status === 'in_progress') {
           setMatch(updatedMatch)
           if (updatedMatch.status === 'in_progress') setStage('live')
-        } else if (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned') {
+        } else if (
+          !useActiveOnlyCourtLoad &&
+          (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned')
+        ) {
           setMatch(updatedMatch)
         }
       }
@@ -255,6 +271,12 @@ export default function ControlPanel({
 
         if (resumeMatchId) {
           refreshQuery = refreshQuery.eq('id', resumeMatchId)
+        } else if (useActiveOnlyCourtLoad) {
+          refreshQuery = refreshQuery
+            .eq('court_id', courtId)
+            .in('status', ['setup', 'in_progress'])
+            .order('created_at', { ascending: false })
+            .limit(1)
         } else {
           refreshQuery = refreshQuery
             .eq('court_id', courtId)
@@ -282,7 +304,7 @@ export default function ControlPanel({
       document.removeEventListener('visibilitychange', onVisibility)
       if (channel) supabase.removeChannel(channel)
     }
-  }, [courtId, isPreview, resumeMatchId])
+  }, [courtId, isPreview, resumeMatchId, useActiveOnlyCourtLoad])
 
   useEffect(() => {
     if (isPreview || !onMatchEnded || !match || !isMatchEndgame(match)) return

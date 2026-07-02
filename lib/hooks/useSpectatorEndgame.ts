@@ -5,21 +5,28 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 
 import { resolveFinishedWinnerSide } from '@/components/shared/MatchFinishedPanel'
 import { supabase } from '@/lib/supabase'
+import { SPECTATOR_ENDGAME_DISPLAY_MS } from '@/lib/showcase-timing'
 import type { MatchState } from '@/lib/types/match'
 import { isMatchEndgame } from '@/lib/utils/match-status'
 
-/** Same duration as court `MatchWinOverlay`. */
-const ENDGAME_DISPLAY_MS = 15_000
-
 function isShowableEndgame(row: MatchState): boolean {
   return isMatchEndgame(row) && resolveFinishedWinnerSide(row) !== null
+}
+
+export interface UseSpectatorEndgameOptions {
+  /** How long to keep the endgame screen visible (default: standalone spectator routes). */
+  displayMs?: number
 }
 
 /**
  * Brief endgame screen when a court match finishes — driven by Realtime only.
  * Stale completed rows in the DB are ignored so idle courts stay on the idle layout.
  */
-export function useSpectatorEndgame(courtId: string | null): MatchState | null {
+export function useSpectatorEndgame(
+  courtId: string | null,
+  options: UseSpectatorEndgameOptions = {}
+): MatchState | null {
+  const displayMs = options.displayMs ?? SPECTATOR_ENDGAME_DISPLAY_MS
   const [endgameMatch, setEndgameMatch] = useState<MatchState | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -36,9 +43,9 @@ export function useSpectatorEndgame(courtId: string | null): MatchState | null {
       setEndgameMatch(match)
       timerRef.current = setTimeout(() => {
         setEndgameMatch(null)
-      }, ENDGAME_DISPLAY_MS)
+      }, displayMs)
     },
-    [clearDismissTimer]
+    [clearDismissTimer, displayMs]
   )
 
   useEffect(() => {
