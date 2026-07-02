@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
@@ -121,10 +121,9 @@ export default function NewMatchplayPage() {
       : undefined
 
   return (
-    <div className="matchplay-page matchplay-page--setup" style={brandVars}>
-      <div className="staff-flow-header-wrap">
-        <StaffFlowHeader />
-      </div>
+    <div className="staff-page matchplay-page matchplay-page--setup" style={brandVars}>
+      <StaffFlowHeaderBar />
+      <div className="staff-shell">
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -261,6 +260,7 @@ export default function NewMatchplayPage() {
           Continue
         </button>
       </footer>
+      </div>
     </div>
   )
 }

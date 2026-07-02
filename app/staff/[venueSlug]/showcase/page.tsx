@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 import ControlPanel from '@/components/displays/ControlPanel'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar, StaffPageShell } from '@/components/venue-screen/StaffPageShell'
 import { supabase } from '@/lib/supabase'
 import { VENUE_SCREEN_PUBLIC_SELECT } from '@/lib/types/venue-screen'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
@@ -13,8 +13,6 @@ import {
   linkVenueScreenToShowcaseGame,
   resetVenueScreenAfterShowcaseEnd,
 } from '@/lib/venue-screen-staff-context'
-
-import '@/app/styles/staff-controller.css'
 
 export default function StaffShowcasePage() {
   const router = useRouter()
@@ -79,43 +77,36 @@ export default function StaffShowcasePage() {
     await resetVenueScreenAfterShowcaseEnd(matchId)
   }, [])
 
+  const brandingStyles = brandingStylesFor(branding)
+
   if (loading) {
     return (
-      <div className="staff-page">
-        <div className="staff-flow-header-wrap staff-flow-header-wrap--wide">
-          <StaffFlowHeader venueSlug={venueSlug} />
-        </div>
-        <p className="staff-muted staff-flow-header-wrap staff-flow-header-wrap--wide">
-          Loading…
-        </p>
-      </div>
+      <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+        <p className="staff-muted">Loading…</p>
+      </StaffPageShell>
     )
   }
 
   if (loadError || !courtId) {
     return (
-      <div className="staff-page">
-        <div className="staff-flow-header-wrap staff-flow-header-wrap--wide">
-          <StaffFlowHeader venueSlug={venueSlug} />
-        </div>
-        <div className="staff-error staff-flow-header-wrap staff-flow-header-wrap--wide">
+      <StaffPageShell venueSlug={venueSlug} wideHeader style={brandingStyles}>
+        <div className="staff-error">
           <p>{loadError ?? 'Court not found for this screen.'}</p>
         </div>
-      </div>
+      </StaffPageShell>
     )
   }
 
   return (
-    <div style={brandingStylesFor(branding)}>
-      <div className="staff-flow-header-wrap staff-flow-header-wrap--wide">
-        <StaffFlowHeader venueSlug={venueSlug} />
+    <div style={brandingStyles}>
+      <div className="staff-page">
+        <StaffFlowHeaderBar venueSlug={venueSlug} wide />
+        {linkError ? (
+          <div className="staff-error staff-flow-header-wrap staff-flow-header-wrap--wide">
+            <p>{linkError}</p>
+          </div>
+        ) : null}
       </div>
-
-      {linkError ? (
-        <div className="staff-error staff-flow-header-wrap staff-flow-header-wrap--wide">
-          <p>{linkError}</p>
-        </div>
-      ) : null}
 
       <ControlPanel
         courtId={courtId}

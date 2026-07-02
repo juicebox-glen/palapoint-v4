@@ -231,6 +231,7 @@ export interface MatchFinishedPanelProps {
   courtName: string
   actions: ReactNode
   error?: string | null
+  showHeader?: boolean
 }
 
 export default function MatchFinishedPanel({
@@ -239,6 +240,7 @@ export default function MatchFinishedPanel({
   courtName,
   actions,
   error,
+  showHeader = true,
 }: MatchFinishedPanelProps) {
   const isAbandoned = match.status === 'abandoned'
   const winnerTeam = resolveFinishedWinnerSide(match)
@@ -249,7 +251,7 @@ export default function MatchFinishedPanel({
 
   const main = (
     <>
-      <SetupScreenHeader branding={branding} />
+      {showHeader ? <SetupScreenHeader branding={branding} /> : null}
 
       <div className="preview-header">
         <div className="preview-status">

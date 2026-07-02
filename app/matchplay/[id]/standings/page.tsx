@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
 import { callMatchplayPlayer } from '@/lib/api/matchplay'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 
 interface StandingsPlayer {
@@ -61,10 +61,9 @@ export default function MatchplayStandingsPage() {
   }
 
   return (
-    <div className="matchplay-page matchplay-page--setup">
-      <div className="staff-flow-header-wrap">
-        <StaffFlowHeader />
-      </div>
+    <div className="staff-page matchplay-page matchplay-page--setup">
+      <StaffFlowHeaderBar />
+      <div className="staff-shell">
       <header className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -121,6 +120,7 @@ export default function MatchplayStandingsPage() {
             })}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

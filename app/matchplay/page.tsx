@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId } from '@/lib/supabase'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
 import { callMatchplayEvent } from '@/lib/api/matchplay'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import '@/app/styles/matchplay.css'
@@ -31,7 +31,6 @@ export default function MatchplayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [closingActiveEvent, setClosingActiveEvent] = useState(false)
-  const [staffLaunch, setStaffLaunch] = useState(false)
 
   const loadEvents = useCallback(async () => {
     if (!venueId) return
@@ -70,12 +69,16 @@ export default function MatchplayPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const venueSlug = params.get('venue')?.trim()
+    const screenSlug = params.get('screen')?.trim()
     captureVenueScreenStaffContext({
-      venueSlug: params.get('venue'),
-      screenSlug: params.get('screen'),
+      venueSlug,
+      screenSlug,
     })
-    setStaffLaunch(Boolean(params.get('venue')?.trim() && params.get('screen')?.trim()))
-  }, [])
+    if (venueSlug && screenSlug) {
+      router.replace(`/staff/${venueSlug}/social-night`)
+    }
+  }, [router])
 
   useEffect(() => {
     async function resolve() {
@@ -129,29 +132,23 @@ export default function MatchplayPage() {
 
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
-      <div className="matchplay-launcher matchplay-launcher--compact">
-        <div className="staff-flow-header-wrap">
-          <StaffFlowHeader />
-        </div>
+      <StaffPageShell>
         <p className="matchplay-loading-text">Loading...</p>
-      </div>
+      </StaffPageShell>
     )
   }
 
   if (!venueId && error) {
     return (
-      <div className="matchplay-launcher matchplay-launcher--compact">
-        <div className="staff-flow-header-wrap">
-          <StaffFlowHeader />
-        </div>
+      <StaffPageShell>
         <div className="matchplay-error" role="alert" style={{ margin: '1rem' }}>
           {error}
         </div>
-      </div>
+      </StaffPageShell>
     )
   }
 
-  if (activeEvent && !staffLaunch) {
+  if (activeEvent) {
     return (
       <div className="matchplay-launcher">
         <h1 className="matchplay-launcher-title">Matchplay</h1>
@@ -196,16 +193,13 @@ export default function MatchplayPage() {
   }
 
   return (
-    <div className="matchplay-launcher matchplay-launcher--compact">
-      <div className="staff-flow-header-wrap">
-        <StaffFlowHeader />
-      </div>
+    <StaffPageShell>
       {error ? (
-        <div className="matchplay-error" role="alert" style={{ margin: '0 1rem 1rem' }}>
+        <div className="matchplay-error" role="alert" style={{ margin: '0 0 1rem' }}>
           {error}
         </div>
       ) : null}
       <MatchplayLauncherModePicker />
-    </div>
+    </StaffPageShell>
   )
 }

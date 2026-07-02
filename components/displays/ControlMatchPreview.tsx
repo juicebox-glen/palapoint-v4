@@ -8,6 +8,7 @@ interface ControlMatchPreviewProps {
   match: MatchState
   branding?: VenueBranding | null
   courtName: string
+  showHeader?: boolean
   onBackToEdit: () => void
   onStartMatch: () => void
   loading?: boolean
@@ -18,6 +19,7 @@ export default function ControlMatchPreview({
   match,
   branding,
   courtName,
+  showHeader = true,
   onBackToEdit,
   onStartMatch,
   loading,
@@ -28,6 +30,7 @@ export default function ControlMatchPreview({
       match={match}
       branding={branding}
       courtName={courtName}
+      showHeader={showHeader}
       error={error}
       actions={
         <>

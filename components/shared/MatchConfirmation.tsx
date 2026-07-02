@@ -45,6 +45,7 @@ export interface MatchConfirmationProps {
   scoreboardMatch?: MatchState | null
   /** Adds `.control-panel--player` for player-route spacing. */
   playerView?: boolean
+  showHeader?: boolean
 }
 
 export default function MatchConfirmation({
@@ -59,10 +60,11 @@ export default function MatchConfirmation({
   readyStateFooter,
   scoreboardMatch,
   playerView = false,
+  showHeader = true,
 }: MatchConfirmationProps) {
   const previewInner = (
     <>
-      <SetupScreenHeader branding={branding} />
+      {showHeader ? <SetupScreenHeader branding={branding} /> : null}
 
       <div className="preview-header">
         <div className="preview-status">

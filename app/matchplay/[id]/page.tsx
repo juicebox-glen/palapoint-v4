@@ -14,7 +14,7 @@ import {
   callMatchplayRound,
 } from '@/lib/api/matchplay'
 import { resetVenueScreenAfterEventEnd } from '@/lib/venue-screen-staff-context'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 
 interface MatchplayEvent {
   id: string
@@ -856,10 +856,8 @@ export default function MatchplayEventPage() {
   const canEditLineup = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
 
   return (
-    <div className="matchplay-event-page">
-      <div className="staff-flow-header-wrap staff-flow-header-wrap--wide">
-        <StaffFlowHeader />
-      </div>
+    <div className="staff-page matchplay-event-page">
+      <StaffFlowHeaderBar wide />
       <header className="matchplay-hub-header">
         <button type="button" onClick={() => router.push('/matchplay')} className="matchplay-hub-back" aria-label="Back">
           ←

@@ -8,7 +8,7 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 
 interface StandingsPlayer {
@@ -86,10 +86,9 @@ export default function MatchplayResultsPage() {
   const gdSigned = `${winnerGd >= 0 ? '+' : ''}${winnerGd}`
 
   return (
-    <div className="matchplay-page matchplay-page--setup matchplay-results-page">
-      <div className="staff-flow-header-wrap">
-        <StaffFlowHeader />
-      </div>
+    <div className="staff-page matchplay-page matchplay-page--setup matchplay-results-page">
+      <StaffFlowHeaderBar />
+      <div className="staff-shell">
       <header className="matchplay-results-header">
         <h1 className="matchplay-results-title">Event complete</h1>
         <p className="matchplay-results-subtitle">
@@ -181,6 +180,7 @@ export default function MatchplayResultsPage() {
           </button>
         </div>
       </footer>
+      </div>
     </div>
   )
 }

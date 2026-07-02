@@ -18,17 +18,22 @@ function LauncherChevron() {
   )
 }
 
+interface MatchplayLauncherModePickerProps {
+  /** Query string for staff venue-screen context (e.g. ?venue=eastbourne&screen=eastbourne-main). */
+  staffQuery?: string
+}
+
 /**
  * Matchplay launcher — “select game mode” list.
  * Uses setup-section / setup-section-title and session-review-game-row (same pattern as session review).
  */
-export function MatchplayLauncherModePicker() {
+export function MatchplayLauncherModePicker({ staffQuery = '' }: MatchplayLauncherModePickerProps) {
   return (
     <section className="setup-section matchplay-launcher-modes">
       <h2 className="setup-section-title">Select game mode</h2>
       <div className="session-review-game-rows">
         <Link
-          href="/matchplay/new"
+          href={`/matchplay/new${staffQuery}`}
           className="session-review-game-row session-review-game-row--launcher session-review-game-row--clickable"
         >
           <div className="matchplay-launcher-mode-copy">

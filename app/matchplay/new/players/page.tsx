@@ -14,7 +14,7 @@ import {
   callMatchplayRound,
 } from '@/lib/api/matchplay'
 import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffFlowHeaderBar } from '@/components/venue-screen/StaffPageShell'
 import '@/app/styles/matchplay.css'
 import '@/app/styles/setup-form.css'
 
@@ -335,10 +335,9 @@ export default function MatchplayPlayersPage() {
   }
 
   return (
-    <div className="matchplay-page matchplay-page--setup" style={brandVars}>
-      <div className="staff-flow-header-wrap">
-        <StaffFlowHeader />
-      </div>
+    <div className="staff-page matchplay-page matchplay-page--setup" style={brandVars}>
+      <StaffFlowHeaderBar />
+      <div className="staff-shell">
       <div className="matchplay-page-header">
         <button type="button" onClick={() => router.back()} className="matchplay-back-btn">
           ← Back
@@ -398,6 +397,7 @@ export default function MatchplayPlayersPage() {
           {isSubmitting ? 'Creating Event…' : 'Start Event'}
         </button>
       </footer>
+      </div>
     </div>
   )
 }

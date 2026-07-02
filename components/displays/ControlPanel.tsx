@@ -47,10 +47,22 @@ export interface ControlPanelPreviewConfig {
 function ControlLoadingScreen({
   message,
   branding,
+  showHeader = true,
 }: {
   message: string
   branding?: VenueBranding | null
+  showHeader?: boolean
 }) {
+  if (!showHeader) {
+    return (
+      <div className="control-panel" style={brandingStylesFor(branding)}>
+        <div className="player-flow-loading">
+          <p className="page-loading-message">{message}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <PlayerFlowShell branding={branding ?? null}>
       <div className="player-flow-loading">
@@ -522,14 +534,35 @@ export default function ControlPanel({
   )
 
   if (isPreview && preview?.screen === 'loading') {
-    return <ControlLoadingScreen message="Loading..." branding={branding ?? null} />
+    return (
+      <ControlLoadingScreen
+        message="Loading..."
+        branding={branding ?? null}
+        showHeader={showSetupHeader}
+      />
+    )
   }
 
   if (loading) {
-    return <ControlLoadingScreen message="Loading..." branding={branding ?? null} />
+    return (
+      <ControlLoadingScreen
+        message="Loading..."
+        branding={branding ?? null}
+        showHeader={showSetupHeader}
+      />
+    )
   }
 
   if (error && !match) {
+    if (!showSetupHeader) {
+      return (
+        <div className="control-panel" style={brandingStylesFor(branding)}>
+          <div className="player-flow-loading">
+            <p style={{ fontSize: '1.5rem', color: 'var(--error)', textAlign: 'center' }}>{error}</p>
+          </div>
+        </div>
+      )
+    }
     return (
       <PlayerFlowShell branding={branding ?? null}>
         <div className="player-flow-loading">
@@ -549,6 +582,7 @@ export default function ControlPanel({
         match={match}
         branding={branding ?? null}
         courtName={displayCourtName}
+        showHeader={showSetupHeader}
         error={error}
         actions={
           <>
@@ -581,6 +615,7 @@ export default function ControlPanel({
           match={match}
           branding={branding}
           courtName={displayCourtName}
+          showHeader={showSetupHeader}
           onBackToEdit={handleBackToEdit}
           onStartMatch={handleStartMatch}
           loading={actionLoading === 'start'}

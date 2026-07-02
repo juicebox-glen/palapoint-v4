@@ -11,7 +11,7 @@ import {
   pairingStorageKey,
   saveVenueScreenStaffContext,
 } from '@/lib/venue-screen-staff-context'
-import { StaffFlowHeader } from '@/components/venue-screen/StaffFlowHeader'
+import { StaffPageShell } from '@/components/venue-screen/StaffPageShell'
 
 import '@/app/styles/staff-controller.css'
 
@@ -143,11 +143,7 @@ export default function StaffPage() {
       pairingCode: pairingCode.trim(),
     })
 
-    const qs = new URLSearchParams({
-      venue: venueSlug,
-      screen: selectedScreen.screen_slug,
-    })
-    router.push(`/matchplay?${qs.toString()}`)
+    router.push(`/staff/${venueSlug}/social-night`)
   }
 
   const startShowcaseGame = () => {
@@ -167,10 +163,7 @@ export default function StaffPage() {
   }
 
   return (
-    <div className="staff-page">
-      <div className="staff-shell">
-        <StaffFlowHeader isHomeScreen venueSlug={venueSlug} />
-
+    <StaffPageShell venueSlug={venueSlug} isHomeScreen>
         {loading ? <p className="staff-muted">Loading…</p> : null}
 
         {loadError ? (
@@ -278,7 +271,6 @@ export default function StaffPage() {
             ) : null}
           </>
         ) : null}
-      </div>
-    </div>
+    </StaffPageShell>
   )
 }
