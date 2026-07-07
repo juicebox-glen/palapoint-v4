@@ -4,9 +4,8 @@ import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
 import { KinkFrameContentPanel } from '@/components/layout/KinkFrameContentPanel'
-import { KinkFrameCourtBookings } from '@/components/layout/KinkFrameCourtBookings'
+import { KinkFrameCourtAvailability } from '@/components/layout/KinkFrameCourtAvailability'
 import { KinkFrameLogo } from '@/components/layout/KinkFrameLogo'
-import { KinkFrameVenueVideo } from '@/components/layout/KinkFrameVenueVideo'
 import {
   KINK_FRAME_V2_KINK_HEIGHT,
   KINK_FRAME_V2_LOGO_INSET,
@@ -108,13 +107,8 @@ export function KinkFrameSkeletonDisplay({
               maskImage: contentMask,
             }}
           >
-            <KinkFrameVenueVideo />
             <KinkFrameContentPanel className="kink-frame-content-panel--skeleton-v2">
-              <div className="kink-frame-courts-broadcast kink-frame-courts-broadcast--on-air kink-frame-courts-broadcast--hold">
-                <div className="kink-frame-courts">
-                  <KinkFrameCourtBookings />
-                </div>
-              </div>
+              <KinkFrameCourtAvailability loop />
             </KinkFrameContentPanel>
           </div>
 

@@ -170,7 +170,6 @@
 
 .kink-frame-media > img,
 .kink-frame-media > video,
-.kink-frame-venue-video,
 .kink-frame-youtube {
   display: block;
   width: 100%;
@@ -179,23 +178,13 @@
 
 .kink-frame-media > img,
 .kink-frame-media > video,
-.kink-frame-venue-video,
 .kink-frame-youtube iframe {
   border: 0;
 }
 
 .kink-frame-media > img,
-.kink-frame-media > video,
-.kink-frame-venue-video {
+.kink-frame-media > video {
   object-fit: cover;
-}
-
-.kink-frame-venue-video {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  /* Hint TV browsers toward hardware decode */
-  transform: translateZ(0);
 }
 
 .kink-frame-youtube {
@@ -205,7 +194,7 @@
   pointer-events: none;
 }
 
-/* Cover-crop without scale() — lighter on Firestick / kiosk WebViews */
+/* Cover-crop without scale() — lighter on TV WebViews */
 .kink-frame-youtube iframe {
   position: absolute;
   top: 50%;
@@ -1850,7 +1839,7 @@
 }
 
 .kink-frame-media--skeleton-v2 {
-  background: var(--kink-frame-placeholder);
+  background: #2d343e;
 }
 
 .kink-frame-skeleton-mockup {
