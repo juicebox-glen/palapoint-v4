@@ -33,3 +33,7 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Raw venue video downloads (encoded loop lives in public/video/)
+public/YTDown*.mp4
+public/*1080p*.mp4
