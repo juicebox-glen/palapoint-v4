@@ -1,11 +1,11 @@
 'use client'
 
+import { KinkFrameVenueVideo } from '@/components/layout/KinkFrameVenueVideo'
 import { kinkFrameModePanelKey, type KinkFrameVenueMode } from '@/lib/layout/kink-frame-venue-mode'
 import {
   kinkFrameModeUsesMotionGraphic,
   kinkFrameModeUsesVideo,
 } from '@/lib/layout/kink-frame-transitions'
-import { kinkFrameYoutubeEmbedSrc } from '@/lib/layout/kink-frame-youtube'
 
 export interface KinkFrameMediaBackdropsProps {
   mode: KinkFrameVenueMode
@@ -35,14 +35,7 @@ export function KinkFrameMediaBackdrops({ mode, transitioning = false }: KinkFra
         ].join(' ')}
         aria-hidden={!showVideo}
       >
-        <div className="kink-frame-youtube">
-          <iframe
-            src={kinkFrameYoutubeEmbedSrc()}
-            title="YouTube video player"
-            allow="autoplay; encrypted-media"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-        </div>
+        <KinkFrameVenueVideo />
       </div>
 
       <div
