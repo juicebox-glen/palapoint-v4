@@ -83,7 +83,7 @@ export function KinkFrameSkeletonDisplay({
               Mockup overlay
             </label>
             <span className="kink-frame-skeleton-spec">
-              1920×1080 · 20px border · 40/20px corners · 140px kink
+              1920×1080 · 20px border · 140px kink
             </span>
             <a href="/kink-frame/skeleton/display" className="kink-frame-skeleton-device-link">
               Open TV display →

@@ -1,11 +1,10 @@
 /**
  * Kink-frame v2 layout geometry — fixed 1920×1080 (16:9).
  *
- * Corner math (concentric rounded rects):
- * - Frame border width B on all straight edges
- * - Outer frame corner radius Rₒ
- * - Inner content corner radius Rᵢ = Rₒ − B (parallel curves, uniform border in corners)
- * - Arc centres coincide: e.g. top-left arcs share centre (Rₒ, Rₒ)
+ * Corner math:
+ * - Frame border width B on straight edges
+ * - Square outer frame (Rₒ = 0)
+ * - Inner content corner radius Rᵢ = B (offset fillet for uniform border at 90° corners)
  */
 
 export const KINK_FRAME_V2_VIEWBOX = { width: 1920, height: 1080 } as const
@@ -13,11 +12,12 @@ export const KINK_FRAME_V2_VIEWBOX = { width: 1920, height: 1080 } as const
 export const KINK_FRAME_V2_BORDER = 20
 export const KINK_FRAME_V2_KINK_HEIGHT = 140
 
-/** Pink frame outer corner radius — mockup 40px at 1920×1080. */
-export const KINK_FRAME_V2_OUTER_RADIUS = 40
+/** Outer frame corner radius — 0 = square TV bezel. */
+export const KINK_FRAME_V2_OUTER_RADIUS = 0
 
-/** Concentric inner radius so border stays B px even through corners. */
+/** Inner radius from outer radius and border (square outer → Rᵢ = B). */
 export function kinkFrameV2InnerRadius(outerRadius: number, border: number): number {
+  if (outerRadius <= 0) return border
   return Math.max(0, outerRadius - border)
 }
 
@@ -50,7 +50,6 @@ export const KINK_FRAME_V2_KINK_HANDLE_BOTTOM = 105
 
 const { width, height } = KINK_FRAME_V2_VIEWBOX
 const b = KINK_FRAME_V2_BORDER
-const rOut = KINK_FRAME_V2_OUTER_RADIUS
 const rIn = KINK_FRAME_V2_INNER_RADIUS
 const kinkTop = KINK_FRAME_V2_KINK_TOP
 const stepX = KINK_FRAME_V2_KINK_STEP_X
@@ -69,7 +68,7 @@ const kinkSCurve = `C ${stepX - handleTop} ${kinkTop} ${curveEndX + handleBottom
 
 /**
  * Inner content boundary — media mask + frame hole (clockwise for even-odd cutout).
- * Corner arcs use radius Rᵢ centred on (Rₒ, Rₒ) etc. so they nest inside the outer frame arcs.
+ * Corner arcs radius Rᵢ on the inset rect.
  */
 export const KINK_FRAME_V2_CONTENT_PATH = [
   `M ${innerLeft + rIn} ${innerTop}`,
@@ -86,23 +85,19 @@ export const KINK_FRAME_V2_CONTENT_PATH = [
   'Z',
 ].join(' ')
 
-/** Outer rounded rect minus inner hole — concentric Rₒ outer, Rᵢ inner. */
+/** Square outer rect minus inner hole. */
 export const KINK_FRAME_V2_OVERLAY_PATH = [
-  `M 0 ${rOut}`,
-  `A ${rOut} ${rOut} 0 0 1 ${rOut} 0`,
-  `H ${width - rOut}`,
-  `A ${rOut} ${rOut} 0 0 1 ${width} ${rOut}`,
-  `V ${height - rOut}`,
-  `A ${rOut} ${rOut} 0 0 1 ${width - rOut} ${height}`,
-  `H ${rOut}`,
-  `A ${rOut} ${rOut} 0 0 1 0 ${height - rOut}`,
+  `M 0 0`,
+  `H ${width}`,
+  `V ${height}`,
+  `H 0`,
   'Z',
   KINK_FRAME_V2_CONTENT_PATH,
 ].join(' ')
 
-/** Mockup colours for skeleton verification. */
+/** Skeleton / venue frame colours. */
 export const KINK_FRAME_V2_SKELETON_COLORS = {
-  frame: '#e91e63',
+  frame: '#0E1116',
   content: '#2d343e',
   matte: '#1a1a1a',
 } as const
