@@ -3,7 +3,12 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
+import { KinkFrameContentPanel } from '@/components/layout/KinkFrameContentPanel'
+import { KinkFrameCourtBookings } from '@/components/layout/KinkFrameCourtBookings'
+import { KinkFrameLogo } from '@/components/layout/KinkFrameLogo'
 import {
+  KINK_FRAME_V2_KINK_HEIGHT,
+  KINK_FRAME_V2_LOGO_INSET,
   KINK_FRAME_V2_OVERLAY_PATH,
   KINK_FRAME_V2_SKELETON_COLORS,
   KINK_FRAME_V2_VIEWBOX,
@@ -78,7 +83,7 @@ export function KinkFrameSkeletonDisplay({
               Mockup overlay
             </label>
             <span className="kink-frame-skeleton-spec">
-              1920×1080 · 20px border · 140px kink
+              1920×1080 · 20px border · 40/20px corners · 140px kink
             </span>
             <a href="/kink-frame/skeleton/display" className="kink-frame-skeleton-device-link">
               Open TV display →
@@ -89,7 +94,11 @@ export function KinkFrameSkeletonDisplay({
         <div
           ref={stageRef}
           className="kink-frame-stage kink-frame-stage--skeleton-v2"
-          style={isDevice ? { width: '100%', height: '100%' } : { aspectRatio: `${width} / ${height}` }}
+          style={{
+            ...(isDevice ? { width: '100%', height: '100%' } : { aspectRatio: `${width} / ${height}` }),
+            ['--kink-skeleton-logo-inset' as string]: `${KINK_FRAME_V2_LOGO_INSET}`,
+            ['--kink-v2-kink-height' as string]: `${KINK_FRAME_V2_KINK_HEIGHT}`,
+          }}
         >
           <div
             className="kink-frame-media kink-frame-media--skeleton-v2"
@@ -97,7 +106,15 @@ export function KinkFrameSkeletonDisplay({
               WebkitMaskImage: contentMask,
               maskImage: contentMask,
             }}
-          />
+          >
+            <KinkFrameContentPanel className="kink-frame-content-panel--skeleton-v2">
+              <div className="kink-frame-courts-broadcast kink-frame-courts-broadcast--on-air kink-frame-courts-broadcast--hold">
+                <div className="kink-frame-courts">
+                  <KinkFrameCourtBookings />
+                </div>
+              </div>
+            </KinkFrameContentPanel>
+          </div>
 
           <svg
             className="kink-frame-overlay"
@@ -120,6 +137,10 @@ export function KinkFrameSkeletonDisplay({
               aria-hidden
             />
           ) : null}
+
+          <div className="kink-frame-skeleton-logo">
+            <KinkFrameLogo />
+          </div>
         </div>
       </div>
     </div>

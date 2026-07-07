@@ -1825,7 +1825,14 @@
 }
 
 .kink-frame-stage--skeleton-v2 {
+  container-type: size;
   background: #2d343e;
+  /* Right column clears the v2 kink pocket (140px shelf step). */
+  --kink-venue-slot-bottom: calc(var(--kink-v2-kink-height, 140) / 1080 * 100cqh);
+}
+
+.kink-frame-content-panel--skeleton-v2 {
+  pointer-events: auto;
 }
 
 .kink-frame-media--skeleton-v2 {
@@ -1842,4 +1849,28 @@
   z-index: 4;
   pointer-events: none;
   mix-blend-mode: normal;
+}
+
+/* Bottom-left — equal design px from inner content edge (border + gutter) */
+.kink-frame-skeleton-logo {
+  position: absolute;
+  left: calc(var(--kink-skeleton-logo-inset, 48) / 1920 * 100cqw);
+  bottom: calc(var(--kink-skeleton-logo-inset, 48) / 1080 * 100cqh);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.kink-frame-skeleton-logo .kink-frame-logo {
+  position: static;
+  transform: none;
+  line-height: 0;
+}
+
+.kink-frame-skeleton-logo .kink-frame-logo-img {
+  display: block;
+  height: calc(72 / 1920 * 100cqw);
+  max-width: calc(280 / 1920 * 100cqw);
+  width: auto;
+  object-fit: contain;
+  object-position: left bottom;
 }
