@@ -1,0 +1,1845 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+/* 1920×1080 (16:9) kink-frame layout — media clipped inside, frame overlay on top */
+
+.kink-frame-root {
+  --kink-frame-matte: #3d4144;
+  --kink-frame-placeholder: #141c28;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  box-sizing: border-box;
+  background: var(--bg-primary, #050505);
+}
+
+.kink-frame-root--matte {
+  background: var(--kink-frame-matte);
+}
+
+.kink-frame-shell {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(0.75rem, 1.25vw, 1.125rem);
+  width: min(
+    calc(100vw - 2 * clamp(1rem, 3vw, 2.5rem)),
+    calc((100vh - 2 * clamp(1rem, 3vw, 2.5rem)) * 16 / 9)
+  );
+  max-width: 100%;
+}
+
+.kink-frame-top-nav-slot {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kink-frame-stage {
+  position: relative;
+  --kink-scale: 1;
+  /* Venue mode grid — shared by Idea / Showcase / Social */
+  --kink-venue-slot-top: 8%;
+  --kink-venue-slot-bottom: 11.5%;
+  --kink-venue-slot-gutter: 4.5%;
+  --kink-venue-left-width: 56%;
+  --kink-venue-right-width: 35%;
+  --kink-mode-row-gap: 1.339cqw;
+  --kink-mode-section-gap: 2.083cqw;
+  --kink-mode-card-v: 0.88;
+  container-type: inline-size;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Full 16:9 canvas — top bar + content below (no kink mask or frame overlay) */
+.kink-frame-stage--flat {
+  display: flex;
+  flex-direction: column;
+  background: var(--kink-frame-placeholder);
+  --kink-venue-slot-top: 3.5%;
+  --kink-venue-slot-bottom: 12%;
+}
+
+.kink-frame-flat-top-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  padding: 2.5cqw 2.34375cqw;
+  z-index: 3;
+  box-sizing: border-box;
+}
+
+.kink-frame-stage--flat .kink-frame-media {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.kink-frame-stage--flat .kink-frame-logo-scrim {
+  display: none;
+}
+
+.kink-frame-flat-logo {
+  position: absolute;
+  left: 2.34375cqw;
+  bottom: 2.5cqw;
+  z-index: 3;
+}
+
+.kink-frame-flat-logo .kink-frame-logo {
+  position: static;
+  transform: none;
+}
+
+.kink-frame-flat-logo .kink-frame-logo-img {
+  height: 3.75cqw;
+}
+
+.kink-frame-stage--flat .kink-frame-clock {
+  position: static;
+  transform: none;
+  flex-shrink: 0;
+}
+
+.kink-frame-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.kink-frame-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--kink-frame-placeholder);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Top-left vignette over video only — clipped with media, fades before centre */
+.kink-frame-logo-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 105% 85% at -4% -6%,
+      rgb(14 17 23 / 78%) 0%,
+      rgb(14 17 23 / 42%) 32%,
+      rgb(14 17 23 / 12%) 52%,
+      transparent 68%
+    ),
+    linear-gradient(
+      125deg,
+      rgb(14 17 23 / 55%) 0%,
+      rgb(14 17 23 / 18%) 28%,
+      transparent 46%
+    );
+}
+
+/* Bottom-right lift — subtle brightening at the kink step */
+.kink-frame-notch-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 65% 50% at 100% 100%,
+    rgb(255 255 255 / 10%) 0%,
+    rgb(220 235 255 / 4%) 38%,
+    transparent 62%
+  );
+}
+
+.kink-frame-media > img,
+.kink-frame-media > video,
+.kink-frame-youtube {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.kink-frame-media > img,
+.kink-frame-media > video,
+.kink-frame-youtube iframe {
+  border: 0;
+}
+
+.kink-frame-media > img,
+.kink-frame-media > video {
+  object-fit: cover;
+}
+
+.kink-frame-youtube {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.kink-frame-youtube iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(1.18);
+  transform-origin: center;
+  border: 0;
+}
+
+/* Layered mode backgrounds — crossfade, never empty */
+.kink-frame-backdrops {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.kink-frame-backdrop {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.72s cubic-bezier(0.33, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+.kink-frame-backdrop--base {
+  z-index: 0;
+  opacity: 1;
+  background: var(--kink-frame-placeholder);
+}
+
+.kink-frame-backdrop--active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.kink-frame-backdrops--transitioning .kink-frame-backdrop:not(.kink-frame-backdrop--base) {
+  transition-duration: 0.82s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kink-frame-backdrop--social {
+  background:
+    radial-gradient(ellipse 100% 80% at 72% 18%, rgb(96 180 255 / 18%) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 12% 82%, rgb(140 100 255 / 12%) 0%, transparent 50%),
+    linear-gradient(160deg, #0b1020 0%, #101828 45%, #0a0f18 100%);
+  animation: kink-frame-bg-social-drift 26s ease-in-out infinite alternate;
+}
+
+.kink-frame-backdrop--social::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: repeating-linear-gradient(
+    -12deg,
+    transparent 0,
+    transparent 48px,
+    rgb(255 255 255 / 2.5%) 48px,
+    rgb(255 255 255 / 2.5%) 49px
+  );
+  animation: kink-frame-bg-social-lines 40s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes kink-frame-bg-social-drift {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes kink-frame-bg-social-lines {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-49px, 0, 0);
+  }
+}
+
+.kink-frame-media-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--kink-frame-placeholder);
+}
+
+.kink-frame-overlay {
+  z-index: 2;
+}
+
+/* Right-side content slot — clipped with media; cards carry their own surfaces */
+.kink-frame-content-panel {
+  position: absolute;
+  top: var(--kink-venue-slot-top);
+  right: var(--kink-venue-slot-gutter);
+  width: var(--kink-venue-right-width);
+  max-width: 672px;
+  bottom: var(--kink-venue-slot-bottom);
+  z-index: 2;
+  container-type: inline-size;
+  pointer-events: none;
+}
+
+.kink-frame-content-panel-inner {
+  height: 100%;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+/* Left-side content slot — social game info over the media backdrop */
+.kink-frame-left-content-panel {
+  position: absolute;
+  top: var(--kink-venue-slot-top);
+  left: var(--kink-venue-slot-gutter);
+  width: var(--kink-venue-left-width);
+  bottom: var(--kink-venue-slot-bottom);
+  z-index: 2;
+  container-type: inline-size;
+  pointer-events: none;
+}
+
+.kink-frame-left-content-panel-inner {
+  height: 100%;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+/* Court availability — design baseline 672px panel width, scales via cqw */
+.kink-frame-courts {
+  --kink-accent: #c8f03c;
+  /* Vertical density for card content (1 = design default) */
+  --kink-card-v: 1;
+  width: 100%;
+}
+
+.kink-frame-courts-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 3.274cqw;
+  padding: 0 0.595cqw;
+}
+
+.kink-frame-courts-label {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.53cqw;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  color: rgb(226 232 224 / 62%);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.kink-frame-courts-summary {
+  font-size: 2.976cqw;
+  font-weight: 800;
+  color: var(--kink-accent);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.kink-frame-courts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2.679cqw;
+}
+
+.kink-frame-courts-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.kink-frame-courts-list--single {
+  flex: 1;
+  min-height: var(--kink-frame-stack-height);
+}
+
+.kink-frame-court-card {
+  border-radius: 3.571cqw;
+  padding: calc(4.167cqw * var(--kink-card-v)) 5.059cqw;
+}
+
+/* Cards inside the glass panel — radius = outer frame radius − glass padding */
+.kink-frame-courts-broadcast .kink-frame-court-card {
+  border-radius: var(--kink-frame-radius-inner);
+}
+
+.kink-frame-court-card--available {
+  background: var(--kink-accent);
+  color: #0a0d00;
+  box-shadow: 0 0 10.417cqw color-mix(in srgb, var(--kink-accent) 26%, transparent);
+}
+
+.kink-frame-court-card--busy {
+  background: rgb(18 21 20 / 60%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 7%);
+  padding: calc(3.869cqw * var(--kink-card-v)) 5.059cqw;
+}
+
+.kink-frame-court-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kink-frame-court-card-title {
+  margin: 0;
+  font-size: calc(7.44cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.kink-frame-court-card--busy .kink-frame-court-card-title {
+  font-size: calc(6.845cqw * var(--kink-card-v));
+  color: #eef1ea;
+}
+
+.kink-frame-court-card-badge {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 50%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  padding: 1.19cqw 2.083cqw;
+  border-radius: 1.339cqw;
+  white-space: nowrap;
+}
+
+.kink-frame-court-card-badge--available {
+  background: #0a0d00;
+  color: var(--kink-accent);
+  border-color: transparent;
+}
+
+.kink-frame-court-card-sub {
+  margin: calc(2.381cqw * var(--kink-card-v)) 0 0;
+  font-size: calc(2.827cqw * var(--kink-card-v));
+  font-weight: 600;
+}
+
+.kink-frame-court-card-sub--available {
+  color: rgb(10 13 0 / 68%);
+}
+
+.kink-frame-court-card-divider {
+  height: 1px;
+  background: rgb(255 255 255 / 8%);
+  margin: calc(3.274cqw * var(--kink-card-v)) 0 calc(2.679cqw * var(--kink-card-v));
+}
+
+.kink-frame-court-card-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3.571cqw;
+}
+
+.kink-frame-court-card-eta {
+  margin: 0;
+  font-size: calc(2.976cqw * var(--kink-card-v));
+  color: rgb(226 232 224 / 60%);
+}
+
+.kink-frame-court-card-eta strong {
+  color: #eef1ea;
+  font-weight: 700;
+}
+
+.kink-frame-court-card-progress {
+  width: 22.321cqw;
+  height: 0.744cqw;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 10%);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.kink-frame-court-card-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: rgb(226 232 224 / 55%);
+}
+
+/* Single tall feature card — matches combined height of four booking cards + gaps */
+.kink-frame-feature-card {
+  min-height: var(--kink-frame-stack-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: var(--kink-frame-radius-inner);
+}
+
+.kink-frame-feature-card-eyebrow {
+  margin: 0;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 52%);
+}
+
+.kink-frame-feature-card-title {
+  margin: calc(1.786cqw * var(--kink-card-v)) 0 0;
+  font-size: calc(8.929cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #eef1ea;
+}
+
+.kink-frame-feature-card-matchup {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2.679cqw * var(--kink-card-v));
+  margin-top: calc(4.464cqw * var(--kink-card-v));
+  flex: 1;
+  justify-content: center;
+}
+
+.kink-frame-feature-card-team {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kink-frame-feature-card-team-name {
+  font-size: calc(4.464cqw * var(--kink-card-v));
+  font-weight: 700;
+  color: rgb(226 232 224 / 88%);
+  letter-spacing: -0.01em;
+}
+
+.kink-frame-feature-card-team-score {
+  font-size: calc(10.714cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1;
+  color: var(--kink-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.kink-frame-feature-card-vs {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 36%);
+}
+
+.kink-frame-feature-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2.381cqw * var(--kink-card-v));
+}
+
+.kink-frame-feature-card-meta {
+  margin: 0;
+  font-size: calc(2.976cqw * var(--kink-card-v));
+  color: rgb(226 232 224 / 58%);
+}
+
+.kink-frame-feature-card-meta strong {
+  color: #eef1ea;
+  font-weight: 700;
+}
+
+.kink-frame-feature-card .kink-frame-court-card-divider {
+  margin-top: calc(3.571cqw * var(--kink-card-v));
+  margin-bottom: calc(2.381cqw * var(--kink-card-v));
+}
+
+/* Venue mode grid — shared skeleton for Idea / Showcase / Social */
+.kink-frame-mode-left-broadcast {
+  --kink-card-v: var(--kink-mode-card-v);
+  --kink-frame-radius-inner: 3.571cqw;
+  width: 100%;
+  padding: 0;
+}
+
+.kink-frame-mode-left-broadcast::before {
+  display: none;
+}
+
+.kink-frame-mode-panel {
+  --kink-card-v: var(--kink-mode-card-v);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  max-width: 52cqw;
+}
+
+.kink-frame-courts-broadcast .kink-frame-mode-panel {
+  max-width: none;
+}
+
+.kink-frame-mode-panel__header,
+.kink-frame-courts-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 3.274cqw;
+  padding: 0 0.595cqw;
+  flex-shrink: 0;
+}
+
+.kink-frame-mode-panel__label,
+.kink-frame-courts-label {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.53cqw;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  color: rgb(226 232 224 / 62%);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.kink-frame-mode-panel__summary,
+.kink-frame-courts-summary {
+  font-size: 2.976cqw;
+  font-weight: 800;
+  color: var(--kink-accent);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.kink-frame-mode-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kink-mode-section-gap);
+  flex: 1;
+  min-height: 0;
+}
+
+.kink-frame-mode-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.042cqw;
+  min-height: 0;
+}
+
+.kink-frame-mode-section__label {
+  margin: 0;
+  font-size: calc(2.381cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(236 240 232 / 58%);
+}
+
+.kink-frame-mode-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kink-mode-row-gap);
+  min-height: 0;
+}
+
+.kink-frame-mode-panel__list--roster {
+  flex: 1;
+  justify-content: center;
+}
+
+.kink-frame-mode-panel__list-item {
+  min-height: 0;
+}
+
+.kink-frame-mode-hero-card {
+  padding: calc(2.679cqw * var(--kink-card-v)) 4.464cqw;
+}
+
+.kink-frame-mode-hero-card__title {
+  margin: 0;
+  font-size: calc(5.655cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.kink-frame-court-card--busy.kink-frame-mode-hero-card .kink-frame-mode-hero-card__title {
+  color: rgb(248 250 244 / 96%);
+}
+
+.kink-frame-court-card--available.kink-frame-mode-hero-card .kink-frame-mode-hero-card__title {
+  color: #0a0d00;
+}
+
+.kink-frame-court-card--available.kink-frame-mode-hero-card .kink-frame-mode-hero-card__meta {
+  color: rgb(10 13 0 / 68%);
+}
+
+.kink-frame-mode-hero-card__meta {
+  margin: calc(1.488cqw * var(--kink-card-v)) 0 0;
+  font-size: calc(2.679cqw * var(--kink-card-v));
+  line-height: 1.35;
+}
+
+.kink-frame-court-card--busy .kink-frame-mode-hero-card__meta {
+  color: rgb(226 232 224 / 62%);
+}
+
+.kink-frame-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.786cqw;
+  padding: calc(2.083cqw * var(--kink-card-v)) 3.571cqw;
+  border-radius: var(--kink-frame-radius-inner, 3.571cqw);
+  background: rgb(18 21 24 / 52%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 12%);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 14%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-mode-row {
+  background: rgb(14 16 18 / 74%);
+  border-color: rgb(255 255 255 / 11%);
+}
+
+.kink-frame-mode-row--fixture {
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(0.893cqw * var(--kink-card-v));
+}
+
+.kink-frame-mode-row--player {
+  padding: 1.339cqw 1.488cqw 1.339cqw 2.679cqw;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 13%) 0%,
+      rgb(255 255 255 / 6%) 52%,
+      rgb(120 160 255 / 4%) 100%
+    );
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  border: 1px solid rgb(255 255 255 / 14%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-mode-row--player {
+  background:
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 15%) 0%,
+      rgb(255 255 255 / 7%) 52%,
+      rgb(140 170 255 / 6%) 100%
+    );
+  border-color: rgb(255 255 255 / 15%);
+}
+
+.kink-frame-mode-row__label {
+  font-size: calc(2.381cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(236 240 232 / 58%);
+}
+
+.kink-frame-mode-row__eyebrow {
+  font-size: calc(2.381cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kink-accent);
+}
+
+.kink-frame-mode-row__value {
+  font-size: calc(2.827cqw * var(--kink-card-v));
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgb(248 250 244 / 96%);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kink-frame-mode-row--player .kink-frame-mode-row__value {
+  flex: 1;
+}
+
+.kink-frame-mode-row__matchup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.744cqw 1.042cqw;
+  font-size: calc(2.976cqw * var(--kink-card-v));
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgb(248 250 244 / 94%);
+}
+
+.kink-frame-mode-row__vs {
+  font-size: calc(2.083cqw * var(--kink-card-v));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 42%);
+}
+
+.kink-frame-mode-row__photo {
+  width: 6.845cqw;
+  height: 6.845cqw;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(12 16 24 / 62%);
+  border: 1px solid rgb(255 255 255 / 14%);
+}
+
+.kink-frame-mode-row__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kink-frame-mode-row__photo span {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(226 232 224 / 78%);
+}
+
+/* Social night — title card + 2×2 fixtures (left column) */
+.kink-frame-social-left .kink-frame-mode-panel__body {
+  gap: var(--kink-mode-section-gap);
+}
+
+.kink-frame-social-title-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2.083cqw;
+  padding: calc(2.976cqw * var(--kink-card-v)) 4.464cqw;
+}
+
+.kink-frame-social-title-card__main {
+  min-width: 0;
+}
+
+.kink-frame-social-title-card__eyebrow {
+  margin: 0;
+  font-size: calc(2.381cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kink-accent);
+}
+
+.kink-frame-social-title-card__title {
+  margin: calc(1.042cqw * var(--kink-card-v)) 0 0;
+  font-size: calc(6.845cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: rgb(248 250 244 / 96%);
+}
+
+.kink-frame-social-title-card__round {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.kink-frame-social-title-card__round-label {
+  font-size: calc(2.083cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 48%);
+}
+
+.kink-frame-social-title-card__round-value {
+  font-size: calc(5.655cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: rgb(248 250 244 / 96%);
+}
+
+.kink-frame-social-fixture-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--kink-mode-row-gap);
+  flex: 1;
+  min-height: 0;
+}
+
+.kink-frame-social-fixture-grid__item {
+  min-width: 0;
+}
+
+.kink-frame-social-fixture-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.488cqw * var(--kink-card-v));
+  height: 100%;
+  padding: calc(2.381cqw * var(--kink-card-v)) 2.976cqw;
+  box-sizing: border-box;
+}
+
+.kink-frame-social-fixture-card__court {
+  font-size: calc(2.083cqw * var(--kink-card-v));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 48%);
+}
+
+.kink-frame-social-fixture-card__matchup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(0.744cqw * var(--kink-card-v));
+  text-align: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.kink-frame-social-fixture-card__team {
+  font-size: calc(2.827cqw * var(--kink-card-v));
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgb(248 250 244 / 94%);
+}
+
+.kink-frame-social-fixture-card__vs {
+  font-size: calc(1.786cqw * var(--kink-card-v));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 38%);
+}
+
+/* Social night — broadcast leaderboard (right column) */
+.kink-frame-social-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.786cqw;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+
+.kink-frame-social-lb-podium {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.893cqw;
+}
+
+.kink-frame-social-lb-podium-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.488cqw;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 10%) 0%,
+      rgb(255 255 255 / 4%) 55%,
+      rgb(120 160 255 / 3%) 100%
+    );
+  border: 1px solid rgb(255 255 255 / 12%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-social-lb-podium-card {
+  background:
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 12%) 0%,
+      rgb(255 255 255 / 5%) 55%,
+      rgb(140 170 255 / 4%) 100%
+    );
+  border-color: rgb(255 255 255 / 14%);
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-podium-card {
+  padding: 1.786cqw 1.488cqw 1.786cqw 1.042cqw;
+  border-color: rgb(220 195 80 / 38%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 14%),
+    0 0 24px rgb(200 240 60 / 8%);
+}
+
+.kink-frame-social-lb-podium-item--2 .kink-frame-social-lb-podium-card {
+  padding: 1.488cqw 1.339cqw 1.488cqw 1.042cqw;
+  border-color: rgb(200 205 215 / 28%);
+}
+
+.kink-frame-social-lb-podium-item--3 .kink-frame-social-lb-podium-card {
+  padding: 1.339cqw 1.339cqw 1.339cqw 1.042cqw;
+  border-color: rgb(180 140 95 / 26%);
+}
+
+.kink-frame-social-lb-medal {
+  width: 5.655cqw;
+  height: 5.655cqw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 2.381cqw;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid rgb(255 255 255 / 16%);
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-medal {
+  width: 7.143cqw;
+  height: 7.143cqw;
+  font-size: 3.274cqw;
+}
+
+.kink-frame-social-lb-medal--1 {
+  color: #1a1400;
+  background: linear-gradient(145deg, #e8d44a 0%, #c8a820 100%);
+  box-shadow: 0 0 16px rgb(200 240 60 / 22%);
+}
+
+.kink-frame-social-lb-medal--2 {
+  color: #141820;
+  background: linear-gradient(145deg, #d8dde6 0%, #a8b0bc 100%);
+}
+
+.kink-frame-social-lb-medal--3 {
+  color: #1a1208;
+  background: linear-gradient(145deg, #d4a574 0%, #a87240 100%);
+}
+
+.kink-frame-social-lb-podium-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.298cqw;
+}
+
+.kink-frame-social-lb-podium-top {
+  display: flex;
+  align-items: center;
+  gap: 0.744cqw;
+  min-width: 0;
+}
+
+.kink-frame-social-lb-name {
+  font-size: calc(3.274cqw * var(--kink-card-v));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: rgb(248 250 244 / 96%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-name {
+  font-size: calc(4.167cqw * var(--kink-card-v));
+}
+
+.kink-frame-social-lb-podium-item--2 .kink-frame-social-lb-name {
+  font-size: calc(3.571cqw * var(--kink-card-v));
+}
+
+.kink-frame-social-lb-name--chase {
+  font-size: calc(2.53cqw * var(--kink-card-v));
+  font-weight: 700;
+}
+
+.kink-frame-social-lb-points {
+  font-size: calc(2.976cqw * var(--kink-card-v));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-points {
+  font-size: calc(3.571cqw * var(--kink-card-v));
+}
+
+.kink-frame-social-lb-points--chase {
+  font-size: calc(2.381cqw * var(--kink-card-v));
+  font-weight: 700;
+}
+
+.kink-frame-social-lb-points--positive {
+  color: var(--kink-accent);
+  text-shadow: 0 0 18px rgb(200 240 60 / 18%);
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-points--positive {
+  color: #d4f050;
+}
+
+.kink-frame-social-lb-points--negative {
+  color: rgb(140 155 175 / 72%);
+}
+
+.kink-frame-social-lb-move {
+  flex-shrink: 0;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: calc(1.786cqw * var(--kink-card-v));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.kink-frame-social-lb-move--up {
+  color: rgb(200 240 60 / 88%);
+}
+
+.kink-frame-social-lb-move--down {
+  color: rgb(140 160 190 / 62%);
+}
+
+.kink-frame-social-lb-move--flat {
+  color: rgb(226 232 224 / 28%);
+}
+
+.kink-frame-social-lb-photo {
+  width: 6.845cqw;
+  height: 6.845cqw;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(8 12 20 / 72%);
+  border: 1px solid rgb(255 255 255 / 14%);
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-photo {
+  width: 8.333cqw;
+  height: 8.333cqw;
+  border-color: rgb(220 195 80 / 32%);
+}
+
+.kink-frame-social-lb-podium-item--2 .kink-frame-social-lb-photo {
+  width: 7.44cqw;
+  height: 7.44cqw;
+}
+
+.kink-frame-social-lb-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kink-frame-social-lb-photo span {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(226 232 224 / 78%);
+}
+
+.kink-frame-social-lb-podium-item--1 .kink-frame-social-lb-photo span {
+  font-size: 2.53cqw;
+}
+
+.kink-frame-social-lb-chase {
+  list-style: none;
+  margin: 0;
+  padding: 0.744cqw 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.595cqw;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.kink-frame-social-lb-chase-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.042cqw;
+  padding: 0.893cqw 1.339cqw 0.893cqw 1.042cqw;
+  border-radius: 999px;
+  background: rgb(12 16 24 / 42%);
+  border: 1px solid rgb(255 255 255 / 7%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-social-lb-chase-card {
+  background: rgb(10 12 18 / 58%);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.kink-frame-social-lb-chase-rank {
+  width: 2.381cqw;
+  font-size: calc(2.083cqw * var(--kink-card-v));
+  font-weight: 700;
+  color: rgb(226 232 224 / 36%);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.kink-frame-social-lb-chase-body {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.744cqw;
+}
+
+/* TV broadcast enter / exit — staggered court panel */
+.kink-frame-courts-broadcast {
+  --kink-frame-glass-pad: 4.464cqw;
+  --kink-card-v: 0.88;
+  --broadcast-glass-out-ms: 480ms;
+  --broadcast-card-out-ms: 0.92s;
+  /* Four booking cards + three gaps (matches list block height) */
+  --kink-frame-stack-height: calc(4 * 20.2cqw + 3 * 2.679cqw);
+  /* Concentric corners: inner radius = outer radius − padding (all sides) */
+  --kink-frame-radius-outer: calc(var(--kink-frame-glass-pad) + 3.571cqw);
+  --kink-frame-radius-inner: max(0px, calc(var(--kink-frame-radius-outer) - var(--kink-frame-glass-pad)));
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--kink-frame-glass-pad);
+}
+
+/* Readability frame — uniform inset; only visible while panel is on screen */
+.kink-frame-courts-broadcast--on-air::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--kink-frame-radius-outer);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  background:
+    linear-gradient(
+      155deg,
+      rgb(255 255 255 / 14%) 0%,
+      rgb(255 255 255 / 7%) 52%,
+      rgb(255 255 255 / 5%) 100%
+    );
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+  border: 1px solid rgb(255 255 255 / 14%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    0 10px 36px rgb(0 0 0 / 6%);
+}
+
+/* Glass enters with content (bookings loop start + after feature follows bookings) */
+.kink-frame-courts-broadcast--in.kink-frame-courts-broadcast--on-air::before {
+  animation: kink-broadcast-glass-in var(--broadcast-glass-out-ms) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes kink-broadcast-glass-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Phase 1 — glass fades before cards exit */
+.kink-frame-courts-broadcast--out.kink-frame-courts-broadcast--on-air::before {
+  animation: kink-broadcast-glass-out var(--broadcast-glass-out-ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes kink-broadcast-glass-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-courts {
+  position: relative;
+  z-index: 1;
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-courts-label,
+.kink-frame-courts-broadcast--on-air .kink-frame-mode-panel__label {
+  color: rgb(236 240 232 / 82%);
+  text-shadow: 0 1px 14px rgb(0 0 0 / 40%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-courts-summary,
+.kink-frame-courts-broadcast--on-air .kink-frame-mode-panel__summary {
+  text-shadow: 0 1px 18px rgb(0 0 0 / 48%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-court-card--busy {
+  background: rgb(14 16 18 / 74%);
+  border-color: rgb(255 255 255 / 11%);
+  box-shadow: 0 6px 28px rgb(0 0 0 / 22%);
+}
+
+.kink-frame-courts-broadcast--on-air .kink-frame-court-card--available {
+  box-shadow:
+    0 0 10.417cqw color-mix(in srgb, var(--kink-accent) 26%, transparent),
+    0 6px 24px rgb(0 0 0 / 20%);
+}
+
+.kink-frame-broadcast-item {
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+.kink-frame-broadcast-item--0 {
+  --broadcast-in-delay: 0ms;
+  --broadcast-out-delay: 395ms;
+}
+
+.kink-frame-broadcast-item--1 {
+  --broadcast-in-delay: 75ms;
+  --broadcast-out-delay: 315ms;
+}
+
+.kink-frame-broadcast-item--2 {
+  --broadcast-in-delay: 155ms;
+  --broadcast-out-delay: 235ms;
+}
+
+.kink-frame-broadcast-item--3 {
+  --broadcast-in-delay: 235ms;
+  --broadcast-out-delay: 155ms;
+}
+
+.kink-frame-broadcast-item--4 {
+  --broadcast-in-delay: 315ms;
+  --broadcast-out-delay: 75ms;
+}
+
+.kink-frame-broadcast-item--5 {
+  --broadcast-in-delay: 395ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--6 {
+  --broadcast-in-delay: 475ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--7 {
+  --broadcast-in-delay: 555ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--8 {
+  --broadcast-in-delay: 635ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--9 {
+  --broadcast-in-delay: 715ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--10 {
+  --broadcast-in-delay: 795ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--11 {
+  --broadcast-in-delay: 875ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--12 {
+  --broadcast-in-delay: 955ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--13 {
+  --broadcast-in-delay: 1035ms;
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-broadcast-item--14 {
+  --broadcast-in-delay: 1115ms;
+  --broadcast-out-delay: 0ms;
+}
+
+/* Venue mode grid — exit stagger (left column) */
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--0 {
+  --broadcast-out-delay: 400ms;
+}
+
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--1 {
+  --broadcast-out-delay: 320ms;
+}
+
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--2 {
+  --broadcast-out-delay: 240ms;
+}
+
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--3 {
+  --broadcast-out-delay: 160ms;
+}
+
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--4 {
+  --broadcast-out-delay: 80ms;
+}
+
+.kink-frame-mode-left-broadcast .kink-frame-broadcast-item--5 {
+  --broadcast-out-delay: 0ms;
+}
+
+/* Venue mode grid — exit stagger (right glass lists) */
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--2 {
+  --broadcast-out-delay: 560ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--3 {
+  --broadcast-out-delay: 480ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--4 {
+  --broadcast-out-delay: 400ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--5 {
+  --broadcast-out-delay: 320ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--6 {
+  --broadcast-out-delay: 240ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--7 {
+  --broadcast-out-delay: 160ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--8 {
+  --broadcast-out-delay: 80ms;
+}
+
+.kink-frame-social-leaderboard .kink-frame-broadcast-item--9 {
+  --broadcast-out-delay: 0ms;
+}
+
+/* Idea / showcase right lists */
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--2 {
+  --broadcast-out-delay: 560ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--3 {
+  --broadcast-out-delay: 480ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--4 {
+  --broadcast-out-delay: 400ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--5 {
+  --broadcast-out-delay: 320ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--6 {
+  --broadcast-out-delay: 240ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--7 {
+  --broadcast-out-delay: 160ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--8 {
+  --broadcast-out-delay: 80ms;
+}
+
+.kink-frame-mode-panel__list--roster .kink-frame-broadcast-item--9 {
+  --broadcast-out-delay: 0ms;
+}
+
+.kink-frame-courts-broadcast--in .kink-frame-broadcast-item {
+  animation: kink-broadcast-in 0.92s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--broadcast-in-delay);
+}
+
+.kink-frame-courts-broadcast--hold .kink-frame-broadcast-item {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+}
+
+/* Phase 2 — cards exit (mirror enter), after glass fade */
+.kink-frame-courts-broadcast--out .kink-frame-broadcast-item {
+  animation: kink-broadcast-out var(--broadcast-card-out-ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--broadcast-glass-out-ms) + var(--broadcast-out-delay));
+}
+
+@keyframes kink-broadcast-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(11%, 0, 0) scale(0.94);
+    filter: blur(12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes kink-broadcast-out {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(11%, 0, 0) scale(0.94);
+    filter: blur(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kink-frame-broadcast-item {
+    opacity: 1;
+    will-change: auto;
+  }
+
+  .kink-frame-courts-broadcast--out.kink-frame-courts-broadcast--on-air::before {
+    animation: none;
+    opacity: 0;
+  }
+
+  .kink-frame-courts-broadcast--in.kink-frame-courts-broadcast--on-air::before {
+    animation: none;
+    opacity: 1;
+  }
+
+  .kink-frame-courts-broadcast--in .kink-frame-broadcast-item,
+  .kink-frame-courts-broadcast--out .kink-frame-broadcast-item,
+  .kink-frame-courts-broadcast--hold .kink-frame-broadcast-item {
+    animation: none;
+  }
+
+  .kink-frame-courts-broadcast--hold .kink-frame-broadcast-item,
+  .kink-frame-courts-broadcast--in .kink-frame-broadcast-item {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.kink-frame-demo-caption {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.375rem;
+  background: rgb(0 0 0 / 55%);
+  color: #fff;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.kink-frame-demo-link {
+  pointer-events: auto;
+  color: var(--kink-accent, #c8f03c);
+  text-decoration: none;
+}
+
+.kink-frame-demo-link:hover {
+  text-decoration: underline;
+}
+
+/* Mode links — Idea / Showcase / Social (sits above the TV frame) */
+.kink-frame-mode-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.417cqw;
+  padding: 0.417cqw;
+  border-radius: 999px;
+  background: rgb(8 10 12 / 52%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgb(255 255 255 / 11%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 18%);
+}
+
+.kink-frame-mode-nav-link {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 1.354cqw;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 58%);
+  background: transparent;
+  padding: 0.833cqw 1.563cqw;
+  border-radius: 999px;
+  line-height: 1;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.kink-frame-mode-nav-link:hover {
+  color: rgb(236 240 232 / 88%);
+}
+
+.kink-frame-mode-nav-link--active {
+  color: #0a0d00;
+  background: var(--kink-accent, #c8f03c);
+}
+
+.kink-frame-mode-nav-link--active:hover {
+  color: #0a0d00;
+}
+
+.kink-frame-mode-nav-link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Top-left frame pocket — 1920×1080 design px, scaled via --kink-scale */
+.kink-frame-logo {
+  position: absolute;
+  top: 48px;
+  left: 45px;
+  z-index: 3;
+  transform: scale(var(--kink-scale));
+  transform-origin: top left;
+}
+
+.kink-frame-logo--button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 0.5rem;
+}
+
+.kink-frame-logo--button:focus-visible {
+  outline: 2px solid rgb(200 240 60 / 80%);
+  outline-offset: 4px;
+}
+
+.kink-frame-logo-img {
+  display: block;
+  height: 72px;
+  max-width: 280px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Bottom-right notch pocket — centred in frame below content step (962–1080) */
+.kink-frame-clock {
+  position: absolute;
+  right: 2.34375%;
+  bottom: 1.944%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 0.729cqw;
+  overflow: hidden;
+  font-family: var(--font-family, system-ui, sans-serif);
+}
+
+.kink-frame-clock-icon {
+  background: #1a1f2b;
+  padding: 0.729cqw 0.833cqw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kink-frame-clock-icon span {
+  font-size: 1.979cqw;
+  line-height: 1;
+  display: block;
+}
+
+.kink-frame-clock-body {
+  background: #10141c;
+  padding: 0.729cqw 1.146cqw 0.729cqw 0.938cqw;
+  display: flex;
+  align-items: center;
+}
+
+.kink-frame-clock-time {
+  display: flex;
+  align-items: baseline;
+  font-size: 2.5cqw;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.kink-frame-clock-sep {
+  animation: kink-frame-clock-colon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes kink-frame-clock-colon-pulse {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  99% {
+    opacity: 0.42;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ── Kink v2 skeleton (geometry-only preview) ── */
+
+.kink-frame-root--skeleton {
+  --kink-frame-matte: #1a1a1a;
+}
+
+.kink-frame-skeleton-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.kink-frame-skeleton-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(236 240 232 / 88%);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kink-frame-skeleton-spec {
+  color: rgb(236 240 232 / 55%);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.kink-frame-skeleton-device-link {
+  margin-left: auto;
+  color: var(--kink-accent, #c8f03c);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.kink-frame-skeleton-device-link:hover {
+  text-decoration: underline;
+}
+
+/* Full-bleed venue TV — no matte, toolbar, or letterboxing */
+.kink-frame-root--device {
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: #2d343e;
+}
+
+.kink-frame-root--device .kink-frame-shell {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  gap: 0;
+}
+
+.kink-frame-root--device .kink-frame-stage--skeleton-v2 {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.kink-frame-stage--skeleton-v2 {
+  background: #2d343e;
+}
+
+.kink-frame-media--skeleton-v2 {
+  background: #2d343e;
+}
+
+.kink-frame-skeleton-mockup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  opacity: 0.5;
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: normal;
+}

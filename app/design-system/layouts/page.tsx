@@ -105,6 +105,53 @@ export default function LayoutsPage() {
               </p>
             </div>
           </div>
+
+          <div className="ds-layout-card">
+            <h3>Kink Frame (1920×1080)</h3>
+            <p>Full-bleed media with bottom-right frame kink — frame overlays clipped content</p>
+
+            <div className="ds-layout-diagram ds-layout-diagram--tv">
+              <div className="ds-layout-zone ds-layout-zone--main" style={{ position: 'relative' }}>
+                Media (photo / video)
+                <span
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    bottom: 0,
+                    width: '28%',
+                    height: '18%',
+                    background: 'var(--bg-tertiary)',
+                    borderTopLeftRadius: '0.5rem',
+                  }}
+                  aria-hidden
+                />
+              </div>
+            </div>
+
+            <div className="ds-layout-specs">
+              <p>
+                <strong>Viewport:</strong> 1920 × 1080 (16:9)
+              </p>
+              <p>
+                <strong>Component:</strong> <code>KinkFrameDisplay</code>
+              </p>
+              <p>
+                <Link href="/kink-frame" className="ds-open-link">
+                  Open live demo →
+                </Link>
+              </p>
+              <p>
+                <Link href="/kink-frame/skeleton" className="ds-open-link">
+                  Open v2 skeleton preview →
+                </Link>
+              </p>
+              <p>
+                <Link href="/kink-frame/skeleton/display" className="ds-open-link">
+                  Open v2 skeleton TV display →
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
