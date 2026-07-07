@@ -1,12 +1,16 @@
 /** YouTube embed tuned for TV-style playback — minimal chrome. */
-const KINK_FRAME_YOUTUBE_VIDEO_ID = 'gFl3ADnFRtc'
+const KINK_FRAME_YOUTUBE_VIDEO_ID = 'ZSneXJfDqjI'
 
-export function kinkFrameYoutubeEmbedSrc(): string {
+export function kinkFrameYoutubeVideoId(): string {
+  return KINK_FRAME_YOUTUBE_VIDEO_ID
+}
+
+export function kinkFrameYoutubeEmbedSrc(videoId = KINK_FRAME_YOUTUBE_VIDEO_ID): string {
   const params = new URLSearchParams({
     autoplay: '1',
     mute: '1',
     loop: '1',
-    playlist: KINK_FRAME_YOUTUBE_VIDEO_ID,
+    playlist: videoId,
     controls: '0',
     modestbranding: '1',
     fs: '0',
@@ -18,5 +22,5 @@ export function kinkFrameYoutubeEmbedSrc(): string {
     enablejsapi: '0',
   })
 
-  return `https://www.youtube.com/embed/${KINK_FRAME_YOUTUBE_VIDEO_ID}?${params.toString()}`
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`
 }

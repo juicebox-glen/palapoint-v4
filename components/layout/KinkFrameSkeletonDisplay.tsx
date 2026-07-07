@@ -14,6 +14,7 @@ import {
   KINK_FRAME_V2_VIEWBOX,
   kinkFrameV2ContentMaskUrl,
 } from '@/lib/layout/kink-frame-v2-geometry'
+import { kinkFrameYoutubeEmbedSrc } from '@/lib/layout/kink-frame-youtube'
 
 import '@/app/styles/kink-frame.css'
 
@@ -107,6 +108,14 @@ export function KinkFrameSkeletonDisplay({
               maskImage: contentMask,
             }}
           >
+            <div className="kink-frame-youtube" aria-hidden>
+              <iframe
+                src={kinkFrameYoutubeEmbedSrc()}
+                title="YouTube video player"
+                allow="autoplay; encrypted-media"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
             <KinkFrameContentPanel className="kink-frame-content-panel--skeleton-v2">
               <div className="kink-frame-courts-broadcast kink-frame-courts-broadcast--on-air kink-frame-courts-broadcast--hold">
                 <div className="kink-frame-courts">

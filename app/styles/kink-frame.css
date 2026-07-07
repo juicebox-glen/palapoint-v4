@@ -1836,7 +1836,7 @@
 }
 
 .kink-frame-media--skeleton-v2 {
-  background: #2d343e;
+  background: var(--kink-frame-placeholder);
 }
 
 .kink-frame-skeleton-mockup {
