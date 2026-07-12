@@ -3,7 +3,7 @@ export const KINK_FRAME_SOCIAL_GAME = {
   title: 'Thursday Social',
   format: 'Americano',
   time: '19:00',
-  playerCount: 8,
+  playerCount: 9,
   courtCount: 4,
   round: 3,
   totalRounds: 5,

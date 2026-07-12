@@ -8,6 +8,13 @@ export const KINK_FRAME_NAV_MODES = [
   { id: 'socialFlat' as const, label: 'Social · Flat' },
 ] as const
 
+/** Skeleton preview — three screen types (no flat variant). */
+export const KINK_FRAME_SKELETON_NAV_MODES = [
+  { id: 'idle' as const, label: 'Idle' },
+  { id: 'showcase' as const, label: 'Showcase' },
+  { id: 'social' as const, label: 'Social' },
+] as const
+
 export function kinkFrameModeIsSocialLayout(mode: KinkFrameVenueMode): boolean {
   return mode === 'social' || mode === 'socialFlat'
 }

@@ -8,4 +8,5 @@ export const KINK_FRAME_SOCIAL_PLAYERS = [
   { id: '6', name: 'Jake Thomas', photoUrl: null },
   { id: '7', name: 'Mike Brown', photoUrl: null },
   { id: '8', name: 'Tom Davis', photoUrl: null },
+  { id: '9', name: 'Sara Chen', photoUrl: null },
 ] as const

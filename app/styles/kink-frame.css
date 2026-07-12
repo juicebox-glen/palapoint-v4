@@ -1770,9 +1770,18 @@
 .kink-frame-skeleton-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
   flex-shrink: 0;
+}
+
+.kink-frame-skeleton-toolbar .kink-frame-mode-nav {
+  flex-shrink: 0;
+}
+
+.kink-frame-skeleton-toolbar .kink-frame-skeleton-device-link {
+  margin-left: auto;
 }
 
 .kink-frame-skeleton-toggle {
@@ -1792,7 +1801,6 @@
 }
 
 .kink-frame-skeleton-device-link {
-  margin-left: auto;
   color: var(--kink-accent, #c8f03c);
   font-size: 0.8125rem;
   text-decoration: none;
@@ -1838,8 +1846,227 @@
   pointer-events: auto;
 }
 
+.kink-frame-left-content-panel--skeleton-v2 {
+  pointer-events: auto;
+}
+
+.kink-frame-left-content-panel--skeleton-v2 .kink-frame-left-content-panel-inner {
+  height: 100%;
+  min-height: 0;
+}
+
 .kink-frame-media--skeleton-v2 {
   background: #2d343e;
+}
+
+/* Social play — left column (title + 2×2 fixtures) */
+.kink-frame-skeleton-social-left {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 2.976cqw;
+}
+
+.kink-frame-skeleton-social-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-shrink: 0;
+  padding: 0 0.595cqw;
+}
+
+.kink-frame-skeleton-social-title {
+  margin: 0;
+  font-size: 5.655cqw;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: rgb(248 250 244 / 96%);
+}
+
+.kink-frame-skeleton-social-round {
+  margin: 0;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 58%);
+  white-space: nowrap;
+}
+
+.kink-frame-skeleton-social-fixtures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 1.786cqw;
+}
+
+.kink-frame-skeleton-social-fixtures__item {
+  min-width: 0;
+  min-height: 0;
+}
+
+.kink-frame-skeleton-social-fixture-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.488cqw;
+  height: 100%;
+  padding: 2.381cqw 2.976cqw;
+  box-sizing: border-box;
+  border-radius: 2.679cqw;
+  background: rgb(18 21 20 / 60%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 7%);
+}
+
+.kink-frame-skeleton-social-fixture-card__court {
+  font-size: 2.083cqw;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 48%);
+}
+
+.kink-frame-skeleton-social-fixture-card__matchup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.744cqw;
+  flex: 1;
+  min-height: 0;
+  text-align: center;
+}
+
+.kink-frame-skeleton-social-fixture-card__team {
+  font-size: 2.827cqw;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgb(248 250 244 / 94%);
+}
+
+.kink-frame-skeleton-social-fixture-card__vs {
+  font-size: 1.786cqw;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(226 232 224 / 38%);
+}
+
+/* Social play — player roster (same broadcast block size as court bookings) */
+.kink-frame-courts-broadcast--on-air .kink-frame-social-player-card {
+  background: rgb(14 16 18 / 74%);
+  border-color: rgb(255 255 255 / 11%);
+  box-shadow: 0 6px 28px rgb(0 0 0 / 22%);
+}
+
+.kink-frame-social-players-viewport {
+  height: var(--kink-frame-stack-height);
+  min-height: var(--kink-frame-stack-height);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 3cqw),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 calc(100% - 3cqw),
+    transparent 100%
+  );
+}
+
+.kink-frame-social-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2cqw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kink-frame-social-players-list--scroll {
+  animation: kink-frame-social-players-scroll var(--kink-social-scroll-duration, 22s) ease-in-out infinite;
+}
+
+@keyframes kink-frame-social-players-scroll {
+  0%,
+  12% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  38%,
+  50% {
+    transform: translate3d(0, calc(-1 * var(--kink-social-scroll-distance, 0px)), 0);
+  }
+
+  78%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.kink-frame-social-player-card {
+  display: flex;
+  align-items: center;
+  gap: 2.9cqw;
+  padding: 2cqw 3.6cqw;
+  border-radius: 999px;
+  background: #1e2125;
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+
+.kink-frame-social-player-photo {
+  flex-shrink: 0;
+  width: 7.8cqw;
+  height: 7.8cqw;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: rgb(74 78 84 / 88%);
+}
+
+.kink-frame-social-player-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kink-frame-social-player-photo span {
+  font-size: 2.9cqw;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgb(238 241 234 / 72%);
+}
+
+.kink-frame-social-player-name {
+  min-width: 0;
+  font-size: 3.6cqw;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #eef1ea;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kink-frame-social-players-list--scroll {
+    animation: none;
+  }
 }
 
 .kink-frame-skeleton-mockup {

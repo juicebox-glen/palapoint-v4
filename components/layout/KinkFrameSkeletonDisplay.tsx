@@ -3,9 +3,9 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
-import { KinkFrameContentPanel } from '@/components/layout/KinkFrameContentPanel'
-import { KinkFrameCourtAvailability } from '@/components/layout/KinkFrameCourtAvailability'
 import { KinkFrameLogo } from '@/components/layout/KinkFrameLogo'
+import { KinkFrameModeNav } from '@/components/layout/KinkFrameModeNav'
+import { KinkFrameSkeletonVenueContent } from '@/components/layout/KinkFrameSkeletonVenueContent'
 import {
   KINK_FRAME_V2_KINK_HEIGHT,
   KINK_FRAME_V2_LOGO_INSET,
@@ -14,6 +14,10 @@ import {
   KINK_FRAME_V2_VIEWBOX,
   kinkFrameV2ContentMaskUrl,
 } from '@/lib/layout/kink-frame-v2-geometry'
+import {
+  KINK_FRAME_SKELETON_NAV_MODES,
+  type KinkFrameVenueMode,
+} from '@/lib/layout/kink-frame-venue-mode'
 
 import '@/app/styles/kink-frame.css'
 
@@ -42,6 +46,7 @@ export function KinkFrameSkeletonDisplay({
   const contentMask = kinkFrameV2ContentMaskUrl()
   const stageRef = useRef<HTMLDivElement>(null)
   const [overlayOn, setOverlayOn] = useState(showMockupOverlay)
+  const [mode, setMode] = useState<KinkFrameVenueMode>('idle')
 
   useEffect(() => {
     const stage = stageRef.current
@@ -74,6 +79,11 @@ export function KinkFrameSkeletonDisplay({
       <div className="kink-frame-shell">
         {showToolbar ? (
           <div className="kink-frame-skeleton-toolbar">
+            <KinkFrameModeNav
+              mode={mode}
+              onModeChange={setMode}
+              modes={KINK_FRAME_SKELETON_NAV_MODES}
+            />
             <label className="kink-frame-skeleton-toggle">
               <input
                 type="checkbox"
@@ -82,9 +92,6 @@ export function KinkFrameSkeletonDisplay({
               />
               Mockup overlay
             </label>
-            <span className="kink-frame-skeleton-spec">
-              1920×1080 · 20px border · 140px kink
-            </span>
             <a href="/kink-frame/skeleton/display" className="kink-frame-skeleton-device-link">
               Open TV display →
             </a>
@@ -107,9 +114,7 @@ export function KinkFrameSkeletonDisplay({
               maskImage: contentMask,
             }}
           >
-            <KinkFrameContentPanel className="kink-frame-content-panel--skeleton-v2">
-              <KinkFrameCourtAvailability loop />
-            </KinkFrameContentPanel>
+            <KinkFrameSkeletonVenueContent mode={isDevice ? 'idle' : mode} />
           </div>
 
           <svg

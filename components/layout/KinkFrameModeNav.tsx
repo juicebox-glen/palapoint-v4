@@ -9,13 +9,20 @@ export interface KinkFrameModeNavProps {
   mode: KinkFrameVenueMode
   onModeChange: (mode: KinkFrameVenueMode) => void
   disabled?: boolean
+  /** Defaults to full venue nav (includes Social · Flat). */
+  modes?: readonly { id: KinkFrameVenueMode; label: string }[]
 }
 
-/** Top-of-screen mode links — Idle, Showcase, Social, Social · Flat. */
-export function KinkFrameModeNav({ mode, onModeChange, disabled = false }: KinkFrameModeNavProps) {
+/** Top-of-screen mode links — Idle, Showcase, Social. */
+export function KinkFrameModeNav({
+  mode,
+  onModeChange,
+  disabled = false,
+  modes = KINK_FRAME_NAV_MODES,
+}: KinkFrameModeNavProps) {
   return (
     <nav className="kink-frame-mode-nav" aria-label="Venue display mode">
-      {KINK_FRAME_NAV_MODES.map(({ id, label }) => {
+      {modes.map(({ id, label }) => {
         const active = mode === id
         return (
           <button
