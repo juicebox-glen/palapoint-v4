@@ -1,4 +1,4 @@
-<title>PalaLive — Display Skeleton</title>
+<title>PalaLive — Display Skeleton (Full Size)</title>
 <style>
   @font-face {
     font-family: 'Inter';
@@ -59,7 +59,7 @@
     color: var(--ink);
     font-family: var(--sans);
     font-weight: 400;
-    overflow: hidden;
+    overflow: auto;
   }
 
   body {
@@ -1624,14 +1624,12 @@
     var viewport = document.querySelector('.viewport');
 
     function fit() {
-      var availW = viewport.clientWidth;
-      var availH = viewport.clientHeight;
-      var scale = Math.min(availW / 1920, availH / 1080) * 0.8;
-      stageOuter.style.width = (1920 * scale) + 'px';
-      stageOuter.style.height = (1080 * scale) + 'px';
-      stage.style.transform = 'scale(' + scale + ')';
+      // No scaling: renders at the true 1920x1080 the TV outputs. The
+      // page scrolls if your browser window is smaller than that.
+      stageOuter.style.width = '1920px';
+      stageOuter.style.height = '1080px';
+      stage.style.transform = 'none';
     }
-    window.addEventListener('resize', fit);
     fit();
 
     var swatchFrames = document.querySelectorAll('.swatch-frame');
