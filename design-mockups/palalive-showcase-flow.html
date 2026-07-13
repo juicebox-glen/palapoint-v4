@@ -1449,3 +1449,10 @@
     </div></div>
   </div>
 </div>
+
+<script>
+  if (location.protocol === 'file:') {
+    var back = document.querySelector('.portal-back');
+    if (back) back.href = './index.html';
+  }
+</script>
