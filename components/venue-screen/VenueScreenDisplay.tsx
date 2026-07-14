@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 
-import { MatchplayBoard } from '@/components/matchplay/MatchplayBoard'
 import SpectatorDisplay from '@/components/displays/spectator/SpectatorDisplay'
 import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
+import { PalaLiveSocial } from '@/components/palalive/PalaLiveSocial'
 import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useVenueScreen } from '@/lib/hooks/useVenueScreen'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
@@ -74,7 +74,14 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
 
   if (screen.active_mode === 'social_night') {
     if (screen.active_matchplay_event_id) {
-      return <MatchplayBoard eventId={screen.active_matchplay_event_id} />
+      return (
+        <PalaLiveSocial
+          eventId={screen.active_matchplay_event_id}
+          displayName={screen.display_name}
+          branding={branding}
+          brandingStyles={brandingStyles}
+        />
+      )
     }
 
     return (
