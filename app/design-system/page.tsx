@@ -52,6 +52,16 @@ export default function DesignSystemHome() {
         </section>
 
         <section className="ds-nav-section">
+          <h2>PalaLive (venue display)</h2>
+          <ul>
+            <li>
+              <Link href="/design-system/screens/palalive">PalaLive — venue TV</Link>
+              <span className="ds-nav-route-hint"> — /screen/[screenSlug], replaces the screens below</span>
+            </li>
+          </ul>
+        </section>
+
+        <section className="ds-nav-section">
           <h2>Screens</h2>
           <ul>
             <li>

@@ -1,0 +1,23 @@
+/* PalaLive design tokens — scoped to .palalive-shell, not :root, so they never
+   leak into or collide with the app-wide token set in app/styles/tokens/. */
+.palalive-shell {
+  --void: #000000;
+  --page: #383737;
+  --frame: #000000;
+  --panel: #2b3442;
+  --card: #485467;
+  --card-edge: #56637a;
+  --card-inner: #3a4555;
+  --ink: #e9ecf1;
+  --mist: #67707e;
+  --accent: #cfef3a;
+  --state-up: #6fcf61;
+  --state-down: #ff6b6a;
+  --weather-sun: #f2b84b;
+  --weather-cloud: #a9bfe0;
+  --weather-rain: #5b9bd5;
+  --scoreboard-alt: #3e4858;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --display: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono: 'Space Mono', ui-monospace, monospace;
+}

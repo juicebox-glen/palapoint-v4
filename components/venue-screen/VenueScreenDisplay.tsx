@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 
 import { MatchplayBoard } from '@/components/matchplay/MatchplayBoard'
 import SpectatorDisplay from '@/components/displays/spectator/SpectatorDisplay'
-import { ScreenIdle } from '@/components/venue-screen/ScreenIdle'
+import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
 import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useVenueScreen } from '@/lib/hooks/useVenueScreen'
+import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
 import { SHOWCASE_VENUE_ENDGAME_HOLD_MS } from '@/lib/showcase-timing'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 
@@ -42,10 +43,10 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
 
   if (isLoading && !screen) {
     return (
-      <ScreenIdle
+      <PalaLiveIdle
         branding={branding}
         brandingStyles={brandingStyles}
-        loading
+        bookings={MOCK_COURT_BOOKINGS}
       />
     )
   }
@@ -63,10 +64,10 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
 
   if (screen.active_mode === 'idle') {
     return (
-      <ScreenIdle
+      <PalaLiveIdle
         branding={branding}
         brandingStyles={brandingStyles}
-        venueName={branding?.venueName ?? screen.display_name}
+        bookings={MOCK_COURT_BOOKINGS}
       />
     )
   }
@@ -108,10 +109,10 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
   }
 
   return (
-    <ScreenIdle
+    <PalaLiveIdle
       branding={branding}
       brandingStyles={brandingStyles}
-      venueName={branding?.venueName ?? screen.display_name}
+      bookings={MOCK_COURT_BOOKINGS}
     />
   )
 }
