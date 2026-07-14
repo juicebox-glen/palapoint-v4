@@ -1,9 +1,11 @@
 # PalaLive Rebuild — Context Brief
 
-**Status:** Design phase substantially complete. **The "new project vs. extend
-v4" question is OPEN — not yet decided.** Section 0 explains why this
-document no longer assumes a new project by default; everything after that
-is written to be useful either way.
+**Status: DECIDED.** Per `DEVELOPERHANDOVER.md` (July 2026, "Locked
+decisions"): **extend this repo — do not start a new PalaLive/v5 project.**
+`kink-frame` is **parked/forget** — it was early exploration, not the
+shipping UI. `design-mockups/` is the locked visual source of truth. Section
+0 below is kept as historical record of *why* (it's the investigation that
+led to the locked answer) — don't read it as still-open.
 
 This brief exists to give whoever runs the actual integration effort full
 context without re-deriving it from chat history or re-auditing the codebase
@@ -11,12 +13,14 @@ from scratch.
 
 ---
 
-## 0. Read this first — the plan changed shape
+## 0. Read this first — how we got to the locked decision
 
 The original assumption (see prior revisions of this doc) was: build a brand
 new Next.js + Supabase project, port v4's logic into it, style it with the
-PalaLive mockups. Two things surfaced since that assumption was made that
-matter enough to flag before anyone starts:
+PalaLive mockups. Two things surfaced that made us stop and check before
+starting — and both are now resolved by `DEVELOPERHANDOVER.md`'s explicit
+"Locked decisions" table (§0 there): **extend this repo, park kink-frame.**
+The investigation that raised the question is kept below for context.
 
 ### 0.1 The "how does the display know its state" problem is already solved, in production, in v4
 
@@ -66,33 +70,53 @@ same PalaLive spec, using a different frame geometry (notched TV bezel)
 than what we designed in the static mockups (flat rectangular panels + full-
 width bottom bar).
 
-### 0.3 The open question
+### 0.3 Resolved: extend v4, park kink-frame
 
-Given 0.1 and 0.2, "spin up a brand new project" would mean re-solving
-realtime subscriptions, edge-function auth, cross-venue validation, and the
-staff pairing/mode-switching flow — all of which already work — to arrive at
-the same place a narrower effort could reach: **build real components
-matching one reconciled visual spec, and swap them into `/screen/[screenSlug]`'s
-existing render branches in place of `ScreenIdle`/`MatchplayBoard`/
-`SpectatorDisplay`.**
+Given 0.1 and 0.2, "spin up a brand new project" would have meant
+re-solving realtime subscriptions, edge-function auth, cross-venue
+validation, and the staff pairing/mode-switching flow — all of which already
+work — to arrive at the same place a narrower effort could reach.
+`DEVELOPERHANDOVER.md`'s locked-decisions table now makes this explicit:
 
-That said, there may be reasons to still want a clean break (e.g. wanting to
-leave the legacy court/session stack behind entirely rather than have it
-sitting unused in the same repo, or wanting a genuinely fresh data model).
-**This has not been decided.** Don't start either path without confirming
-which one first.
+> **New repo vs extend this one** → Extend this repo. Do not start a
+> separate "v5 / PalaLive" project.
+> **kink-frame** → Parked / forget for now. Early exploration only. Not the
+> shipping UI.
+> **Visual source of truth** → `design-mockups/` — modular HTML/CSS skeleton
+> + staff flows.
+
+The plan: **build real components matching the `design-mockups/` spec, and
+swap them into `/screen/[screenSlug]`'s existing render branches** in place
+of `ScreenIdle`/`MatchplayBoard`/`SpectatorDisplay`. Legacy court/session
+stack stays in the repo, frozen, for existing venues — not rebuilt, not
+deleted. §2 below (the four-way visual reconciliation) is now moot for the
+same reason: kink-frame is parked, so there's no longer a competing visual
+spec to reconcile against — `design-mockups/` simply wins.
 
 ---
 
 ## 1. Design reference (source of truth for the PalaLive visual design)
 
 All mockups are static, self-contained HTML/CSS files — no build step, no
-framework — built to be fast to iterate on. They live in `design-mockups/` in
-`palapoint-v4` on branch `claude/palalive-skeleton-reference`, and are also
-published as Claude Artifacts.
+framework — built to be fast to iterate on. They live in `design-mockups/` at
+the repo root, and are also published as Claude Artifacts.
 
 Open `design-mockups/index.html` locally for a clickable index of everything
 below (works offline, no claude.ai dependency).
+
+**Branch note:** `main` and `claude/palalive-skeleton-reference` currently
+have *diverging* copies of `design-mockups/`. `main` has a newer, more
+developed `palalive-display-skeleton.html` / `-fullsize.html` (plus
+`bgphoto.avif` and `design-mockups/players/*.jpg`, added directly to `main`
+in a separate commit, not from this branch) — this branch's copies of those
+two files are older. Everything else in the folder (`index.html`,
+`palalive-control-panel.html`, `palalive-launcher.html`,
+`palalive-matchplay-flow.html`, `palalive-setup-screen.html`,
+`palalive-showcase-flow.html`) is byte-identical between the two branches.
+This needs reconciling — take `main`'s display-skeleton files as current,
+not this branch's — before treating either branch as the single source of
+truth. See the note this doc's author left in-chat for the up-to-date status
+of that reconciliation.
 
 | Screen set | File | What it covers |
 |---|---|---|
@@ -159,11 +183,17 @@ below (works offline, no claude.ai dependency).
 
 ---
 
-## 2. Reconciling four different visual specs
+## 2. Reconciling four different visual specs (historical — resolved by §0.3)
 
-There are now **four separate, non-identical answers** to "what does the
-PalaLive TV frame look like," and they need reconciling before real
-components get built, regardless of which path (§0.3) is chosen.
+**Kept for context only.** Now that kink-frame is locked as parked/forget,
+`design-mockups/` is the sole visual source of truth by decision, not by
+majority vote between these four. This table remains useful for one thing:
+if a future PalaLive build wants to cherry-pick a motion pattern or token
+from kink-frame (which `DEVELOPERHANDOVER.md` explicitly allows, "prefer
+matching mockups first"), this is what's different between them.
+
+There were **four separate, non-identical answers** to "what does the
+PalaLive TV frame look like":
 
 | | Our PalaLive mockups | "Locked" Integration Brief | kink-frame v1 | kink-frame v2 ("skeleton") |
 |---|---|---|---|---|
@@ -184,11 +214,11 @@ kink-frame's (notched corner pockets for logo/clock, not a bottom bar). Our
 mockups and kink-frame agree on nothing except the 20px border and the
 general "lime accent on dark base" idea.
 
-**Before building anything real, someone needs to pick one canonical answer**
-for: exact hex values, exact panel dimensions, and whether the TV frame has a
-notched corner pocket (kink-frame's approach) or a flat full-width bottom bar
-(our mockups' and the brief's *written* description). Don't average these or
-guess — confirm with whoever owns the Integration Brief.
+**Resolved:** the answer is our mockups' layout (flat full-width bottom bar,
+not kink-frame's notched pocket), since kink-frame is parked entirely. If a
+future pass wants to borrow kink-frame's exact token values (they're closer
+to the Integration Brief's numbers than our mockups are), that's a
+deliberate choice to make then — not required by this decision.
 
 ---
 
@@ -308,7 +338,11 @@ docs before building, this is a condensed pointer, not a replacement:
   written. Verify against current code, don't trust it blindly.
 - **`docs/ui-components.md`** — canonical CSS primitives (`.card`, `.btn`).
 
-### 3.4 kink-frame — file map (if this ends up being the base to finish, not replace)
+### 3.4 kink-frame — file map (parked; reference only, do not extend)
+
+Per the locked decision (§0.3), kink-frame is **not** the base to finish —
+`design-mockups/` is. Kept here only so a future session can cherry-pick a
+motion pattern or token value without re-discovering where they live.
 
 | Area | Path |
 |---|---|
@@ -322,11 +356,14 @@ docs before building, this is a condensed pointer, not a replacement:
 | Hardcoded social demo data | `lib/layout/kink-frame-social-data.ts` (note: `lib/layout/kink-frame-social-players.ts`'s `KINK_FRAME_SOCIAL_PLAYERS` is defined but dead/unused — nothing imports it) |
 | Routes | `app/kink-frame/page.tsx`, `app/kink-frame/skeleton/page.tsx`, `app/kink-frame/skeleton/display/page.tsx` |
 
-`DEVELOPERHANDOVER.md`'s own §10 "near-term next steps" lists, in order: (1)
-wire kink-frame skeleton to `/screen/[screenSlug]`, (2) replace its demo data
-with live matchplay/roster data, (3) implement Showcase on the skeleton
-(currently only exists on the older v1 full demo), (4) build an idle content
-model (sponsors/events/stream — currently missing entirely).
+**Note:** an earlier revision of `DEVELOPERHANDOVER.md` had a §10 "near-term
+next steps" list that started with "wire kink-frame skeleton to
+`/screen/[screenSlug]`." The current (July 2026) version supersedes that —
+its locked decisions explicitly park kink-frame and its own §10 now reads
+"Idle TV shell **from mockups**," "Social Night TV **from mockups**," etc.
+Don't act on the older kink-frame-first sequencing if you see it referenced
+elsewhere (e.g. `docs/venue-display-product-inventory.md` predates the
+parking decision).
 
 ---
 
@@ -453,12 +490,25 @@ them as settled unless someone explicitly reopens them:
 
 ## 8. Immediate next step
 
-**Resolve §0.3 (new project vs. extend v4) and §2 (which of the four visual
-specs is canonical) before starting any build.** Both are open questions,
-not decisions — this document intentionally stops short of picking for you.
+§0.3 and §2 are now resolved (extend v4, `design-mockups/` is canonical, kink-frame
+parked). Per `DEVELOPERHANDOVER.md` §10 "Suggested next steps," the build
+order is:
 
-Once those are resolved, hand this document plus
-`docs/venue-display-product-inventory.md`,
-`docs/full-codebase-review-2026-06-19.md`, and (if extending v4)
-`DEVELOPERHANDOVER.md` to a dedicated session, scoped to §7's "one phase per
-prompt" rule rather than attempting the whole rebuild in one pass.
+1. **Idle TV shell from mockups** — frame, bottom bar, panels; mount under
+   `/screen`'s idle branch.
+2. **Social Night TV** — fixtures + players/standings from mockups; replace
+   the `MatchplayBoard` branch with live event data.
+3. **Showcase TV** — scoreboard from mockups; replace `SpectatorDisplay`;
+   keep the existing live-match subscription.
+4. **Staff visual pass** — align phone UI to the showcase + matchplay mockup
+   flows (staff logic mostly already exists — see `DEVELOPERHANDOVER.md` §6).
+5. **Idle integrations** — Playtomic bookings (§5 above), sponsors, weather,
+   video playlist config.
+
+Hand this document plus `DEVELOPERHANDOVER.md`,
+`docs/venue-display-product-inventory.md`, and
+`docs/full-codebase-review-2026-06-19.md` to a dedicated session, scoped to
+§7's "one phase per prompt" rule rather than attempting the whole rebuild in
+one pass. New PalaLive components should go under a clear prefix
+(`components/palalive/`, `app/styles/palalive-*`) per `DEVELOPERHANDOVER.md`
+§5 — don't mix them into the legacy court-session paths.
