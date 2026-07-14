@@ -1,5 +1,7 @@
 import { getPlayerInitials } from '@/lib/utils/name-format'
 
+import '@/app/styles/palalive-avatar.css'
+
 interface PalaLiveAvatarProps {
   name: string
   photoUrl?: string | null

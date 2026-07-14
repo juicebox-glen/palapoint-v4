@@ -1,0 +1,36 @@
+/* Base styling for PalaLiveAvatar (components/palalive/PalaLiveAvatar.tsx) — circular by
+   default. Modes needing a different shape (e.g. Showcase's portrait match-card avatar)
+   override size/radius via a descendant selector, not by duplicating these base rules. */
+.palalive-player-avatar {
+  flex: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--card-inner);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.palalive-player-avatar--initials {
+  box-sizing: border-box;
+  border: 2px solid var(--accent);
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.palalive-player-avatar--photo {
+  background: var(--skin);
+}
+
+.palalive-player-avatar--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

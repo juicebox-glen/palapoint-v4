@@ -24,6 +24,8 @@ export interface UseLiveMatchOptions {
   statusFilter?: string[]
   pollInterval?: number
   enablePolling?: boolean
+  /** Scope to a specific match instead of "latest for court" — e.g. venue_screens.active_showcase_match_id. */
+  matchId?: string
 }
 
 export interface UseLiveMatchResult<T> {
@@ -45,6 +47,7 @@ export function useLiveMatch<T = unknown>(
     statusFilter = DEFAULT_STATUS_FILTER,
     pollInterval = 5000,
     enablePolling = true,
+    matchId,
   } = options
 
   const statusKey = useMemo(() => statusFilter.slice().sort().join(','), [statusFilter])
@@ -67,11 +70,16 @@ export function useLiveMatch<T = unknown>(
     }
 
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('live_matches')
         .select(select)
         .eq('court_id', courtId)
         .in('status', statusFilter)
+      if (matchId) {
+        query = query.eq('id', matchId)
+      }
+
+      const { data, error: fetchError } = await query
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
@@ -91,7 +99,7 @@ export function useLiveMatch<T = unknown>(
     } finally {
       setIsLoading(false)
     }
-  }, [courtId, select, statusKey])
+  }, [courtId, select, statusKey, matchId])
 
   const refetch = useCallback(async () => {
     setIsLoading(true)
@@ -106,6 +114,9 @@ export function useLiveMatch<T = unknown>(
       return
     }
 
+    // Clear the previous selection's match before the new fetch resolves, so switching
+    // court or matchId never briefly shows stale data from what was selected before.
+    setMatch(null)
     setIsLoading(true)
     void fetchMatch()
 
@@ -133,6 +144,11 @@ export function useLiveMatch<T = unknown>(
           const row = payload.new
           if (!row) {
             void fetchMatch()
+            return
+          }
+
+          if (matchId && row.id !== matchId) {
+            // Change on this court but for a different match — not ours to react to.
             return
           }
 
@@ -166,7 +182,7 @@ export function useLiveMatch<T = unknown>(
         pollRef.current = null
       }
     }
-  }, [courtId, fetchMatch, enablePolling, pollInterval, statusKey])
+  }, [courtId, fetchMatch, enablePolling, pollInterval, statusKey, matchId])
 
   return { match, isLoading, error, refetch }
 }
