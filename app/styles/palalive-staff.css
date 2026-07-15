@@ -22,21 +22,33 @@
 /*
   Mobile app column: nested ControlPanel shells fill the StaffAppFrame body so
   `.palalive-staff-footer` / thumb-zone CTAs pin to the bottom of the phone.
+  Must beat `.palalive-staff-shell:not(.staff-app-frame)` min-height: 100dvh.
 */
 .staff-app-body > .palalive-staff-shell {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 0 !important;
+  height: auto;
   display: flex;
   flex-direction: column;
   background: transparent;
+  padding: 0;
 }
 
-/* Root shell when ControlPanel / DS preview has no StaffAppFrame wrapper. */
+/* Root shell when ControlPanel renders without StaffAppFrame (avoid bare edge-to-edge). */
 .palalive-staff-shell:not(.staff-app-frame) {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding:
+    calc(var(--ui-space-xl, 1.5rem) + env(safe-area-inset-top, 0px))
+    var(--ui-space-lg, 1rem)
+    calc(var(--ui-space-3xl, 2.5rem) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Inside the frame, ControlPanel’s inner shell must not re-apply page padding. */
+.staff-app-body > .palalive-staff-shell:not(.staff-app-frame) {
+  padding: 0;
 }
 
 /* Matchplay pages wrap StaffAppFrame in an outer shell — don't double-stack height. */

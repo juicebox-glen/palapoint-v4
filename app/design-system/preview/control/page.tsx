@@ -3,12 +3,16 @@
 /**
  * Design-system iframe target: real `ControlPanel` in preview mode (no Supabase actions).
  * States: loading → setup → preview → live → endgame (+ multi-set / end-match modal) via `?state=`. See `control-preview-config.ts` for mock data.
+ *
+ * PalaLive staff variant mirrors production `/staff/[venue]/showcase`: StaffAppFrame
+ * owns header + page padding; ControlPanel is embedded inside.
  */
 import type { CSSProperties } from 'react'
 import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 import ControlPanel from '@/components/displays/ControlPanel'
+import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { palaLiveBrandingStylesFor } from '@/lib/venue'
 
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
@@ -25,11 +29,7 @@ function ControlPreviewContent() {
 
   const brandingStyles = useMemo(() => {
     if (variant === 'palalive-staff') {
-      return {
-        ...palaLiveBrandingStylesFor(designSystemSquareOneBranding),
-        background: '#000000',
-        color: '#e9ecf1',
-      } as CSSProperties
+      return palaLiveBrandingStylesFor(designSystemSquareOneBranding)
     }
     return {
       '--brand-primary': designSystemSquareOneBranding.primaryColor,
@@ -40,23 +40,32 @@ function ControlPreviewContent() {
     } as CSSProperties
   }, [variant])
 
+  if (variant === 'palalive-staff') {
+    return (
+      <StaffAppFrame venueSlug="dev" backHref="/staff/dev" style={brandingStyles}>
+        <ControlPanel
+          key={state}
+          courtId="mock-court-id"
+          branding={designSystemSquareOneBranding}
+          courtName={designSystemSquareOneBranding.courtName}
+          preview={preview}
+          showSetupHeader={false}
+          embedded
+          variant="palalive-staff"
+        />
+      </StaffAppFrame>
+    )
+  }
+
   return (
-    <div
-      className={[
-        'page control-ds-preview-root',
-        variant === 'palalive-staff' ? 'palalive-staff-shell' : null,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={{ minHeight: '100vh', ...brandingStyles }}
-    >
+    <div className="page control-ds-preview-root" style={{ minHeight: '100vh', ...brandingStyles }}>
       <ControlPanel
         key={state}
         courtId="mock-court-id"
         branding={designSystemSquareOneBranding}
         courtName={designSystemSquareOneBranding.courtName}
         preview={preview}
-        variant={variant}
+        variant="legacy"
       />
     </div>
   )
