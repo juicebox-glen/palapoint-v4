@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
+import { PalaLiveAvatar } from '@/components/palalive/PalaLiveAvatar'
+import { formatPlayerName } from '@/lib/utils/name-format'
 import { callMatchplayPlayer } from '@/lib/api/matchplay'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import '@/app/styles/matchplay.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 
 interface StandingsPlayer {
   id: string
@@ -57,67 +59,45 @@ export default function MatchplayStandingsPage() {
 
   if (loading) {
     return (
-      <div className="matchplay-page matchplay-page--setup">
-        <div className="matchplay-loading">Loading standings...</div>
+      <div className="palalive-staff-shell">
+        <p className="palalive-staff-loading-text">Loading standings...</p>
       </div>
     )
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
-      <div className="matchplay-page matchplay-page--setup">
-      <h1 className="matchplay-page-title">Standings</h1>
+    <div className="palalive-staff-shell">
+      <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
+        <h1 className="palalive-staff-page-title">Standings</h1>
 
-      <div className="matchplay-setup-inner matchplay-standings-content">
-        {error && <div className="matchplay-error">{error}</div>}
+        <div className="palalive-staff-body">
+          {error && <p className="palalive-staff-error">{error}</p>}
 
-        {standings.length === 0 ? (
-          <p className="matchplay-standings-empty">Standings will appear after Round 1 is completed</p>
-        ) : (
-          <div className="matchplay-standings-list">
-            {standings.map((player) => {
-              const rank = player.rank
-              const isTopThree = rank <= 3
-
-              return (
-                <div
-                  key={player.id}
-                  className={`matchplay-standings-row ${isTopThree ? `matchplay-standings-row--rank-${rank}` : ''}`}
-                >
-                  <div className="matchplay-standings-rank">
-                    {rank === 1 && <span className="matchplay-standings-medal">🏆</span>}
-                    {rank === 2 && <span className="matchplay-standings-medal">🥈</span>}
-                    {rank === 3 && <span className="matchplay-standings-medal">🥉</span>}
-                    {rank > 3 && <span className="matchplay-standings-rank-num">{rank}</span>}
-                  </div>
-
-                  <div className="matchplay-standings-avatar">
-                    {player.photo_url ? (
-                      <img src={player.photo_url} alt="" />
-                    ) : (
-                      <span className="matchplay-standings-initials">{getPlayerInitials(player.name)}</span>
-                    )}
-                  </div>
-
-                  <div className="matchplay-standings-info">
-                    <span className="matchplay-standings-name">{formatPlayerName(player.name, 'full')}</span>
-                    <span className="matchplay-standings-stats">
-                      {player.total_points ?? 0} pts
-                      <span
-                        className={`matchplay-standings-diff ${(player.game_difference ?? 0) >= 0 ? 'matchplay-standings-diff--positive' : 'matchplay-standings-diff--negative'}`}
-                      >
-                        {(player.game_difference ?? 0) >= 0 ? '+' : ''}
-                        {player.game_difference ?? 0}
-                      </span>
+          {standings.length === 0 ? (
+            <p className="palalive-staff-standings-empty">Standings will appear after Round 1 is completed</p>
+          ) : (
+            <div className="palalive-staff-standings">
+              {standings.map((player) => {
+                const diff = player.game_difference ?? 0
+                const name = formatPlayerName(player.name, 'full')
+                return (
+                  <div key={player.id} className="palalive-staff-standings-row">
+                    <PalaLiveAvatar name={name} photoUrl={player.photo_url} />
+                    <div className="palalive-staff-standings-info">
+                      <span className="palalive-staff-standings-name">{name}</span>
+                    </div>
+                    <span className={`palalive-staff-standings-delta ${diff >= 0 ? 'is-pos' : 'is-neg'}`}>
+                      {diff >= 0 ? '+' : ''}
+                      {diff}
                     </span>
+                    <span className="palalive-staff-chip">{player.total_points ?? 0}</span>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-      </div>
-    </StaffAppFrame>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </StaffAppFrame>
+    </div>
   )
 }

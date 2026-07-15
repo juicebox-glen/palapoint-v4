@@ -4,9 +4,14 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { PalaLiveAvatar } from '@/components/palalive/PalaLiveAvatar'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
+// Kept alongside the palalive-staff CSS above: the edit-lineup modal below is
+// unreachable for Americano (canEditLineup is always false) but still needs its
+// original styling intact if a non-Americano format is ever enabled.
 import '@/app/styles/matchplay.css'
-import '@/app/styles/setup-form.css'
-import { formatPlayerName, formatTeamDisplay } from '@/lib/utils/name-format'
+import { formatPlayerName } from '@/lib/utils/name-format'
 import { generateAmericanoPairings, getMatchplayTotalRoundsFromStorage } from '@/lib/matchplay-americano-pairings'
 import {
   callMatchplayEvent,
@@ -145,21 +150,19 @@ function MatchplayHubStopIcon(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
+function ScoreEntryPlusIcon() {
+  return (
+    <svg className="palalive-staff-score-entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+}
+
 function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded?: string | null): string {
   const row = players.find((p) => p.id === id)
   if (row?.name?.trim()) return row.name.trim()
   return embedded?.trim() ?? ''
-}
-
-function HubCompactCenter({ courtLabel }: { courtLabel: string }) {
-  return (
-    <div className="matchplay-hub-match-vs-column">
-      <div className="matchplay-hub-match-vs-wrap">
-        <span className="matchplay-hub-match-vs-badge">VS</span>
-        <span className="matchplay-hub-match-court">{courtLabel}</span>
-      </div>
-    </div>
-  )
 }
 
 function initialStandardScoreState(
@@ -290,57 +293,56 @@ function MatchplayHubScoreModal({
         : `Score for ${standardCorrectNext === 'a' ? teamADisplay : teamBDisplay}`
 
   return (
-    <div className="matchplay-score-modal-overlay" onClick={onClose} role="presentation">
+    <div className="palalive-staff-shell palalive-staff-overlay" onClick={onClose} role="presentation">
       <div
-        className="matchplay-score-modal"
+        className="palalive-staff-confirm-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="matchplay-score-modal-title"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 340, position: 'relative' }}
       >
-        <button type="button" className="matchplay-score-modal-close" onClick={onClose} aria-label="Close score entry">
+        <button type="button" className="palalive-staff-score-modal-close" onClick={onClose} aria-label="Close score entry">
           ✕
         </button>
 
-        <h3 className="matchplay-score-modal-title" id="matchplay-score-modal-title">
+        <h3 className="palalive-staff-score-modal-title" id="matchplay-score-modal-title">
           {scoreModalHeading}
         </h3>
-        <p className="matchplay-score-modal-court">{courtLabel}</p>
+        <p className="palalive-staff-score-modal-court">{courtLabel}</p>
 
-        <div className="matchplay-hub-score-entry matchplay-hub-score-entry--modal">
-          <div className="matchplay-hub-quick-score-grid" role="group" aria-label="Pick score">
-            {Array.from({ length: maxScore + 1 }, (_, i) => i).map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="matchplay-hub-quick-score-cell"
-                onClick={() => handleQuickScore(s)}
-              >
-                {String(s).padStart(2, '0')}
-              </button>
-            ))}
-          </div>
-
-          {hasScores && (
-            <p className="matchplay-hub-match-entry-result matchplay-hub-score-result">
-              Result:{' '}
-              {winner === null ? 'Draw' : winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
-            </p>
-          )}
-
-          <div className="matchplay-hub-score-actions">
-            <button type="button" onClick={onClose} className="btn btn--secondary btn--full">
-              Cancel
-            </button>
+        <div className="palalive-staff-score-grid" role="group" aria-label="Pick score">
+          {Array.from({ length: maxScore + 1 }, (_, i) => i).map((s) => (
             <button
+              key={s}
               type="button"
-              onClick={() => onConfirm(draftScoreA, draftScoreB)}
-              disabled={confirmDisabled}
-              className="btn btn--primary btn--full"
+              className="palalive-staff-score-cell"
+              onClick={() => handleQuickScore(s)}
             >
-              {isSubmitting ? 'Saving...' : isCompleted ? 'Update' : 'Confirm'}
+              {String(s).padStart(2, '0')}
             </button>
-          </div>
+          ))}
+        </div>
+
+        {hasScores && (
+          <p className="palalive-staff-score-modal-result">
+            Result:{' '}
+            {winner === null ? 'Draw' : winner === 'a' ? `${teamADisplay} win` : `${teamBDisplay} win`}
+          </p>
+        )}
+
+        <div className="palalive-staff-score-modal-actions">
+          <button type="button" onClick={onClose} className="palalive-staff-btn palalive-staff-btn--secondary">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(draftScoreA, draftScoreB)}
+            disabled={confirmDisabled}
+            className="palalive-staff-btn palalive-staff-btn--primary"
+          >
+            {isSubmitting ? 'Saving...' : isCompleted ? 'Update' : 'Confirm'}
+          </button>
         </div>
       </div>
     </div>
@@ -373,8 +375,8 @@ function HubMatchCard({
     resolveMatchPlayerName(players, match.team_b_player_2_id, match.team_b_player_2_name),
   ].filter(Boolean)
 
-  const teamACompactNames = teamANames.map((n) => formatPlayerName(n, 'abbreviated'))
-  const teamBCompactNames = teamBNames.map((n) => formatPlayerName(n, 'abbreviated'))
+  const teamAFullNames = teamANames.map((n) => formatPlayerName(n, 'full'))
+  const teamBFullNames = teamBNames.map((n) => formatPlayerName(n, 'full'))
 
   const courtLabel = match.court_label?.trim() || 'Court'
 
@@ -384,42 +386,30 @@ function HubMatchCard({
 
   const displayScoreA = isCompleted ? (match.team_a_score ?? 0) : draftScoreA
   const displayScoreB = isCompleted ? (match.team_b_score ?? 0) : draftScoreB
+  const aWins = isCompleted && displayScoreA > displayScoreB
+  const bWins = isCompleted && displayScoreB > displayScoreA
 
   if (isSetup) {
     return (
-      <div className="matchplay-hub-match matchplay-card matchplay-hub-match--setup">
-        <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
-          <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
-            <div className="matchplay-hub-match-score-row">
-              <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-                <span className="matchplay-hub-match-score-num">—</span>
-              </div>
-            </div>
-            <div className="matchplay-hub-match-names">
-              {teamACompactNames.map((name, i) => (
-                <span key={i} className="matchplay-hub-match-surname">
-                  {name}
-                </span>
-              ))}
-            </div>
+      <div className="palalive-staff-match-result">
+        <div className="palalive-staff-match-result-header">
+          <span className="palalive-staff-match-result-label">{courtLabel}</span>
+        </div>
+        <div className="palalive-staff-match-result-body">
+          <div className="palalive-staff-match-result-team">
+            <span className="palalive-staff-match-result-names">
+              {teamAFullNames.map((name, i) => <span key={i}>{name}</span>)}
+            </span>
+            <span className="palalive-staff-result-avatar">—</span>
           </div>
-          <HubCompactCenter courtLabel={courtLabel} />
-          <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
-            <div className="matchplay-hub-match-score-row">
-              <div className="matchplay-hub-match-score matchplay-hub-match-score--placeholder">
-                <span className="matchplay-hub-match-score-num">—</span>
-              </div>
-            </div>
-            <div className="matchplay-hub-match-names">
-              {teamBCompactNames.map((name, i) => (
-                <span key={i} className="matchplay-hub-match-surname">
-                  {name}
-                </span>
-              ))}
+          <div className="palalive-staff-match-divider">vs</div>
+          <div className="palalive-staff-match-result-team">
+            <span className="palalive-staff-match-result-names">
+              {teamBFullNames.map((name, i) => <span key={i}>{name}</span>)}
               {canEditLineup && (
                 <button
                   type="button"
-                  className="matchplay-hub-match-edit"
+                  className="palalive-staff-edit-btn"
                   onClick={(e) => {
                     e.stopPropagation()
                     onEditLineup()
@@ -428,7 +418,8 @@ function HubMatchCard({
                   EDIT
                 </button>
               )}
-            </div>
+            </span>
+            <span className="palalive-staff-result-avatar">—</span>
           </div>
         </div>
       </div>
@@ -437,7 +428,7 @@ function HubMatchCard({
 
   return (
     <div
-      className={`matchplay-hub-match matchplay-card ${isCompleted ? 'matchplay-hub-match--completed' : 'matchplay-hub-match--pending'}`}
+      className={`palalive-staff-match-result ${isCompleted ? '' : 'is-pending'}`}
       onClick={onOpenScore}
       role="button"
       tabIndex={0}
@@ -448,42 +439,53 @@ function HubMatchCard({
         }
       }}
     >
-      <div className="matchplay-hub-match-fixture matchplay-hub-match-compact">
-        <div className="matchplay-hub-match-side matchplay-hub-match-side--a">
-          <div className="matchplay-hub-match-score-row">
-            <div className="matchplay-hub-match-score">
-              <span className="matchplay-hub-match-score-num">{displayScoreA}</span>
-            </div>
-          </div>
-          <div className="matchplay-hub-match-names">
-            {teamACompactNames.map((name, i) => (
-              <span key={i} className="matchplay-hub-match-surname">
-                {name}
-              </span>
-            ))}
-          </div>
+      <div className="palalive-staff-match-result-header">
+        <span className="palalive-staff-match-result-label">{courtLabel}</span>
+        {isCompleted && <span className="palalive-staff-match-result-check">✓</span>}
+      </div>
+      <div className="palalive-staff-match-result-body">
+        <div className="palalive-staff-match-result-team">
+          <span className="palalive-staff-match-result-names">
+            {teamAFullNames.map((name, i) => <span key={i}>{name}</span>)}
+          </span>
+          {isCompleted ? (
+            <span className={`palalive-staff-result-avatar ${aWins ? 'is-win' : ''}`}>{displayScoreA}</span>
+          ) : (
+            <button
+              type="button"
+              className="palalive-staff-score-entry-btn"
+              aria-label={`Enter score for ${teamAFullNames.join(' & ')}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenScore()
+              }}
+            >
+              <ScoreEntryPlusIcon />
+            </button>
+          )}
         </div>
-        <HubCompactCenter courtLabel={courtLabel} />
-        <div className="matchplay-hub-match-side matchplay-hub-match-side--b">
-          <div className="matchplay-hub-match-score-row">
-            <div className="matchplay-hub-match-score">
-              <span className="matchplay-hub-match-score-num">{displayScoreB}</span>
-            </div>
-          </div>
-          <div className="matchplay-hub-match-names">
-            {teamBCompactNames.map((name, i) => (
-              <span key={i} className="matchplay-hub-match-surname">
-                {name}
-              </span>
-            ))}
-          </div>
+        <div className="palalive-staff-match-divider">vs</div>
+        <div className="palalive-staff-match-result-team">
+          <span className="palalive-staff-match-result-names">
+            {teamBFullNames.map((name, i) => <span key={i}>{name}</span>)}
+          </span>
+          {isCompleted ? (
+            <span className={`palalive-staff-result-avatar ${bWins ? 'is-win' : ''}`}>{displayScoreB}</span>
+          ) : (
+            <button
+              type="button"
+              className="palalive-staff-score-entry-btn"
+              aria-label={`Enter score for ${teamBFullNames.join(' & ')}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenScore()
+              }}
+            >
+              <ScoreEntryPlusIcon />
+            </button>
+          )}
         </div>
       </div>
-      {isCompleted && (
-        <div className="matchplay-hub-match-completed-badge" aria-hidden>
-          ✓
-        </div>
-      )}
     </div>
   )
 }
@@ -834,21 +836,19 @@ export default function MatchplayEventPage() {
 
   if (loading) {
     return (
-      <div className="matchplay-event-page matchplay-event-page--centered-state">
-        <p className="matchplay-loading-text">Loading...</p>
+      <div className="palalive-staff-shell">
+        <p className="palalive-staff-loading-text">Loading...</p>
       </div>
     )
   }
 
   if (error && !event) {
     return (
-      <div className="matchplay-event-page matchplay-event-page--centered-state">
-        <p className="matchplay-error-text">{error}</p>
-        <div className="matchplay-modal-actions">
-          <Link href={staffBase ?? '/matchplay'} className="btn btn-secondary">
-            Back to list
-          </Link>
-        </div>
+      <div className="palalive-staff-shell">
+        <p className="palalive-staff-error">{error}</p>
+        <Link href={staffBase ?? '/matchplay'} className="palalive-staff-btn palalive-staff-btn--secondary">
+          Back to list
+        </Link>
       </div>
     )
   }
@@ -858,61 +858,62 @@ export default function MatchplayEventPage() {
   const canEditLineup = !isAmericano && (isSetup || (isLive && !hasCompletedMatchInCurrentRound))
 
   return (
+    <div className="palalive-staff-shell">
     <StaffAppFrame
       venueSlug={venueSlug ?? undefined}
       onBack={() => router.push(staffBase ?? '/matchplay')}
       headerRight={
-        <div className="matchplay-hub-menu-container" ref={menuRef}>
+        <div className="palalive-staff-hub-menu-container" ref={menuRef}>
           <button
             type="button"
             onClick={() => setShowMenu((open) => !open)}
-            className="matchplay-hub-menu-btn"
+            className="palalive-staff-hub-menu-btn"
             aria-label="Event menu"
             aria-expanded={showMenu}
           >
             <MatchplayHubMoreVerticalIcon />
           </button>
           {showMenu && (
-            <div className="matchplay-hub-menu" role="menu">
+            <div className="palalive-staff-hub-menu" role="menu">
               <button
                 type="button"
                 role="menuitem"
-                className="matchplay-hub-menu-item"
+                className="palalive-staff-hub-menu-item"
                 onClick={() => {
                   setShowMenu(false)
                   router.push(staffPath(`/${eventId}/players`))
                 }}
               >
-                <MatchplayHubPlayersIcon className="matchplay-hub-menu-icon" />
+                <MatchplayHubPlayersIcon className="palalive-staff-hub-menu-icon" />
                 Players
               </button>
               {event?.status === 'in_progress' && (
                 <button
                   type="button"
                   role="menuitem"
-                  className="matchplay-hub-menu-item"
+                  className="palalive-staff-hub-menu-item"
                   onClick={() => {
                     setShowMenu(false)
                     router.push(staffPath(`/${eventId}/standings`))
                   }}
                 >
-                  <MatchplayHubStandingsIcon className="matchplay-hub-menu-icon" />
+                  <MatchplayHubStandingsIcon className="palalive-staff-hub-menu-icon" />
                   Standings
                 </button>
               )}
               {event?.status === 'in_progress' && (
                 <>
-                  <div className="matchplay-hub-menu-divider" aria-hidden />
+                  <div className="palalive-staff-hub-menu-divider" aria-hidden />
                   <button
                     type="button"
                     role="menuitem"
-                    className="matchplay-hub-menu-item matchplay-hub-menu-item--danger"
+                    className="palalive-staff-hub-menu-item is-danger"
                     onClick={() => {
                       setShowMenu(false)
                       setShowEndConfirm(true)
                     }}
                   >
-                    <MatchplayHubStopIcon className="matchplay-hub-menu-icon" />
+                    <MatchplayHubStopIcon className="palalive-staff-hub-menu-icon" />
                     End Event
                   </button>
                 </>
@@ -922,10 +923,10 @@ export default function MatchplayEventPage() {
         </div>
       }
     >
-      <div className="matchplay-event-page">
+      <div className="palalive-staff-body">
 
       {rounds.length > 0 ? (
-      <nav className="matchplay-hub-rounds" ref={roundTabsRef}>
+      <nav className="palalive-staff-rounds" ref={roundTabsRef}>
         {rounds.map((round) => {
           const isActive = round.id === selectedRoundId
           const isCompleted = round.status === 'completed'
@@ -935,27 +936,26 @@ export default function MatchplayEventPage() {
               type="button"
               data-round-id={round.id}
               onClick={() => setSelectedRoundId(round.id)}
-              className={`matchplay-hub-round-tab ${isActive ? 'matchplay-hub-round-tab--active' : ''} ${isCompleted ? 'matchplay-hub-round-tab--completed' : ''}`}
+              className={`palalive-staff-round-tab ${isActive ? 'is-active' : ''} ${isCompleted ? 'is-done' : ''}`}
             >
-              ROUND {round.round_number}
-              {isCompleted && <span className="matchplay-hub-round-check">✓</span>}
+              Round {round.round_number}
+              {isCompleted && <span className="palalive-staff-round-check">✓</span>}
             </button>
           )
         })}
       </nav>
       ) : null}
 
-      {error && <div className="setup-error matchplay-hub-error">{error}</div>}
+      {error && <p className="palalive-staff-error">{error}</p>}
 
       {!viewingRound ? (
-        <div className="matchplay-hub-empty">
+        <div className="palalive-staff-hub-empty">
           {event.status === 'setup'
             ? 'No rounds yet. Add at least four players from the menu, or wait for fixtures to generate.'
             : 'No fixtures loaded for this event.'}
         </div>
       ) : (
-        <div className="matchplay-hub-matches">
-          {(viewingRound.matches ?? []).map((match) => (
+        (viewingRound.matches ?? []).map((match) => (
             <HubMatchCard
               key={match.id}
               match={match}
@@ -981,8 +981,7 @@ export default function MatchplayEventPage() {
               }}
               onEditLineup={() => openEditMatch(match)}
             />
-          ))}
-        </div>
+        ))
       )}
 
       {viewingRound && (() => {
@@ -997,14 +996,14 @@ export default function MatchplayEventPage() {
         const sitOutCounts = getSitOutCounts()
         if (resting.length === 0) return null
         return (
-          <div className="matchplay-hub-resting">
-            <div className="matchplay-hub-resting-title">Resting this round</div>
-            <div className="matchplay-hub-resting-list">
+          <div className="palalive-staff-resting">
+            <div className="palalive-staff-resting-title">Resting this round</div>
+            <div className="palalive-staff-resting-list">
               {resting.map((p) => (
-                <span key={p.id} className="matchplay-hub-resting-player">
+                <span key={p.id}>
                   {p.name}
                   {(sitOutCounts[p.id] ?? 0) > 0 && (
-                    <span className="matchplay-hub-resting-count"> (rested {(sitOutCounts[p.id] ?? 0)} times)</span>
+                    <span className="palalive-staff-resting-count"> (rested {(sitOutCounts[p.id] ?? 0)} times)</span>
                   )}
                 </span>
               ))}
@@ -1037,16 +1036,17 @@ export default function MatchplayEventPage() {
           onConfirm={(a, b) => handleEnterResult(scoreModalMatch.id, a, b)}
         />
       )}
+      </div>
 
-      <footer className="matchplay-hub-footer">
+      <div className="palalive-staff-footer">
         {isSetup && (
           <button
             type="button"
-            className="btn btn--primary btn--full"
+            className="palalive-staff-btn palalive-staff-btn--primary"
             onClick={handleStartEvent}
             disabled={!!actionLoading || players.length < 4}
           >
-            {actionLoading === 'start' ? 'Starting...' : 'START EVENT'}
+            {actionLoading === 'start' ? 'Starting...' : 'Start Event'}
           </button>
         )}
         {isLive && (
@@ -1054,7 +1054,7 @@ export default function MatchplayEventPage() {
             {canShowEndEvent && isFinalRound && allMatchesScoredInCurrentRound ? (
               <button
                 type="button"
-                className="btn btn--primary btn--full"
+                className="palalive-staff-btn palalive-staff-btn--primary"
                 onClick={() => setShowEndConfirm(true)}
                 disabled={!!actionLoading}
               >
@@ -1063,77 +1063,69 @@ export default function MatchplayEventPage() {
                     ? 'Finalizing...'
                     : 'Ending...'
                   : allRoundsComplete
-                    ? 'FINALIZE RESULTS'
-                    : 'END EVENT'}
+                    ? 'Finalize Results'
+                    : 'End Event'}
               </button>
             ) : (
               <button
                 type="button"
-                className="btn btn--primary btn--full"
+                className="palalive-staff-btn palalive-staff-btn--primary"
                 onClick={handleNextRound}
                 disabled={!allMatchesScoredInCurrentRound || isFinalRound}
               >
-                NEXT ROUND
+                Next Round
               </button>
             )}
           </>
         )}
-      </footer>
+      </div>
 
       {showEndConfirm && (
         <div
-          className="matchplay-event-modal-overlay"
+          className="palalive-staff-overlay"
           onClick={() => {
             if (!actionLoading) setShowEndConfirm(false)
           }}
         >
-          <div className="matchplay-event-modal matchplay-hub-end-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="matchplay-event-modal-header">
-              <h2>{allRoundsComplete ? 'Finalize event?' : 'End event early?'}</h2>
-              <button
-                type="button"
-                className="matchplay-event-modal-close"
-                onClick={() => !actionLoading && setShowEndConfirm(false)}
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="matchplay-event-modal-body">
-              {allRoundsComplete ? (
-                <p className="matchplay-hub-end-modal-text">
-                  All {totalRounds} rounds are complete. Ready to finalize standings?
+          <div className="palalive-staff-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <h3 className="palalive-staff-confirm-title">{allRoundsComplete ? 'Finalize event?' : 'End event early?'}</h3>
+            {allRoundsComplete ? (
+              <p className="palalive-staff-end-modal-text">
+                All {totalRounds} rounds are complete. Ready to finalize standings?
+              </p>
+            ) : (
+              <>
+                <p className="palalive-staff-end-modal-text">
+                  This will end the event after {completedRoundsCount} of {totalRounds} rounds.
                 </p>
-              ) : (
-                <>
-                  <p className="matchplay-hub-end-modal-text">
-                    This will end the event after {completedRoundsCount} of {totalRounds} rounds.
-                  </p>
-                  <p className="matchplay-hub-end-modal-text matchplay-hub-end-modal-text--muted">
-                    Any unscored matches will be excluded from final standings.
-                  </p>
-                </>
-              )}
-              <div className="matchplay-hub-end-modal-actions">
-                <button type="button" className="btn btn--secondary btn--full" onClick={() => setShowEndConfirm(false)} disabled={!!actionLoading}>
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn--full ${allRoundsComplete ? 'btn--primary' : 'btn-danger-fill'}`}
-                  onClick={handleEndEvent}
-                  disabled={actionLoading === 'end'}
-                >
-                  {actionLoading === 'end'
-                    ? allRoundsComplete
-                      ? 'Finalizing...'
-                      : 'Ending...'
-                    : allRoundsComplete
-                      ? 'Finalize results'
-                      : 'End event'}
-                </button>
-              </div>
-            </div>
+                <p className="palalive-staff-end-modal-text is-muted">
+                  Any unscored matches will be excluded from final standings.
+                </p>
+              </>
+            )}
+            <button
+              type="button"
+              className={`palalive-staff-confirm-btn ${allRoundsComplete ? '' : 'is-danger'}`}
+              style={allRoundsComplete ? { background: 'var(--accent)', color: 'var(--void)' } : undefined}
+              onClick={handleEndEvent}
+              disabled={actionLoading === 'end'}
+            >
+              {actionLoading === 'end'
+                ? allRoundsComplete
+                  ? 'Finalizing...'
+                  : 'Ending...'
+                : allRoundsComplete
+                  ? 'Finalize results'
+                  : 'End event'}
+            </button>
+            <button
+              type="button"
+              className="palalive-staff-confirm-btn is-secondary"
+              onClick={() => setShowEndConfirm(false)}
+              disabled={!!actionLoading}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -1149,7 +1141,7 @@ export default function MatchplayEventPage() {
               </button>
             </div>
             <div className="matchplay-event-modal-body">
-              {error && <div className="setup-error">{error}</div>}
+              {error && <p className="palalive-staff-error">{error}</p>}
               <div className="matchplay-event-edit-teams">
                 <div className="matchplay-event-edit-team">
                   <label>Team A</label>
@@ -1238,7 +1230,7 @@ export default function MatchplayEventPage() {
           </div>
         </div>
       )}
-      </div>
     </StaffAppFrame>
+    </div>
   )
 }

@@ -1,6 +1,9 @@
-/* PalaLive design tokens — scoped to .palalive-shell, not :root, so they never
-   leak into or collide with the app-wide token set in app/styles/tokens/. */
-.palalive-shell {
+/* PalaLive design tokens — scoped to .palalive-shell / .palalive-staff-shell, not
+   :root, so they never leak into or collide with the app-wide token set in
+   app/styles/tokens/. .palalive-shell is the 1920x1080 TV frame; .palalive-staff-shell
+   is the same token set applied to staff phone screens (Phase 4). */
+.palalive-shell,
+.palalive-staff-shell {
   --void: #000000;
   --page: #383737;
   --frame: #000000;

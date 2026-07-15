@@ -131,6 +131,7 @@ export default function StaffShowcasePage() {
         courtName={branding?.courtName}
         showSetupHeader={false}
         embedded
+        variant="palalive-staff"
         onMatchStarted={handleMatchStarted}
         onMatchEnded={handleMatchEnded}
       />

@@ -12,6 +12,8 @@ import {
   saveVenueScreenStaffContext,
 } from '@/lib/venue-screen-staff-context'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 import { staffSocialNightHref } from '@/lib/hooks/useStaffSocialNightPaths'
 import {
   fetchStaffModeResumeHints,
@@ -198,24 +200,23 @@ export default function StaffPage() {
   }
 
   return (
+    <div className="palalive-staff-shell">
     <StaffAppFrame venueSlug={venueSlug} isHomeScreen>
-        {loading ? <p className="staff-muted">Loading…</p> : null}
+        <div className="palalive-staff-body">
+        {loading ? <p className="palalive-staff-loading-text">Loading…</p> : null}
 
-        {loadError ? (
-          <div className="staff-error">
-            <p>{loadError}</p>
-          </div>
-        ) : null}
+        {loadError ? <p className="palalive-staff-error">{loadError}</p> : null}
 
         {!loading && !loadError && selectedScreen ? (
           <>
             {screens.length > 1 ? (
-              <div className="staff-screen-picker">
-                <label className="staff-muted" htmlFor="staff-screen-select">
+              <div>
+                <label className="palalive-staff-label" htmlFor="staff-screen-select">
                   Screen
                 </label>
                 <select
                   id="staff-screen-select"
+                  className="palalive-staff-select"
                   value={selectedScreen.screen_slug}
                   onChange={(e) => setSelectedSlug(e.target.value)}
                 >
@@ -228,74 +229,85 @@ export default function StaffPage() {
               </div>
             ) : null}
 
-            <div className="staff-status">
-              <p className="staff-status-label">Current screen</p>
-              <p className="staff-status-value">
+            <div className="palalive-staff-card">
+              <span className="palalive-staff-card-label">Current screen</span>
+              <span className="palalive-staff-page-title" style={{ margin: 0, fontSize: 20 }}>
                 {MODE_LABELS[selectedScreen.active_mode]}
-              </p>
-              <p className="staff-muted">{selectedScreen.display_name}</p>
+              </span>
+              <span className="palalive-staff-card-hint">{selectedScreen.display_name}</span>
             </div>
 
             {!pairingReady ? (
-              <div className="staff-pairing-form">
-                <label htmlFor="staff-pairing">Pairing code</label>
+              <div>
+                <label className="palalive-staff-label" htmlFor="staff-pairing">
+                  Pairing code
+                </label>
                 <input
                   id="staff-pairing"
                   type="password"
                   autoComplete="off"
+                  className="palalive-staff-input"
                   value={pairingCode}
                   onChange={(e) => setPairingCode(e.target.value)}
                   placeholder="Enter venue pairing code"
                 />
-                <button
-                  type="button"
-                  className="staff-action"
-                  onClick={savePairingCode}
-                  disabled={!pairingCode.trim()}
-                >
-                  <span className="staff-action-title">Continue</span>
-                </button>
+                <div style={{ marginTop: 16 }}>
+                  <button
+                    type="button"
+                    className="palalive-staff-btn palalive-staff-btn--primary"
+                    onClick={savePairingCode}
+                    disabled={!pairingCode.trim()}
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
             ) : (
               <>
-                <p className="staff-prompt">What should the venue screen show?</p>
+                <p className="palalive-staff-section-label" style={{ marginBottom: 0 }}>
+                  What should the venue screen show?
+                </p>
 
-                <div className="staff-actions">
+                <div className="palalive-staff-list-group">
                   <button
                     type="button"
-                    className="staff-action"
+                    className="palalive-staff-list-row"
                     disabled={busy || modeBusy !== null}
                     onClick={() => void startSocialNight()}
                   >
-                    <span className="staff-action-title">
-                      {resumeHints.socialNightLive ? 'Continue Social Night' : 'Social Night'}
-                    </span>
-                    <span className="staff-action-desc">
-                      {resumeHints.socialNightLive
-                        ? 'Return to the live Americano on screen.'
-                        : 'Set up a new Americano and show it on screen.'}
+                    <span className="palalive-staff-list-row-copy">
+                      <span className="palalive-staff-list-row-title">
+                        {resumeHints.socialNightLive ? 'Continue Social Night' : 'Social Night'}
+                      </span>
+                      <span className="palalive-staff-list-row-desc">
+                        {resumeHints.socialNightLive
+                          ? 'Return to the live Americano on screen.'
+                          : 'Set up a new Americano and show it on screen.'}
+                      </span>
                     </span>
                   </button>
 
                   <button
                     type="button"
-                    className="staff-action"
+                    className="palalive-staff-list-row"
                     disabled={busy || modeBusy !== null}
                     onClick={startShowcaseGame}
                   >
-                    <span className="staff-action-title">
-                      {resumeHints.showcaseLive ? 'Continue Showcase Game' : 'Showcase Game'}
-                    </span>
-                    <span className="staff-action-desc">
-                      {resumeHints.showcaseLive
-                        ? 'Return to the live showcase match on screen.'
-                        : 'Live scoreboard for a single match.'}
+                    <span className="palalive-staff-list-row-copy">
+                      <span className="palalive-staff-list-row-title">
+                        {resumeHints.showcaseLive ? 'Continue Showcase Game' : 'Showcase Game'}
+                      </span>
+                      <span className="palalive-staff-list-row-desc">
+                        {resumeHints.showcaseLive
+                          ? 'Return to the live showcase match on screen.'
+                          : 'Live scoreboard for a single match.'}
+                      </span>
                     </span>
                   </button>
 
                   <button
                     type="button"
-                    className="staff-action staff-action--secondary"
+                    className="palalive-staff-btn palalive-staff-btn--secondary"
                     disabled={busy}
                     onClick={() => void applyMode('idle')}
                   >
@@ -306,14 +318,14 @@ export default function StaffPage() {
             )}
 
             {feedback ? (
-              <p
-                className={`staff-feedback staff-feedback--${feedback.kind === 'ok' ? 'ok' : 'err'}`}
-              >
+              <p className={feedback.kind === 'ok' ? 'palalive-staff-success' : 'palalive-staff-error'}>
                 {feedback.text}
               </p>
             ) : null}
           </>
         ) : null}
+        </div>
     </StaffAppFrame>
+    </div>
   )
 }
