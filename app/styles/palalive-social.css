@@ -151,8 +151,7 @@
   text-align: center;
 }
 
-/* Fixture shell — Social. TEMP SYNC CHECK: force solid --card so pregame/postgame
-   cannot hide behind frosted glass / look “blue” vs staff charcoal. */
+/* Fixture shell — Social. Solid --card (aligned with staff / Live; no frost). */
 .palalive-court-card {
   position: relative;
   border-radius: 28px;
@@ -174,7 +173,7 @@
   z-index: 1;
 }
 
-/* In-progress / final — same solid --card (TEMP SYNC CHECK collapsed glass). */
+/* In-progress / final — same solid --card. */
 .palalive-court-card--solid,
 .palalive-court-card--final {
   background: var(--card);
@@ -339,7 +338,6 @@
   min-height: 0;
   max-height: 100%;
   box-sizing: border-box;
-  /* TEMP SYNC CHECK: solid --card (no frost) so pregame Players panel matches Live. */
   background: var(--card);
   border: var(--card-border);
 }
@@ -435,7 +433,6 @@
   align-items: center;
   gap: 30px;
   padding: 0 30px 0 10px;
-  /* TEMP SYNC CHECK: solid inner token (no frosted glass). */
   background: var(--card-inner);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
