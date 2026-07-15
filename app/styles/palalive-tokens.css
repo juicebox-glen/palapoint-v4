@@ -63,8 +63,11 @@
    classes inherit the PalaLive palette without a class rewrite.
    Venue team colours should set --team-a / --team-b only — never override
    --accent / --brand-primary on the shell (see palaLiveBrandingStylesFor).
+
+   Page fill = --stage (TV main pane). TV keeps --frame as the outer black
+   bezel; mobile has no bezel, so its page is the same stage colour.
    */
-  --bg-primary: var(--void);
+  --bg-primary: var(--stage);
   --bg-secondary: var(--card);
   --bg-tertiary: var(--card-inner);
   --bg-elevated: var(--card-inner);

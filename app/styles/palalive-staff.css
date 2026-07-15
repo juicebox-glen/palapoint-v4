@@ -8,12 +8,13 @@
 .palalive-staff-shell {
   font-family: var(--sans);
   color: var(--ink);
-  background: var(--void);
+  /* Same as TV main pane (--stage). No black frame bezel on phone. */
+  background: var(--stage);
 }
 
 /* StaffAppFrame chrome when the frame itself carries the shell (default). */
 .staff-app-frame.palalive-staff-shell {
-  background: var(--void);
+  background: var(--stage);
   color: var(--ink);
   font-family: var(--sans);
 }

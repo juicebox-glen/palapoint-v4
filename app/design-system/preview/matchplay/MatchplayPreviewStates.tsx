@@ -353,31 +353,32 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
               </div>
             </div>
 
-            <div className="matchplay-card">
-              <span className="matchplay-card-label">Select Courts</span>
-              <div className="matchplay-court-grid">
+            <div className="palalive-staff-card">
+              <span className="palalive-staff-card-label">Select Courts</span>
+              <div className="palalive-staff-court-grid">
                 {[1, 2, 3, 4].map((n) => {
                   const sel = n === 1 || n === 2
                   return (
                     <div
                       key={n}
-                      className={`matchplay-court-btn ${sel ? 'matchplay-court-btn--selected' : ''}`}
+                      className={`palalive-staff-court-btn ${sel ? 'is-selected' : ''}`}
                       style={{ pointerEvents: 'none' }}
+                      aria-pressed={sel}
                     >
-                      <div className="matchplay-court-icon-wrap">
+                      <div className="palalive-staff-court-icon-wrap">
                         <CourtIcon />
                       </div>
-                      <span className="matchplay-court-num">{n}</span>
+                      <span className="palalive-staff-court-num">{n}</span>
                     </div>
                   )
                 })}
               </div>
-              <div className="matchplay-court-summary">
-                <span className="matchplay-court-summary-item">
+              <div className="palalive-staff-court-summary">
+                <span>
                   <strong>8</strong> players
                 </span>
-                <span className="matchplay-court-summary-divider">·</span>
-                <span className="matchplay-court-summary-item">
+                <span className="palalive-staff-court-summary-divider">·</span>
+                <span>
                   <strong>2</strong> courts
                 </span>
               </div>
@@ -549,49 +550,32 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
   if (s === 'hub_standings') {
     return (
       <StaffAppFrame venueSlug="dev" backHref="/design-system/preview/matchplay?state=event">
-      <div className="matchplay-page matchplay-page--setup">
-        <h1 className="matchplay-page-title">Standings</h1>
+        <h1 className="palalive-staff-page-title">Standings</h1>
+        <p className="palalive-staff-round-status">Round 4 of 7 · 3 completed</p>
 
-        <div className="matchplay-setup-inner matchplay-standings-content">
-          <div className="matchplay-standings-list">
+        <div className="palalive-staff-body">
+          <div className="palalive-staff-standings">
             {DS_HUB_STANDINGS_RANKED.map((player) => {
-              const rank = player.rank
-              const isTopThree = rank <= 3
-
+              const diff = player.game_difference
+              const name = formatPlayerName(player.name, 'full')
               return (
-                <div
-                  key={player.id}
-                  className={`matchplay-standings-row ${isTopThree ? `matchplay-standings-row--rank-${rank}` : ''}`}
-                >
-                  <div className="matchplay-standings-rank">
-                    {rank === 1 && <span className="matchplay-standings-medal">🏆</span>}
-                    {rank === 2 && <span className="matchplay-standings-medal">🥈</span>}
-                    {rank === 3 && <span className="matchplay-standings-medal">🥉</span>}
-                    {rank > 3 && <span className="matchplay-standings-rank-num">{rank}</span>}
+                <div key={player.id} className="palalive-staff-standings-row">
+                  <span className="palalive-player-avatar palalive-player-avatar--initials">
+                    {getPlayerInitials(player.name)}
+                  </span>
+                  <div className="palalive-staff-standings-info">
+                    <span className="palalive-staff-standings-name">{name}</span>
                   </div>
-
-                  <div className="matchplay-standings-avatar">
-                    <span className="matchplay-standings-initials">{getPlayerInitials(player.name)}</span>
-                  </div>
-
-                  <div className="matchplay-standings-info">
-                    <span className="matchplay-standings-name">{formatPlayerName(player.name, 'full')}</span>
-                    <span className="matchplay-standings-stats">
-                      {player.total_points} pts
-                      <span
-                        className={`matchplay-standings-diff ${player.game_difference >= 0 ? 'matchplay-standings-diff--positive' : 'matchplay-standings-diff--negative'}`}
-                      >
-                        {player.game_difference >= 0 ? '+' : ''}
-                        {player.game_difference}
-                      </span>
-                    </span>
-                  </div>
+                  <span className={`palalive-staff-standings-delta ${diff >= 0 ? 'is-pos' : 'is-neg'}`}>
+                    {diff >= 0 ? '+' : ''}
+                    {diff}
+                  </span>
+                  <span className="palalive-staff-chip">{player.total_points}</span>
                 </div>
               )
             })}
           </div>
         </div>
-      </div>
       </StaffAppFrame>
     )
   }

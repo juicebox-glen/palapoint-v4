@@ -2104,7 +2104,8 @@
 
 /* Court tiles: two states — dark (default) vs brand blue (selected). Court diagram full tile; number centered on top in z-order. */
 .matchplay-court-btn {
-  --matchplay-court-tile: #1e2128;
+  /* Under .palalive-staff-shell this resolves to a --card shade via --bg-tertiary. */
+  --matchplay-court-tile: var(--bg-tertiary);
   position: relative;
   aspect-ratio: 3 / 4;
   display: flex;
