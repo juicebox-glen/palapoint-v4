@@ -22,11 +22,12 @@
   --panel: #1a191e;
   /*
    TEMP SYNC CHECK (revert after QA): neon green cards.
-   If staff phone, DS, and TV Social all go green → they share this token.
-   If TV stays blue/navy → that surface is still on :root / glass, not this shell.
+   Inner / Team 2 / photo fields are *shades of --card* (not a second solid palette)
+   so phone + TV stay visibly in the same family.
   */
   --card: #39ff14;
-  --card-inner: #22cc00;
+  /* Raised wells + player name / add-photo fields — darker step of --card */
+  --card-inner: color-mix(in srgb, var(--card) 72%, #000);
   --card-glass: rgb(14 16 18 / 48%);
   /*
    Raised-surface outline for TV solid shells + staff cards.
@@ -34,7 +35,7 @@
    `1px solid #3a3942`. Hairlines on controls/dividers use --card-edge instead.
   */
   --card-border: none;
-  --card-edge: #3a3942;
+  --card-edge: color-mix(in srgb, var(--card) 40%, #000);
 
   /* ——— type & ink ——— */
   --ink: #e9ecf1;
@@ -45,7 +46,8 @@
   --weather-sun: #f2b84b;
   --weather-cloud: #a9bfe0;
   --weather-rain: #5b9bd5;
-  --scoreboard-alt: #323137;
+  /* Team 2 scoreboard half — one more step darker than Team 1 / card-inner */
+  --scoreboard-alt: color-mix(in srgb, var(--card) 52%, #000);
   --gold: #f2c14e;
   --silver: #c7d0dd;
   --bronze: #d99a6c;
