@@ -16,6 +16,7 @@ import { getControlPreviewConfig } from './control-preview-config'
 function ControlPreviewContent() {
   const searchParams = useSearchParams()
   const state = searchParams.get('state') || 'setup'
+  const variant = searchParams.get('variant') === 'palalive-staff' ? 'palalive-staff' : 'legacy'
 
   const preview = useMemo(() => getControlPreviewConfig(state), [state])
 
@@ -39,6 +40,7 @@ function ControlPreviewContent() {
         branding={designSystemSquareOneBranding}
         courtName={designSystemSquareOneBranding.courtName}
         preview={preview}
+        variant={variant}
       />
     </div>
   )

@@ -20,8 +20,15 @@ import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import { isMatchEndgame } from '@/lib/utils/match-status'
 import { generateUuid } from '@/lib/utils/uuid'
 import { supabaseFunctionHeaders, SUPABASE_URL } from '@/lib/api/supabase-functions'
+import { PalaLiveStaffLoading } from '@/components/palalive/staff/PalaLiveStaffLoading'
+import { PalaLiveStaffShowcaseSetup } from '@/components/palalive/staff/PalaLiveStaffShowcaseSetup'
+import { PalaLiveStaffShowcaseConfirm } from '@/components/palalive/staff/PalaLiveStaffShowcaseConfirm'
+import { PalaLiveStaffShowcaseLive } from '@/components/palalive/staff/PalaLiveStaffShowcaseLive'
+import { PalaLiveStaffShowcaseEnd } from '@/components/palalive/staff/PalaLiveStaffShowcaseEnd'
 import '@/app/styles/setup-form.css'
 import '@/app/styles/control-panel.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 
 type ControlStage = 'setup' | 'preview' | 'live'
 
@@ -97,6 +104,14 @@ interface ControlPanelProps {
    * Does not apply when `resumeMatchId` is set. Other ControlPanel callers unchanged.
    */
   freshEntryActiveOnly?: boolean
+  /**
+   * Render target only — state/logic above is identical either way. 'legacy' (default)
+   * renders the player-facing shared components (MatchSetupForm/ControlScoreboard/
+   * MatchConfirmation/MatchFinishedPanel), which /playing and /control also depend on
+   * and must not visually change. 'palalive-staff' renders the new dark PalaLive staff
+   * screens (components/palalive/staff/*) instead, per design-mockups/palalive-showcase-flow.html.
+   */
+  variant?: 'legacy' | 'palalive-staff'
 }
 
 function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefined): string[] {
@@ -139,7 +154,9 @@ export default function ControlPanel({
   embedded = false,
   resumeMatchId = null,
   freshEntryActiveOnly = false,
+  variant = 'legacy',
 }: ControlPanelProps) {
+  const isPalaLiveStaff = variant === 'palalive-staff'
   const useActiveOnlyCourtLoad = freshEntryActiveOnly && !resumeMatchId
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
@@ -549,32 +566,67 @@ export default function ControlPanel({
     setStage('setup')
   }
 
-  const renderSetupForm = () => (
-    <MatchSetupForm
-      gameMode={gameMode}
-      setGameMode={setGameMode}
-      setsToWin={setsToWin}
-      setSetsToWin={setSetsToWin}
-      players={players}
-      onPlayerChange={handlePlayerChange}
-      onRandomize={handleRandomize}
-      tempMatchId={tempMatchId}
-      playerPhotos={playerPhotos}
-      onPlayerPhotoChange={handlePlayerPhotoChange}
-      sideSwapEnabled={sideSwapEnabled}
-      setSideSwapEnabled={setSideSwapEnabled}
-      endGameInTiebreak={endGameInTiebreak}
-      setEndGameInTiebreak={setEndGameInTiebreak}
-      onSubmit={handleContinue}
-      submitLoading={actionLoading === 'continue'}
-      submitLabel="Continue"
-      error={error}
-      showHeader={showSetupHeader}
-      branding={branding}
-    />
-  )
+  const renderSetupForm = () => {
+    if (isPalaLiveStaff) {
+      return (
+        <div className="palalive-staff-shell">
+          <PalaLiveStaffShowcaseSetup
+            gameMode={gameMode}
+            setGameMode={setGameMode}
+            setsToWin={setsToWin}
+            setSetsToWin={setSetsToWin}
+            players={players}
+            onPlayerChange={handlePlayerChange}
+            onRandomize={handleRandomize}
+            tempMatchId={tempMatchId}
+            playerPhotos={playerPhotos}
+            onPlayerPhotoChange={handlePlayerPhotoChange}
+            sideSwapEnabled={sideSwapEnabled}
+            setSideSwapEnabled={setSideSwapEnabled}
+            endGameInTiebreak={endGameInTiebreak}
+            setEndGameInTiebreak={setEndGameInTiebreak}
+            onSubmit={handleContinue}
+            submitLoading={actionLoading === 'continue'}
+            submitLabel="Continue"
+            error={error}
+          />
+        </div>
+      )
+    }
+    return (
+      <MatchSetupForm
+        gameMode={gameMode}
+        setGameMode={setGameMode}
+        setsToWin={setsToWin}
+        setSetsToWin={setSetsToWin}
+        players={players}
+        onPlayerChange={handlePlayerChange}
+        onRandomize={handleRandomize}
+        tempMatchId={tempMatchId}
+        playerPhotos={playerPhotos}
+        onPlayerPhotoChange={handlePlayerPhotoChange}
+        sideSwapEnabled={sideSwapEnabled}
+        setSideSwapEnabled={setSideSwapEnabled}
+        endGameInTiebreak={endGameInTiebreak}
+        setEndGameInTiebreak={setEndGameInTiebreak}
+        onSubmit={handleContinue}
+        submitLoading={actionLoading === 'continue'}
+        submitLabel="Continue"
+        error={error}
+        showHeader={showSetupHeader}
+        branding={branding}
+      />
+    )
+  }
 
   if (isPreview && preview?.screen === 'loading') {
+    if (isPalaLiveStaff) {
+      return (
+        <div className="palalive-staff-shell">
+          <PalaLiveStaffLoading />
+        </div>
+      )
+    }
     return (
       <ControlLoadingScreen
         message="Loading..."
@@ -586,6 +638,13 @@ export default function ControlPanel({
   }
 
   if (loading) {
+    if (isPalaLiveStaff) {
+      return (
+        <div className="palalive-staff-shell">
+          <PalaLiveStaffLoading />
+        </div>
+      )
+    }
     return (
       <ControlLoadingScreen
         message="Loading..."
@@ -597,6 +656,13 @@ export default function ControlPanel({
   }
 
   if (error && !match) {
+    if (isPalaLiveStaff) {
+      return (
+        <div className="palalive-staff-shell">
+          <p className="palalive-staff-error">{error}</p>
+        </div>
+      )
+    }
     if (!showSetupHeader) {
       return (
         <div className={panelClass} style={brandingStylesFor(branding)}>
@@ -620,6 +686,20 @@ export default function ControlPanel({
   }
 
   if (isMatchEndgame(match)) {
+    if (isPalaLiveStaff) {
+      return (
+        <div className="palalive-staff-shell">
+          <PalaLiveStaffShowcaseEnd
+            match={match}
+            courtName={displayCourtName}
+            error={error}
+            actionLoading={actionLoading}
+            onEditMatch={handleEditMatch}
+            onRematch={() => void handleRematch()}
+          />
+        </div>
+      )
+    }
     return (
       <MatchFinishedPanel
         match={match}
@@ -653,6 +733,20 @@ export default function ControlPanel({
 
   if (match.status === 'setup') {
     if (stage === 'preview') {
+      if (isPalaLiveStaff) {
+        return (
+          <div className="palalive-staff-shell">
+            <PalaLiveStaffShowcaseConfirm
+              match={match}
+              courtName={displayCourtName}
+              onBackToEdit={handleBackToEdit}
+              onStartMatch={() => void handleStartMatch()}
+              loading={actionLoading === 'start'}
+              error={error}
+            />
+          </div>
+        )
+      }
       return (
         <ControlMatchPreview
           match={match}
@@ -675,6 +769,28 @@ export default function ControlPanel({
 
   const teamAName = formatTeamDisplay(match.team_a_player_1, match.team_a_player_2, 1)
   const teamBName = formatTeamDisplay(match.team_b_player_1, match.team_b_player_2, 2)
+
+  if (isPalaLiveStaff) {
+    return (
+      <div className="palalive-staff-shell">
+        <PalaLiveStaffShowcaseLive
+          match={match}
+          courtName={displayCourtName}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          error={error}
+          actionLoading={actionLoading}
+          onScoreA={() => void scorePoint('a')}
+          onScoreB={() => void scorePoint('b')}
+          onUndo={() => void undoLastPoint()}
+          onRequestEndMatch={() => setShowEndConfirm(true)}
+          showEndConfirm={showEndConfirm}
+          onCancelEndMatch={() => !actionLoading && setShowEndConfirm(false)}
+          onConfirmEndMatch={() => void endMatch()}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className={panelClass} style={brandingStylesFor(branding)}>

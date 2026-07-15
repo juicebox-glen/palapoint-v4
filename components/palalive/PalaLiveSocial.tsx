@@ -19,15 +19,19 @@ export function PalaLiveSocial({ eventId, displayName, branding, brandingStyles 
 
   // Keep-alive: touch document.title periodically to prevent TV screensaver/sleep
   // on an always-on venue display (same purpose as the old MatchplayBoard's interval).
+  // Depend on the event name, not `data` itself — `data` gets a new reference on every
+  // poll/Realtime tick (well under 30s during an active round), which tore down and
+  // recreated the interval before it ever fired (same bug Phase 3 fixed for Showcase).
+  const eventName = data?.eventName ?? null
   useEffect(() => {
-    if (!data) return
+    if (!eventName) return
     const interval = setInterval(() => {
       if (typeof document !== 'undefined') {
-        document.title = `${data.eventName} - PalaLive`
+        document.title = `${eventName} - PalaLive`
       }
     }, 30000)
     return () => clearInterval(interval)
-  }, [data])
+  }, [eventName])
 
   if (!data) {
     return (
