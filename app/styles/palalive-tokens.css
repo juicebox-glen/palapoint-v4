@@ -20,14 +20,9 @@
   --page: #0e1116;
   --frame: #000000;
   --panel: #1a191e;
-  /*
-   TEMP SYNC CHECK (revert after QA): neon green cards.
-   Inner / Team 2 / photo fields are *shades of --card* (not a second solid palette)
-   so phone + TV stay visibly in the same family.
-  */
-  --card: #39ff14;
-  /* Raised wells + player name / add-photo fields — darker step of --card */
-  --card-inner: color-mix(in srgb, var(--card) 72%, #000);
+  /* Charcoal surfaces — Team 1 / fields / courts use --card-inner; Team 2 uses --scoreboard-alt. */
+  --card: #25242a;
+  --card-inner: #323137;
   --card-glass: rgb(14 16 18 / 48%);
   /*
    Raised-surface outline for TV solid shells + staff cards.
@@ -35,7 +30,7 @@
    `1px solid #3a3942`. Hairlines on controls/dividers use --card-edge instead.
   */
   --card-border: none;
-  --card-edge: color-mix(in srgb, var(--card) 40%, #000);
+  --card-edge: #3a3942;
 
   /* ——— type & ink ——— */
   --ink: #e9ecf1;
@@ -46,8 +41,8 @@
   --weather-sun: #f2b84b;
   --weather-cloud: #a9bfe0;
   --weather-rain: #5b9bd5;
-  /* Team 2 scoreboard half — one more step darker than Team 1 / card-inner */
-  --scoreboard-alt: color-mix(in srgb, var(--card) 52%, #000);
+  /* Team 2 scoreboard half — one step darker than Team 1 wells */
+  --scoreboard-alt: color-mix(in srgb, var(--card-inner) 82%, #000);
   --gold: #f2c14e;
   --silver: #c7d0dd;
   --bronze: #d99a6c;
