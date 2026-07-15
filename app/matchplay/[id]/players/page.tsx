@@ -8,7 +8,8 @@ import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { callMatchplayEvent, callMatchplayPlayer } from '@/lib/api/matchplay'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import '@/app/styles/matchplay.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 import '@/app/styles/setup-form.css'
 
 interface PlayerSnapshot {
@@ -237,70 +238,70 @@ export default function MatchplayEventPlayersPage() {
 
   if (loading) {
     return (
-      <div className="matchplay-page matchplay-page--setup">
-        <div className="matchplay-loading">Loading players...</div>
+      <div className="palalive-staff-shell">
+        <p className="palalive-staff-loading-text">Loading players...</p>
       </div>
     )
   }
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
-      <div className="matchplay-page matchplay-page--setup">
-      <h1 className="matchplay-page-title">Players</h1>
+    <div className="palalive-staff-shell">
+      <StaffAppFrame
+        venueSlug={venueSlug ?? undefined}
+        onBack={goBackToEventHub}
+        footer={
+          isEditable ? (
+            <button
+              type="button"
+              className="palalive-staff-btn palalive-staff-btn--primary"
+              onClick={() => void handleSave()}
+              disabled={!canSave || saving}
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          ) : undefined
+        }
+      >
+        <h1 className="palalive-staff-page-title">Players</h1>
 
-      <div className="matchplay-setup-inner">
-        <div className="matchplay-setup-content">
-          <div className="matchplay-card">
-            <div className="matchplay-card-label-row">
-              <span className="matchplay-card-label">Players</span>
-              <span className="matchplay-card-label-count">{players.length}</span>
+        <div className="palalive-staff-body">
+          <div className="palalive-staff-card">
+            <div className="palalive-staff-card-label-row">
+              <span className="palalive-staff-card-label">Players</span>
+              <span className="palalive-staff-chip">{players.length}</span>
             </div>
 
-            <div className="setup-inputs">
-              {players.map((player, index) => {
-                const busy = processingSlot === index
-                const displayUrl = player.photoPreview ?? (!player.photoRemoved ? (player.photo_url ?? null) : null)
+            {players.map((player, index) => {
+              const busy = processingSlot === index
+              const displayUrl = player.photoPreview ?? (!player.photoRemoved ? (player.photo_url ?? null) : null)
 
-                return (
-                  <div key={player.id} className="setup-player-row">
-                    <PlayerPhotoPicker
-                      previewUrl={displayUrl}
-                      busy={busy}
-                      disabled={!isEditable}
-                      onFile={(file) => void applyFileToSlot(index, file)}
-                      onRemove={displayUrl && isEditable ? () => handleRemovePhoto(index) : undefined}
-                    />
-
-                    <div className="setup-input-wrap setup-input-wrap--player-name">
-                      <input
-                        type="text"
-                        className="setup-input"
-                        placeholder={`Player ${index + 1}`}
-                        value={player.name}
-                        onChange={(e) => handleNameChange(index, e.target.value)}
-                        disabled={!isEditable}
-                        autoComplete="name"
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+              return (
+                <div key={player.id} className="palalive-staff-player-row">
+                  <PlayerPhotoPicker
+                    previewUrl={displayUrl}
+                    busy={busy}
+                    disabled={!isEditable}
+                    onFile={(file) => void applyFileToSlot(index, file)}
+                    onRemove={displayUrl && isEditable ? () => handleRemovePhoto(index) : undefined}
+                  />
+                  <input
+                    type="text"
+                    className="palalive-staff-player-input"
+                    placeholder={`Player ${index + 1}`}
+                    value={player.name}
+                    onChange={(e) => handleNameChange(index, e.target.value)}
+                    disabled={!isEditable}
+                    autoComplete="name"
+                  />
+                </div>
+              )
+            })}
           </div>
 
-          {players.length === 0 ? <p className="matchplay-error">No players</p> : null}
-          {error ? <p className="matchplay-error">{error}</p> : null}
+          {players.length === 0 ? <p className="palalive-staff-error">No players</p> : null}
+          {error ? <p className="palalive-staff-error">{error}</p> : null}
         </div>
-      </div>
-
-      {isEditable ? (
-        <footer className="matchplay-footer">
-          <button type="button" className="matchplay-btn-primary" onClick={() => void handleSave()} disabled={!canSave || saving}>
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
-        </footer>
-      ) : null}
-      </div>
-    </StaffAppFrame>
+      </StaffAppFrame>
+    </div>
   )
 }

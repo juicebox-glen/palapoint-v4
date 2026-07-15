@@ -2,9 +2,12 @@
 
 import Link from 'next/link'
 
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
+
 function ListRowChevron() {
   return (
-    <span className="staff-list-row-chevron" aria-hidden>
+    <span className="palalive-staff-list-row-chevron" aria-hidden>
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path
           d="M7 5l5 5-5 5"
@@ -24,7 +27,8 @@ interface MatchplayLauncherModePickerProps {
 }
 
 /**
- * Matchplay launcher — game mode list using staff list-row chrome.
+ * Matchplay launcher — game mode list, per
+ * design-mockups/palalive-matchplay-flow.html screen 1.
  */
 export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLauncherModePickerProps) {
   const americanoHref = staffVenueSlug
@@ -32,45 +36,45 @@ export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLaunche
     : '/matchplay/new'
 
   return (
-    <div className="staff-list-group">
-      <p className="staff-section-label">Select game mode</p>
+    <div className="palalive-staff-shell palalive-staff-list-group">
+      <p className="palalive-staff-section-label">Select game mode</p>
 
-      <Link href={americanoHref} className="staff-list-row">
-        <span className="staff-list-row-copy">
-          <span className="staff-list-row-title">Americano</span>
-          <span className="staff-list-row-desc">Everyone plays with everyone once</span>
+      <Link href={americanoHref} className="palalive-staff-list-row">
+        <span className="palalive-staff-list-row-copy">
+          <span className="palalive-staff-list-row-title">Americano</span>
+          <span className="palalive-staff-list-row-desc">Everyone plays with everyone once</span>
         </span>
         <ListRowChevron />
       </Link>
 
       <div
-        className="staff-list-row"
+        className="palalive-staff-list-row is-disabled"
         aria-disabled
         aria-label="King of the Court, coming soon"
       >
-        <span className="staff-list-row-copy">
-          <span className="staff-list-row-title">King of the Court</span>
-          <span className="staff-list-row-desc">Elimination-style rotation</span>
+        <span className="palalive-staff-list-row-copy">
+          <span className="palalive-staff-list-row-title">King of the Court</span>
+          <span className="palalive-staff-list-row-desc">Elimination-style rotation</span>
         </span>
         <ListRowChevron />
       </div>
 
       <div
-        className="staff-list-row"
+        className="palalive-staff-list-row is-disabled"
         aria-disabled
         aria-label="Matchplay format, coming soon"
       >
-        <span className="staff-list-row-copy">
-          <span className="staff-list-row-title">Matchplay</span>
-          <span className="staff-list-row-desc">Curated social play with manual pairings</span>
+        <span className="palalive-staff-list-row-copy">
+          <span className="palalive-staff-list-row-title">Matchplay</span>
+          <span className="palalive-staff-list-row-desc">Curated social play with manual pairings</span>
         </span>
         <ListRowChevron />
       </div>
 
-      <div className="staff-list-row" aria-disabled aria-label="Mexicano, coming soon">
-        <span className="staff-list-row-copy">
-          <span className="staff-list-row-title">Mexicano</span>
-          <span className="staff-list-row-desc">Coming soon</span>
+      <div className="palalive-staff-list-row is-disabled" aria-disabled aria-label="Mexicano, coming soon">
+        <span className="palalive-staff-list-row-copy">
+          <span className="palalive-staff-list-row-title">Mexicano</span>
+          <span className="palalive-staff-list-row-desc">Coming soon</span>
         </span>
         <ListRowChevron />
       </div>

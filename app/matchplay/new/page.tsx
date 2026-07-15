@@ -7,8 +7,8 @@ import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
-import '@/app/styles/matchplay.css'
-import '@/app/styles/setup-form.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
 
 const COURT_OPTIONS = [1, 2, 3, 4]
@@ -123,34 +123,33 @@ export default function NewMatchplayPage() {
       : undefined
 
   return (
-    <StaffAppFrame
-      venueSlug={venueSlug ?? undefined}
-      onBack={() => router.push(staffBase ?? '/matchplay')}
-      style={brandVars}
-      footer={
-        <button
-          type="button"
-          className="matchplay-btn-primary"
-          onClick={handleContinue}
-          disabled={!canContinue}
-        >
-          Continue
-        </button>
-      }
-    >
-      <div className="matchplay-page matchplay-page--setup">
-        <h1 className="matchplay-page-title">New Americano</h1>
+    <div className="palalive-staff-shell">
+      <StaffAppFrame
+        venueSlug={venueSlug ?? undefined}
+        onBack={() => router.push(staffBase ?? '/matchplay')}
+        style={brandVars}
+        footer={
+          <button
+            type="button"
+            className="palalive-staff-btn palalive-staff-btn--primary"
+            onClick={handleContinue}
+            disabled={!canContinue}
+          >
+            Continue
+          </button>
+        }
+      >
+        <h1 className="palalive-staff-page-title">New Americano</h1>
 
-        <div className="matchplay-setup-inner">
-        <div className="matchplay-setup-content">
-          <div className="matchplay-card">
-            <span className="matchplay-card-label">Players</span>
-            <div className="matchplay-pill-bar matchplay-pill-bar--players">
+        <div className="palalive-staff-body">
+          <div className="palalive-staff-card">
+            <span className="palalive-staff-card-label">Players</span>
+            <div className="palalive-staff-pill-row">
               {MATCHPLAY_AMERICANO_PLAYER_OPTIONS.map((count) => (
                 <button
                   key={count}
                   type="button"
-                  className={`matchplay-pill-bar-item ${playerCount === count ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  className={`palalive-staff-pill ${playerCount === count ? 'is-active' : ''}`}
                   onClick={() => setPlayerCount(count)}
                 >
                   {count}
@@ -159,42 +158,40 @@ export default function NewMatchplayPage() {
             </div>
           </div>
 
-          <div className="matchplay-card">
-            <span className="matchplay-card-label">Select Courts</span>
-            <div className="matchplay-court-grid">
+          <div className="palalive-staff-card">
+            <span className="palalive-staff-card-label">Select Courts</span>
+            <div className="palalive-staff-court-grid">
               {COURT_OPTIONS.map((court) => {
                 const selected = selectedCourts.includes(court)
                 return (
                   <button
                     key={court}
                     type="button"
-                    className={`matchplay-court-btn ${selected ? 'matchplay-court-btn--selected' : ''}`}
+                    className={`palalive-staff-court-btn ${selected ? 'is-selected' : ''}`}
                     onClick={() => toggleCourt(court)}
                     aria-pressed={selected}
                   >
-                    <div className="matchplay-court-icon-wrap">
+                    <div className="palalive-staff-court-icon-wrap">
                       <CourtIcon />
                     </div>
-                    <span className="matchplay-court-num">{court}</span>
+                    <span className="palalive-staff-court-num">{court}</span>
                   </button>
                 )
               })}
             </div>
 
-            <div className="matchplay-court-summary">
-              <span className="matchplay-court-summary-item">
+            <div className="palalive-staff-court-summary">
+              <span>
                 <strong>{playerCount}</strong> players
               </span>
-              <span className="matchplay-court-summary-divider">·</span>
-              <span className="matchplay-court-summary-item">
+              <span className="palalive-staff-court-summary-divider">·</span>
+              <span>
                 <strong>{selectedCourts.length}</strong> court{selectedCourts.length !== 1 ? 's' : ''}
               </span>
               {restingPerRound > 0 ? (
                 <>
-                  <span className="matchplay-court-summary-divider">·</span>
-                  <span
-                    className={`matchplay-court-summary-item ${tooManyResting ? 'matchplay-court-summary-warning' : ''}`}
-                  >
+                  <span className="palalive-staff-court-summary-divider">·</span>
+                  <span className={tooManyResting ? 'palalive-staff-court-summary-warning' : ''}>
                     <strong>{restingPerRound}</strong> resting
                   </span>
                 </>
@@ -202,68 +199,67 @@ export default function NewMatchplayPage() {
             </div>
           </div>
 
-          <div className="matchplay-card">
-            <span className="matchplay-card-label">Points per Match</span>
-            <div className="matchplay-pill-bar">
+          <div className="palalive-staff-card">
+            <span className="palalive-staff-card-label">Points per Match</span>
+            <div className="palalive-staff-pill-row">
               {POINTS_OPTIONS.map((points) => (
                 <button
                   key={points}
                   type="button"
-                  className={`matchplay-pill-bar-item ${pointsPerMatch === points ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  className={`palalive-staff-pill ${pointsPerMatch === points ? 'is-active' : ''}`}
                   onClick={() => setPointsPerMatch(points)}
                 >
                   {points}
                 </button>
               ))}
             </div>
-            <p className="matchplay-card-hint">~{minutesPerMatch} min per match</p>
+            <p className="palalive-staff-card-hint">~{minutesPerMatch} min per match</p>
           </div>
 
-          <div className="matchplay-card">
-            <span className="matchplay-card-label">Rounds</span>
-            <div className="matchplay-pill-bar">
+          <div className="palalive-staff-card">
+            <span className="palalive-staff-card-label">Rounds</span>
+            <div className="palalive-staff-pill-row">
               {roundOptions.map((r) => (
                 <button
                   key={r}
                   type="button"
-                  className={`matchplay-pill-bar-item ${rounds === r ? 'matchplay-pill-bar-item--selected' : ''}`}
+                  className={`palalive-staff-pill ${rounds === r ? 'is-active' : ''}`}
                   onClick={() => setRounds(r)}
                 >
                   {r}
                 </button>
               ))}
             </div>
-            <p className="matchplay-card-hint">Full rotation = {fullRotation} rounds</p>
+            <p className="palalive-staff-card-hint">Full rotation = {fullRotation} rounds</p>
           </div>
 
-          <div className="matchplay-card matchplay-card--overview">
-            <div className="matchplay-overview-row">
-              <span className="matchplay-overview-label">Total matches</span>
-              <span className="matchplay-overview-value">{totalMatches}</span>
+          <div className="palalive-staff-card">
+            <div className="palalive-staff-overview-row">
+              <span className="palalive-staff-overview-label">Total matches</span>
+              <span className="palalive-staff-overview-value">{totalMatches}</span>
             </div>
-            <div className="matchplay-overview-row">
-              <span className="matchplay-overview-label">Matches per player</span>
-              <span className="matchplay-overview-value">~{matchesPerPlayer}</span>
+            <div className="palalive-staff-overview-row">
+              <span className="palalive-staff-overview-label">Matches per player</span>
+              <span className="palalive-staff-overview-value">~{matchesPerPlayer}</span>
             </div>
-            <div className="matchplay-overview-row">
-              <span className="matchplay-overview-label">Est. duration</span>
-              <span className="matchplay-overview-value">{estimatedDuration}</span>
+            <div className="palalive-staff-overview-row">
+              <span className="palalive-staff-overview-label">Est. duration</span>
+              <span className="palalive-staff-overview-value">{estimatedDuration}</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {validationWarnings.length > 0 ? (
-        <div className="matchplay-validation-warnings" role="status">
-          {validationWarnings.map((warning, i) => (
-            <div key={i} className="matchplay-validation-warning">
-              <span aria-hidden>⚠️</span>
-              <span>{warning}</span>
+          {validationWarnings.length > 0 ? (
+            <div role="status">
+              {validationWarnings.map((warning, i) => (
+                <div key={i} className="palalive-staff-warning-banner">
+                  <span aria-hidden>⚠️</span>
+                  <span>{warning}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : null}
         </div>
-      ) : null}
-      </div>
-    </StaffAppFrame>
+      </StaffAppFrame>
+    </div>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { formatPlayerName, getPlayerInitials } from '@/lib/utils/name-format'
+import { PalaLiveAvatar } from '@/components/palalive/PalaLiveAvatar'
+import { formatPlayerName } from '@/lib/utils/name-format'
 import {
   callMatchplayEvent,
   callMatchplayPlayer,
@@ -10,7 +11,8 @@ import {
 } from '@/lib/api/matchplay'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
-import '@/app/styles/matchplay.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 
 interface StandingsPlayer {
   id: string
@@ -75,8 +77,8 @@ export default function MatchplayResultsPage() {
 
   if (loading) {
     return (
-      <div className="matchplay-page matchplay-page--setup matchplay-results-page">
-        <div className="matchplay-loading">Loading results...</div>
+      <div className="palalive-staff-shell">
+        <p className="palalive-staff-loading-text">Loading results...</p>
       </div>
     )
   }
@@ -89,100 +91,78 @@ export default function MatchplayResultsPage() {
   const gdSigned = `${winnerGd >= 0 ? '+' : ''}${winnerGd}`
 
   return (
-    <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
-      <div className="matchplay-page matchplay-page--setup matchplay-results-page">
-      <header className="matchplay-results-header">
-        <h1 className="matchplay-results-title">Event complete</h1>
-        <p className="matchplay-results-subtitle">
-          {playerCount} players · {completedRoundsCount} of {totalRounds || '—'} rounds
-        </p>
-      </header>
-
-      {error ? (
-        <p className="matchplay-error" style={{ margin: '0 var(--ui-space-lg)' }}>
-          {error}
-        </p>
-      ) : null}
-
-      {leaders.length > 0 && (
-        <div className="matchplay-results-winner">
-          <span className="matchplay-results-trophy" aria-hidden>
-            🏆
-          </span>
-          <div className="matchplay-results-winner-avatar">
-            {winnerAvatarUrl ? (
-              <img src={winnerAvatarUrl} alt="" />
-            ) : (
-              <span className="matchplay-results-winner-initials">{getPlayerInitials(winnerNamesJoined)}</span>
-            )}
-          </div>
-          <h2 className="matchplay-results-winner-name">{formatPlayerName(winnerNamesJoined, 'full')}</h2>
-          <p className="matchplay-results-winner-stats">
-            {winnerPts} pts · GD {gdSigned}
+    <div className="palalive-staff-shell">
+      <StaffAppFrame
+        venueSlug={venueSlug ?? undefined}
+        onBack={goBackToEventHub}
+        footer={
+          <>
+            <button
+              type="button"
+              className="palalive-staff-btn palalive-staff-btn--secondary"
+              onClick={() => router.push(staffPath(`/${eventId}/standings`))}
+            >
+              Detailed standings
+            </button>
+            <button
+              type="button"
+              className="palalive-staff-btn palalive-staff-btn--primary"
+              onClick={() => router.push(staffBase ?? '/matchplay')}
+            >
+              Start new event
+            </button>
+          </>
+        }
+      >
+        <header className="palalive-staff-results-header">
+          <h1 className="palalive-staff-results-title">Event complete</h1>
+          <p className="palalive-staff-results-subtitle">
+            {playerCount} players · {completedRoundsCount} of {totalRounds || '—'} rounds
           </p>
-        </div>
-      )}
+        </header>
 
-      <div className="matchplay-results-standings">
-        <h3 className="matchplay-results-standings-title">Final standings</h3>
-        {standings.length === 0 ? (
-          <p className="matchplay-standings-empty">No standings for this event.</p>
-        ) : (
-          <div className="matchplay-standings-list">
-            {standings.map((player) => {
-              const rank = player.rank
-              const isTopThree = rank <= 3
+        <div className="palalive-staff-body">
+          {error ? <p className="palalive-staff-error">{error}</p> : null}
 
-              return (
-                <div
-                  key={player.id}
-                  className={`matchplay-standings-row ${isTopThree ? `matchplay-standings-row--rank-${rank}` : ''}`}
-                >
-                  <div className="matchplay-standings-rank">
-                    {rank === 1 && <span className="matchplay-standings-medal">🏆</span>}
-                    {rank === 2 && <span className="matchplay-standings-medal">🥈</span>}
-                    {rank === 3 && <span className="matchplay-standings-medal">🥉</span>}
-                    {rank > 3 && <span className="matchplay-standings-rank-num">{rank}</span>}
-                  </div>
+          {leaders.length > 0 && (
+            <div className="palalive-staff-winner">
+              <span className="palalive-staff-winner-trophy" aria-hidden>
+                🏆
+              </span>
+              <PalaLiveAvatar name={formatPlayerName(winnerNamesJoined, 'full')} photoUrl={winnerAvatarUrl} />
+              <h2 className="palalive-staff-winner-name">{formatPlayerName(winnerNamesJoined, 'full')}</h2>
+              <p className="palalive-staff-winner-stats">
+                {winnerPts} pts · GD {gdSigned}
+              </p>
+            </div>
+          )}
 
-                  <div className="matchplay-standings-avatar">
-                    {player.photo_url ? (
-                      <img src={player.photo_url} alt="" />
-                    ) : (
-                      <span className="matchplay-standings-initials">{getPlayerInitials(player.name)}</span>
-                    )}
-                  </div>
-
-                  <div className="matchplay-standings-info">
-                    <span className="matchplay-standings-name">{formatPlayerName(player.name, 'full')}</span>
-                    <span className="matchplay-standings-stats">
-                      {player.total_points ?? 0} pts
-                      <span
-                        className={`matchplay-standings-diff ${(player.game_difference ?? 0) >= 0 ? 'matchplay-standings-diff--positive' : 'matchplay-standings-diff--negative'}`}
-                      >
-                        {(player.game_difference ?? 0) >= 0 ? '+' : ''}
-                        {player.game_difference ?? 0}
-                      </span>
+          <p className="palalive-staff-section-label">Final standings</p>
+          {standings.length === 0 ? (
+            <p className="palalive-staff-standings-empty">No standings for this event.</p>
+          ) : (
+            <div className="palalive-staff-standings">
+              {standings.map((player) => {
+                const diff = player.game_difference ?? 0
+                const name = formatPlayerName(player.name, 'full')
+                return (
+                  <div key={player.id} className="palalive-staff-standings-row">
+                    <PalaLiveAvatar name={name} photoUrl={player.photo_url} />
+                    <div className="palalive-staff-standings-info">
+                      <span className="palalive-staff-standings-name">{name}</span>
+                    </div>
+                    <span className={`palalive-staff-standings-delta ${diff >= 0 ? 'is-pos' : 'is-neg'}`}>
+                      {diff >= 0 ? '+' : ''}
+                      {diff}
                     </span>
+                    <span className="palalive-staff-chip">{player.total_points ?? 0}</span>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      <footer className="matchplay-results-footer">
-        <div className="matchplay-results-footer-actions">
-          <button type="button" className="btn btn--secondary btn--full" onClick={() => router.push(staffPath(`/${eventId}/standings`))}>
-            Detailed standings
-          </button>
-          <button type="button" className="btn btn--primary btn--full" onClick={() => router.push(staffBase ?? '/matchplay')}>
-            Start new event
-          </button>
+                )
+              })}
+            </div>
+          )}
         </div>
-      </footer>
-      </div>
-    </StaffAppFrame>
+      </StaffAppFrame>
+    </div>
   )
 }
