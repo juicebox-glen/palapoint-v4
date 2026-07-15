@@ -66,6 +66,7 @@
   --bg-secondary: var(--card);
   --bg-tertiary: var(--card-inner);
   --bg-elevated: var(--card-inner);
+  --bg-hover: color-mix(in srgb, var(--card-inner) 85%, #fff);
   /* Legacy control/court split scoreboards inherit charcoal when under this shell. */
   --split-bg-a: var(--card-inner);
   --split-bg-b: var(--scoreboard-alt);

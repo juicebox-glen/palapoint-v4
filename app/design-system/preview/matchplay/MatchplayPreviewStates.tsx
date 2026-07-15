@@ -4,6 +4,7 @@ import '@/app/styles/matchplay.css'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
 import '@/app/styles/matchplay-board.css'
 import '@/app/styles/setup-form.css'
+import '@/app/styles/palalive-avatar.css'
 import { BoardStandings, type BoardStandingsPlayer } from '@/components/matchplay/BoardStandings'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { MatchplayLauncherModePicker } from '@/components/MatchplayLauncherModePicker'
@@ -603,79 +604,71 @@ export default function MatchplayPreviewStates({ state }: { state: string }) {
     const gdSigned = `${winnerGd >= 0 ? '+' : ''}${winnerGd}`
 
     return (
-      <div className="matchplay-page matchplay-page--setup matchplay-results-page" style={{ minHeight: '100vh' }}>
-        <header className="matchplay-results-header">
-          <h1 className="matchplay-results-title">Event complete</h1>
-          <p className="matchplay-results-subtitle">8 players · 7 of 7 rounds</p>
+      <StaffAppFrame
+        venueSlug="dev"
+        backHref="/design-system/preview/matchplay?state=event"
+        footer={
+          <>
+            <span
+              className="palalive-staff-btn palalive-staff-btn--secondary"
+              style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}
+            >
+              Detailed standings
+            </span>
+            <span
+              className="palalive-staff-btn palalive-staff-btn--primary"
+              style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}
+            >
+              Start new event
+            </span>
+          </>
+        }
+      >
+        <header className="palalive-staff-results-header">
+          <h1 className="palalive-staff-results-title">Event complete</h1>
+          <p className="palalive-staff-results-subtitle">8 players · 7 of 7 rounds</p>
         </header>
 
-        {leaders.length > 0 ? (
-          <div className="matchplay-results-winner">
-            <span className="matchplay-results-trophy" aria-hidden>
-              🏆
-            </span>
-            <div className="matchplay-results-winner-avatar">
-              <span className="matchplay-results-winner-initials">{getPlayerInitials(winnerNamesJoined)}</span>
+        <div className="palalive-staff-body">
+          {leaders.length > 0 ? (
+            <div className="palalive-staff-winner">
+              <span className="palalive-staff-winner-trophy" aria-hidden>
+                🏆
+              </span>
+              <span className="palalive-player-avatar palalive-player-avatar--initials">
+                {getPlayerInitials(winnerNamesJoined)}
+              </span>
+              <h2 className="palalive-staff-winner-name">{formatPlayerName(winnerNamesJoined, 'full')}</h2>
+              <p className="palalive-staff-winner-stats">
+                {winnerPts} pts · GD {gdSigned}
+              </p>
             </div>
-            <h2 className="matchplay-results-winner-name">{formatPlayerName(winnerNamesJoined, 'full')}</h2>
-            <p className="matchplay-results-winner-stats">
-              {winnerPts} pts · GD {gdSigned}
-            </p>
-          </div>
-        ) : null}
+          ) : null}
 
-        <div className="matchplay-results-standings">
-          <h3 className="matchplay-results-standings-title">Final standings</h3>
-          <div className="matchplay-standings-list">
+          <p className="palalive-staff-section-label">Final standings</p>
+          <div className="palalive-staff-standings">
             {DS_HUB_STANDINGS_RANKED.map((player) => {
-              const rank = player.rank
-              const isTopThree = rank <= 3
-
+              const diff = player.game_difference
+              const name = formatPlayerName(player.name, 'full')
               return (
-                <div
-                  key={player.id}
-                  className={`matchplay-standings-row ${isTopThree ? `matchplay-standings-row--rank-${rank}` : ''}`}
-                >
-                  <div className="matchplay-standings-rank">
-                    {rank === 1 && <span className="matchplay-standings-medal">🏆</span>}
-                    {rank === 2 && <span className="matchplay-standings-medal">🥈</span>}
-                    {rank === 3 && <span className="matchplay-standings-medal">🥉</span>}
-                    {rank > 3 && <span className="matchplay-standings-rank-num">{rank}</span>}
+                <div key={player.id} className="palalive-staff-standings-row">
+                  <span className="palalive-player-avatar palalive-player-avatar--initials">
+                    {getPlayerInitials(player.name)}
+                  </span>
+                  <div className="palalive-staff-standings-info">
+                    <span className="palalive-staff-standings-name">{name}</span>
                   </div>
-
-                  <div className="matchplay-standings-avatar">
-                    <span className="matchplay-standings-initials">{getPlayerInitials(player.name)}</span>
-                  </div>
-
-                  <div className="matchplay-standings-info">
-                    <span className="matchplay-standings-name">{formatPlayerName(player.name, 'full')}</span>
-                    <span className="matchplay-standings-stats">
-                      {player.total_points} pts
-                      <span
-                        className={`matchplay-standings-diff ${player.game_difference >= 0 ? 'matchplay-standings-diff--positive' : 'matchplay-standings-diff--negative'}`}
-                      >
-                        {player.game_difference >= 0 ? '+' : ''}
-                        {player.game_difference}
-                      </span>
-                    </span>
-                  </div>
+                  <span className={`palalive-staff-standings-delta ${diff >= 0 ? 'is-pos' : 'is-neg'}`}>
+                    {diff >= 0 ? '+' : ''}
+                    {diff}
+                  </span>
+                  <span className="palalive-staff-chip">{player.total_points}</span>
                 </div>
               )
             })}
           </div>
         </div>
-
-        <footer className="matchplay-results-footer">
-          <div className="matchplay-results-footer-actions">
-            <span className="btn btn--secondary btn--full" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
-              Detailed standings
-            </span>
-            <span className="btn btn--primary btn--full" style={{ pointerEvents: 'none', display: 'block', textAlign: 'center' }}>
-              Start new event
-            </span>
-          </div>
-        </footer>
-      </div>
+      </StaffAppFrame>
     )
   }
 
