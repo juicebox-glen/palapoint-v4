@@ -5,7 +5,9 @@ import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
+import { PalaLiveSocialView } from '@/components/palalive/PalaLiveSocialView'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
+import { MOCK_SOCIAL_INGAME, MOCK_SOCIAL_POSTGAME, MOCK_SOCIAL_PREGAME } from '@/lib/palalive/mock-social-night'
 
 import { TvViewportCanvas } from '../../components/TvViewportCanvas'
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
@@ -24,6 +26,21 @@ function PalaLivePreviewContent() {
   let content
 
   switch (state) {
+    case 'social-pregame':
+      content = (
+        <PalaLiveSocialView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} data={MOCK_SOCIAL_PREGAME} />
+      )
+      break
+    case 'social-ingame':
+      content = (
+        <PalaLiveSocialView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} data={MOCK_SOCIAL_INGAME} />
+      )
+      break
+    case 'social-postgame':
+      content = (
+        <PalaLiveSocialView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} data={MOCK_SOCIAL_POSTGAME} />
+      )
+      break
     case 'idle':
     default:
       content = (

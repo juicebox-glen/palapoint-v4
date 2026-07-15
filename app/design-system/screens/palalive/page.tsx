@@ -25,9 +25,14 @@ export default function PalaLiveScreensPage() {
         <h2>Screen</h2>
         <ScreenPreview
           title="PalaLive"
-          description="Idle — real PalaLive components in preview mode, mock booking data. Social Night and Showcase states land in later build phases."
+          description="Real PalaLive components in preview mode, mock data throughout. Showcase lands in a later build phase."
           viewport="tv"
-          states={[{ name: 'idle', label: 'Idle', url: '/design-system/preview/palalive?state=idle' }]}
+          states={[
+            { name: 'idle', label: 'Idle', url: '/design-system/preview/palalive?state=idle' },
+            { name: 'social-pregame', label: 'Social · Pregame', url: '/design-system/preview/palalive?state=social-pregame' },
+            { name: 'social-ingame', label: 'Social · Live', url: '/design-system/preview/palalive?state=social-ingame' },
+            { name: 'social-postgame', label: 'Social · Final', url: '/design-system/preview/palalive?state=social-postgame' },
+          ]}
         />
       </section>
 
@@ -35,7 +40,7 @@ export default function PalaLiveScreensPage() {
         <h2>Build status</h2>
         <ul className="ds-component-list">
           <li>Idle — built (Phase 1), mock Playtomic booking data.</li>
-          <li>Social Night — not started (Phase 2), still renders via the legacy MatchplayBoard on /screen.</li>
+          <li>Social Night — built (Phase 2): pregame/ingame/postgame from real matchplay data + Realtime. `ingame-solid` mockup variant skipped (ambient stays on).</li>
           <li>Showcase Game — not started (Phase 3), still renders via the legacy SpectatorDisplay on /screen.</li>
         </ul>
       </section>
