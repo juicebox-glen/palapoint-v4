@@ -20,8 +20,13 @@
   --page: #0e1116;
   --frame: #000000;
   --panel: #1a191e;
-  --card: #25242a;
-  --card-inner: #323137;
+  /*
+   TEMP SYNC CHECK (revert after QA): neon green cards.
+   If staff phone, DS, and TV Social all go green → they share this token.
+   If TV stays blue/navy → that surface is still on :root / glass, not this shell.
+  */
+  --card: #39ff14;
+  --card-inner: #22cc00;
   --card-glass: rgb(14 16 18 / 48%);
   /*
    Raised-surface outline for TV solid shells + staff cards.
