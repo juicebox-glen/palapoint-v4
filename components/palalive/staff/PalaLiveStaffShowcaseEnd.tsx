@@ -15,6 +15,28 @@ export interface PalaLiveStaffShowcaseEndProps {
   onRematch: () => void
 }
 
+/**
+ * Mirrors MatchFinishedPanel's scoreNumClass: a tie always wins regardless of
+ * winnerSide (winnerSide can be set from match.winner even when the last row
+ * is level, e.g. an abandoned match) — check the actual numbers first.
+ */
+function scoreNumClass(
+  side: 'a' | 'b',
+  row: { a: number; b: number },
+  winnerSide: 'a' | 'b' | null,
+  singleSet: boolean
+): string {
+  if (row.a === row.b) return 'palalive-staff-score-num--tie'
+
+  if (singleSet && winnerSide) {
+    const sideWins = side === winnerSide
+    return sideWins ? 'palalive-staff-score-num--win' : 'palalive-staff-score-num--lose'
+  }
+
+  const sideWins = side === 'a' ? row.a > row.b : row.b > row.a
+  return sideWins ? 'palalive-staff-score-num--win' : 'palalive-staff-score-num--lose'
+}
+
 export function PalaLiveStaffShowcaseEnd({
   match,
   courtName,
@@ -68,45 +90,16 @@ export function PalaLiveStaffShowcaseEnd({
           </>
         ) : null}
         <p className="palalive-staff-score-line">
-          {rows.map((row, i) => (
-            <span className="palalive-staff-score-set" key={i}>
-              <span
-                className={
-                  rows.length === 1
-                    ? winnerSide === 'a'
-                      ? 'palalive-staff-score-num--win'
-                      : winnerSide === 'b'
-                        ? 'palalive-staff-score-num--lose'
-                        : 'palalive-staff-score-num--tie'
-                    : row.a > row.b
-                      ? 'palalive-staff-score-num--win'
-                      : row.a < row.b
-                        ? 'palalive-staff-score-num--lose'
-                        : 'palalive-staff-score-num--tie'
-                }
-              >
-                {row.a}
+          {rows.map((row, i) => {
+            const singleSet = rows.length === 1
+            return (
+              <span className="palalive-staff-score-set" key={i}>
+                <span className={scoreNumClass('a', row, winnerSide, singleSet)}>{row.a}</span>
+                <span className="palalive-staff-score-hyphen">-</span>
+                <span className={scoreNumClass('b', row, winnerSide, singleSet)}>{row.b}</span>
               </span>
-              <span className="palalive-staff-score-hyphen">-</span>
-              <span
-                className={
-                  rows.length === 1
-                    ? winnerSide === 'b'
-                      ? 'palalive-staff-score-num--win'
-                      : winnerSide === 'a'
-                        ? 'palalive-staff-score-num--lose'
-                        : 'palalive-staff-score-num--tie'
-                    : row.b > row.a
-                      ? 'palalive-staff-score-num--win'
-                      : row.b < row.a
-                        ? 'palalive-staff-score-num--lose'
-                        : 'palalive-staff-score-num--tie'
-                }
-              >
-                {row.b}
-              </span>
-            </span>
-          ))}
+            )
+          })}
         </p>
       </div>
 

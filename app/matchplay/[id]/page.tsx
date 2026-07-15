@@ -150,6 +150,15 @@ function MatchplayHubStopIcon(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
+function ScoreEntryPlusIcon() {
+  return (
+    <svg className="palalive-staff-score-entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+}
+
 function resolveMatchPlayerName(players: MatchplayPlayer[], id: string, embedded?: string | null): string {
   const row = players.find((p) => p.id === id)
   if (row?.name?.trim()) return row.name.trim()
@@ -380,13 +389,6 @@ function HubMatchCard({
   const aWins = isCompleted && displayScoreA > displayScoreB
   const bWins = isCompleted && displayScoreB > displayScoreA
 
-  const scoreEntryIcon = (
-    <svg className="palalive-staff-score-entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  )
-
   if (isSetup) {
     return (
       <div className="palalive-staff-match-result">
@@ -407,7 +409,7 @@ function HubMatchCard({
               {canEditLineup && (
                 <button
                   type="button"
-                  className="palalive-staff-list-row-desc"
+                  className="palalive-staff-edit-btn"
                   onClick={(e) => {
                     e.stopPropagation()
                     onEditLineup()
@@ -458,7 +460,7 @@ function HubMatchCard({
                 onOpenScore()
               }}
             >
-              {scoreEntryIcon}
+              <ScoreEntryPlusIcon />
             </button>
           )}
         </div>
@@ -479,7 +481,7 @@ function HubMatchCard({
                 onOpenScore()
               }}
             >
-              {scoreEntryIcon}
+              <ScoreEntryPlusIcon />
             </button>
           )}
         </div>
@@ -1139,7 +1141,7 @@ export default function MatchplayEventPage() {
               </button>
             </div>
             <div className="matchplay-event-modal-body">
-              {error && <div className="setup-error">{error}</div>}
+              {error && <p className="palalive-staff-error">{error}</p>}
               <div className="matchplay-event-edit-teams">
                 <div className="matchplay-event-edit-team">
                   <label>Team A</label>

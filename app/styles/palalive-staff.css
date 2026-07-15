@@ -1043,6 +1043,23 @@
 
 .palalive-staff-result-avatar.is-win { border-color: var(--accent); color: var(--accent); }
 
+/* Inline lineup-edit affordance next to a match-result team's names — only
+   shown for non-Americano formats (canEditLineup). */
+.palalive-staff-edit-btn {
+  appearance: none;
+  cursor: pointer;
+  flex: none;
+  border: 1px solid var(--card-edge);
+  background: transparent;
+  color: var(--mist);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
 /* Tap target to enter a score for that team — pending fixtures only, per the
    locked decision: a plain "—" doesn't read as tappable, an accent "+" does. */
 .palalive-staff-score-entry-btn {
