@@ -5,8 +5,10 @@ import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
+import { PalaLiveShowcaseView } from '@/components/palalive/PalaLiveShowcaseView'
 import { PalaLiveSocialView } from '@/components/palalive/PalaLiveSocialView'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
+import { MOCK_SHOWCASE_MATCH } from '@/lib/palalive/mock-showcase'
 import { MOCK_SOCIAL_INGAME, MOCK_SOCIAL_POSTGAME, MOCK_SOCIAL_PREGAME } from '@/lib/palalive/mock-social-night'
 
 import { TvViewportCanvas } from '../../components/TvViewportCanvas'
@@ -39,6 +41,11 @@ function PalaLivePreviewContent() {
     case 'social-postgame':
       content = (
         <PalaLiveSocialView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} data={MOCK_SOCIAL_POSTGAME} />
+      )
+      break
+    case 'showcase':
+      content = (
+        <PalaLiveShowcaseView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} match={MOCK_SHOWCASE_MATCH} />
       )
       break
     case 'idle':

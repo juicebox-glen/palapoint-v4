@@ -330,40 +330,9 @@
   color: var(--accent);
 }
 
-/* Shared circular player avatar — photo or initials. */
-.palalive-player-avatar {
-  flex: none;
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  background: var(--card-inner);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.palalive-player-avatar--initials {
-  box-sizing: border-box;
-  border: 2px solid var(--accent);
-  font-family: var(--sans);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-}
-
-.palalive-player-avatar--photo {
-  background: var(--skin);
-}
-
-.palalive-player-avatar--photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+/* Base .palalive-player-avatar styling now lives in app/styles/palalive-avatar.css,
+   imported directly by components/palalive/PalaLiveAvatar.tsx — so it travels with the
+   component regardless of which mode's CSS happens to also be bundled on the page. */
 
 /* Right panel — roster / leaderboard / standings, same frosted-glass shell family as Idle. */
 .palalive-social-panel {

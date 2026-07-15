@@ -16,6 +16,8 @@ function isShowableEndgame(row: MatchState): boolean {
 export interface UseSpectatorEndgameOptions {
   /** How long to keep the endgame screen visible (default: standalone spectator routes). */
   displayMs?: number
+  /** Scope to a specific match instead of "any completed match on this court." */
+  matchId?: string
 }
 
 /**
@@ -27,6 +29,7 @@ export function useSpectatorEndgame(
   options: UseSpectatorEndgameOptions = {}
 ): MatchState | null {
   const displayMs = options.displayMs ?? SPECTATOR_ENDGAME_DISPLAY_MS
+  const matchId = options.matchId
   const [endgameMatch, setEndgameMatch] = useState<MatchState | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -74,6 +77,7 @@ export function useSpectatorEndgame(
         const row = payload.new
 
         if (eventType === 'DELETE') {
+          if (matchId && payload.old?.id !== matchId) return
           setEndgameMatch((prev) =>
             prev && payload.old?.id === prev.id ? null : prev
           )
@@ -82,6 +86,7 @@ export function useSpectatorEndgame(
         }
 
         if (!row) return
+        if (matchId && row.id !== matchId) return
 
         if (row.status === 'setup' || row.status === 'in_progress') {
           setEndgameMatch(null)
@@ -101,7 +106,7 @@ export function useSpectatorEndgame(
       clearDismissTimer()
       supabase.removeChannel(ch)
     }
-  }, [courtId, clearDismissTimer, showEndgame])
+  }, [courtId, matchId, clearDismissTimer, showEndgame])
 
   return endgameMatch
 }

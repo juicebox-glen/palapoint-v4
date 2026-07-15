@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react'
 
-import SpectatorDisplay from '@/components/displays/spectator/SpectatorDisplay'
 import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
+import { PalaLiveShowcase } from '@/components/palalive/PalaLiveShowcase'
 import { PalaLiveSocial } from '@/components/palalive/PalaLiveSocial'
 import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useVenueScreen } from '@/lib/hooks/useVenueScreen'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
-import { SHOWCASE_VENUE_ENDGAME_HOLD_MS } from '@/lib/showcase-timing'
 import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 
 import '@/app/styles/venue-screen.css'
@@ -97,10 +96,12 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
   if (screen.active_mode === 'showcase_game') {
     if (screen.court_id && screen.active_showcase_match_id) {
       return (
-        <SpectatorDisplay
+        <PalaLiveShowcase
           courtId={screen.court_id}
+          matchId={screen.active_showcase_match_id}
+          displayName={screen.display_name}
           branding={branding}
-          endgameDisplayMs={SHOWCASE_VENUE_ENDGAME_HOLD_MS}
+          brandingStyles={brandingStyles}
         />
       )
     }

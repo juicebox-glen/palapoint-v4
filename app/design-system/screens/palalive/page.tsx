@@ -25,13 +25,14 @@ export default function PalaLiveScreensPage() {
         <h2>Screen</h2>
         <ScreenPreview
           title="PalaLive"
-          description="Real PalaLive components in preview mode, mock data throughout. Showcase lands in a later build phase."
+          description="Real PalaLive components in preview mode, mock data throughout."
           viewport="tv"
           states={[
             { name: 'idle', label: 'Idle', url: '/design-system/preview/palalive?state=idle' },
             { name: 'social-pregame', label: 'Social · Pregame', url: '/design-system/preview/palalive?state=social-pregame' },
             { name: 'social-ingame', label: 'Social · Live', url: '/design-system/preview/palalive?state=social-ingame' },
             { name: 'social-postgame', label: 'Social · Final', url: '/design-system/preview/palalive?state=social-postgame' },
+            { name: 'showcase', label: 'Showcase · Live', url: '/design-system/preview/palalive?state=showcase' },
           ]}
         />
       </section>
@@ -41,7 +42,14 @@ export default function PalaLiveScreensPage() {
         <ul className="ds-component-list">
           <li>Idle — built (Phase 1), mock Playtomic booking data.</li>
           <li>Social Night — built (Phase 2): pregame/ingame/postgame from real matchplay data + Realtime. `ingame-solid` mockup variant skipped (ambient stays on).</li>
-          <li>Showcase Game — not started (Phase 3), still renders via the legacy SpectatorDisplay on /screen.</li>
+          <li>
+            Showcase Game — built (Phase 3): setup + in_progress share one live scoreboard UI from real live_matches
+            data + Realtime, scoped to the staff-selected match via `active_showcase_match_id` rather than "latest
+            for court." Serving indicator built at the locked 10px (mockup's own inset is 5px). No ratings on the
+            match card, per the rebuild/integration briefs. Completed matches still use the existing
+            SpectatorEndgame/MatchWinHero brief hold — no PalaLive-styled endgame treatment is designed in the
+            mockup yet. `data-substate="2"` ("Last 20 Points" stats) skipped — empty in the mockup, no data source.
+          </li>
         </ul>
       </section>
     </div>
