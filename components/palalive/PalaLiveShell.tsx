@@ -13,7 +13,7 @@ interface PalaLiveShellProps {
   mainStage: ReactNode
   /** Weather/clock cluster; the logo (left) is owned by the shell since it's shared across modes. */
   bottomBarRight?: ReactNode
-  /** e.g. 'palalive-stage--idle' for the photo-backdrop treatment. */
+  /** e.g. 'palalive-stage--idle' for mode-specific stage chrome. */
   stageClassName?: string
   stageStyle?: CSSProperties
 }
@@ -34,7 +34,7 @@ export function PalaLiveShell({
         <div className={stageClass} style={stageStyle}>
           <div className="palalive-panels">{mainStage}</div>
           <div className="palalive-bottom-bar">
-            <VenueLogo branding={branding} className="palalive-brand-mark" />
+            <VenueLogo product branding={branding} className="palalive-brand-mark" />
             <div className="palalive-bottom-right">{bottomBarRight}</div>
           </div>
         </div>

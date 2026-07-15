@@ -1,7 +1,6 @@
-/* PalaLive Social Night — pregame/ingame/postgame. Left: event title + round +
-   fixture grid. Right: roster (pregame) / live leaderboard (ingame) / final
-   standings (postgame). See design-mockups/palalive-display-skeleton(-fullsize).html
-   data-state="social" for the source. */
+/* PalaLive Social Night — pregame/ingame/postgame.
+   Live: left fixtures + right leaderboard.
+   Endgame (event completed): left top-3 podium + right final standings. */
 
 /* Ambient background — pregame + ingame only (per the mockup, postgame drops it).
    Simplified from the mockup: wash + 3 drifting orbs + vignette, using the mockup's
@@ -13,7 +12,7 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  background: #0e1116;
+  background: var(--stage);
 }
 
 .palalive-social-ambient__wash {
@@ -64,7 +63,7 @@
 .palalive-social-ambient__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, transparent 45%, #0e1116 100%);
+  background: radial-gradient(circle at 50% 50%, transparent 45%, var(--stage) 100%);
 }
 
 @keyframes palalive-social-bounce-a {
@@ -105,6 +104,8 @@
   flex-direction: column;
   gap: 36px;
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .palalive-event-header {
@@ -150,7 +151,7 @@
   text-align: center;
 }
 
-/* Frosted fixture shell — same technique as the Idle bookings panel. Pregame default. */
+/* Frosted fixture shell — Social pregame / postgame. Pregame default. */
 .palalive-court-card {
   position: relative;
   border-radius: 28px;
@@ -182,9 +183,10 @@
   z-index: 1;
 }
 
-/* In-progress — solid dark cards, no glass, matching the mockup's "ingame" substate. */
+/* In-progress — solid dark cards, no glass (Social · Live). Uses shared tokens. */
 .palalive-court-card--solid {
-  background: #25242a;
+  background: var(--card);
+  border: var(--card-border);
 }
 
 .palalive-court-card--solid::before {
@@ -237,7 +239,7 @@
 }
 
 .palalive-court-card--solid .palalive-court-match {
-  background: #323137;
+  background: var(--card-inner);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -334,7 +336,11 @@
    imported directly by components/palalive/PalaLiveAvatar.tsx — so it travels with the
    component regardless of which mode's CSS happens to also be bundled on the page. */
 
-/* Right panel — roster / leaderboard / standings, same frosted-glass shell family as Idle. */
+/*
+  Right panel — roster / leaderboard / standings.
+  Fixed to the panels row (820px). Content box is 754px so exactly 6 player
+  rows show; the viewport scrolls the rest (mockup variant-c math).
+*/
 .palalive-social-panel {
   grid-column: 2;
   position: relative;
@@ -344,6 +350,10 @@
   padding: 36px 30px 30px;
   border-radius: 28px;
   overflow: hidden;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  box-sizing: border-box;
 }
 
 .palalive-social-panel::before {
@@ -363,7 +373,8 @@
 }
 
 .palalive-social-panel--solid {
-  background: #25242a;
+  background: var(--card);
+  border: var(--card-border);
 }
 
 .palalive-social-panel--solid::before {
@@ -406,11 +417,18 @@
 }
 
 .palalive-player-scroll-viewport {
-  flex: 1 1 auto;
+  /* 6×96px rows + 5×23.6px gaps = 694px (exactly top 6 visible). */
+  --palalive-social-visible-rows: 6;
+  --palalive-social-row-h: 96px;
+  --palalive-social-row-gap: 23.6px;
+  flex: none;
+  height: calc(
+    var(--palalive-social-visible-rows) * var(--palalive-social-row-h) +
+      (var(--palalive-social-visible-rows) - 1) * var(--palalive-social-row-gap)
+  );
+  margin-top: 6.4px; /* with panel gap 23.6 → 30px after header */
   min-height: 0;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 32px), transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 32px), transparent 100%);
 }
 
 .palalive-player-scroll-track {
@@ -452,7 +470,7 @@
 }
 
 .palalive-social-panel--solid .palalive-player-row {
-  background: #323137;
+  background: var(--card-inner);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -498,7 +516,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-.palalive-social-panel--solid .palalive-player-chip,
+.palalive-social-panel--solid .palalive-player-chip {
+  background: rgb(255 255 255 / 6%);
+  border: none;
+  color: rgb(248 250 244 / 90%);
+}
+
 .palalive-social-panel--final .palalive-player-chip {
   background: rgb(255 255 255 / 10%);
   border: none;
@@ -522,4 +545,139 @@
 
 .palalive-player-delta--down {
   color: var(--state-down);
+}
+
+/* ——— Endgame (event completed): top 3 podium left + final standings right ——— */
+
+.palalive-social-endgame {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 36px 40px 40px;
+  border-radius: 28px;
+  background: var(--card);
+  border: var(--card-border);
+}
+
+.palalive-social-podium {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  align-items: end;
+  justify-content: center;
+  gap: 28px;
+}
+
+.palalive-social-podium--count-1 {
+  grid-template-columns: minmax(320px, 440px);
+}
+
+.palalive-social-podium--count-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.palalive-social-podium-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  align-self: center;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 28px;
+  color: var(--mist);
+}
+
+.palalive-social-podium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  padding: 36px 28px 40px;
+  border-radius: 24px;
+  background: var(--card-inner);
+  border: 2px solid transparent;
+  text-align: center;
+  min-height: 360px;
+}
+
+.palalive-social-podium-card.is-first {
+  min-height: 460px;
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card-inner));
+}
+
+.palalive-social-podium-card.is-second {
+  border-color: color-mix(in srgb, var(--silver) 55%, transparent);
+}
+
+.palalive-social-podium-card.is-third {
+  border-color: color-mix(in srgb, var(--bronze) 55%, transparent);
+}
+
+.palalive-social-podium-place {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.palalive-social-podium-card.is-first .palalive-social-podium-place {
+  color: var(--gold);
+}
+
+.palalive-social-podium-card.is-second .palalive-social-podium-place {
+  color: var(--silver);
+}
+
+.palalive-social-podium-card.is-third .palalive-social-podium-place {
+  color: var(--bronze);
+}
+
+.palalive-social-podium-card .palalive-player-avatar {
+  width: 120px;
+  height: 120px;
+  font-size: 36px;
+}
+
+.palalive-social-podium-card.is-first .palalive-player-avatar {
+  width: 160px;
+  height: 160px;
+  font-size: 48px;
+  border-color: var(--gold);
+}
+
+.palalive-social-podium-name {
+  font-family: var(--sans);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgb(248 250 244 / 96%);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palalive-social-podium-card.is-first .palalive-social-podium-name {
+  font-size: 40px;
+}
+
+.palalive-social-podium-pts {
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--mist);
+  font-variant-numeric: tabular-nums;
+}
+
+.palalive-social-podium-card.is-first .palalive-social-podium-pts {
+  color: var(--ink);
 }

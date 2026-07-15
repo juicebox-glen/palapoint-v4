@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface PalaLiveScrollListProps {
   children: ReactNode
@@ -11,6 +11,7 @@ export function PalaLiveScrollList({ children }: PalaLiveScrollListProps) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [scrolling, setScrolling] = useState(false)
+  const itemCount = Children.count(children)
 
   useEffect(() => {
     const viewport = viewportRef.current
@@ -25,6 +26,8 @@ export function PalaLiveScrollList({ children }: PalaLiveScrollListProps) {
         track.style.setProperty('--palalive-social-scroll-duration', `${duration}s`)
         setScrolling(true)
       } else {
+        track.style.removeProperty('--palalive-social-scroll')
+        track.style.removeProperty('--palalive-social-scroll-duration')
         setScrolling(false)
       }
     }
@@ -34,7 +37,7 @@ export function PalaLiveScrollList({ children }: PalaLiveScrollListProps) {
     observer.observe(viewport)
     observer.observe(track)
     return () => observer.disconnect()
-  }, [])
+  }, [itemCount])
 
   return (
     <div className="palalive-player-scroll-viewport" ref={viewportRef}>

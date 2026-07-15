@@ -10,6 +10,10 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
+import {
+  phaseFromEventStatus,
+  selectCurrentMatchplayRound,
+} from '@/lib/palalive/select-current-round'
 
 interface MatchplayEvent {
   id: string
@@ -338,16 +342,21 @@ export function MatchplayBoard({ eventId }: MatchplayBoardProps) {
       setCurrentRound(null)
       return
     }
-    const sorted = list.sort((a: MatchplayRound, b: MatchplayRound) => (b.round_number ?? 0) - (a.round_number ?? 0))
+    const sorted = [...list].sort(
+      (a: MatchplayRound, b: MatchplayRound) => (a.round_number ?? 0) - (b.round_number ?? 0)
+    )
     const withMatches = await Promise.all(
       sorted.map(async (r: MatchplayRound) => {
         const getResult = await callMatchplayRound({ action: 'get_round', round_id: r.id })
-        const round = getResult.round as { matches?: MatchplayMatch[] } | undefined
-        return { ...r, matches: round?.matches ?? [] }
+        const round = getResult.round as { matches?: MatchplayMatch[]; status?: string } | undefined
+        return {
+          ...r,
+          status: round?.status ?? r.status,
+          matches: round?.matches ?? [],
+        }
       })
     )
     setRounds(withMatches)
-    setCurrentRound(withMatches[0])
   }, [eventId])
 
   const loadAll = useCallback(async () => {
@@ -373,6 +382,15 @@ export function MatchplayBoard({ eventId }: MatchplayBoardProps) {
     setFlashingRowIds(new Set())
     loadAll()
   }, [eventId, loadAll])
+
+  useEffect(() => {
+    if (!event) {
+      setCurrentRound(null)
+      return
+    }
+    const phase = phaseFromEventStatus(event.status)
+    setCurrentRound(selectCurrentMatchplayRound(rounds, phase))
+  }, [event, rounds])
 
   // Realtime subscriptions
   useEffect(() => {

@@ -39,52 +39,54 @@ export function PalaLiveStaffShowcaseConfirm({
   ].filter((p) => p.name)
 
   return (
-    <div className="palalive-staff-body">
-      <div className="palalive-staff-status-row">
-        <div className="palalive-staff-live">
-          <span className="palalive-staff-live-dot" />
-          Ready
+    <>
+      <div className="palalive-staff-body">
+        <div className="palalive-staff-status-row">
+          <div className="palalive-staff-live">
+            <span className="palalive-staff-live-dot" />
+            Ready
+          </div>
+          <div className="palalive-staff-court">{courtName}</div>
         </div>
-        <div className="palalive-staff-court">{courtName}</div>
-      </div>
 
-      {error ? <p className="palalive-staff-error">{error}</p> : null}
+        {error ? <p className="palalive-staff-error">{error}</p> : null}
 
-      <div className="palalive-staff-matchup-card">
-        <div className="palalive-staff-matchup">
-          <div className="palalive-staff-matchup-team">
-            <div className="palalive-staff-matchup-avatars">
-              {teamAPlayers.map((p) => (
-                <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
-              ))}
+        <div className="palalive-staff-matchup-card">
+          <div className="palalive-staff-matchup">
+            <div className="palalive-staff-matchup-team">
+              <div className="palalive-staff-matchup-avatars">
+                {teamAPlayers.map((p) => (
+                  <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
+                ))}
+              </div>
+              <div className="palalive-staff-matchup-names">
+                {teamAPlayers.map((p) => (
+                  <span key={p.name}>{p.name}</span>
+                ))}
+              </div>
             </div>
-            <div className="palalive-staff-matchup-names">
-              {teamAPlayers.map((p) => (
-                <span key={p.name}>{p.name}</span>
-              ))}
+            <div className="palalive-staff-vs-col">
+              <span className="palalive-staff-vs">VS</span>
             </div>
-          </div>
-          <div className="palalive-staff-vs-col">
-            <span className="palalive-staff-vs">VS</span>
-          </div>
-          <div className="palalive-staff-matchup-team">
-            <div className="palalive-staff-matchup-avatars">
-              {teamBPlayers.map((p) => (
-                <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
-              ))}
-            </div>
-            <div className="palalive-staff-matchup-names">
-              {teamBPlayers.map((p) => (
-                <span key={p.name}>{p.name}</span>
-              ))}
+            <div className="palalive-staff-matchup-team">
+              <div className="palalive-staff-matchup-avatars">
+                {teamBPlayers.map((p) => (
+                  <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
+                ))}
+              </div>
+              <div className="palalive-staff-matchup-names">
+                {teamBPlayers.map((p) => (
+                  <span key={p.name}>{p.name}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="palalive-staff-badges">
-        <span className="palalive-staff-badge">{setsBadgeLabel(match.sets_to_win)}</span>
-        <span className="palalive-staff-badge">{modeBadgeLabel(match.game_mode)}</span>
+        <div className="palalive-staff-badges">
+          <span className="palalive-staff-badge">{setsBadgeLabel(match.sets_to_win)}</span>
+          <span className="palalive-staff-badge">{modeBadgeLabel(match.game_mode)}</span>
+        </div>
       </div>
 
       <div className="palalive-staff-footer">
@@ -95,6 +97,6 @@ export function PalaLiveStaffShowcaseConfirm({
           {loading ? '…' : 'Start Match'}
         </button>
       </div>
-    </div>
+    </>
   )
 }

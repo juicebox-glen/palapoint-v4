@@ -149,9 +149,13 @@
 
 .staff-app-footer {
   flex-shrink: 0;
-  margin-top: var(--staff-block-gap);
+  margin-top: auto;
   padding-top: var(--ui-space-lg);
   border-top: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
 /* Legacy aliases — migrate callers to staff-app-frame */
@@ -335,27 +339,6 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: var(--font-weight-bold);
-}
-
-.staff-pairing-form {
-  display: grid;
-  gap: var(--staff-section-gap);
-}
-
-.staff-pairing-form label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.staff-pairing-form input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-  color: inherit;
-  font: inherit;
-  box-sizing: border-box;
 }
 
 .staff-feedback {

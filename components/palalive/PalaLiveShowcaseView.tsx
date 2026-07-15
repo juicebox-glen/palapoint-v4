@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 
 import { PalaLiveClock } from '@/components/palalive/PalaLiveClock'
+import { PalaLiveShowcaseAmbient } from '@/components/palalive/PalaLiveShowcaseAmbient'
 import { PalaLiveShell } from '@/components/palalive/PalaLiveShell'
 import { PalaLiveWeatherStub } from '@/components/palalive/PalaLiveWeatherStub'
 import { ShowcaseMatchCard } from '@/components/palalive/ShowcaseMatchCard'
@@ -29,13 +30,7 @@ export function PalaLiveShowcaseView({ match, branding, brandingStyles }: PalaLi
       }
       mainStage={
         <>
-          <div className="palalive-showcase-ambient" aria-hidden="true">
-            <div className="palalive-showcase-ambient__wash" />
-            <div className="palalive-showcase-ambient__orb palalive-showcase-ambient__orb--a" />
-            <div className="palalive-showcase-ambient__orb palalive-showcase-ambient__orb--b" />
-            <div className="palalive-showcase-ambient__orb palalive-showcase-ambient__orb--c" />
-            <div className="palalive-showcase-ambient__vignette" />
-          </div>
+          <PalaLiveShowcaseAmbient />
           <div className="palalive-scoreboard-slot">
             <ShowcaseScoreboard match={match} />
           </div>

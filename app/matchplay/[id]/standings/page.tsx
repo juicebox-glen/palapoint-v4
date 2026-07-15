@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { PalaLiveAvatar } from '@/components/palalive/PalaLiveAvatar'
 import { formatPlayerName } from '@/lib/utils/name-format'
-import { callMatchplayPlayer } from '@/lib/api/matchplay'
+import { callMatchplayPlayer, callMatchplayRound } from '@/lib/api/matchplay'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import '@/app/styles/palalive-tokens.css'
@@ -29,6 +29,9 @@ export default function MatchplayStandingsPage() {
   const [standings, setStandings] = useState<StandingsPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [completedRounds, setCompletedRounds] = useState(0)
+  const [totalRounds, setTotalRounds] = useState(0)
+  const [liveRoundNumber, setLiveRoundNumber] = useState<number | null>(null)
 
   useEffect(() => {
     if (!eventId) return
@@ -37,7 +40,10 @@ export default function MatchplayStandingsPage() {
       setLoading(true)
       setError(null)
       try {
-        const data = await callMatchplayPlayer({ action: 'standings', event_id: eventId })
+        const [data, roundsData] = await Promise.all([
+          callMatchplayPlayer({ action: 'standings', event_id: eventId }),
+          callMatchplayRound({ action: 'list_rounds', event_id: eventId }),
+        ])
         if (cancelled) return
         if (data.success === false) {
           setError(typeof data.error === 'string' ? data.error : 'Failed to load standings')
@@ -46,6 +52,17 @@ export default function MatchplayStandingsPage() {
         } else {
           setError(data.error || 'Failed to load standings')
         }
+
+        const roundRows = (roundsData.rounds ?? []) as {
+          round_number?: number
+          status?: string
+        }[]
+        setTotalRounds(roundRows.length)
+        setCompletedRounds(roundRows.filter((r) => r.status === 'completed').length)
+        const live =
+          roundRows.find((r) => r.status === 'in_progress') ??
+          roundRows.find((r) => r.status !== 'completed')
+        setLiveRoundNumber(live?.round_number ?? null)
       } catch {
         if (!cancelled) setError('Failed to load standings')
       }
@@ -69,6 +86,13 @@ export default function MatchplayStandingsPage() {
     <div className="palalive-staff-shell">
       <StaffAppFrame venueSlug={venueSlug ?? undefined} onBack={goBackToEventHub}>
         <h1 className="palalive-staff-page-title">Standings</h1>
+        {totalRounds > 0 ? (
+          <p className="palalive-staff-round-status">
+            {liveRoundNumber != null
+              ? `Round ${liveRoundNumber} of ${totalRounds} · ${completedRounds} completed`
+              : `${completedRounds} of ${totalRounds} rounds completed`}
+          </p>
+        ) : null}
 
         <div className="palalive-staff-body">
           {error && <p className="palalive-staff-error">{error}</p>}

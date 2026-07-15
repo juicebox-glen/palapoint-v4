@@ -71,7 +71,8 @@ export function StaffFlowHeader({
   const showBack = !isHomeScreen && (onBack != null || backHref != null)
 
   const logoBranding = useMemo(() => brandingForLogo(matchplayBranding), [matchplayBranding])
-  const logoNode = <VenueLogo branding={logoBranding} />
+  // Staff chrome is PalaPoint product UI — use the mockup brand-mark, not venue logos.
+  const logoNode = <VenueLogo product branding={logoBranding} />
   const logo =
     staffHomeHref != null ? (
       <Link href={staffHomeHref} className="staff-flow-home-link" aria-label="Staff home">

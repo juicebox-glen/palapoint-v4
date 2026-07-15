@@ -2,9 +2,9 @@
 
 import { useEffect, type CSSProperties } from 'react'
 
-import { SpectatorEndgame } from '@/components/displays/spectator/SpectatorEndgame'
+import { PalaLiveModeWaiting } from '@/components/palalive/PalaLiveModeWaiting'
+import { PalaLiveShowcaseEndgameView } from '@/components/palalive/PalaLiveShowcaseEndgameView'
 import { PalaLiveShowcaseView } from '@/components/palalive/PalaLiveShowcaseView'
-import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 import { LIVE_MATCH_FULL_SELECT } from '@/lib/live-match-select'
 import { useSpectatorEndgame } from '@/lib/hooks/useSpectatorEndgame'
@@ -21,10 +21,8 @@ interface PalaLiveShowcaseProps {
 }
 
 /**
- * setup and in_progress share one live UI (the mockup only designs the
- * in-progress scoreboard — 0-0 reads fine pregame). completed matches still
- * go through the existing SpectatorEndgame/MatchWinHero brief hold since no
- * PalaLive-styled endgame treatment exists in the mockup yet.
+ * setup and in_progress share one live UI. Completed matches hold briefly on
+ * PalaLiveShowcaseEndgameView (same shell / bottom bar as live).
  */
 export function PalaLiveShowcase({ courtId, matchId, displayName, branding, brandingStyles }: PalaLiveShowcaseProps) {
   // Scoped to the staff-selected match, not just "any match finishing on this court" —
@@ -54,16 +52,25 @@ export function PalaLiveShowcase({ courtId, matchId, displayName, branding, bran
   }, [hasContent])
 
   if (endgameMatch) {
-    return <SpectatorEndgame match={endgameMatch} branding={branding} brandingStyles={brandingStyles ?? {}} />
+    return (
+      <PalaLiveShowcaseEndgameView
+        match={endgameMatch}
+        branding={branding}
+        brandingStyles={brandingStyles}
+      />
+    )
   }
 
   if (!match) {
     return (
-      <ScreenModePlaceholder
+      <PalaLiveModeWaiting
         mode="showcase_game"
         displayName={displayName}
+        branding={branding}
         brandingStyles={brandingStyles}
-        subtitle={error ? 'Connection issue — retrying…' : isLoading ? 'Loading match…' : 'Waiting for staff to start a match.'}
+        subtitle={
+          error ? 'Connection issue — retrying…' : isLoading ? 'Loading match…' : 'Waiting for staff to start a match.'
+        }
       />
     )
   }

@@ -6,6 +6,7 @@ import { PalaLiveScrollList } from '@/components/palalive/PalaLiveScrollList'
 import { PalaLiveShell } from '@/components/palalive/PalaLiveShell'
 import { PalaLiveWeatherStub } from '@/components/palalive/PalaLiveWeatherStub'
 import { PlayerRow } from '@/components/palalive/PlayerRow'
+import { SocialEndgameTopThree } from '@/components/palalive/SocialEndgameTopThree'
 import type { SocialNightEventData, SocialNightPlayer } from '@/lib/palalive/social-types'
 import type { VenueBranding } from '@/lib/venue'
 
@@ -20,7 +21,7 @@ interface PalaLiveSocialViewProps {
 const PANEL_COPY = {
   pregame: { label: 'Players', panelClass: '' },
   ingame: { label: 'Live Scores', panelClass: ' palalive-social-panel--solid' },
-  postgame: { label: 'Final Results', panelClass: ' palalive-social-panel--final' },
+  postgame: { label: 'Final Standings', panelClass: ' palalive-social-panel--solid' },
 } as const
 
 function rightPanelRows(phase: SocialNightEventData['phase'], roster: SocialNightPlayer[], standings: SocialNightPlayer[]) {
@@ -28,7 +29,14 @@ function rightPanelRows(phase: SocialNightEventData['phase'], roster: SocialNigh
     return roster.map((p) => <PlayerRow key={p.id} name={p.name} photoUrl={p.photoUrl} />)
   }
   if (phase === 'postgame') {
-    return standings.map((p) => <PlayerRow key={p.id} name={p.name} photoUrl={p.photoUrl} chipLabel={`#${p.rank}`} />)
+    return standings.map((p) => (
+      <PlayerRow
+        key={p.id}
+        name={p.name}
+        photoUrl={p.photoUrl}
+        chipLabel={String(p.totalPoints)}
+      />
+    ))
   }
   return standings.map((p) => (
     <PlayerRow
@@ -36,7 +44,11 @@ function rightPanelRows(phase: SocialNightEventData['phase'], roster: SocialNigh
       name={p.name}
       photoUrl={p.photoUrl}
       chipLabel={String(p.totalPoints)}
-      delta={p.rankDelta ? { direction: p.rankDelta > 0 ? 'up' : 'down', value: Math.abs(p.rankDelta) } : null}
+      delta={
+        p.rankDelta != null && p.rankDelta !== 0
+          ? { direction: p.rankDelta > 0 ? 'up' : 'down', value: Math.abs(p.rankDelta) }
+          : null
+      }
     />
   ))
 }
@@ -45,6 +57,7 @@ export function PalaLiveSocialView({ branding, brandingStyles, data }: PalaLiveS
   const { phase, eventName, roundNumber, totalRounds, matches, roster, standings } = data
   const copy = PANEL_COPY[phase]
   const rowCount = phase === 'pregame' ? roster.length : standings.length
+  const isEndgame = phase === 'postgame'
 
   return (
     <PalaLiveShell
@@ -58,7 +71,7 @@ export function PalaLiveSocialView({ branding, brandingStyles, data }: PalaLiveS
       }
       mainStage={
         <>
-          {phase !== 'postgame' ? (
+          {!isEndgame ? (
             <div className="palalive-social-ambient" aria-hidden="true">
               <div className="palalive-social-ambient__wash" />
               <div className="palalive-social-ambient__orb palalive-social-ambient__orb--a" />
@@ -67,27 +80,36 @@ export function PalaLiveSocialView({ branding, brandingStyles, data }: PalaLiveS
               <div className="palalive-social-ambient__vignette" />
             </div>
           ) : null}
-          <div className="palalive-event-card">
-            <div className="palalive-event-header">
-              <span className="palalive-event-title">{eventName}</span>
-              <span className="palalive-event-round">
-                Round {roundNumber}/{totalRounds}
-              </span>
+
+          {isEndgame ? (
+            <SocialEndgameTopThree eventName={eventName} standings={standings} />
+          ) : (
+            <div className="palalive-event-card">
+              <div className="palalive-event-header">
+                <span className="palalive-event-title">{eventName}</span>
+                <span className="palalive-event-round">
+                  Round {roundNumber}/{totalRounds}
+                </span>
+              </div>
+              <div className="palalive-event-grid">
+                {matches.length === 0 ? (
+                  <div className="palalive-event-grid-empty">
+                    {phase === 'pregame'
+                      ? 'No fixtures yet — round 1 will appear when generated.'
+                      : 'No matches this round.'}
+                  </div>
+                ) : (
+                  matches.map((match) => <FixtureCard key={match.id} match={match} variant={phase} />)
+                )}
+              </div>
             </div>
-            <div className="palalive-event-grid">
-              {matches.length === 0 ? (
-                <div className="palalive-event-grid-empty">
-                  {phase === 'pregame' ? 'No fixtures yet — round 1 will appear when generated.' : 'No matches this round.'}
-                </div>
-              ) : (
-                matches.map((match) => <FixtureCard key={match.id} match={match} variant={phase} />)
-              )}
-            </div>
-          </div>
+          )}
 
           <div className={`palalive-social-panel${copy.panelClass}`}>
             <div className="palalive-stack-header">
-              <span className="palalive-title-label">{copy.label}</span>
+              <span className="palalive-title-label">
+                {phase === 'ingame' ? `${copy.label} · Round ${roundNumber}` : copy.label}
+              </span>
               <span className="palalive-title-count">{rowCount} Total</span>
             </div>
             <PalaLiveScrollList>{rightPanelRows(phase, roster, standings)}</PalaLiveScrollList>

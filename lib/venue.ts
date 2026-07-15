@@ -1,8 +1,11 @@
 import type { CSSProperties } from 'react'
 import { supabase } from './supabase'
 
+/** PalaPoint / PalaLive product mark (design-mockups brand-mark). */
+export const PALAPOINT_LOGO_SRC = '/images/pala-live-logo.png'
+
 /** Bundled fallback when venue branding has no logo or remote URL fails. */
-export const DEFAULT_VENUE_LOGO_SRC = '/images/squareone-logo.png'
+export const DEFAULT_VENUE_LOGO_SRC = PALAPOINT_LOGO_SRC
 
 /** Square One court team colours (matches gradient-wave-drift fallbacks). */
 export const DEFAULT_TEAM_A_COLOR = '#3A5FF9'
@@ -66,6 +69,26 @@ export function brandingStylesFor(branding: VenueBranding | null | undefined): C
     '--brand-primary': teamA,
     '--brand-primary-hover': shiftHex(teamA, -16),
     '--brand-primary-glow': `color-mix(in srgb, ${teamA} 30%, transparent)`,
+    ...palaLiveTeamStylesFor(branding),
+  } as CSSProperties
+}
+
+/**
+ * Team colours only for PalaLive TV + staff shells.
+ * Does NOT override `--brand-primary` / `--accent` — those stay on the product
+ * lime token from `palalive-tokens.css` so venue blue never paints product chrome.
+ */
+export function palaLiveBrandingStylesFor(
+  branding: VenueBranding | null | undefined
+): CSSProperties {
+  return palaLiveTeamStylesFor(branding) as CSSProperties
+}
+
+function palaLiveTeamStylesFor(branding: VenueBranding | null | undefined): Record<string, string> {
+  const teamA = branding?.primaryColor || DEFAULT_TEAM_A_COLOR
+  const teamB = branding?.secondaryColor || DEFAULT_TEAM_B_COLOR
+
+  return {
     '--team-a': teamA,
     '--team-a-light': shiftHex(teamA, 24),
     '--team-a-dark': shiftHex(teamA, -16),
@@ -78,7 +101,7 @@ export function brandingStylesFor(branding: VenueBranding | null | undefined): C
     '--team-b-bg': `color-mix(in srgb, ${teamB} 15%, transparent)`,
     '--team-b-glow': `color-mix(in srgb, ${teamB} 40%, transparent)`,
     '--team-b-color': teamB,
-  } as CSSProperties
+  }
 }
 
 function mapCourtRowToBranding(data: Record<string, unknown>): VenueBranding {

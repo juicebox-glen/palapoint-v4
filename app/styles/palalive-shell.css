@@ -17,7 +17,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: var(--panel);
+  background: var(--stage);
   border-radius: 20px;
   overflow: hidden;
 }
@@ -28,19 +28,26 @@
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-rows: 1fr 60px;
+  grid-template-rows: minmax(0, 1fr) 60px;
   row-gap: 40px;
   padding: 60px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .palalive-panels {
   display: grid;
   grid-template-columns: 1120px 580px;
   column-gap: 60px;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  align-items: stretch;
 }
 
 .palalive-bottom-bar {
+  height: 60px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;

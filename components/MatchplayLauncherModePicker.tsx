@@ -36,7 +36,7 @@ export function MatchplayLauncherModePicker({ staffVenueSlug }: MatchplayLaunche
     : '/matchplay/new'
 
   return (
-    <div className="palalive-staff-shell palalive-staff-list-group">
+    <div className="palalive-staff-list-group">
       <p className="palalive-staff-section-label">Select game mode</p>
 
       <Link href={americanoHref} className="palalive-staff-list-row">

@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, type CSSProperties } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
-import { supabase, getMatchplayVenueId } from '@/lib/supabase'
+import { supabase, getMatchplayVenueId, getVenueIdBySlug } from '@/lib/supabase'
 import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
 import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
 import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
@@ -44,7 +43,6 @@ function generateEventName(): string {
 export default function MatchplayPlayersPage() {
   const router = useRouter()
   const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
-  const branding = useMatchplaySetupBranding()
   const [processingSlot, setProcessingSlot] = useState<number | null>(null)
 
   const [config, setConfig] = useState<MatchplaySetupSession | null>(null)
@@ -54,8 +52,14 @@ export default function MatchplayPlayersPage() {
   const [venueId, setVenueId] = useState<string | null>(null)
 
   useEffect(() => {
-    void getMatchplayVenueId().then(setVenueId)
-  }, [])
+    void (async () => {
+      if (venueSlug) {
+        setVenueId(await getVenueIdBySlug(venueSlug))
+        return
+      }
+      setVenueId(await getMatchplayVenueId())
+    })()
+  }, [venueSlug])
 
   useEffect(() => {
     const stored = sessionStorage.getItem(SESSION_KEY)
@@ -155,9 +159,16 @@ export default function MatchplayPlayersPage() {
     setError(null)
 
     try {
-      const vid = venueId ?? (await getMatchplayVenueId())
+      const vid =
+        (venueSlug ? await getVenueIdBySlug(venueSlug) : null) ??
+        venueId ??
+        (await getMatchplayVenueId())
       if (!vid) {
-        throw new Error('No venue configured for matchplay')
+        throw new Error(
+          venueSlug
+            ? `No venue found for “${venueSlug}”. Check venues.slug matches the staff URL.`
+            : 'No venue configured for matchplay'
+        )
       }
 
       const courtLabels = config.selectedCourts.map((c) => `Court ${c}`)
@@ -304,7 +315,9 @@ export default function MatchplayPlayersPage() {
 
       const screenLink = await linkVenueScreenToSocialNight(eventId)
       if (!screenLink.ok) {
-        console.warn('[MatchplaySetup] Venue screen link failed:', screenLink.error)
+        throw new Error(
+          screenLink.error ?? 'Event created but the venue screen could not be linked.'
+        )
       }
 
       console.log('[MatchplaySetup] Navigating to event hub…')
@@ -322,16 +335,9 @@ export default function MatchplayPlayersPage() {
     }
   }
 
-  const brandVars =
-    branding?.primaryColor != null
-      ? ({
-          '--brand-primary': branding.primaryColor,
-        } as CSSProperties)
-      : undefined
-
   if (!config) {
     return (
-      <div className="palalive-staff-shell" style={brandVars}>
+      <div className="palalive-staff-shell">
         <p className="palalive-staff-loading-text">Loading…</p>
       </div>
     )
@@ -342,7 +348,6 @@ export default function MatchplayPlayersPage() {
       <StaffAppFrame
         venueSlug={venueSlug ?? undefined}
         onBack={() => router.push(staffPath('/new'))}
-        style={brandVars}
         footer={
           <button
             type="button"

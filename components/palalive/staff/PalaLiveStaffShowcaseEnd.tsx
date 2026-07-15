@@ -67,40 +67,42 @@ export function PalaLiveStaffShowcaseEnd({
       : `${formatTeamScoreboard(match.team_a_player_1, match.team_a_player_2, 1)} Win`
 
   return (
-    <div className="palalive-staff-body">
-      <div className="palalive-staff-status-row">
-        <div className="palalive-staff-live is-finished">
-          <span className="palalive-staff-live-dot" />
-          Finished
+    <>
+      <div className="palalive-staff-body">
+        <div className="palalive-staff-status-row">
+          <div className="palalive-staff-live is-finished">
+            <span className="palalive-staff-live-dot" />
+            Finished
+          </div>
+          <div className="palalive-staff-court">{courtName}</div>
         </div>
-        <div className="palalive-staff-court">{courtName}</div>
-      </div>
 
-      {error ? <p className="palalive-staff-error">{error}</p> : null}
+        {error ? <p className="palalive-staff-error">{error}</p> : null}
 
-      <div className="palalive-staff-matchup-card">
-        {winnerSide ? (
-          <>
-            <div className="palalive-staff-win-avatars">
-              {winnerPlayersFiltered.map((p) => (
-                <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
-              ))}
-            </div>
-            <p className="palalive-staff-win-line">{winLine}</p>
-          </>
-        ) : null}
-        <p className="palalive-staff-score-line">
-          {rows.map((row, i) => {
-            const singleSet = rows.length === 1
-            return (
-              <span className="palalive-staff-score-set" key={i}>
-                <span className={scoreNumClass('a', row, winnerSide, singleSet)}>{row.a}</span>
-                <span className="palalive-staff-score-hyphen">-</span>
-                <span className={scoreNumClass('b', row, winnerSide, singleSet)}>{row.b}</span>
-              </span>
-            )
-          })}
-        </p>
+        <div className="palalive-staff-matchup-card">
+          {winnerSide ? (
+            <>
+              <div className="palalive-staff-win-avatars">
+                {winnerPlayersFiltered.map((p) => (
+                  <PalaLiveAvatar key={p.name} name={p.name} photoUrl={p.photo} />
+                ))}
+              </div>
+              <p className="palalive-staff-win-line">{winLine}</p>
+            </>
+          ) : null}
+          <p className="palalive-staff-score-line">
+            {rows.map((row, i) => {
+              const singleSet = rows.length === 1
+              return (
+                <span className="palalive-staff-score-set" key={i}>
+                  <span className={scoreNumClass('a', row, winnerSide, singleSet)}>{row.a}</span>
+                  <span className="palalive-staff-score-hyphen">-</span>
+                  <span className={scoreNumClass('b', row, winnerSide, singleSet)}>{row.b}</span>
+                </span>
+              )
+            })}
+          </p>
+        </div>
       </div>
 
       <div className="palalive-staff-footer">
@@ -111,6 +113,6 @@ export function PalaLiveStaffShowcaseEnd({
           {actionLoading === 'rematch' ? '…' : 'Rematch'}
         </button>
       </div>
-    </div>
+    </>
   )
 }

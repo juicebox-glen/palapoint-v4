@@ -14,7 +14,7 @@ import {
   matchPreviewSetsBadgeLabel,
 } from '@/components/shared/MatchConfirmation'
 import { EMPTY_PLAYER_PHOTOS, type GameMode, type MatchState, type PlayerPhotosState } from '@/lib/types/match'
-import { brandingStylesFor, type VenueBranding } from '@/lib/venue'
+import { brandingStylesFor, palaLiveBrandingStylesFor, type VenueBranding } from '@/lib/venue'
 import { formatTeamDisplay } from '@/lib/utils/name-format'
 import { shufflePlayersWithPhotos } from '@/lib/utils/shuffle-players'
 import { isMatchEndgame } from '@/lib/utils/match-status'
@@ -160,6 +160,9 @@ export default function ControlPanel({
   const useActiveOnlyCourtLoad = freshEntryActiveOnly && !resumeMatchId
   const displayCourtName = courtName ?? branding?.courtName ?? 'Court 1'
   const panelClass = embedded ? 'control-panel control-panel--embedded' : 'control-panel'
+  const surfaceStyles = isPalaLiveStaff
+    ? palaLiveBrandingStylesFor(branding)
+    : brandingStylesFor(branding)
   const isPreview = Boolean(preview)
   const [match, setMatch] = useState<MatchState | null>(() => initialMatchFromPreview(preview))
   const [loading, setLoading] = useState(() => !isPreview)
@@ -273,10 +276,16 @@ export default function ControlPanel({
           setMatch(updatedMatch)
           if (updatedMatch.status === 'in_progress') setStage('live')
         } else if (
-          !useActiveOnlyCourtLoad &&
-          (updatedMatch.status === 'completed' || updatedMatch.status === 'abandoned')
+          updatedMatch.status === 'completed' ||
+          updatedMatch.status === 'abandoned'
         ) {
-          setMatch(updatedMatch)
+          // Always apply endgame for the match we're controlling — even when
+          // freshEntryActiveOnly ignores other finished rows for initial load.
+          setMatch((prev) => {
+            if (prev?.id === updatedMatch.id) return updatedMatch
+            if (!useActiveOnlyCourtLoad) return updatedMatch
+            return prev
+          })
         }
       }
     )
@@ -309,8 +318,8 @@ export default function ControlPanel({
             if (m.status === 'in_progress') setStage('live')
             else if (m.status === 'setup') setStage('preview')
           } else {
-            setMatch(null)
-            setStage('setup')
+            // Active-only load finds nothing after end — keep local endgame UI.
+            setMatch((prev) => (prev && isMatchEndgame(prev) ? prev : null))
           }
         })
       }
@@ -488,8 +497,22 @@ export default function ControlPanel({
         body: JSON.stringify({ action: 'end', court_id: courtId, reason: 'abandoned' }),
       })
       const data = await response.json()
-      if (!data.success) setError(data.error || 'Failed to end match')
-      else if (onMatchEnded && match?.id) await onMatchEnded(match.id)
+      if (!data.success) {
+        setError(data.error || 'Failed to end match')
+      } else {
+        const endedId =
+          typeof data.match_id === 'string' ? data.match_id : match?.id ?? null
+        // Edge end action does not return the full row; apply terminal status locally
+        // so PalaLive staff leaves the live screen even if realtime is filtered.
+        if (match && endedId && match.id === endedId) {
+          setMatch({
+            ...match,
+            status: 'abandoned',
+            completed_at: new Date().toISOString(),
+          })
+        }
+        if (onMatchEnded && endedId) await onMatchEnded(endedId)
+      }
     } catch (err) {
       console.error('Error ending match:', err)
       setError('Failed to end match')
@@ -569,7 +592,7 @@ export default function ControlPanel({
   const renderSetupForm = () => {
     if (isPalaLiveStaff) {
       return (
-        <div className="palalive-staff-shell">
+        <div className="palalive-staff-shell" style={surfaceStyles}>
           <PalaLiveStaffShowcaseSetup
             gameMode={gameMode}
             setGameMode={setGameMode}
@@ -622,7 +645,7 @@ export default function ControlPanel({
   if (isPreview && preview?.screen === 'loading') {
     if (isPalaLiveStaff) {
       return (
-        <div className="palalive-staff-shell">
+        <div className="palalive-staff-shell" style={surfaceStyles}>
           <PalaLiveStaffLoading />
         </div>
       )
@@ -640,7 +663,7 @@ export default function ControlPanel({
   if (loading) {
     if (isPalaLiveStaff) {
       return (
-        <div className="palalive-staff-shell">
+        <div className="palalive-staff-shell" style={surfaceStyles}>
           <PalaLiveStaffLoading />
         </div>
       )
@@ -658,14 +681,14 @@ export default function ControlPanel({
   if (error && !match) {
     if (isPalaLiveStaff) {
       return (
-        <div className="palalive-staff-shell">
+        <div className="palalive-staff-shell" style={surfaceStyles}>
           <p className="palalive-staff-error">{error}</p>
         </div>
       )
     }
     if (!showSetupHeader) {
       return (
-        <div className={panelClass} style={brandingStylesFor(branding)}>
+        <div className={panelClass} style={surfaceStyles}>
           <div className="player-flow-loading">
             <p style={{ fontSize: '1.5rem', color: 'var(--error)', textAlign: 'center' }}>{error}</p>
           </div>
@@ -688,7 +711,7 @@ export default function ControlPanel({
   if (isMatchEndgame(match)) {
     if (isPalaLiveStaff) {
       return (
-        <div className="palalive-staff-shell">
+        <div className="palalive-staff-shell" style={surfaceStyles}>
           <PalaLiveStaffShowcaseEnd
             match={match}
             courtName={displayCourtName}
@@ -735,7 +758,7 @@ export default function ControlPanel({
     if (stage === 'preview') {
       if (isPalaLiveStaff) {
         return (
-          <div className="palalive-staff-shell">
+          <div className="palalive-staff-shell" style={surfaceStyles}>
             <PalaLiveStaffShowcaseConfirm
               match={match}
               courtName={displayCourtName}
@@ -772,7 +795,7 @@ export default function ControlPanel({
 
   if (isPalaLiveStaff) {
     return (
-      <div className="palalive-staff-shell">
+      <div className="palalive-staff-shell" style={surfaceStyles}>
         <PalaLiveStaffShowcaseLive
           match={match}
           courtName={displayCourtName}
@@ -793,7 +816,7 @@ export default function ControlPanel({
   }
 
   return (
-    <div className={panelClass} style={brandingStylesFor(branding)}>
+    <div className={panelClass} style={surfaceStyles}>
       <div className="control-container control-container--preview">
         <div className="control-preview">
           {showSetupHeader ? <SetupScreenHeader branding={branding} /> : null}

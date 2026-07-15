@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 
 import { VenueScreenDisplay } from '@/components/venue-screen/VenueScreenDisplay'
@@ -14,5 +15,9 @@ interface ScreenPageProps {
 export default async function ScreenPage({ params }: ScreenPageProps) {
   const { screenSlug } = await params
 
-  return <VenueScreenDisplay screenSlug={screenSlug} />
+  return (
+    <Suspense fallback={null}>
+      <VenueScreenDisplay screenSlug={screenSlug} />
+    </Suspense>
+  )
 }

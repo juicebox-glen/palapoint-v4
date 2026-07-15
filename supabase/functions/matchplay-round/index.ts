@@ -336,6 +336,24 @@ Deno.serve(async (req) => {
         const m = match as MatchRow;
         const eventId = m.event_id;
 
+        const { data: roundRow, error: roundErr } = await supabase
+          .from('matchplay_rounds')
+          .select('id, status, round_number')
+          .eq('id', m.round_id)
+          .maybeSingle();
+
+        if (roundErr || !roundRow) {
+          return errorResponse('round_not_found', 404);
+        }
+
+        // Future rounds stay view-only until staff taps Next Round (start_round).
+        if (roundRow.status === 'pending') {
+          return errorResponse(
+            'round_not_started',
+            400
+          );
+        }
+
         const { data: event, error: eventErr } = await supabase
           .from('matchplay_events')
           .select('scoring_type, win_points, draw_points, loss_points')

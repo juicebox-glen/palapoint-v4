@@ -2,8 +2,8 @@
 
 import { useEffect, type CSSProperties } from 'react'
 
+import { PalaLiveModeWaiting } from '@/components/palalive/PalaLiveModeWaiting'
 import { PalaLiveSocialView } from '@/components/palalive/PalaLiveSocialView'
-import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useSocialNightEvent } from '@/lib/palalive/use-social-night-event'
 import type { VenueBranding } from '@/lib/venue'
 
@@ -35,9 +35,10 @@ export function PalaLiveSocial({ eventId, displayName, branding, brandingStyles 
 
   if (!data) {
     return (
-      <ScreenModePlaceholder
+      <PalaLiveModeWaiting
         mode="social_night"
         displayName={displayName}
+        branding={branding}
         brandingStyles={brandingStyles}
         subtitle={error ?? (loading ? 'Loading event…' : 'Waiting for staff to select an event.')}
       />

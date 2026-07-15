@@ -18,7 +18,7 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
-import { resetVenueScreenAfterEventEnd } from '@/lib/venue-screen-staff-context'
+import { scheduleSocialNightScreenIdleReset } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 
@@ -186,6 +186,8 @@ function MatchplayHubScoreModal({
   players,
   isAmericano,
   maxScore,
+  roundNumber,
+  totalRounds,
   draft,
   isSubmitting,
   onClose,
@@ -196,6 +198,8 @@ function MatchplayHubScoreModal({
   players: MatchplayPlayer[]
   isAmericano: boolean
   maxScore: number
+  roundNumber: number
+  totalRounds: number
   draft: { a: number; b: number } | undefined
   isSubmitting: boolean
   onClose: () => void
@@ -309,7 +313,9 @@ function MatchplayHubScoreModal({
         <h3 className="palalive-staff-score-modal-title" id="matchplay-score-modal-title">
           {scoreModalHeading}
         </h3>
-        <p className="palalive-staff-score-modal-court">{courtLabel}</p>
+        <p className="palalive-staff-score-modal-court">
+          Round {roundNumber}/{totalRounds || 1} · {courtLabel}
+        </p>
 
         <div className="palalive-staff-score-grid" role="group" aria-label="Pick score">
           {Array.from({ length: maxScore + 1 }, (_, i) => i).map((s) => (
@@ -355,6 +361,7 @@ function HubMatchCard({
   draft,
   isSetup,
   canEditLineup,
+  canEnterScore,
   onOpenScore,
   onEditLineup,
 }: {
@@ -363,6 +370,8 @@ function HubMatchCard({
   draft: { a: number; b: number } | undefined
   isSetup: boolean
   canEditLineup: boolean
+  /** False for future (pending) rounds — fixtures are view-only until that round starts. */
+  canEnterScore: boolean
   onOpenScore: () => void
   onEditLineup: () => void
 }) {
@@ -418,6 +427,36 @@ function HubMatchCard({
                   EDIT
                 </button>
               )}
+            </span>
+            <span className="palalive-staff-result-avatar">—</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!canEnterScore) {
+    return (
+      <div className="palalive-staff-match-result is-future" aria-disabled>
+        <div className="palalive-staff-match-result-header">
+          <span className="palalive-staff-match-result-label">{courtLabel}</span>
+          <span className="palalive-staff-match-result-locked">Upcoming</span>
+        </div>
+        <div className="palalive-staff-match-result-body">
+          <div className="palalive-staff-match-result-team">
+            <span className="palalive-staff-match-result-names">
+              {teamAFullNames.map((name, i) => (
+                <span key={i}>{name}</span>
+              ))}
+            </span>
+            <span className="palalive-staff-result-avatar">—</span>
+          </div>
+          <div className="palalive-staff-match-divider">vs</div>
+          <div className="palalive-staff-match-result-team">
+            <span className="palalive-staff-match-result-names">
+              {teamBFullNames.map((name, i) => (
+                <span key={i}>{name}</span>
+              ))}
             </span>
             <span className="palalive-staff-result-avatar">—</span>
           </div>
@@ -687,6 +726,11 @@ export default function MatchplayEventPage() {
   const totalRounds = rounds.length
   const completedRoundsCount = rounds.filter((r) => r.status === 'completed').length
   const allRoundsComplete = rounds.length > 0 && rounds.every((r) => r.status === 'completed')
+  // Pending = not started yet — view fixtures only. Live + completed allow score / edits.
+  const canEnterScoreForViewingRound =
+    event?.status === 'in_progress' &&
+    viewingRound != null &&
+    (viewingRound.status === 'in_progress' || viewingRound.status === 'completed')
 
   const handleStartEvent = async () => {
     if (!eventId) return
@@ -720,7 +764,8 @@ export default function MatchplayEventPage() {
       if (!result.event) {
         throw new Error(result.error || 'Failed to end event')
       }
-      await resetVenueScreenAfterEventEnd(eventId)
+      // Keep Social Night linked so the TV can show Final Results, then idle.
+      scheduleSocialNightScreenIdleReset(eventId)
       setEvent(result.event as MatchplayEvent)
       router.push(staffPath(`/${eventId}/results`))
     } catch (err) {
@@ -926,7 +971,7 @@ export default function MatchplayEventPage() {
       <div className="palalive-staff-body">
 
       {rounds.length > 0 ? (
-      <nav className="palalive-staff-rounds" ref={roundTabsRef}>
+      <nav className="palalive-staff-rounds" ref={roundTabsRef} aria-label="Rounds">
         {rounds.map((round) => {
           const isActive = round.id === selectedRoundId
           const isCompleted = round.status === 'completed'
@@ -946,6 +991,20 @@ export default function MatchplayEventPage() {
       </nav>
       ) : null}
 
+      {viewingRound ? (
+        <p className="palalive-staff-round-status" aria-live="polite">
+          {event.status === 'setup'
+            ? `Setup · Round ${viewingRound.round_number} of ${totalRounds}`
+            : event.status === 'completed'
+              ? `Final · Round ${viewingRound.round_number} of ${totalRounds}`
+              : !canEnterScoreForViewingRound
+                ? `Upcoming · Round ${viewingRound.round_number} of ${totalRounds} · view only`
+                : viewingRound.status === 'completed' && !isFinalRound
+                  ? `Round ${viewingRound.round_number} complete · tap Next Round when ready`
+                  : `Live · Round ${viewingRound.round_number} of ${totalRounds}`}
+        </p>
+      ) : null}
+
       {error && <p className="palalive-staff-error">{error}</p>}
 
       {!viewingRound ? (
@@ -963,7 +1022,9 @@ export default function MatchplayEventPage() {
               draft={draftScores[match.id]}
               isSetup={isSetup}
               canEditLineup={canEditLineup}
+              canEnterScore={canEnterScoreForViewingRound}
               onOpenScore={() => {
+                if (!canEnterScoreForViewingRound) return
                 setScoreModalMatch(match)
                 setDraftScores((prev) => {
                   if (prev[match.id]) return prev
@@ -1019,6 +1080,8 @@ export default function MatchplayEventPage() {
           players={players}
           isAmericano={isAmericano}
           maxScore={maxScore}
+          roundNumber={viewingRound?.round_number ?? 1}
+          totalRounds={totalRounds}
           draft={draftScores[scoreModalMatch.id]}
           isSubmitting={submittingMatchId === scoreModalMatch.id}
           onClose={() => {

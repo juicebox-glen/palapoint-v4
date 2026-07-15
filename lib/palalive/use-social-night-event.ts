@@ -5,14 +5,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { callMatchplayEvent, callMatchplayPlayer, callMatchplayRound } from '@/lib/api/matchplay'
 import { formatPlayerName } from '@/lib/utils/name-format'
+import {
+  phaseFromEventStatus,
+  selectCurrentMatchplayRound,
+} from '@/lib/palalive/select-current-round'
 
 import type {
   SocialNightEventData,
   SocialNightMatch,
   SocialNightMatchPlayer,
-  SocialNightPhase,
   SocialNightPlayer,
 } from './social-types'
+
+/** Poll keeps TV in sync if Realtime is slow or unpublished for matchplay tables. */
+const SOCIAL_NIGHT_POLL_MS = 2500
 
 interface RawEvent {
   id: string
@@ -46,13 +52,8 @@ interface RawMatch {
 interface RawRound {
   id: string
   round_number: number
+  status: string
   matches?: RawMatch[]
-}
-
-function phaseFromStatus(status: string | undefined): SocialNightPhase {
-  if (status === 'completed') return 'postgame'
-  if (status === 'in_progress') return 'ingame'
-  return 'pregame'
 }
 
 function normalizePlayer(name: string | null | undefined, photoUrl: string | null | undefined): SocialNightMatchPlayer {
@@ -85,10 +86,8 @@ export interface UseSocialNightEventResult {
 }
 
 /**
- * Social Night data + Realtime, normalised for PalaLiveSocialView. Reuses the same
- * fetch/subscription pattern as MatchplayBoard (matchplay-event/player/round edge
- * functions, Realtime on matchplay_players/matches/events/rounds) rather than the
- * board's presentation logic.
+ * Social Night data + Realtime, normalised for PalaLiveSocialView.
+ * Reloads standings/fixtures on postgres_changes and a short poll fallback.
  */
 export function useSocialNightEvent(eventId: string | null): UseSocialNightEventResult {
   const [event, setEvent] = useState<RawEvent | null>(null)
@@ -100,7 +99,7 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
 
   // Rank-delta bookkeeping: baseline is the rank order from the moment the current
   // round started, not the previous Realtime tick — otherwise deltas would flicker
-  // with every point scored instead of reading "since this round began."
+  // with every score instead of reading "since this round began."
   const lastRoundNumberRef = useRef<number | null>(null)
   const currentRoundBaselineRef = useRef<Map<string, number> | null>(null)
   const pendingBaselineRef = useRef<Map<string, number> | null>(null)
@@ -115,8 +114,6 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
       setEvent(null)
       setError('Event not found')
     }
-    // Any other failure is treated as transient — keep showing the last known-good
-    // event instead of flickering to a placeholder on a routine network hiccup.
   }, [eventId])
 
   const loadStandings = useCallback(async () => {
@@ -139,16 +136,27 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
       setRounds([])
       return
     }
-    const sorted = [...list].sort((a, b) => (b.round_number ?? 0) - (a.round_number ?? 0))
+
+    // Ascending — matches staff hub. Matches loaded for every round so mid-event
+    // round switches and completed-score display stay accurate without a second hop.
+    const sorted = [...list].sort((a, b) => (a.round_number ?? 0) - (b.round_number ?? 0))
     const withMatches = await Promise.all(
       sorted.map(async (r) => {
         const getResult = await callMatchplayRound({ action: 'get_round', round_id: r.id })
-        const round = getResult.round as { matches?: RawMatch[] } | undefined
-        return { ...r, matches: round?.matches ?? [] }
+        const round = getResult.round as { matches?: RawMatch[]; status?: string } | undefined
+        return {
+          ...r,
+          status: round?.status ?? r.status ?? 'pending',
+          matches: round?.matches ?? [],
+        }
       })
     )
     setRounds(withMatches)
   }, [eventId])
+
+  const refreshLive = useCallback(async () => {
+    await Promise.all([loadEvent(), loadStandings(), loadRounds()])
+  }, [loadEvent, loadStandings, loadRounds])
 
   useEffect(() => {
     if (!eventId) {
@@ -158,8 +166,6 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
     lastRoundNumberRef.current = null
     currentRoundBaselineRef.current = null
     pendingBaselineRef.current = null
-    // Clear previous event's data so a screen switched to a different event never
-    // briefly renders stale cross-event fixtures/standings while the new fetch is in flight.
     setEvent(null)
     setStandingsRaw([])
     setRosterRaw([])
@@ -194,74 +200,74 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
     if (!eventId) return
 
     const chPlayers = supabase.channel(`palalive-social-players-${eventId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Realtime channel overload
     ;(chPlayers as any).on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'matchplay_players', filter: `event_id=eq.${eventId}` },
       () => {
-        loadStandings()
-        loadRoster()
+        void loadStandings()
+        void loadRoster()
       }
     )
     chPlayers.subscribe()
 
     const chMatches = supabase.channel(`palalive-social-matches-${eventId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Realtime channel overload
     ;(chMatches as any).on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'matchplay_matches', filter: `event_id=eq.${eventId}` },
       () => {
-        loadRounds()
-        loadStandings()
+        void loadRounds()
+        void loadStandings()
       }
     )
     chMatches.subscribe()
 
     const chEvents = supabase.channel(`palalive-social-events-${eventId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Realtime channel overload
     ;(chEvents as any).on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'matchplay_events', filter: `id=eq.${eventId}` },
       () => {
-        loadEvent()
-        loadRounds()
+        void loadEvent()
+        void loadRounds()
       }
     )
     chEvents.subscribe()
 
     const chRounds = supabase.channel(`palalive-social-rounds-${eventId}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Realtime channel overload
     ;(chRounds as any).on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'matchplay_rounds', filter: `event_id=eq.${eventId}` },
       () => {
-        loadRounds()
+        void loadRounds()
       }
     )
     chRounds.subscribe()
+
+    const poll = setInterval(() => {
+      void refreshLive()
+    }, SOCIAL_NIGHT_POLL_MS)
 
     return () => {
       supabase.removeChannel(chPlayers)
       supabase.removeChannel(chMatches)
       supabase.removeChannel(chEvents)
       supabase.removeChannel(chRounds)
+      clearInterval(poll)
     }
-  }, [eventId, loadEvent, loadStandings, loadRoster, loadRounds])
+  }, [eventId, loadEvent, loadStandings, loadRoster, loadRounds, refreshLive])
 
   if (!eventId || !event) {
     return { data: null, loading, error }
   }
 
-  const phase = phaseFromStatus(event.status)
-  const sortedRounds = rounds // already sorted desc by loadRounds
-  // Pregame always shows round 1's fixtures, even though rounds are pre-created up
-  // front and sortedRounds[0] is the event's highest round number, not the next one to play.
-  const currentRound =
-    phase === 'pregame'
-      ? (sortedRounds.find((r) => r.round_number === 1) ?? sortedRounds[sortedRounds.length - 1] ?? null)
-      : (sortedRounds[0] ?? null)
+  const phase = phaseFromEventStatus(event.status)
+  const currentRound = selectCurrentMatchplayRound(rounds, phase)
   const roundNumber = currentRound?.round_number ?? 1
-  const totalRounds = sortedRounds.length || 1
+  const totalRounds = rounds.length || 1
 
-  // Snapshot rank order at the start of a new round; diff against the previous round's baseline.
-  // Prefer the backend's tie-aware rank (shared rank for players level on points/game-difference)
-  // over array position, so tied players don't get a fake distinct rank or a phantom delta.
   const rankNow = new Map(standingsRaw.map((p, i) => [p.id, p.rank ?? i + 1]))
   if (lastRoundNumberRef.current !== roundNumber) {
     currentRoundBaselineRef.current = pendingBaselineRef.current
@@ -274,7 +280,8 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
   const standings: SocialNightPlayer[] = standingsRaw.map((p, i) => {
     const rank = p.rank ?? i + 1
     const previousRank = baseline?.get(p.id)
-    const rankDelta = previousRank != null && previousRank !== rank ? previousRank - rank : null
+    const rankDelta =
+      previousRank != null && previousRank !== rank ? previousRank - rank : null
     return {
       id: p.id,
       name: formatPlayerName(p.name, 'full'),

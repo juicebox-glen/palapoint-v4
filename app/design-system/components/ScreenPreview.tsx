@@ -25,7 +25,7 @@ interface ScreenPreviewProps {
 }
 
 const viewportSizes = {
-  mobile: { width: 375, height: 667, scale: 1 },
+  mobile: { width: 375, height: 812, scale: 1 },
   tablet: { width: 768, height: 1024, scale: 0.6 },
   tv: { width: TV_VIEWPORT_WIDTH, height: TV_VIEWPORT_HEIGHT, scale: 1 },
   court: { width: COURT_VIEWPORT_WIDTH, height: COURT_VIEWPORT_HEIGHT, scale: 1 },
@@ -46,6 +46,7 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
   const size = viewportSizes[effectiveViewport]
   const activeUrl = active?.url ?? ''
   const iframeSrc = withEmbedParam(activeUrl)
+  const isPhone = effectiveViewport === 'mobile'
 
   useEffect(() => {
     if (effectiveViewport !== 'tv' && effectiveViewport !== 'court') return
@@ -69,8 +70,29 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
     effectiveViewport === 'tv' || effectiveViewport === 'court'
       ? frameScale
       : size.scale
-  const frameWidth = size.width * displayScale
-  const frameHeight = size.height * displayScale
+  const frameHeight =
+    effectiveViewport === 'tv' || effectiveViewport === 'court'
+      ? size.height * displayScale
+      : isPhone
+        ? undefined
+        : size.height * displayScale
+
+  const iframe = (
+    <iframe
+      key={`${iframeSrc}-${effectiveViewport}`}
+      src={iframeSrc}
+      title={`${title} - ${activeState}`}
+      style={{
+        width: size.width,
+        height: size.height,
+        transform: isPhone ? undefined : `scale(${displayScale})`,
+        transformOrigin: 'top left',
+        border: 'none',
+        display: 'block',
+        background: '#000',
+      }}
+    />
+  )
 
   return (
     <div className="ds-screen-preview">
@@ -86,12 +108,19 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
                 : ' (1080p lounge TV). Scale below is for this page only — proportions match production.'}
             </p>
           ) : null}
+          {isPhone ? (
+            <p className="ds-screen-note">
+              Phone frame at {size.width}×{size.height} — same production staff chrome as the device.
+            </p>
+          ) : null}
         </div>
         <div className="ds-screen-meta">
           <span className="ds-viewport-label">{effectiveViewport.toUpperCase()}</span>
           <span className="ds-viewport-size">
             {size.width} × {size.height}
-            {effectiveViewport === 'tv' || effectiveViewport === 'court' ? ` · ${Math.round(displayScale * 100)}%` : null}
+            {effectiveViewport === 'tv' || effectiveViewport === 'court'
+              ? ` · ${Math.round(displayScale * 100)}%`
+              : null}
           </span>
         </div>
       </div>
@@ -111,31 +140,30 @@ export function ScreenPreview({ title, description, viewport, states }: ScreenPr
         </div>
       )}
 
-      <div
-        ref={frameRef}
-        className="ds-screen-frame"
-        style={{
-          width: '100%',
-          height: frameHeight,
-        }}
-      >
-        <iframe
-          key={`${iframeSrc}-${effectiveViewport}`}
-          src={iframeSrc}
-          title={`${title} - ${activeState}`}
+      {isPhone ? (
+        <div className="ds-phone-device" aria-hidden={false}>
+          <div className="ds-phone-device__shell">
+            <div className="ds-phone-device__notch" aria-hidden />
+            <div className="ds-phone-device__screen">{iframe}</div>
+            <div className="ds-phone-device__bar" aria-hidden />
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={frameRef}
+          className="ds-screen-frame"
           style={{
-            width: size.width,
-            height: size.height,
-            transform: `scale(${displayScale})`,
-            transformOrigin: 'top left',
-            border: 'none',
+            width: '100%',
+            height: frameHeight,
           }}
-        />
-      </div>
+        >
+          {iframe}
+        </div>
+      )}
 
       <div className="ds-screen-actions">
         <a href={activeUrl} target="_blank" rel="noopener noreferrer" className="ds-open-link">
-          Open at TV size ↗
+          {isPhone ? 'Open full screen ↗' : 'Open at TV size ↗'}
         </a>
       </div>
     </div>

@@ -1,0 +1,50 @@
+/* PalaLive mode-armed waiting — full-width hold inside the shared panels grid. */
+
+.palalive-waiting {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  height: 100%;
+}
+
+.palalive-waiting-card {
+  text-align: center;
+  max-width: 52rem;
+  padding: 2.5rem 3rem;
+}
+
+.palalive-waiting-kicker {
+  margin: 0 0 1.25rem;
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.palalive-waiting-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--display);
+  font-size: clamp(2.75rem, 5vw, 4.5rem);
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.palalive-waiting-screen {
+  margin: 0 0 1.25rem;
+  font-size: 1.35rem;
+  color: var(--mist);
+}
+
+.palalive-waiting-subtitle {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: var(--mist);
+}

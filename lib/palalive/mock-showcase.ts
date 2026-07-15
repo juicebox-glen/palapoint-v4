@@ -29,3 +29,22 @@ export const MOCK_SHOWCASE_MATCH: MatchState = {
   side_swap_enabled: true,
   session_id: null,
 }
+
+/** Completed match for DS Showcase · End preview (SpectatorEndgame hold). */
+export const MOCK_SHOWCASE_ENDGAME: MatchState = {
+  ...MOCK_SHOWCASE_MATCH,
+  id: 'mock-showcase-endgame',
+  status: 'completed',
+  current_set: 3,
+  team_a_points: 0,
+  team_b_points: 0,
+  team_a_games: 0,
+  team_b_games: 0,
+  set_scores: [
+    { team_a: 6, team_b: 4 },
+    { team_a: 3, team_b: 6 },
+    { team_a: 7, team_b: 5 },
+  ],
+  serving_team: 'a',
+  winner: 'a',
+}

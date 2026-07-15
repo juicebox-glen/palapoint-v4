@@ -56,47 +56,49 @@ export function PalaLiveStaffShowcaseLive({
   const busy = Boolean(actionLoading)
 
   return (
-    <div className="palalive-staff-body">
-      <div className="palalive-staff-status-row">
-        <div className="palalive-staff-live">
-          <span className="palalive-staff-live-dot" />
-          Live
+    <>
+      <div className="palalive-staff-body">
+        <div className="palalive-staff-status-row">
+          <div className="palalive-staff-live">
+            <span className="palalive-staff-live-dot" />
+            Live
+          </div>
+          <div className="palalive-staff-court">{courtName}</div>
         </div>
-        <div className="palalive-staff-court">{courtName}</div>
-      </div>
 
-      {error ? <p className="palalive-staff-error">{error}</p> : null}
+        {error ? <p className="palalive-staff-error">{error}</p> : null}
 
-      <div className="palalive-staff-scoreboard">
-        <div className="palalive-staff-scoreboard-cols">
-          <div className={`palalive-staff-scoreboard-col ${match.serving_team === 'a' ? 'is-serving' : ''}`}>
-            <span className="palalive-staff-scoreboard-team-name">{scoreboardNameA}</span>
-            <span className="palalive-staff-scoreboard-point">{pointsA}</span>
-            <div className="palalive-staff-scoreboard-set-dots">
-              {Array.from({ length: setsToWin }).map((_, i) => (
-                <span key={i} className={`palalive-staff-scoreboard-set-dot ${i < setsWonA ? 'is-won' : ''}`} aria-hidden />
-              ))}
+        <div className="palalive-staff-scoreboard">
+          <div className="palalive-staff-scoreboard-cols">
+            <div className={`palalive-staff-scoreboard-col ${match.serving_team === 'a' ? 'is-serving' : ''}`}>
+              <span className="palalive-staff-scoreboard-team-name">{scoreboardNameA}</span>
+              <span className="palalive-staff-scoreboard-point">{pointsA}</span>
+              <div className="palalive-staff-scoreboard-set-dots">
+                {Array.from({ length: setsToWin }).map((_, i) => (
+                  <span key={i} className={`palalive-staff-scoreboard-set-dot ${i < setsWonA ? 'is-won' : ''}`} aria-hidden />
+                ))}
+              </div>
+            </div>
+            <div className={`palalive-staff-scoreboard-col is-alt ${match.serving_team === 'b' ? 'is-serving' : ''}`}>
+              <span className="palalive-staff-scoreboard-team-name">{scoreboardNameB}</span>
+              <span className="palalive-staff-scoreboard-point">{pointsB}</span>
+              <div className="palalive-staff-scoreboard-set-dots">
+                {Array.from({ length: setsToWin }).map((_, i) => (
+                  <span key={i} className={`palalive-staff-scoreboard-set-dot ${i < setsWonB ? 'is-won' : ''}`} aria-hidden />
+                ))}
+              </div>
             </div>
           </div>
-          <div className={`palalive-staff-scoreboard-col is-alt ${match.serving_team === 'b' ? 'is-serving' : ''}`}>
-            <span className="palalive-staff-scoreboard-team-name">{scoreboardNameB}</span>
-            <span className="palalive-staff-scoreboard-point">{pointsB}</span>
-            <div className="palalive-staff-scoreboard-set-dots">
-              {Array.from({ length: setsToWin }).map((_, i) => (
-                <span key={i} className={`palalive-staff-scoreboard-set-dot ${i < setsWonB ? 'is-won' : ''}`} aria-hidden />
-              ))}
-            </div>
+          {match.is_tiebreak ? <span className="palalive-staff-scoreboard-tiebreak">Tiebreak</span> : null}
+          <div className="palalive-staff-scoreboard-games">
+            <span>{match.team_a_games}</span>
+            <span className="palalive-staff-scoreboard-games-dash">–</span>
+            <span>{match.team_b_games}</span>
           </div>
         </div>
-        {match.is_tiebreak ? <span className="palalive-staff-scoreboard-tiebreak">Tiebreak</span> : null}
-        <div className="palalive-staff-scoreboard-games">
-          <span>{match.team_a_games}</span>
-          <span className="palalive-staff-scoreboard-games-dash">–</span>
-          <span>{match.team_b_games}</span>
-        </div>
-      </div>
 
-      {pointSituation ? <span className="palalive-staff-point-badge">{pointSituation.type}</span> : null}
+        {pointSituation ? <span className="palalive-staff-point-badge">{pointSituation.type}</span> : null}
+      </div>
 
       <div className="palalive-staff-thumb-zone">
         <div className="palalive-staff-score-buttons">
@@ -137,6 +139,6 @@ export function PalaLiveStaffShowcaseLive({
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   )
 }

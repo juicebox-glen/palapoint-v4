@@ -1,0 +1,256 @@
+/* PalaLive design-system hub (/design-system/palalive/*) — separate from v4 ds-* */
+
+.pl-ds-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--void, #000);
+  color: var(--ink, #e9ecf1);
+  font-family: var(--sans, system-ui, sans-serif);
+}
+
+.pl-ds-shell--wide {
+  max-width: 1200px;
+}
+
+.pl-ds-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2.5rem;
+}
+
+.pl-ds-nav-legacy {
+  font-size: 0.875rem;
+  color: var(--mist, #8a8b93);
+  text-decoration: none;
+}
+
+.pl-ds-nav-legacy:hover {
+  color: var(--ink, #e9ecf1);
+}
+
+.pl-ds-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pl-ds-nav-link {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mist, #8a8b93);
+  text-decoration: none;
+  background: var(--card-inner, #323137);
+}
+
+.pl-ds-nav-link.is-active {
+  background: var(--accent, #cfef3a);
+  color: var(--void, #000);
+}
+
+.pl-ds-header {
+  margin-bottom: 2.5rem;
+}
+
+.pl-ds-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent, #cfef3a);
+}
+
+.pl-ds-header h1 {
+  margin: 0 0 12px;
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.pl-ds-header p {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-header a,
+.pl-ds-header code,
+.pl-ds-muted code,
+.pl-ds-list code {
+  color: var(--ink, #e9ecf1);
+}
+
+.pl-ds-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 3rem;
+}
+
+.pl-ds-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--card, #25242a);
+  border: var(--card-border, none);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.pl-ds-card:hover {
+  background: var(--card-inner, #323137);
+}
+
+.pl-ds-card-label {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.pl-ds-card-desc {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-section {
+  margin-bottom: 2.5rem;
+}
+
+.pl-ds-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.pl-ds-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--mist, #8a8b93);
+  line-height: 1.6;
+}
+
+.pl-ds-list li {
+  margin-bottom: 0.5rem;
+}
+
+.pl-ds-muted {
+  margin: 0 0 1rem;
+  color: var(--mist, #8a8b93);
+  line-height: 1.5;
+}
+
+.pl-ds-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.pl-ds-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pl-ds-swatch-chip {
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid var(--card-edge, #3a3942);
+}
+
+.pl-ds-swatch code {
+  font-size: 0.75rem;
+}
+
+.pl-ds-swatch span {
+  font-size: 0.8rem;
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-type-samples {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--card, #25242a);
+}
+
+.pl-ds-type-display {
+  margin: 0;
+  font-family: var(--display, sans-serif);
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.pl-ds-type-sans {
+  margin: 0;
+  font-family: var(--sans, sans-serif);
+  font-size: 1.25rem;
+}
+
+.pl-ds-type-mono {
+  margin: 0;
+  font-family: var(--mono, monospace);
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ScreenPreview inside PalaLive shell — keep contrast */
+.pl-ds-shell .ds-screen-preview {
+  background: var(--card, #25242a);
+  border: var(--card-border, none);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.pl-ds-shell .ds-screen-header h3 {
+  color: var(--ink, #e9ecf1);
+}
+
+.pl-ds-shell .ds-screen-header p,
+.pl-ds-shell .ds-screen-note {
+  color: var(--mist, #8a8b93);
+}
+
+.pl-ds-shell .ds-state-btn--active {
+  background: var(--accent, #cfef3a);
+  border-color: var(--accent, #cfef3a);
+  color: #0e1116;
+}
+
+.pl-ds-shell .ds-open-link {
+  color: var(--accent, #cfef3a);
+}
+
+.pl-ds-shell .ds-phone-device__shell {
+  background: linear-gradient(160deg, #3a3942 0%, #1a191e 45%, #0e1116 100%);
+}

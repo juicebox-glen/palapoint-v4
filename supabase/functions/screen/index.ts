@@ -1,6 +1,7 @@
 // ============================================================
 // PALAPOINT LIVE - VENUE SCREEN EDGE FUNCTION
-// Staff writes only — pairing code required. Returns full row or explicit error.
+// Staff writes — screen_slug required.
+// Pairing codes are temporarily disabled (screens are pre-provisioned).
 // ============================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -18,21 +19,21 @@ type ActiveMode = 'idle' | 'social_night' | 'showcase_game';
 interface SetModeRequest {
   action: 'set_mode';
   screen_slug: string;
-  pairing_code: string;
+  pairing_code?: string;
   active_mode: ActiveMode;
 }
 
 interface SetSocialNightRequest {
   action: 'set_social_night';
   screen_slug: string;
-  pairing_code: string;
+  pairing_code?: string;
   active_matchplay_event_id: string;
 }
 
 interface SetShowcaseGameRequest {
   action: 'set_showcase_game';
   screen_slug: string;
-  pairing_code: string;
+  pairing_code?: string;
   active_showcase_match_id: string;
 }
 
@@ -53,10 +54,10 @@ function errorResponse(
   return jsonResponse({ success: false, error, message }, status);
 }
 
-async function verifyScreenAccess(
+/** Resolve screen by slug. Pairing verification temporarily skipped. */
+async function resolveScreen(
   supabase: ReturnType<typeof createClient>,
-  screenSlug: string,
-  pairingCode: string
+  screenSlug: string
 ): Promise<
   | { ok: true; screenId: string; venueSlug: string }
   | { ok: false; response: Response }
@@ -79,31 +80,6 @@ async function verifyScreenAccess(
     return {
       ok: false,
       response: errorResponse('screen_not_found', 'No screen matches that slug.', 404),
-    };
-  }
-
-  const { data: secretRow, error: secretError } = await supabase
-    .from('venue_screen_secrets')
-    .select('pairing_code')
-    .eq('screen_id', screenRow.id)
-    .maybeSingle();
-
-  if (secretError) {
-    console.error('[screen] secret lookup:', secretError.message);
-    return {
-      ok: false,
-      response: errorResponse('lookup_failed', 'Could not verify pairing code.', 500),
-    };
-  }
-
-  if (!secretRow || secretRow.pairing_code !== pairingCode.trim()) {
-    return {
-      ok: false,
-      response: errorResponse(
-        'invalid_pairing_code',
-        'Pairing code did not match this screen.',
-        403
-      ),
     };
   }
 
@@ -137,13 +113,10 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (action === 'set_mode') {
-      const { screen_slug, pairing_code, active_mode } = body;
+      const { screen_slug, active_mode } = body;
 
       if (!screen_slug?.trim()) {
         return errorResponse('missing_screen_slug', 'screen_slug is required.', 400);
-      }
-      if (!pairing_code?.trim()) {
-        return errorResponse('missing_pairing_code', 'pairing_code is required.', 400);
       }
       if (!['idle', 'social_night', 'showcase_game'].includes(active_mode)) {
         return errorResponse(
@@ -153,18 +126,22 @@ Deno.serve(async (req) => {
         );
       }
 
-      const access = await verifyScreenAccess(supabase, screen_slug, pairing_code);
+      const access = await resolveScreen(supabase, screen_slug);
       if (!access.ok) return access.response;
 
       const patch: Record<string, unknown> = { active_mode };
 
+      // set_mode alone means "waiting" for that mode — clear active links.
+      // set_social_night / set_showcase_game attach the live event/match.
       if (active_mode === 'idle') {
         patch.active_matchplay_event_id = null;
         patch.active_showcase_match_id = null;
       } else if (active_mode === 'social_night') {
         patch.active_showcase_match_id = null;
+        patch.active_matchplay_event_id = null;
       } else if (active_mode === 'showcase_game') {
         patch.active_matchplay_event_id = null;
+        patch.active_showcase_match_id = null;
       }
 
       const { data: updated, error: updateError } = await supabase
@@ -187,13 +164,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'set_social_night') {
-      const { screen_slug, pairing_code, active_matchplay_event_id } = body;
+      const { screen_slug, active_matchplay_event_id } = body;
 
       if (!screen_slug?.trim()) {
         return errorResponse('missing_screen_slug', 'screen_slug is required.', 400);
-      }
-      if (!pairing_code?.trim()) {
-        return errorResponse('missing_pairing_code', 'pairing_code is required.', 400);
       }
       if (!active_matchplay_event_id?.trim()) {
         return errorResponse(
@@ -203,7 +177,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const access = await verifyScreenAccess(supabase, screen_slug, pairing_code);
+      const access = await resolveScreen(supabase, screen_slug);
       if (!access.ok) return access.response;
 
       const { data: eventRow, error: eventError } = await supabase
@@ -254,13 +228,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'set_showcase_game') {
-      const { screen_slug, pairing_code, active_showcase_match_id } = body;
+      const { screen_slug, active_showcase_match_id } = body;
 
       if (!screen_slug?.trim()) {
         return errorResponse('missing_screen_slug', 'screen_slug is required.', 400);
-      }
-      if (!pairing_code?.trim()) {
-        return errorResponse('missing_pairing_code', 'pairing_code is required.', 400);
       }
       if (!active_showcase_match_id?.trim()) {
         return errorResponse(
@@ -270,7 +241,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const access = await verifyScreenAccess(supabase, screen_slug, pairing_code);
+      const access = await resolveScreen(supabase, screen_slug);
       if (!access.ok) return access.response;
 
       const { data: screenRow, error: screenError } = await supabase

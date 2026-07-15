@@ -3,23 +3,21 @@ import {
   setVenueScreenShowcaseGame,
   setVenueScreenSocialNight,
 } from '@/lib/api/screen'
-import { SHOWCASE_VENUE_ENDGAME_HOLD_MS } from '@/lib/showcase-timing'
+import {
+  SHOWCASE_VENUE_ENDGAME_HOLD_MS,
+  SOCIAL_NIGHT_VENUE_ENDGAME_HOLD_MS,
+} from '@/lib/showcase-timing'
 
 const CONTEXT_KEY = 'palapoint_venue_screen_staff'
 
 /** Pending idle resets keyed by screen slug — survives staff navigation away. */
-const pendingShowcaseIdleResets = new Map<string, ReturnType<typeof setTimeout>>()
+const pendingIdleResets = new Map<string, ReturnType<typeof setTimeout>>()
 
 export interface VenueScreenStaffContext {
   venueSlug: string
   screenSlug: string
-  pairingCode: string
   linkedEventId?: string
   linkedShowcaseMatchId?: string
-}
-
-export function pairingStorageKey(venueSlug: string): string {
-  return `palapoint_staff_pairing_${venueSlug}`
 }
 
 export function formatVenueLabel(venueSlug: string): string {
@@ -42,12 +40,13 @@ export function getVenueScreenStaffContext(): VenueScreenStaffContext | null {
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw) as VenueScreenStaffContext
-    if (
-      typeof parsed.venueSlug === 'string' &&
-      typeof parsed.screenSlug === 'string' &&
-      typeof parsed.pairingCode === 'string'
-    ) {
-      return parsed
+    if (typeof parsed.venueSlug === 'string' && typeof parsed.screenSlug === 'string') {
+      return {
+        venueSlug: parsed.venueSlug,
+        screenSlug: parsed.screenSlug,
+        linkedEventId: parsed.linkedEventId,
+        linkedShowcaseMatchId: parsed.linkedShowcaseMatchId,
+      }
     }
   } catch {
     /* ignore */
@@ -60,25 +59,16 @@ export function clearVenueScreenStaffContext(): void {
   sessionStorage.removeItem(CONTEXT_KEY)
 }
 
-/** Persist staff screen context from URL + pairing code storage when entering matchplay setup. */
+/** Persist staff screen context from URL when entering matchplay setup. */
 export function captureVenueScreenStaffContext(params: {
   venueSlug?: string | null
   screenSlug?: string | null
-  pairingCode?: string | null
 }): VenueScreenStaffContext | null {
   const venueSlug = params.venueSlug?.trim()
   const screenSlug = params.screenSlug?.trim()
   if (!venueSlug || !screenSlug) return getVenueScreenStaffContext()
 
-  const pairingCode =
-    params.pairingCode?.trim() ||
-    (typeof window !== 'undefined'
-      ? sessionStorage.getItem(pairingStorageKey(venueSlug))?.trim()
-      : undefined)
-
-  if (!pairingCode) return getVenueScreenStaffContext()
-
-  const ctx: VenueScreenStaffContext = { venueSlug, screenSlug, pairingCode }
+  const ctx: VenueScreenStaffContext = { venueSlug, screenSlug }
   saveVenueScreenStaffContext(ctx)
   return ctx
 }
@@ -88,11 +78,14 @@ export async function linkVenueScreenToSocialNight(
   eventId: string
 ): Promise<{ ok: boolean; error?: string }> {
   const ctx = getVenueScreenStaffContext()
-  if (!ctx) return { ok: true }
+  if (!ctx) {
+    return { ok: false, error: 'Staff screen context missing — reopen Social Night from staff home.' }
+  }
+
+  cancelPendingScreenIdleReset(ctx.screenSlug)
 
   const result = await setVenueScreenSocialNight({
     screen_slug: ctx.screenSlug,
-    pairing_code: ctx.pairingCode,
     active_matchplay_event_id: eventId,
   })
 
@@ -109,13 +102,37 @@ export async function resetVenueScreenAfterEventEnd(eventId: string): Promise<vo
   const ctx = getVenueScreenStaffContext()
   if (!ctx || ctx.linkedEventId !== eventId) return
 
+  cancelPendingScreenIdleReset(ctx.screenSlug)
+
   await setVenueScreenMode({
     screen_slug: ctx.screenSlug,
-    pairing_code: ctx.pairingCode,
     active_mode: 'idle',
   })
 
   clearVenueScreenStaffContext()
+}
+
+/**
+ * Hold Social Night final results on the TV, then idle.
+ * Keeps `active_matchplay_event_id` linked so PalaLive can show postgame.
+ */
+export function scheduleSocialNightScreenIdleReset(
+  eventId: string,
+  delayMs: number = SOCIAL_NIGHT_VENUE_ENDGAME_HOLD_MS
+): void {
+  const ctx = getVenueScreenStaffContext()
+  if (!ctx || ctx.linkedEventId !== eventId) return
+
+  const key = ctx.screenSlug
+  cancelPendingScreenIdleReset(key)
+
+  pendingIdleResets.set(
+    key,
+    setTimeout(() => {
+      pendingIdleResets.delete(key)
+      void resetVenueScreenAfterEventEnd(eventId)
+    }, delayMs)
+  )
 }
 
 /** After match start — switch venue screen to Showcase Game for this match. */
@@ -123,11 +140,14 @@ export async function linkVenueScreenToShowcaseGame(
   matchId: string
 ): Promise<{ ok: boolean; error?: string }> {
   const ctx = getVenueScreenStaffContext()
-  if (!ctx) return { ok: true }
+  if (!ctx) {
+    return { ok: false, error: 'Staff screen context missing — reopen Showcase from staff home.' }
+  }
+
+  cancelPendingScreenIdleReset(ctx.screenSlug)
 
   const result = await setVenueScreenShowcaseGame({
     screen_slug: ctx.screenSlug,
-    pairing_code: ctx.pairingCode,
     active_showcase_match_id: matchId,
   })
 
@@ -144,9 +164,10 @@ export async function resetVenueScreenAfterShowcaseEnd(matchId: string): Promise
   const ctx = getVenueScreenStaffContext()
   if (!ctx || ctx.linkedShowcaseMatchId !== matchId) return
 
+  cancelPendingScreenIdleReset(ctx.screenSlug)
+
   await setVenueScreenMode({
     screen_slug: ctx.screenSlug,
-    pairing_code: ctx.pairingCode,
     active_mode: 'idle',
   })
 
@@ -155,6 +176,24 @@ export async function resetVenueScreenAfterShowcaseEnd(matchId: string): Promise
     linkedShowcaseMatchId: undefined,
   })
 }
+
+/** Cancel a scheduled TV idle reset (Reset to Idle / starting a new mode). */
+export function cancelPendingScreenIdleReset(screenSlug?: string): void {
+  if (screenSlug) {
+    const existing = pendingIdleResets.get(screenSlug)
+    if (existing) clearTimeout(existing)
+    pendingIdleResets.delete(screenSlug)
+    return
+  }
+
+  for (const [key, timer] of pendingIdleResets) {
+    clearTimeout(timer)
+    pendingIdleResets.delete(key)
+  }
+}
+
+/** @deprecated Use cancelPendingScreenIdleReset */
+export const cancelPendingShowcaseIdleReset = cancelPendingScreenIdleReset
 
 /**
  * Delay venue-screen idle reset so the TV can show final scores first.
@@ -168,13 +207,12 @@ export function scheduleShowcaseScreenIdleReset(
   if (!ctx || ctx.linkedShowcaseMatchId !== matchId) return
 
   const key = ctx.screenSlug
-  const existing = pendingShowcaseIdleResets.get(key)
-  if (existing) clearTimeout(existing)
+  cancelPendingScreenIdleReset(key)
 
-  pendingShowcaseIdleResets.set(
+  pendingIdleResets.set(
     key,
     setTimeout(() => {
-      pendingShowcaseIdleResets.delete(key)
+      pendingIdleResets.delete(key)
       void resetVenueScreenAfterShowcaseEnd(matchId)
     }, delayMs)
   )

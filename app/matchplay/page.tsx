@@ -8,8 +8,8 @@ import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { callMatchplayEvent } from '@/lib/api/matchplay'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
-import '@/app/styles/matchplay.css'
-import '@/app/styles/setup-form.css'
+import '@/app/styles/palalive-tokens.css'
+import '@/app/styles/palalive-staff.css'
 
 interface MatchplayEvent {
   id: string
@@ -142,7 +142,7 @@ export default function MatchplayPage() {
   if (!venueResolveDone || (venueId !== null && loading)) {
     return (
       <StaffAppFrame {...frameNavProps}>
-        <p className="matchplay-loading-text">Loading...</p>
+        <p className="palalive-staff-loading-text">Loading…</p>
       </StaffAppFrame>
     )
   }
@@ -150,63 +150,62 @@ export default function MatchplayPage() {
   if (!venueId && error) {
     return (
       <StaffAppFrame {...frameNavProps}>
-        <div className="matchplay-error" role="alert">
+        <p className="palalive-staff-error" role="alert">
           {error}
-        </div>
+        </p>
       </StaffAppFrame>
     )
   }
 
   if (activeEvent) {
     return (
-      <div className="matchplay-launcher">
-        <h1 className="matchplay-launcher-title">Matchplay</h1>
-        <div className="matchplay-active-event-card">
-          <div className="matchplay-active-event-status">
-            <span
-              className={`matchplay-status-dot ${activeEvent.status === 'in_progress' ? 'matchplay-status-dot-live' : 'matchplay-status-dot-setup'}`}
-              aria-hidden
-            />
-            <span>{activeEvent.status === 'in_progress' ? 'LIVE' : 'SETUP'}</span>
+      <StaffAppFrame {...frameNavProps}>
+        <div className="palalive-staff-body">
+          <div className="palalive-staff-card">
+            <span className="palalive-staff-card-label">
+              {activeEvent.status === 'in_progress' ? 'Live event' : 'Setup in progress'}
+            </span>
+            <span className="palalive-staff-page-title" style={{ margin: 0, fontSize: 20 }}>
+              {activeEvent.name}
+            </span>
+            <span className="palalive-staff-card-hint">
+              Round {(activeEvent.match_count ?? 0) || 1} · {activeEvent.player_count ?? 0}{' '}
+              players
+            </span>
           </div>
-          <div className="matchplay-active-event-name">{activeEvent.name}</div>
-          <div className="matchplay-active-event-meta">
-            Round {(activeEvent.match_count ?? 0) || 1} of {(activeEvent.match_count ?? 0) || 1} ·{' '}
-            {activeEvent.player_count ?? 0} players
-          </div>
+
           {error ? (
-            <div className="matchplay-error" role="alert" style={{ marginBottom: 'var(--ui-space-md)' }}>
+            <p className="palalive-staff-error" role="alert">
               {error}
-            </div>
+            </p>
           ) : null}
-          <div className="matchplay-active-event-actions">
-            <button
-              type="button"
-              className="btn btn-primary matchplay-continue-btn"
-              onClick={() => router.push(staffPath(`/${activeEvent.id}`))}
-            >
-              CONTINUE EVENT
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary btn--full matchplay-close-active-btn"
-              disabled={closingActiveEvent}
-              onClick={() => void handleCloseActiveEvent()}
-            >
-              {closingActiveEvent ? 'Closing…' : 'Mark finished & clear launcher'}
-            </button>
-          </div>
+
+          <button
+            type="button"
+            className="palalive-staff-btn palalive-staff-btn--primary"
+            onClick={() => router.push(staffPath(`/${activeEvent.id}`))}
+          >
+            Continue event
+          </button>
+          <button
+            type="button"
+            className="palalive-staff-btn palalive-staff-btn--secondary"
+            disabled={closingActiveEvent}
+            onClick={() => void handleCloseActiveEvent()}
+          >
+            {closingActiveEvent ? 'Closing…' : 'Mark finished & clear launcher'}
+          </button>
         </div>
-      </div>
+      </StaffAppFrame>
     )
   }
 
   return (
     <StaffAppFrame {...frameNavProps}>
       {error ? (
-        <div className="matchplay-error" role="alert">
+        <p className="palalive-staff-error" role="alert">
           {error}
-        </div>
+        </p>
       ) : null}
       <MatchplayLauncherModePicker />
     </StaffAppFrame>

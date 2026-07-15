@@ -8,22 +8,76 @@
 .palalive-staff-shell {
   font-family: var(--sans);
   color: var(--ink);
+  background: var(--void);
+}
+
+/* StaffAppFrame chrome when the frame itself carries the shell (default). */
+.staff-app-frame.palalive-staff-shell {
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+/*
+  Mobile app column: nested ControlPanel shells fill the StaffAppFrame body so
+  `.palalive-staff-footer` / thumb-zone CTAs pin to the bottom of the phone.
+*/
+.staff-app-body > .palalive-staff-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+/* Root shell when ControlPanel / DS preview has no StaffAppFrame wrapper. */
+.palalive-staff-shell:not(.staff-app-frame) {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Matchplay pages wrap StaffAppFrame in an outer shell — don't double-stack height. */
+.palalive-staff-shell:not(.staff-app-frame):has(> .staff-app-frame) {
+  display: contents;
+  min-height: 0;
+  background: transparent;
+}
+
+.palalive-staff-shell .staff-flow-back {
+  color: var(--mist);
+}
+
+.palalive-staff-shell .staff-flow-back:hover,
+.palalive-staff-shell .staff-flow-back:focus-visible {
+  color: var(--ink);
+}
+
+.palalive-staff-shell .staff-app-footer {
+  border-color: var(--card-edge);
 }
 
 /* ---------- layout primitives ---------- */
 
 .palalive-staff-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .palalive-staff-footer {
-  margin-top: auto;
+  flex: none;
+  margin-top: 0;
   padding-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .palalive-staff-loading {
@@ -73,7 +127,7 @@
 
 .palalive-staff-card {
   background: var(--card);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -87,7 +141,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--mist);
 }
 
 /* ---------- buttons ---------- */
@@ -377,7 +431,7 @@
 
 .palalive-staff-matchup-card {
   background: var(--card);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 12px;
   padding: 22px 16px;
   display: flex;
@@ -468,11 +522,12 @@
 .palalive-staff-score-num--tie { color: var(--ink); }
 .palalive-staff-score-hyphen { color: var(--mist); font-size: 20px; }
 
-/* ---------- live scoring: scoreboard ---------- */
+/* ---------- live scoring: scoreboard (charcoal wells, same family as TV) ---------- */
 
 .palalive-staff-scoreboard {
   position: relative;
-  border: 1px solid var(--card-edge);
+  background: var(--card);
+  border: var(--card-border);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -494,9 +549,7 @@
   z-index: 1;
 }
 
-/* Set dots live inside each team's own colored half, pushed to the bottom via
-   space-between — matches the TV scoreboard's layout trick (see
-   app/styles/palalive-showcase.css), just at phone scale. */
+/* Set dots live inside each team's charcoal half — space-between matches TV. */
 .palalive-staff-scoreboard-col {
   position: relative;
   display: flex;
@@ -506,9 +559,37 @@
   gap: 14px;
   padding: 20px 8px;
   min-height: 172px;
+  background: var(--card-inner);
 }
 
-.palalive-staff-scoreboard-col.is-alt { background: var(--scoreboard-alt); }
+.palalive-staff-scoreboard-col.is-alt {
+  background: var(--scoreboard-alt);
+}
+
+/*
+  Shared ControlScoreboard (legacy .control-scoreboard) if it ever nests under
+  the PalaLive staff shell — keep it on the charcoal family, not venue blue.
+*/
+.palalive-staff-shell .control-scoreboard {
+  background: var(--card);
+  border: var(--card-border);
+  box-shadow: none;
+}
+
+.palalive-staff-shell .control-server-bar-a {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.palalive-staff-shell .control-server-bar-b {
+  background: var(--team-b);
+  box-shadow: none;
+}
+
+.palalive-staff-shell .control-scoreboard-set-dot.won.team-a {
+  background: var(--accent);
+  border-color: var(--accent);
+}
 
 /* Serving side gets an accent bracket border — never the shared center divider. */
 .palalive-staff-scoreboard-col.is-serving:first-child {
@@ -614,10 +695,13 @@
 /* ---------- live scoring: score buttons + actions ---------- */
 
 .palalive-staff-thumb-zone {
-  margin-top: auto;
+  flex: none;
+  margin-top: 0;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .palalive-staff-score-buttons {
@@ -692,7 +776,7 @@
   width: 100%;
   max-width: 340px;
   background: var(--panel);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -789,7 +873,7 @@
   gap: 12px;
   width: 100%;
   background: var(--card);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 12px;
   padding: 16px;
   text-decoration: none;
@@ -945,11 +1029,19 @@
 .palalive-staff-round-check { color: var(--state-up); font-weight: 700; }
 .palalive-staff-round-tab.is-active .palalive-staff-round-check { color: var(--void); }
 
+.palalive-staff-round-status {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--mist);
+}
+
 /* ---------- match-result cards (Event hub) ---------- */
 
 .palalive-staff-match-result {
   background: var(--card);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -973,6 +1065,19 @@
 }
 
 .palalive-staff-match-result-check { font-size: 13px; color: var(--state-up); }
+
+.palalive-staff-match-result.is-future {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.palalive-staff-match-result-locked {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
 
 .palalive-staff-match-result-body {
   background: var(--card-inner);
@@ -1166,7 +1271,7 @@
   align-items: center;
   gap: 10px;
   background: var(--card);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 999px;
   padding: 6px 18px 6px 4px;
 }
@@ -1245,7 +1350,7 @@
   z-index: 20;
   min-width: 180px;
   background: var(--panel);
-  border: 1px solid var(--card-edge);
+  border: var(--card-border);
   border-radius: 12px;
   padding: 6px;
   display: flex;
@@ -1285,7 +1390,7 @@
 .palalive-staff-end-modal-text.is-muted { color: var(--mist); }
 
 /* ============================================================
-   Staff home / pairing (app/staff/[venueSlug]/page.tsx) — no mockup
+   Staff home (app/staff/[venueSlug]/page.tsx) — no mockup
    screen for this one; same dark palalive-staff design language.
    ============================================================ */
 

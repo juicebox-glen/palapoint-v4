@@ -7,33 +7,43 @@ alwaysApply: true
 
 When you change **visual UI** (layout, copy, colours, typography, spacing, interaction states, or new screens), update the design system in the **same change** unless the user explicitly says to skip it.
 
-## Production → preview mapping
+## PalaLive product (prefer this)
+
+Hub: `/design-system/palalive` — foundations, components, screens only for venue TV + staff.
 
 | Production surface | Shared component(s) | Design-system preview |
 |--------------------|---------------------|------------------------|
-| `/control` | `ControlPanel`, `MatchConfirmation` | `/design-system/preview/control?state=` |
-| `/setup`, `/playing` | `SetupDisplay`, `PlayingDisplay`, `MatchConfirmation` | `/design-system/preview/setup?state=`, `/playing?state=` |
-| Court TV | `CourtDisplay` | `/design-system/preview/court?state=` + `court-preview-states.ts` |
-| Spectator TV | `SpectatorDisplay` | `/design-system/preview/spectator?state=` |
+| `/screen/[screenSlug]` Idle | `PalaLiveIdle` | `/design-system/preview/palalive?state=idle` |
+| `/screen/…` Social Night | `PalaLiveSocialView` / `PalaLiveModeWaiting` | `…?state=social-waiting\|social-pregame\|social-ingame\|social-postgame` |
+| `/screen/…` Showcase | `PalaLiveShowcaseView` / `PalaLiveModeWaiting` / `PalaLiveShowcaseEndgameView` | `…?state=showcase-waiting\|showcase\|showcase-endgame` |
+| `/staff/…/showcase` | `ControlPanel` `variant=palalive-staff` | `/design-system/preview/control?state=&variant=palalive-staff` |
+| Social staff `/matchplay/*` | matchplay pages + `StaffAppFrame` | `/design-system/preview/matchplay?state=` |
+
+**Catalog tabs:** `app/design-system/palalive/lib/screen-catalog.ts` — add new TV/staff states there; they appear on `/design-system/palalive/screens`.
+
+**Tokens:** `app/styles/palalive-tokens.css` — foundations page swatches; staff + TV shells share this file.
+
+## v4 legacy (player / court / old spectator)
+
+| Production surface | Shared component(s) | Design-system preview |
+|--------------------|---------------------|------------------------|
+| `/control` | `ControlPanel`, `MatchConfirmation` | `/design-system/preview/control?state=` (no palalive-staff) |
+| `/setup`, `/playing` | `SetupDisplay`, `PlayingDisplay` | `/design-system/preview/setup?state=`, `/playing?state=` |
+| Court TV | `CourtDisplay` | `/design-system/preview/court?state=` |
+| Spectator TV (legacy) | `SpectatorDisplay` | `/design-system/preview/spectator?state=` |
 | `/session-review` | `SessionReviewDisplay` | `/design-system/preview/session-review` |
 | `/game/[id]` | `GameDetailDisplay` | `/design-system/preview/game` |
-| Matchplay | matchplay pages | `/design-system/preview/matchplay?state=` |
-
-Hub tabs live in `app/design-system/screens/**` (e.g. `PlayerMobileHub.tsx`, `court/page.tsx`). Add or relabel tabs when a new state or route is user-visible.
 
 ## How to stay in sync
 
-1. **Prefer shared display components** — previews should render the same component as production with a `preview` prop or mock data, not duplicate markup.
-2. **New screen state** — extend the relevant `*-preview-config.ts` / `*-preview-states.ts` and add a hub tab in `ScreenPreview` states.
-3. **CSS / tokens** — if you change shared classes (`.preview-*`, `.session-review-*`, `.player-flow-*`, tokens in `app/styles/tokens/`), check component showcase pages under `/design-system/components/*` and foundations pages when tokens change.
-4. **Player flow shell** — gate/loading screens use `PlayerFlowShell` + `SessionPromptCard`; keep `/setup`, `/playing`, and staff `/control` loading/error states aligned.
-5. **Temporary flags** (e.g. `SESSION_REVIEW_GAME_NAV_ENABLED`) — previews using the same component inherit behaviour; document in preview page comment if non-obvious.
-6. **Mock data** — keep `app/design-system/lib/*-preview-data.ts` aligned with preview states (names, scores, branding via `squareone-mock-branding.ts`).
+1. **Prefer shared display components** — previews render the same component as production with mock data / `preview` props.
+2. **New PalaLive screen state** — extend `screen-catalog.ts` and the relevant preview page (`preview/palalive` or `preview/control` / `matchplay`).
+3. **CSS / tokens** — PalaLive visual changes → check `/design-system/palalive/foundations` and `/components`; v4 token changes → `/design-system/tokens` etc.
+4. **Staff footer / mobile chrome** — CTAs use `.palalive-staff-footer` pinned in the phone column; keep Confirm / Setup / End aligned.
+5. **Mock data** — `lib/palalive/mock-*.ts` and `app/design-system/lib/*` stay aligned with preview states.
 
 ## Before finishing
 
-- [ ] Identified which preview route(s) mirror the changed UI
-- [ ] Updated preview config, mock data, or hub tabs if needed
+- [ ] Identified which PalaLive (or v4) preview route(s) mirror the changed UI
+- [ ] Updated `screen-catalog.ts` / preview config / hub if needed
 - [ ] Did not leave production-only markup that previews no longer exercise
-
-Reference: `docs/design-system-audit.md` for route inventory.

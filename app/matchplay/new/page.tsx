@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo, type CSSProperties } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { CourtIcon } from '@/components/matchplay/CourtIcon'
-import { useMatchplaySetupBranding } from '@/lib/hooks/useMatchplaySetupBranding'
 import { captureVenueScreenStaffContext } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
@@ -20,7 +19,6 @@ const SETTINGS_KEY = 'palapoint_matchplay_settings'
 export default function NewMatchplayPage() {
   const router = useRouter()
   const { path: staffPath, base: staffBase, venueSlug } = useStaffSocialNightPaths()
-  const branding = useMatchplaySetupBranding()
 
   const [playerCount, setPlayerCount] = useState(8)
   const [selectedCourts, setSelectedCourts] = useState<number[]>([1, 2])
@@ -115,19 +113,11 @@ export default function NewMatchplayPage() {
     validationWarnings.push('More than half will sit out each round')
   }
 
-  const brandVars =
-    branding?.primaryColor != null
-      ? ({
-          '--brand-primary': branding.primaryColor,
-        } as CSSProperties)
-      : undefined
-
   return (
     <div className="palalive-staff-shell">
       <StaffAppFrame
         venueSlug={venueSlug ?? undefined}
         onBack={() => router.push(staffBase ?? '/matchplay')}
-        style={brandVars}
         footer={
           <button
             type="button"

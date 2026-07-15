@@ -49,6 +49,7 @@ export function PalaLiveStaffShowcaseSetup({
   error,
 }: PalaLiveStaffShowcaseSetupProps) {
   return (
+    <>
     <div className="palalive-staff-body">
       {error ? <p className="palalive-staff-error">{error}</p> : null}
 
@@ -197,7 +198,9 @@ export function PalaLiveStaffShowcaseSetup({
           />
         </div>
       </div>
+    </div>
 
+    <div className="palalive-staff-footer">
       <button
         type="button"
         className="palalive-staff-btn palalive-staff-btn--primary"
@@ -207,5 +210,6 @@ export function PalaLiveStaffShowcaseSetup({
         {submitLoading ? '…' : submitLabel}
       </button>
     </div>
+    </>
   )
 }

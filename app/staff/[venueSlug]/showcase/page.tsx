@@ -7,7 +7,7 @@ import ControlPanel from '@/components/displays/ControlPanel'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { supabase } from '@/lib/supabase'
 import { VENUE_SCREEN_PUBLIC_SELECT } from '@/lib/types/venue-screen'
-import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
+import { palaLiveBrandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 import {
   getVenueScreenStaffContext,
   linkVenueScreenToShowcaseGame,
@@ -89,7 +89,7 @@ export default function StaffShowcasePage() {
     router.push(`/staff/${venueSlug}`)
   }, [router, venueSlug])
 
-  const brandingStyles = brandingStylesFor(branding)
+  const brandingStyles = palaLiveBrandingStylesFor(branding)
 
   const frameProps = {
     venueSlug,
@@ -100,7 +100,7 @@ export default function StaffShowcasePage() {
   if (loading) {
     return (
       <StaffAppFrame {...frameProps}>
-        <p className="staff-muted">Loading…</p>
+        <p className="palalive-staff-loading-text">Loading…</p>
       </StaffAppFrame>
     )
   }
@@ -108,20 +108,14 @@ export default function StaffShowcasePage() {
   if (loadError || !courtId) {
     return (
       <StaffAppFrame {...frameProps}>
-        <div className="staff-error">
-          <p>{loadError ?? 'Court not found for this screen.'}</p>
-        </div>
+        <p className="palalive-staff-error">{loadError ?? 'Court not found for this screen.'}</p>
       </StaffAppFrame>
     )
   }
 
   return (
     <StaffAppFrame {...frameProps}>
-      {linkError ? (
-        <div className="staff-error">
-          <p>{linkError}</p>
-        </div>
-      ) : null}
+      {linkError ? <p className="palalive-staff-error">{linkError}</p> : null}
 
       <ControlPanel
         courtId={courtId}

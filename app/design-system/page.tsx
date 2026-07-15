@@ -11,9 +11,30 @@ export default function DesignSystemHome() {
         </p>
       </header>
 
+      <section className="ds-nav-section" style={{ maxWidth: 720, margin: '0 auto 3rem' }}>
+        <h2>PalaLive (current product)</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.5 }}>
+          Clean catalog for venue TV + staff phone — charcoal tokens, Social Night, Showcase. Use this for all new
+          work.
+        </p>
+        <ul>
+          <li>
+            <Link href="/design-system/palalive">Open PalaLive design system →</Link>
+          </li>
+          <li>
+            <Link href="/design-system/palalive/screens">Screens</Link>
+            <span className="ds-nav-route-hint"> — TV + staff states</span>
+          </li>
+          <li>
+            <Link href="/design-system/palalive/foundations">Foundations</Link>
+            <span className="ds-nav-route-hint"> — palalive-tokens.css</span>
+          </li>
+        </ul>
+      </section>
+
       <nav className="ds-nav">
         <section className="ds-nav-section">
-          <h2>Foundations</h2>
+          <h2>v4 · Foundations</h2>
           <ul>
             <li>
               <Link href="/design-system/tokens">Tokens</Link>
@@ -28,7 +49,7 @@ export default function DesignSystemHome() {
         </section>
 
         <section className="ds-nav-section">
-          <h2>Components</h2>
+          <h2>v4 · Components</h2>
           <ul>
             <li>
               <Link href="/design-system/components/buttons">Buttons</Link>
@@ -52,17 +73,7 @@ export default function DesignSystemHome() {
         </section>
 
         <section className="ds-nav-section">
-          <h2>PalaLive (venue display)</h2>
-          <ul>
-            <li>
-              <Link href="/design-system/screens/palalive">PalaLive — venue TV</Link>
-              <span className="ds-nav-route-hint"> — /screen/[screenSlug], replaces the screens below</span>
-            </li>
-          </ul>
-        </section>
-
-        <section className="ds-nav-section">
-          <h2>Screens</h2>
+          <h2>v4 · Screens (legacy)</h2>
           <ul>
             <li>
               <Link href="/design-system/screens/spectator">Spectator Display (TV)</Link>
@@ -72,16 +83,13 @@ export default function DesignSystemHome() {
             </li>
             <li>
               <Link href="/design-system/screens/player-mobile">Staff &amp; player control</Link>
-              <span className="ds-nav-route-hint"> — /control, /setup, /playing, /session-review, /game</span>
+              <span className="ds-nav-route-hint"> — /control, /setup, /playing</span>
             </li>
-          </ul>
-        </section>
-
-        <section className="ds-nav-section">
-          <h2>Match play</h2>
-          <ul>
             <li>
-              <Link href="/design-system/screens/matchplay">Matchplay — staff &amp; TV board</Link>
+              <Link href="/design-system/screens/matchplay">Matchplay (legacy board tabs)</Link>
+            </li>
+            <li>
+              <Link href="/design-system/screens/palalive">PalaLive (redirects)</Link>
             </li>
           </ul>
         </section>

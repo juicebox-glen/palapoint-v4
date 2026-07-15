@@ -9,9 +9,12 @@ import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 import ControlPanel from '@/components/displays/ControlPanel'
+import { palaLiveBrandingStylesFor } from '@/lib/venue'
 
 import { designSystemSquareOneBranding } from '../../lib/squareone-mock-branding'
 import { getControlPreviewConfig } from './control-preview-config'
+
+import '@/app/styles/palalive-tokens.css'
 
 function ControlPreviewContent() {
   const searchParams = useSearchParams()
@@ -20,20 +23,33 @@ function ControlPreviewContent() {
 
   const preview = useMemo(() => getControlPreviewConfig(state), [state])
 
-  const brandingStyles = useMemo(
-    () =>
-      ({
-        '--brand-primary': designSystemSquareOneBranding.primaryColor,
-        '--team-a': designSystemSquareOneBranding.primaryColor,
-        '--team-b': designSystemSquareOneBranding.secondaryColor,
-        background: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
-      }) as CSSProperties,
-    []
-  )
+  const brandingStyles = useMemo(() => {
+    if (variant === 'palalive-staff') {
+      return {
+        ...palaLiveBrandingStylesFor(designSystemSquareOneBranding),
+        background: '#000000',
+        color: '#e9ecf1',
+      } as CSSProperties
+    }
+    return {
+      '--brand-primary': designSystemSquareOneBranding.primaryColor,
+      '--team-a': designSystemSquareOneBranding.primaryColor,
+      '--team-b': designSystemSquareOneBranding.secondaryColor,
+      background: 'var(--bg-primary)',
+      color: 'var(--text-primary)',
+    } as CSSProperties
+  }, [variant])
 
   return (
-    <div className="page control-ds-preview-root" style={{ minHeight: '100vh', ...brandingStyles }}>
+    <div
+      className={[
+        'page control-ds-preview-root',
+        variant === 'palalive-staff' ? 'palalive-staff-shell' : null,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={{ minHeight: '100vh', ...brandingStyles }}
+    >
       <ControlPanel
         key={state}
         courtId="mock-court-id"

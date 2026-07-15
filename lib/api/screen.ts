@@ -32,7 +32,6 @@ async function parseScreenResponse(res: Response): Promise<ScreenApiResult> {
 /** Staff write — always returns the updated row or an explicit error (never ambiguous empty success). */
 export async function setVenueScreenMode(input: {
   screen_slug: string
-  pairing_code: string
   active_mode: VenueScreenMode
 }): Promise<ScreenApiResult> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/screen`, {
@@ -47,7 +46,6 @@ export async function setVenueScreenMode(input: {
 /** Link a matchplay event and switch screen to Social Night mode. */
 export async function setVenueScreenSocialNight(input: {
   screen_slug: string
-  pairing_code: string
   active_matchplay_event_id: string
 }): Promise<ScreenApiResult> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/screen`, {
@@ -62,7 +60,6 @@ export async function setVenueScreenSocialNight(input: {
 /** Link a live match and switch screen to Showcase Game mode. */
 export async function setVenueScreenShowcaseGame(input: {
   screen_slug: string
-  pairing_code: string
   active_showcase_match_id: string
 }): Promise<ScreenApiResult> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/screen`, {

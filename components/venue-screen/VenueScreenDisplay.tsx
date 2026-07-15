@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
+import { TvViewportCanvas } from '@/app/design-system/components/TvViewportCanvas'
 import { PalaLiveIdle } from '@/components/palalive/PalaLiveIdle'
+import { PalaLiveModeWaiting } from '@/components/palalive/PalaLiveModeWaiting'
 import { PalaLiveShowcase } from '@/components/palalive/PalaLiveShowcase'
 import { PalaLiveSocial } from '@/components/palalive/PalaLiveSocial'
-import { ScreenModePlaceholder } from '@/components/venue-screen/ScreenModePlaceholder'
 import { useVenueScreen } from '@/lib/hooks/useVenueScreen'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
-import { brandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
+import { palaLiveBrandingStylesFor, getVenueBrandingForCourtId, type VenueBranding } from '@/lib/venue'
 
 import '@/app/styles/venue-screen.css'
 
@@ -16,7 +18,11 @@ interface VenueScreenDisplayProps {
   screenSlug: string
 }
 
-export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
+function VenueScreenBody({
+  screenSlug,
+}: {
+  screenSlug: string
+}) {
   const { screen, isLoading, error } = useVenueScreen(screenSlug)
   const [branding, setBranding] = useState<VenueBranding | null>(null)
 
@@ -38,7 +44,7 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
     }
   }, [screen?.court_id])
 
-  const brandingStyles = brandingStylesFor(branding)
+  const brandingStyles = palaLiveBrandingStylesFor(branding)
 
   if (isLoading && !screen) {
     return (
@@ -84,9 +90,10 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
     }
 
     return (
-      <ScreenModePlaceholder
+      <PalaLiveModeWaiting
         mode="social_night"
         displayName={screen.display_name}
+        branding={branding}
         brandingStyles={brandingStyles}
         subtitle="Waiting for staff to select an event."
       />
@@ -107,9 +114,10 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
     }
 
     return (
-      <ScreenModePlaceholder
+      <PalaLiveModeWaiting
         mode="showcase_game"
         displayName={screen.display_name}
+        branding={branding}
         brandingStyles={brandingStyles}
         subtitle="Waiting for staff to start a match."
       />
@@ -122,5 +130,27 @@ export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
       brandingStyles={brandingStyles}
       bookings={MOCK_COURT_BOOKINGS}
     />
+  )
+}
+
+export function VenueScreenDisplay({ screenSlug }: VenueScreenDisplayProps) {
+  const searchParams = useSearchParams()
+  // Real kiosk / true-pixel laptop check: /screen/dev-main?native=1
+  const native = searchParams.get('native') === '1'
+  // Optional tighter mockup-style shrink: /screen/dev-main?fit=0.8
+  const fitParam = searchParams.get('fit')
+  const comfortScale =
+    fitParam != null && Number.isFinite(Number(fitParam))
+      ? Math.min(Math.max(Number(fitParam), 0.4), 1)
+      : 0.9
+
+  const body = <VenueScreenBody screenSlug={screenSlug} />
+
+  if (native) return body
+
+  return (
+    <TvViewportCanvas comfortScale={comfortScale}>
+      {body}
+    </TvViewportCanvas>
   )
 }
