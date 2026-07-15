@@ -782,20 +782,26 @@
 }
 
 .palalive-staff-list-row {
+  appearance: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
   background: var(--card);
   border: 1px solid var(--card-edge);
   border-radius: 12px;
   padding: 16px;
   text-decoration: none;
+  text-align: left;
   color: var(--ink);
+  font-family: var(--sans);
   cursor: pointer;
+  box-sizing: border-box;
 }
 
-.palalive-staff-list-row.is-disabled { opacity: 0.42; cursor: not-allowed; }
+.palalive-staff-list-row.is-disabled,
+.palalive-staff-list-row:disabled { opacity: 0.42; cursor: not-allowed; }
 .palalive-staff-list-row-copy { display: flex; flex-direction: column; gap: 4px; }
 .palalive-staff-list-row-title { font-size: 16px; font-weight: 600; }
 .palalive-staff-list-row-desc { font-size: 13px; color: var(--mist); }
@@ -1260,3 +1266,55 @@
 
 .palalive-staff-end-modal-text { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
 .palalive-staff-end-modal-text.is-muted { color: var(--mist); }
+
+/* ============================================================
+   Staff home / pairing (app/staff/[venueSlug]/page.tsx) — no mockup
+   screen for this one; same dark palalive-staff design language.
+   ============================================================ */
+
+.palalive-staff-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mist);
+}
+
+/* Standalone input — .palalive-staff-player-input is the row-embedded variant. */
+.palalive-staff-input {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: var(--card-inner);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.palalive-staff-input::placeholder { color: var(--mist); }
+
+.palalive-staff-select {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: var(--card-inner);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.palalive-staff-success {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--state-up) 16%, transparent);
+  color: var(--state-up);
+  font-size: 13px;
+  font-weight: 500;
+}
