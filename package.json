@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' lib/scoring/engine.test.ts && npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' lib/utils/name-format.test.ts",
+    "test": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' lib/scoring/engine.test.ts && npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' lib/utils/name-format.test.ts && npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' lib/matchplay-americano-pairings.test.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

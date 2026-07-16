@@ -8,7 +8,11 @@ import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import '@/app/styles/palalive-tokens.css'
 import '@/app/styles/palalive-staff.css'
-import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
+import {
+  MATCHPLAY_AMERICANO_PLAYER_OPTIONS,
+  minCourtsForAmericano,
+  recommendedCourtsForAmericano,
+} from '@/lib/matchplay-americano-setup'
 
 const COURT_OPTIONS = [1, 2, 3, 4]
 const POINTS_OPTIONS = [16, 24, 32]
@@ -28,7 +32,7 @@ export default function NewMatchplayPage() {
   const fullRotation = playerCount - 1
 
   const roundOptions = useMemo(() => {
-    const maxRounds = Math.min(playerCount - 1, 9)
+    const maxRounds = playerCount - 1
     const options: number[] = []
     for (let r = 3; r <= maxRounds; r++) {
       options.push(r)
@@ -48,12 +52,14 @@ export default function NewMatchplayPage() {
     const newFullRotation = playerCount - 1
     const newDefault = Math.min(newFullRotation, 7)
     setRounds(newDefault)
+    setSelectedCourts(recommendedCourtsForAmericano(playerCount))
   }, [playerCount])
 
   const courtCapacity = selectedCourts.length * 4
   const restingPerRound = Math.max(0, playerCount - courtCapacity)
 
-  const maxMatchesFromPlayers = Math.floor(playerCount / 4)
+  const minCourts = minCourtsForAmericano(playerCount)
+  const maxMatchesFromPlayers = minCourts
   const matchesPerRound = Math.min(selectedCourts.length, maxMatchesFromPlayers)
 
   const totalMatches = rounds * matchesPerRound
@@ -98,12 +104,18 @@ export default function NewMatchplayPage() {
   }
 
   const hasNoCourts = selectedCourts.length === 0
+  const hasTooFewCourts = selectedCourts.length < minCourts
   const hasMoreCourtsThanNeeded = selectedCourts.length > maxMatchesFromPlayers
   const tooManyResting = restingPerRound > playerCount / 2
 
-  const canContinue = !hasNoCourts
+  const canContinue = !hasNoCourts && !hasTooFewCourts
 
   const validationWarnings: string[] = []
+  if (hasTooFewCourts) {
+    validationWarnings.push(
+      `Select at least ${minCourts} court${minCourts !== 1 ? 's' : ''} for ${playerCount} players`
+    )
+  }
   if (hasMoreCourtsThanNeeded) {
     validationWarnings.push(
       `Only ${maxMatchesFromPlayers} court${maxMatchesFromPlayers !== 1 ? 's' : ''} needed for ${playerCount} players`

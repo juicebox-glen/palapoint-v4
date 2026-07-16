@@ -24,25 +24,39 @@ export function getMatchplayTotalRoundsFromStorage(): number {
   return s.rounds === 0 ? (s.roundsCustom ?? 4) : s.rounds
 }
 
+import { minCourtsForAmericano } from './matchplay-americano-setup'
+
+export type AmericanoPairingRound = {
+  roundNumber: number
+  matches: { court_label: string; team_a: string[]; team_b: string[] }[]
+  resting?: string
+}
+
 /** Americano: everyone partners with everyone once. Circle method. */
-export function generateAmericanoPairings(
-  playerIds: string[],
-  courtLabels: string[]
-): { roundNumber: number; matches: { court_label: string; team_a: string[]; team_b: string[] }[]; resting?: string }[] {
-  const result: {
-    roundNumber: number
-    matches: { court_label: string; team_a: string[]; team_b: string[] }[]
-    resting?: string
-  }[] = []
+export function generateAmericanoPairings(playerIds: string[], courtLabels: string[]): AmericanoPairingRound[] {
+  const result: AmericanoPairingRound[] = []
   const n = playerIds.length
+  if (n < 4) {
+    throw new Error('Americano needs at least 4 players')
+  }
+
+  const matchesPerRound = minCourtsForAmericano(n)
+  if (courtLabels.length < matchesPerRound) {
+    throw new Error(
+      `Americano with ${n} players needs at least ${matchesPerRound} courts, got ${courtLabels.length}`
+    )
+  }
+
+  const courts =
+    courtLabels.length > 0
+      ? courtLabels.slice(0, matchesPerRound)
+      : Array.from({ length: matchesPerRound }, (_, i) => `Court ${i + 1}`)
+
   const hasBye = n % 2 !== 0
   const playerList = hasBye ? [...playerIds, null as unknown as string] : [...playerIds]
   const total = playerList.length
   const fixed = playerList[0]!
   const rotating = playerList.slice(1)
-  const numCourts = Math.max(1, Math.floor(total / 4))
-  const courts =
-    courtLabels.length > 0 ? courtLabels.slice(0, numCourts) : Array.from({ length: numCourts }, (_, i) => `Court ${i + 1}`)
 
   for (let round = 0; round < total - 1; round++) {
     const currentOrder = [fixed, ...rotating]
@@ -60,10 +74,11 @@ export function generateAmericanoPairings(
     }
 
     const matches: { court_label: string; team_a: string[]; team_b: string[] }[] = []
-    for (let i = 0; i < pairs.length - 1; i += 2) {
-      const courtIdx = Math.floor(i / 2) % courts.length
+    const matchCount = Math.min(Math.floor(pairs.length / 2), courts.length)
+    for (let m = 0; m < matchCount; m++) {
+      const i = m * 2
       matches.push({
-        court_label: courts[courtIdx] ?? `Court ${courtIdx + 1}`,
+        court_label: courts[m]!,
         team_a: pairs[i]!,
         team_b: pairs[i + 1]!,
       })

@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation'
 import { supabase, getMatchplayVenueId, getVenueIdBySlug } from '@/lib/supabase'
 import { preparePlayerPhotoForUpload } from '@/lib/images/process-image'
 import PlayerPhotoPicker from '@/components/ui/PlayerPhotoPicker'
-import { MATCHPLAY_AMERICANO_PLAYER_OPTIONS } from '@/lib/matchplay-americano-setup'
+import {
+  MATCHPLAY_AMERICANO_PLAYER_OPTIONS,
+  hasEnoughCourtsForAmericano,
+} from '@/lib/matchplay-americano-setup'
 import { generateAmericanoPairings } from '@/lib/matchplay-americano-pairings'
 import {
   callMatchplayEvent,
@@ -73,7 +76,8 @@ export default function MatchplayPlayersPage() {
       if (
         typeof parsed.playerCount !== 'number' ||
         !allowed.includes(parsed.playerCount) ||
-        !Array.isArray(parsed.selectedCourts)
+        !Array.isArray(parsed.selectedCourts) ||
+        !hasEnoughCourtsForAmericano(parsed.playerCount, parsed.selectedCourts)
       ) {
         router.replace('/matchplay/new')
         return
