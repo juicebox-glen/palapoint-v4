@@ -24,6 +24,10 @@ const PANEL_COPY = {
   postgame: { label: 'Final Standings', panelClass: ' palalive-social-panel--solid' },
 } as const
 
+function formatLabel(format: string): string {
+  return format === 'americano' ? 'Americano' : format
+}
+
 function rightPanelRows(phase: SocialNightEventData['phase'], roster: SocialNightPlayer[], standings: SocialNightPlayer[]) {
   if (phase === 'pregame') {
     return roster.map((p) => <PlayerRow key={p.id} name={p.name} photoUrl={p.photoUrl} />)
@@ -54,7 +58,7 @@ function rightPanelRows(phase: SocialNightEventData['phase'], roster: SocialNigh
 }
 
 export function PalaLiveSocialView({ branding, brandingStyles, data }: PalaLiveSocialViewProps) {
-  const { phase, eventName, roundNumber, totalRounds, matches, roster, standings } = data
+  const { phase, eventName, format, courtLabels, roundNumber, totalRounds, matches, roster, standings } = data
   const copy = PANEL_COPY[phase]
   const rowCount = phase === 'pregame' ? roster.length : standings.length
   const isEndgame = phase === 'postgame'
@@ -87,9 +91,18 @@ export function PalaLiveSocialView({ branding, brandingStyles, data }: PalaLiveS
             <div className="palalive-event-card">
               <div className="palalive-event-header">
                 <span className="palalive-event-title">{eventName}</span>
-                <span className="palalive-event-round">
-                  Round {roundNumber}/{totalRounds}
-                </span>
+                {phase === 'pregame' ? (
+                  <div className="palalive-event-pregame-meta">
+                    <span className="palalive-event-format">
+                      {formatLabel(format)} &middot; {roster.length} players &middot; {courtLabels.length} courts
+                    </span>
+                    <span className="palalive-event-starting-soon">Starting Soon</span>
+                  </div>
+                ) : (
+                  <span className="palalive-event-round">
+                    Round {roundNumber}/{totalRounds}
+                  </span>
+                )}
               </div>
               <div className="palalive-event-grid">
                 {matches.length === 0 ? (

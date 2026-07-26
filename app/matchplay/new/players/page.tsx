@@ -15,7 +15,7 @@ import {
   callMatchplayPlayer,
   callMatchplayRound,
 } from '@/lib/api/matchplay'
-import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
+import { linkVenueScreenToSocialNight, unlinkVenueScreenSocialNight } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
 import { PalaLiveStaffSocialOverview } from '@/components/palalive/staff/PalaLiveStaffSocialOverview'
@@ -57,7 +57,11 @@ export default function MatchplayPlayersPage() {
   const [players, setPlayers] = useState<PlayerSlot[]>([])
   const [step, setStep] = useState<'players' | 'overview'>('players')
   const [eventName] = useState(() => generateEventName())
+  const [eventId, setEventId] = useState<string | null>(null)
+  const [playerIds, setPlayerIds] = useState<string[]>([])
+  const [isCreating, setIsCreating] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [venueId, setVenueId] = useState<string | null>(null)
 
@@ -153,7 +157,9 @@ export default function MatchplayPlayersPage() {
     ev?.stopPropagation()
     clearSlotPhoto(index)
   }
-  const handleStartEvent = async () => {
+  /** Continue from Players → Overview: creates the event + roster now, so the venue
+   *  display can switch to the Social Night build-up state before pairings exist. */
+  const handleContinueFromPlayers = async () => {
     if (!config || !canStart) return
 
     // Snapshot synchronously before any await — avoids rare stale `players` if state batches oddly after photo crop/upload.
@@ -163,11 +169,10 @@ export default function MatchplayPlayersPage() {
       photoPreview: p.photoPreview,
     }))
 
-    console.log('[MatchplaySetup] StartEvent snapshot:', playersSnapshot.length, 'slots')
-    console.log('[MatchplaySetup] StartEvent config:', config)
-
-    setIsSubmitting(true)
+    setIsCreating(true)
     setError(null)
+
+    let createdEventId: string | null = null
 
     try {
       const vid =
@@ -203,18 +208,13 @@ export default function MatchplayPlayersPage() {
         throw new Error(createResult.error || 'Failed to create event')
       }
 
-      const eventId = (createResult.event as { id: string }).id
+      const newEventId = (createResult.event as { id: string }).id
+      createdEventId = newEventId
 
-      const playerIds: string[] = []
+      const newPlayerIds: string[] = []
 
       for (let i = 0; i < playersSnapshot.length; i++) {
         const player = playersSnapshot[i]!
-
-        console.log(`[MatchplaySetup] Player ${i}:`, {
-          namePreview: player.name?.slice(0, 40),
-          hasPhotoBlob: !!player.photoBlob,
-          hasPhotoPreview: !!player.photoPreview,
-        })
 
         const trimmed = player.name?.trim() ?? ''
         if (!trimmed) {
@@ -223,11 +223,9 @@ export default function MatchplayPlayersPage() {
 
         const addResult = await callMatchplayPlayer({
           action: 'add',
-          event_id: eventId,
+          event_id: newEventId,
           name: trimmed,
         })
-
-        console.log(`[MatchplaySetup] Add player ${i} response:`, addResult)
 
         const created =
           addResult.player &&
@@ -243,10 +241,10 @@ export default function MatchplayPlayersPage() {
         }
 
         const playerId = created.id
-        playerIds.push(playerId)
+        newPlayerIds.push(playerId)
 
         if (player.photoBlob) {
-          const photoPath = `matchplay/${eventId}/${playerId}.jpg`
+          const photoPath = `matchplay/${newEventId}/${playerId}.jpg`
           const { error: uploadError } = await supabase.storage.from('player-photos').upload(photoPath, player.photoBlob, {
             contentType: 'image/jpeg',
             upsert: true,
@@ -265,8 +263,6 @@ export default function MatchplayPlayersPage() {
               photo_url: publicUrl,
             })
 
-            console.log(`[MatchplaySetup] Photo update player ${i} response:`, upd)
-
             if (upd.success === false) {
               console.warn('[MatchplaySetup] Photo URL save failed (event still created):', upd.error)
             }
@@ -274,21 +270,73 @@ export default function MatchplayPlayersPage() {
         }
       }
 
-      if (playerIds.length !== playersSnapshot.length) {
-        console.error('[MatchplaySetup] playerIds mismatch:', playerIds.length, 'vs', playersSnapshot.length)
-        throw new Error(`Expected ${playersSnapshot.length} player IDs but got ${playerIds.length}`)
+      if (newPlayerIds.length !== playersSnapshot.length) {
+        throw new Error(`Expected ${playersSnapshot.length} player IDs but got ${newPlayerIds.length}`)
       }
 
-      console.log('[MatchplaySetup] All player IDs:', playerIds)
+      const screenLink = await linkVenueScreenToSocialNight(newEventId)
+      if (!screenLink.ok) {
+        console.warn('[MatchplaySetup] Venue screen link failed:', screenLink.error)
+      }
 
+      setEventId(newEventId)
+      setPlayerIds(newPlayerIds)
+      setStep('overview')
+    } catch (err) {
+      // Best-effort cleanup — don't leave an orphaned setup-status event if player add failed partway.
+      if (createdEventId) {
+        void callMatchplayEvent({ action: 'delete', event_id: createdEventId }).catch(() => {})
+      }
+      setError(err instanceof Error ? err.message : 'Failed to create event')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  /** Start Social Night from Overview: pairings + rounds only — event/roster/screen link already exist.
+   *  Flips the event to in_progress BEFORE creating any rounds, so the venue display never briefly shows
+   *  round-1 fixtures while phase is still 'pregame'. Safe to retry after a partial failure — it checks
+   *  what already exists (event status, rounds) instead of blindly recreating rounds from scratch. */
+  const handleStartEvent = async () => {
+    if (!config || !eventId || playerIds.length === 0) return
+
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const getRes = await callMatchplayEvent({ action: 'get', event_id: eventId })
+      const currentStatus = (getRes.event as { status?: string } | undefined)?.status
+      if (!currentStatus) {
+        throw new Error((getRes.error as string | undefined) || 'Event not found')
+      }
+
+      if (currentStatus === 'setup') {
+        const startEventRes = await callMatchplayEvent({ action: 'start', event_id: eventId })
+        if (!startEventRes.event) {
+          throw new Error((startEventRes.error as string | undefined) || 'Failed to start event')
+        }
+      }
+
+      const existingRoundsRes = await callMatchplayRound({ action: 'list_rounds', event_id: eventId })
+      const existingRounds = (existingRoundsRes.rounds as { id: string; round_number: number }[] | undefined) ?? []
+      const existingByNumber = new Map(existingRounds.map((r) => [r.round_number, r.id]))
+
+      const courtLabels = config.selectedCourts.map((c) => `Court ${c}`)
       const allPairings = generateAmericanoPairings(playerIds, courtLabels)
       const roundCap = Math.min(allPairings.length, Math.max(1, config.rounds))
       const pairings = allPairings.slice(0, roundCap)
 
-      console.log('[MatchplaySetup] Creating rounds:', pairings.length)
+      let round1Id: string | null = existingByNumber.get(1) ?? null
 
-      let round1Id: string | null = null
+      // Skip rounds a previous, partially-failed attempt already created — resume from where it left off
+      // instead of either re-inserting duplicates or (worse) treating "some rounds exist" as "fully done."
       for (const p of pairings) {
+        const existingId = existingByNumber.get(p.roundNumber)
+        if (existingId) {
+          if (p.roundNumber === 1) round1Id = existingId
+          continue
+        }
+
         const roundRes = await callMatchplayRound({
           action: 'create_round',
           event_id: eventId,
@@ -304,17 +352,7 @@ export default function MatchplayPlayersPage() {
         if (p.roundNumber === 1) round1Id = rid
       }
 
-      console.log('[MatchplaySetup] Starting event…')
-      const startEventRes = await callMatchplayEvent({
-        action: 'start',
-        event_id: eventId,
-      })
-      if (!startEventRes.event) {
-        throw new Error((startEventRes.error as string | undefined) || 'Failed to start event')
-      }
-
       if (round1Id) {
-        console.log('[MatchplaySetup] Starting Round 1…', round1Id)
         const startRoundRes = await callMatchplayRound({
           action: 'start_round',
           round_id: round1Id,
@@ -324,15 +362,6 @@ export default function MatchplayPlayersPage() {
         }
       }
 
-      const screenLink = await linkVenueScreenToSocialNight(eventId)
-      if (!screenLink.ok) {
-        throw new Error(
-          screenLink.error ?? 'Event created but the venue screen could not be linked.'
-        )
-      }
-
-      console.log('[MatchplaySetup] Navigating to event hub…')
-
       try {
         sessionStorage.removeItem(SESSION_KEY)
       } catch {
@@ -341,9 +370,47 @@ export default function MatchplayPlayersPage() {
 
       router.push(staffPath(`/${eventId}`))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create event')
+      setError(err instanceof Error ? err.message : 'Failed to start event')
       setIsSubmitting(false)
     }
+  }
+
+  /** Back/cancel from Overview: undo the pre-created event and return the venue display to idle.
+   *  Stays on Overview with an error (instead of silently returning to Players) if cleanup fails,
+   *  so staff can retry rather than believe the display was reset when it wasn't. */
+  const handleCancelOverview = async () => {
+    if (!eventId) {
+      setStep('players')
+      return
+    }
+
+    setIsCancelling(true)
+    setError(null)
+
+    const unlinkResult = await unlinkVenueScreenSocialNight(eventId).catch((err) => ({
+      ok: false,
+      error: err instanceof Error ? err.message : 'Failed to reset venue display',
+    }))
+    if (!unlinkResult.ok) {
+      setError(unlinkResult.error || 'Failed to reset venue display — try Back again.')
+      setIsCancelling(false)
+      return
+    }
+
+    const deleteResult = await callMatchplayEvent({ action: 'delete', event_id: eventId }).catch((err) => ({
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to cancel event',
+    }))
+    if (deleteResult.success === false) {
+      setError((deleteResult.error as string | undefined) || 'Failed to cancel event — try Back again.')
+      setIsCancelling(false)
+      return
+    }
+
+    setEventId(null)
+    setPlayerIds([])
+    setIsCancelling(false)
+    setStep('players')
   }
 
   if (!config) {
@@ -360,14 +427,21 @@ export default function MatchplayPlayersPage() {
     <div className="palalive-staff-shell">
       <StaffAppFrame
         venueSlug={venueSlug ?? undefined}
-        onBack={() => (step === 'overview' ? setStep('players') : router.push(staffPath('/new')))}
+        onBack={() => {
+          if (isCreating || isCancelling) return
+          if (step === 'overview') {
+            void handleCancelOverview()
+          } else {
+            router.push(staffPath('/new'))
+          }
+        }}
         footer={
           step === 'overview' ? (
             <button
               type="button"
               className="palalive-staff-btn palalive-staff-btn--primary"
               onClick={() => void handleStartEvent()}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isCancelling}
             >
               {isSubmitting ? 'Starting…' : 'Start Social Night'}
             </button>
@@ -375,10 +449,10 @@ export default function MatchplayPlayersPage() {
             <button
               type="button"
               className="palalive-staff-btn palalive-staff-btn--primary"
-              onClick={() => canStart && setStep('overview')}
-              disabled={!canStart}
+              onClick={() => void handleContinueFromPlayers()}
+              disabled={!canStart || isCreating}
             >
-              Continue
+              {isCreating ? 'Creating…' : 'Continue'}
             </button>
           )
         }
