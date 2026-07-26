@@ -18,6 +18,7 @@ import {
 import { linkVenueScreenToSocialNight } from '@/lib/venue-screen-staff-context'
 import { useStaffSocialNightPaths } from '@/lib/hooks/useStaffSocialNightPaths'
 import { StaffAppFrame } from '@/components/venue-screen/StaffAppFrame'
+import { PalaLiveStaffSocialOverview } from '@/components/palalive/staff/PalaLiveStaffSocialOverview'
 import '@/app/styles/palalive-tokens.css'
 import '@/app/styles/palalive-staff.css'
 import '@/app/styles/setup-form.css'
@@ -43,6 +44,10 @@ function generateEventName(): string {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' Americano'
 }
 
+function formatLabel(format: string): string {
+  return format === 'americano' ? 'Americano' : format
+}
+
 export default function MatchplayPlayersPage() {
   const router = useRouter()
   const { path: staffPath, venueSlug } = useStaffSocialNightPaths()
@@ -50,6 +55,8 @@ export default function MatchplayPlayersPage() {
 
   const [config, setConfig] = useState<MatchplaySetupSession | null>(null)
   const [players, setPlayers] = useState<PlayerSlot[]>([])
+  const [step, setStep] = useState<'players' | 'overview'>('players')
+  const [eventName] = useState(() => generateEventName())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [venueId, setVenueId] = useState<string | null>(null)
@@ -180,7 +187,7 @@ export default function MatchplayPlayersPage() {
       const createResult = await callMatchplayEvent({
         action: 'create',
         venue_id: vid,
-        name: generateEventName(),
+        name: eventName,
         format: config.format,
         scoring_type: 'raw_points',
         court_count: config.selectedCourts.length,
@@ -347,57 +354,86 @@ export default function MatchplayPlayersPage() {
     )
   }
 
+  const courtLabels = config.selectedCourts.map((c) => `Court ${c}`)
+
   return (
     <div className="palalive-staff-shell">
       <StaffAppFrame
         venueSlug={venueSlug ?? undefined}
-        onBack={() => router.push(staffPath('/new'))}
+        onBack={() => (step === 'overview' ? setStep('players') : router.push(staffPath('/new')))}
         footer={
-          <button
-            type="button"
-            className="palalive-staff-btn palalive-staff-btn--primary"
-            onClick={() => void handleStartEvent()}
-            disabled={!canStart || isSubmitting}
-          >
-            {isSubmitting ? 'Creating Event…' : 'Start Event'}
-          </button>
+          step === 'overview' ? (
+            <button
+              type="button"
+              className="palalive-staff-btn palalive-staff-btn--primary"
+              onClick={() => void handleStartEvent()}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Starting…' : 'Start Social Night'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="palalive-staff-btn palalive-staff-btn--primary"
+              onClick={() => canStart && setStep('overview')}
+              disabled={!canStart}
+            >
+              Continue
+            </button>
+          )
         }
       >
-        <h1 className="palalive-staff-page-title">Players</h1>
+        {step === 'overview' ? (
+          <>
+            <h1 className="palalive-staff-page-title">Overview</h1>
+            <PalaLiveStaffSocialOverview
+              eventName={eventName}
+              formatLabel={formatLabel(config.format)}
+              playerCount={config.playerCount}
+              courtLabels={courtLabels}
+              players={players.map((p) => ({ name: p.name.trim(), photoPreview: p.photoPreview }))}
+              error={error}
+            />
+          </>
+        ) : (
+          <>
+            <h1 className="palalive-staff-page-title">Players</h1>
 
-        <div className="palalive-staff-body">
-          <div className="palalive-staff-card">
-            <div className="palalive-staff-card-label-row">
-              <span className="palalive-staff-card-label">Add Players</span>
-              <span className="palalive-staff-chip">
-                {filledCount} of {config.playerCount}
-              </span>
-            </div>
-            {players.map((player, index) => {
-              const busy = processingSlot === index
-              return (
-                <div key={index} className="palalive-staff-player-row">
-                  <PlayerPhotoPicker
-                    previewUrl={player.photoPreview}
-                    busy={busy}
-                    onFile={(file) => void applyFileToSlot(index, file)}
-                    onRemove={player.photoPreview ? () => handleRemovePhoto(index) : undefined}
-                  />
-                  <input
-                    type="text"
-                    className="palalive-staff-player-input"
-                    placeholder={`Player ${index + 1}`}
-                    value={player.name}
-                    onChange={(e) => handleNameChange(index, e.target.value)}
-                    autoComplete="name"
-                  />
+            <div className="palalive-staff-body">
+              <div className="palalive-staff-card">
+                <div className="palalive-staff-card-label-row">
+                  <span className="palalive-staff-card-label">Add Players</span>
+                  <span className="palalive-staff-chip">
+                    {filledCount} of {config.playerCount}
+                  </span>
                 </div>
-              )
-            })}
-          </div>
+                {players.map((player, index) => {
+                  const busy = processingSlot === index
+                  return (
+                    <div key={index} className="palalive-staff-player-row">
+                      <PlayerPhotoPicker
+                        previewUrl={player.photoPreview}
+                        busy={busy}
+                        onFile={(file) => void applyFileToSlot(index, file)}
+                        onRemove={player.photoPreview ? () => handleRemovePhoto(index) : undefined}
+                      />
+                      <input
+                        type="text"
+                        className="palalive-staff-player-input"
+                        placeholder={`Player ${index + 1}`}
+                        value={player.name}
+                        onChange={(e) => handleNameChange(index, e.target.value)}
+                        autoComplete="name"
+                      />
+                    </div>
+                  )
+                })}
+              </div>
 
-          {error ? <p className="palalive-staff-error">{error}</p> : null}
-        </div>
+              {error ? <p className="palalive-staff-error">{error}</p> : null}
+            </div>
+          </>
+        )}
       </StaffAppFrame>
     </div>
   )
