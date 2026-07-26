@@ -21,7 +21,9 @@ export function PalaLiveScrollList({ children }: PalaLiveScrollListProps) {
     const measure = () => {
       const overflow = track.scrollHeight - viewport.clientHeight
       if (overflow > 4) {
-        const duration = Math.max(18, Math.min(48, overflow / 8 + 18))
+        // Venue glance: players look up mid-point, miss their name, wait briefly.
+        // Keep cycles short (~10–20s) so worst-case wait to the far end stays ~4–8s.
+        const duration = Math.max(10, Math.min(20, overflow / 20 + 9))
         track.style.setProperty('--palalive-social-scroll', `${overflow}px`)
         track.style.setProperty('--palalive-social-scroll-duration', `${duration}s`)
         setScrolling(true)

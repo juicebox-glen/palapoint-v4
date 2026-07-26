@@ -262,6 +262,8 @@
 .palalive-court-avatars .palalive-player-avatar {
   width: 64px;
   height: 64px;
+  box-sizing: border-box;
+  border: 2px solid var(--mist);
 }
 
 .palalive-court-avatars .palalive-player-avatar:first-child {
@@ -409,13 +411,15 @@
 }
 
 .palalive-player-scroll-track.is-scrolling {
-  animation: palalive-social-players-scroll var(--palalive-social-scroll-duration, 28s)
-    cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  /* Faster than lounge pacing — players glance mid-rally and shouldn't wait long. */
+  animation: palalive-social-players-scroll var(--palalive-social-scroll-duration, 16s)
+    cubic-bezier(0.4, 0.05, 0.6, 0.95) infinite;
 }
 
 @keyframes palalive-social-players-scroll {
-  0%, 12% { transform: translate3d(0, 0, 0); }
-  44%, 56% { transform: translate3d(0, calc(-1 * var(--palalive-social-scroll, 0px)), 0); }
+  /* Short end dwells so movement dominates; top still gets a touch more time (leaders). */
+  0%, 8% { transform: translate3d(0, 0, 0); }
+  40%, 48% { transform: translate3d(0, calc(-1 * var(--palalive-social-scroll, 0px)), 0); }
   88%, 100% { transform: translate3d(0, 0, 0); }
 }
 
