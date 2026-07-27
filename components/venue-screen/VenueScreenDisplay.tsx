@@ -106,6 +106,7 @@ function VenueScreenBody({
         <PalaLiveShowcase
           courtId={screen.court_id}
           matchId={screen.active_showcase_match_id}
+          screenSlug={screen.screen_slug}
           displayName={screen.display_name}
           branding={branding}
           brandingStyles={brandingStyles}

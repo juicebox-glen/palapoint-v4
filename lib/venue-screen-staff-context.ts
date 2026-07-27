@@ -3,10 +3,7 @@ import {
   setVenueScreenShowcaseGame,
   setVenueScreenSocialNight,
 } from '@/lib/api/screen'
-import {
-  SHOWCASE_VENUE_ENDGAME_HOLD_MS,
-  SOCIAL_NIGHT_VENUE_ENDGAME_HOLD_MS,
-} from '@/lib/showcase-timing'
+import { SOCIAL_NIGHT_VENUE_ENDGAME_HOLD_MS } from '@/lib/showcase-timing'
 
 const CONTEXT_KEY = 'palapoint_venue_screen_staff'
 
@@ -219,26 +216,3 @@ export function cancelPendingScreenIdleReset(screenSlug?: string): void {
 
 /** @deprecated Use cancelPendingScreenIdleReset */
 export const cancelPendingShowcaseIdleReset = cancelPendingScreenIdleReset
-
-/**
- * Delay venue-screen idle reset so the TV can show final scores first.
- * Timer is keyed by screen — staff can navigate away without cancelling it.
- */
-export function scheduleShowcaseScreenIdleReset(
-  matchId: string,
-  delayMs: number = SHOWCASE_VENUE_ENDGAME_HOLD_MS
-): void {
-  const ctx = getVenueScreenStaffContext()
-  if (!ctx || ctx.linkedShowcaseMatchId !== matchId) return
-
-  const key = ctx.screenSlug
-  cancelPendingScreenIdleReset(key)
-
-  pendingIdleResets.set(
-    key,
-    setTimeout(() => {
-      pendingIdleResets.delete(key)
-      void resetVenueScreenAfterShowcaseEnd(matchId)
-    }, delayMs)
-  )
-}

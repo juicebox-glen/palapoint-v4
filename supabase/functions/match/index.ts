@@ -635,7 +635,8 @@ Deno.serve(async (req) => {
           );
         }
 
-        if (!row || row.status !== 'setup' || row.court_id !== court_id) {
+        const reopenableStatuses = ['setup', 'completed', 'abandoned'];
+        if (!row || !reopenableStatuses.includes(row.status) || row.court_id !== court_id) {
           return new Response(
             JSON.stringify({ success: false, error: 'invalid_match_state' }),
             {
@@ -644,6 +645,10 @@ Deno.serve(async (req) => {
             }
           );
         }
+
+        // Editing a finished match (endgame "Edit Match") reopens the same row instead of
+        // leaving staff's Continue create a second one -- reset it to a clean setup state.
+        const isReopeningFinishedMatch = row.status !== 'setup';
 
         const patch: Record<string, unknown> = {
           version: row.version + 1,
@@ -693,12 +698,29 @@ Deno.serve(async (req) => {
           patch.session_id = updReq.session_id || null;
         }
 
+        if (isReopeningFinishedMatch) {
+          patch.status = 'setup';
+          patch.current_set = 1;
+          patch.is_tiebreak = false;
+          patch.team_a_points = 0;
+          patch.team_b_points = 0;
+          patch.team_a_games = 0;
+          patch.team_b_games = 0;
+          patch.set_scores = [];
+          patch.deuce_count = 0;
+          patch.winner = null;
+          patch.completed_at = null;
+          patch.started_at = null;
+          patch.tiebreak_scores = null;
+          patch.tiebreak_starting_server = null;
+        }
+
         const { data: updated, error: updErr } = await supabase
           .from('live_matches')
           .update(patch)
           .eq('id', match_id)
           .eq('version', row.version)
-          .eq('status', 'setup')
+          .in('status', reopenableStatuses)
           .select()
           .single();
 
