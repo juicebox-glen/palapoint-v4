@@ -137,6 +137,22 @@ export function getControlPreviewConfig(state: string): ControlPanelPreviewConfi
           completed_at: new Date().toISOString(),
         }),
       }
+    case 'endgame_no_winner':
+      return {
+        screen: 'endgame_no_winner',
+        match: baseMatch({
+          status: 'abandoned',
+          team_a_points: 30,
+          team_b_points: 0,
+          team_a_games: 0,
+          team_b_games: 0,
+          serving_team: null,
+          set_scores: [],
+          winner: null,
+          started_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+        }),
+      }
     default:
       return {
         screen: 'setup',

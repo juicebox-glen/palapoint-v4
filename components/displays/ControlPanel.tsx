@@ -41,6 +41,7 @@ export type ControlPanelPreviewScreen =
   | 'endgame'
   | 'endgame_multi'
   | 'endgame_sweep'
+  | 'endgame_no_winner'
   | 'end_confirm'
 
 export interface ControlPanelPreviewConfig {
@@ -136,7 +137,19 @@ function initialPlayersFromPreview(preview: ControlPanelPreviewConfig | undefine
 function initialStageFromPreview(preview: ControlPanelPreviewConfig | undefined): ControlStage {
   if (!preview) return 'setup'
   if (preview.screen === 'preview') return 'preview'
-  if (preview.screen === 'live' || preview.screen === 'end_confirm') return 'live'
+  // Same as 'live'/'end_confirm': in the real app, stage only ever leaves 'live' via an
+  // explicit Edit action once a match has ended — it's never 'setup' at this point. Preview
+  // configs have to seed that explicitly since there's no real Start-to-End journey behind them.
+  if (
+    preview.screen === 'live' ||
+    preview.screen === 'end_confirm' ||
+    preview.screen === 'endgame' ||
+    preview.screen === 'endgame_multi' ||
+    preview.screen === 'endgame_sweep' ||
+    preview.screen === 'endgame_no_winner'
+  ) {
+    return 'live'
+  }
   return 'setup'
 }
 

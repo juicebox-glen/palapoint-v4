@@ -17,11 +17,21 @@ export const PALALIVE_TV_STATES: ScreenPreviewState[] = [
     label: 'Showcase · Waiting',
     url: '/design-system/preview/palalive?state=showcase-waiting',
   },
+  {
+    name: 'showcase-pregame',
+    label: 'Showcase · Pregame',
+    url: '/design-system/preview/palalive?state=showcase-pregame',
+  },
   { name: 'showcase', label: 'Showcase · Live', url: '/design-system/preview/palalive?state=showcase' },
   {
     name: 'showcase-endgame',
     label: 'Showcase · End',
     url: '/design-system/preview/palalive?state=showcase-endgame',
+  },
+  {
+    name: 'showcase-endgame-no-winner',
+    label: 'Showcase · End (No Winner)',
+    url: '/design-system/preview/palalive?state=showcase-endgame-no-winner',
   },
 ]
 
@@ -47,6 +57,11 @@ export const PALALIVE_STAFF_SHOWCASE_STATES: ScreenPreviewState[] = [
     url: '/design-system/preview/control?state=live&variant=palalive-staff',
   },
   {
+    name: 'staff-end-confirm',
+    label: 'End Match?',
+    url: '/design-system/preview/control?state=end_confirm&variant=palalive-staff',
+  },
+  {
     name: 'staff-endgame',
     label: 'End · Win',
     url: '/design-system/preview/control?state=endgame&variant=palalive-staff',
@@ -60,6 +75,11 @@ export const PALALIVE_STAFF_SHOWCASE_STATES: ScreenPreviewState[] = [
     name: 'staff-endgame-sweep',
     label: 'End · 2-0',
     url: '/design-system/preview/control?state=endgame_sweep&variant=palalive-staff',
+  },
+  {
+    name: 'staff-endgame-no-winner',
+    label: 'End · No Winner',
+    url: '/design-system/preview/control?state=endgame_no_winner&variant=palalive-staff',
   },
 ]
 
