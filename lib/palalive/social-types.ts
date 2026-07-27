@@ -28,6 +28,9 @@ export interface SocialNightPlayer {
 export interface SocialNightEventData {
   phase: SocialNightPhase
   eventName: string
+  /** e.g. 'americano' — raw event format, for pregame's "Americano · N players · N courts" line. */
+  format: string
+  courtLabels: string[]
   roundNumber: number
   totalRounds: number
   matches: SocialNightMatch[]

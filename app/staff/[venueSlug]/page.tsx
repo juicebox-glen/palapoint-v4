@@ -133,6 +133,9 @@ export default function StaffPage() {
     })
   }
 
+  /** Tapping Social Night only navigates to the setup flow (or resumes an already-live
+   *  event) — it must never switch the venue display itself. That happens later, when
+   *  the Overview screen mounts (fresh) or is already reflected in active_mode (resume). */
   const startSocialNight = async () => {
     if (!selectedScreen) return
 
@@ -146,26 +149,6 @@ export default function StaffPage() {
     setFeedback(null)
 
     const resumeEventId = await resolveSocialNightResumeEventId(selectedScreen)
-
-    if (!resumeEventId) {
-      const result = await setVenueScreenMode({
-        screen_slug: selectedScreen.screen_slug,
-        active_mode: 'social_night',
-      })
-
-      if (!result.success) {
-        setModeBusy(null)
-        setFeedback({
-          kind: 'err',
-          text: result.message ?? result.error,
-        })
-        return
-      }
-
-      setScreens((prev) =>
-        prev.map((s) => (s.screen_slug === result.screen.screen_slug ? result.screen : s))
-      )
-    }
 
     setModeBusy(null)
     router.push(

@@ -97,6 +97,26 @@ export async function linkVenueScreenToSocialNight(
   return { ok: true }
 }
 
+/** Staff backed out of the Overview screen before the event went live — return venue screen to idle, keep pairing. */
+export async function unlinkVenueScreenSocialNight(eventId: string): Promise<{ ok: boolean; error?: string }> {
+  const ctx = getVenueScreenStaffContext()
+  if (!ctx || ctx.linkedEventId !== eventId) return { ok: true }
+
+  cancelPendingScreenIdleReset(ctx.screenSlug)
+
+  const result = await setVenueScreenMode({
+    screen_slug: ctx.screenSlug,
+    active_mode: 'idle',
+  })
+
+  if (!result.success) {
+    return { ok: false, error: result.message ?? result.error }
+  }
+
+  saveVenueScreenStaffContext({ ...ctx, linkedEventId: undefined })
+  return { ok: true }
+}
+
 /** After event finalize — return venue screen to idle. */
 export async function resetVenueScreenAfterEventEnd(eventId: string): Promise<void> {
   const ctx = getVenueScreenStaffContext()

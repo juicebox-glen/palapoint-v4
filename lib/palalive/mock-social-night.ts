@@ -72,6 +72,8 @@ function finalMatches(): SocialNightMatch[] {
 export const MOCK_SOCIAL_PREGAME: SocialNightEventData = {
   phase: 'pregame',
   eventName: 'Thursday Night Americano',
+  format: 'americano',
+  courtLabels: ['01', '02', '03', '04'],
   roundNumber: 1,
   totalRounds: 8,
   matches: mockMatches(false),
@@ -89,6 +91,8 @@ export const MOCK_SOCIAL_PREGAME: SocialNightEventData = {
 export const MOCK_SOCIAL_INGAME: SocialNightEventData = {
   phase: 'ingame',
   eventName: 'Thursday Night Americano',
+  format: 'americano',
+  courtLabels: ['01', '02', '03', '04'],
   roundNumber: 4,
   totalRounds: 8,
   matches: mockMatches(true),
@@ -110,6 +114,8 @@ export const MOCK_SOCIAL_INGAME: SocialNightEventData = {
 export const MOCK_SOCIAL_POSTGAME: SocialNightEventData = {
   phase: 'postgame',
   eventName: 'Thursday Night Americano',
+  format: 'americano',
+  courtLabels: ['01', '02', '03', '04'],
   roundNumber: 8,
   totalRounds: 8,
   matches: finalMatches(),

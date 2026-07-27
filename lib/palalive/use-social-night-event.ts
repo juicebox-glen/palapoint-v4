@@ -24,6 +24,8 @@ interface RawEvent {
   id: string
   name: string
   status: string
+  format: string
+  court_labels?: string[] | null
 }
 
 interface RawPlayer {
@@ -306,6 +308,8 @@ export function useSocialNightEvent(eventId: string | null): UseSocialNightEvent
   const data: SocialNightEventData = {
     phase,
     eventName: event.name,
+    format: event.format,
+    courtLabels: event.court_labels ?? [],
     roundNumber,
     totalRounds,
     matches,
