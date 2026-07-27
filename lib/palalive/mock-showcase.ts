@@ -62,3 +62,21 @@ export const MOCK_SHOWCASE_ENDGAME: MatchState = {
   serving_team: 'a',
   winner: 'a',
 }
+
+/**
+ * Abandoned before any set was won (e.g. ended at 30-0 mid-game) for DS Showcase ·
+ * End (No Winner) preview — no resolvable winner, falls back to "MATCH COMPLETE".
+ */
+export const MOCK_SHOWCASE_ENDGAME_NO_WINNER: MatchState = {
+  ...MOCK_SHOWCASE_MATCH,
+  id: 'mock-showcase-endgame-no-winner',
+  status: 'abandoned',
+  current_set: 1,
+  team_a_points: 30,
+  team_b_points: 0,
+  team_a_games: 0,
+  team_b_games: 0,
+  set_scores: [],
+  serving_team: 'a',
+  winner: null,
+}
