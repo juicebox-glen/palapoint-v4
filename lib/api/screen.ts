@@ -33,6 +33,8 @@ async function parseScreenResponse(res: Response): Promise<ScreenApiResult> {
 export async function setVenueScreenMode(input: {
   screen_slug: string
   active_mode: VenueScreenMode
+  /** Idle only, display-triggered: no-op server-side if the screen has since linked a different match. */
+  if_showcase_match_id?: string
 }): Promise<ScreenApiResult> {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/screen`, {
     method: 'POST',

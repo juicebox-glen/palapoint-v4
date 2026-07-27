@@ -13,7 +13,6 @@ import {
   getVenueScreenStaffContext,
   linkVenueScreenToShowcaseGame,
   resetVenueScreenAfterShowcaseEnd,
-  scheduleShowcaseScreenIdleReset,
 } from '@/lib/venue-screen-staff-context'
 import { resolveShowcaseResumeMatchId } from '@/lib/venue-screen-resume'
 
@@ -94,10 +93,6 @@ export default function StaffShowcasePage() {
   /** Match has gone live — no longer cancellable via Back, so stop treating it as pending. */
   const handleMatchStarted = useCallback(() => {
     setPendingMatchId(null)
-  }, [])
-
-  const handleMatchEnded = useCallback((matchId: string) => {
-    scheduleShowcaseScreenIdleReset(matchId)
   }, [])
 
   /** Back from the confirmation screen: unwind a not-yet-started match (unlink the
@@ -188,7 +183,6 @@ export default function StaffShowcasePage() {
         variant="palalive-staff"
         onMatchReady={handleMatchReady}
         onMatchStarted={handleMatchStarted}
-        onMatchEnded={handleMatchEnded}
       />
     </StaffAppFrame>
   )

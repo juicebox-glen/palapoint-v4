@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, type CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 
 import { PalaLiveModeWaiting } from '@/components/palalive/PalaLiveModeWaiting'
 import { PalaLiveShowcaseEndgameView } from '@/components/palalive/PalaLiveShowcaseEndgameView'
 import { PalaLiveShowcaseView } from '@/components/palalive/PalaLiveShowcaseView'
+import { setVenueScreenMode } from '@/lib/api/screen'
 import { useLiveMatch } from '@/lib/hooks/useLiveMatch'
 import { LIVE_MATCH_FULL_SELECT } from '@/lib/live-match-select'
 import { useSpectatorEndgame } from '@/lib/hooks/useSpectatorEndgame'
@@ -15,6 +16,7 @@ import type { VenueBranding } from '@/lib/venue'
 interface PalaLiveShowcaseProps {
   courtId: string
   matchId: string
+  screenSlug: string
   displayName: string
   branding: VenueBranding | null
   brandingStyles?: CSSProperties
@@ -24,7 +26,7 @@ interface PalaLiveShowcaseProps {
  * setup and in_progress share one live UI. Completed matches hold briefly on
  * PalaLiveShowcaseEndgameView (same shell / bottom bar as live).
  */
-export function PalaLiveShowcase({ courtId, matchId, displayName, branding, brandingStyles }: PalaLiveShowcaseProps) {
+export function PalaLiveShowcase({ courtId, matchId, screenSlug, displayName, branding, brandingStyles }: PalaLiveShowcaseProps) {
   // Scoped to the staff-selected match, not just "any match finishing on this court" —
   // otherwise an unrelated match on the same court completing would hijack the screen.
   const endgameMatch = useSpectatorEndgame(courtId, { displayMs: SHOWCASE_VENUE_ENDGAME_HOLD_MS, matchId })
@@ -50,6 +52,34 @@ export function PalaLiveShowcase({ courtId, matchId, displayName, branding, bran
     }, 30000)
     return () => clearInterval(interval)
   }, [hasContent])
+
+  // Self-return-to-idle: this display, not the staff tab, owns telling the screen to
+  // idle once there's nothing left to show for this match — whether that's after the
+  // endgame hold finishes, or immediately for a match that ended without a showable
+  // result. Reliable regardless of whether the staff tab that ended the match is still
+  // open. Server-side no-ops if staff has since linked a newer match on this screen.
+  const sawContentRef = useRef(false)
+  const unlinkFiredForMatchRef = useRef<string | null>(null)
+  // Reset per matchId — a fresh match linked while this component stays mounted must
+  // not inherit "already saw content" from the match that was here before it.
+  useEffect(() => {
+    sawContentRef.current = false
+    unlinkFiredForMatchRef.current = null
+  }, [matchId])
+  useEffect(() => {
+    if (hasContent) {
+      sawContentRef.current = true
+      return
+    }
+    if (!sawContentRef.current) return
+    if (unlinkFiredForMatchRef.current === matchId) return
+    unlinkFiredForMatchRef.current = matchId
+    void setVenueScreenMode({
+      screen_slug: screenSlug,
+      active_mode: 'idle',
+      if_showcase_match_id: matchId,
+    })
+  }, [hasContent, matchId, screenSlug])
 
   if (endgameMatch) {
     return (

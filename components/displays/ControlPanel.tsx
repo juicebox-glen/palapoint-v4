@@ -361,7 +361,10 @@ export default function ControlPanel({
   async function handleContinue() {
     if (isPreview) return
     if (!courtId) return
-    const updating = !!match && match.status === 'setup'
+    // A match being re-edited from the endgame screen is still completed/abandoned —
+    // update_setup reopens it (server resets it to a clean setup state) rather than
+    // handleContinue creating a second row for it.
+    const updating = !!match && (match.status === 'setup' || isMatchEndgame(match))
     setActionLoading('continue')
     setError(null)
     try {
@@ -579,6 +582,9 @@ export default function ControlPanel({
       } else if (data.match) {
         setMatch(data.match as MatchState)
         setStage('preview')
+        if (onMatchReady) {
+          await onMatchReady(data.match.id)
+        }
       }
     } catch (err) {
       console.error('Error in rematch:', err)
@@ -591,7 +597,6 @@ export default function ControlPanel({
     if (isPreview) return
     if (!match) return
     prefillFormFromMatch(match)
-    setMatch(null)
     setStage('setup')
   }
 
@@ -711,6 +716,14 @@ export default function ControlPanel({
   }
 
   if (!match) {
+    return renderSetupForm()
+  }
+
+  // Editing (Confirm's "Edit Match" or the endgame screen's) drops back to the setup
+  // form while keeping the existing match object around for handleContinue to reuse —
+  // must win over match.status here, since an endgame-originated edit's match is still
+  // completed/abandoned until the edit is actually saved.
+  if (stage === 'setup') {
     return renderSetupForm()
   }
 

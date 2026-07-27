@@ -21,6 +21,12 @@ interface SetModeRequest {
   screen_slug: string;
   pairing_code?: string;
   active_mode: ActiveMode;
+  /**
+   * Idle only, display-triggered: only reset if the screen is still linked to this
+   * match (its own endgame hold just expired). Guards against a stale/delayed call
+   * tearing down a newer match staff has since linked in the meantime.
+   */
+  if_showcase_match_id?: string;
 }
 
 interface SetSocialNightRequest {
@@ -113,7 +119,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (action === 'set_mode') {
-      const { screen_slug, active_mode } = body;
+      const { screen_slug, active_mode, if_showcase_match_id } = body;
 
       if (!screen_slug?.trim()) {
         return errorResponse('missing_screen_slug', 'screen_slug is required.', 400);
@@ -128,6 +134,70 @@ Deno.serve(async (req) => {
 
       const access = await resolveScreen(supabase, screen_slug);
       if (!access.ok) return access.response;
+
+      if (active_mode === 'idle') {
+        const { data: currentScreen, error: currentScreenError } = await supabase
+          .from('venue_screens')
+          .select('court_id, active_showcase_match_id, active_matchplay_event_id')
+          .eq('id', access.screenId)
+          .maybeSingle();
+
+        if (currentScreenError) {
+          console.error('[screen] idle cleanup lookup:', currentScreenError.message);
+          return errorResponse('lookup_failed', 'Could not look up screen state.', 500);
+        }
+
+        // Display-triggered reset after the endgame hold — only proceed if the screen
+        // is still linked to that same match. If staff already moved on to a newer
+        // match in the meantime, this is a stale call and must not tear it down.
+        if (
+          if_showcase_match_id &&
+          currentScreen?.active_showcase_match_id !== if_showcase_match_id
+        ) {
+          const { data: unchanged, error: reselectError } = await supabase
+            .from('venue_screens')
+            .select(PUBLIC_SELECT)
+            .eq('id', access.screenId)
+            .single();
+          if (reselectError || !unchanged) {
+            return errorResponse(
+              'lookup_failed',
+              reselectError?.message ?? 'Could not look up screen.',
+              500
+            );
+          }
+          return jsonResponse({ success: true, screen: unchanged, skipped: true });
+        }
+
+        // Reset to Idle is a hard cleanup, not just a mode flip — abandon whatever
+        // showcase match is active on this court, and end whatever social night event
+        // is linked to this screen, so nothing resumable is left behind.
+        if (currentScreen?.court_id) {
+          const { error: matchCleanupError } = await supabase
+            .from('live_matches')
+            .update({ status: 'abandoned', completed_at: new Date().toISOString() })
+            .eq('court_id', currentScreen.court_id)
+            .in('status', ['setup', 'in_progress']);
+
+          if (matchCleanupError) {
+            console.error('[screen] idle cleanup — abandon match:', matchCleanupError.message);
+            return errorResponse('cleanup_failed', 'Could not abandon the active match.', 500);
+          }
+        }
+
+        if (currentScreen?.active_matchplay_event_id) {
+          const { error: eventCleanupError } = await supabase
+            .from('matchplay_events')
+            .update({ status: 'completed', completed_at: new Date().toISOString() })
+            .eq('id', currentScreen.active_matchplay_event_id)
+            .in('status', ['setup', 'in_progress']);
+
+          if (eventCleanupError) {
+            console.error('[screen] idle cleanup — end event:', eventCleanupError.message);
+            return errorResponse('cleanup_failed', 'Could not end the active event.', 500);
+          }
+        }
+      }
 
       const patch: Record<string, unknown> = { active_mode };
 
