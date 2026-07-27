@@ -169,32 +169,39 @@ Deno.serve(async (req) => {
           return jsonResponse({ success: true, screen: unchanged, skipped: true });
         }
 
-        // Reset to Idle is a hard cleanup, not just a mode flip — abandon whatever
-        // showcase match is active on this court, and end whatever social night event
-        // is linked to this screen, so nothing resumable is left behind.
-        if (currentScreen?.court_id) {
-          const { error: matchCleanupError } = await supabase
-            .from('live_matches')
-            .update({ status: 'abandoned', completed_at: new Date().toISOString() })
-            .eq('court_id', currentScreen.court_id)
-            .in('status', ['setup', 'in_progress']);
+        // Hard cleanup — abandon whatever showcase match is active on this court, and end
+        // whatever social night event is linked to this screen, so nothing resumable is
+        // left behind — belongs ONLY to the explicit, staff-initiated Reset to Idle (no
+        // if_showcase_match_id). The display's own routine self-unlink, once it has
+        // nothing left to show for a match, must never reach into live_matches at all:
+        // a match reopened for editing keeps the same id as the one that just ended, so
+        // this same court-scoped cleanup would otherwise re-abandon a row staff just
+        // legitimately reopened, moments after they reopened it.
+        if (!if_showcase_match_id) {
+          if (currentScreen?.court_id) {
+            const { error: matchCleanupError } = await supabase
+              .from('live_matches')
+              .update({ status: 'abandoned', completed_at: new Date().toISOString() })
+              .eq('court_id', currentScreen.court_id)
+              .in('status', ['setup', 'in_progress']);
 
-          if (matchCleanupError) {
-            console.error('[screen] idle cleanup — abandon match:', matchCleanupError.message);
-            return errorResponse('cleanup_failed', 'Could not abandon the active match.', 500);
+            if (matchCleanupError) {
+              console.error('[screen] idle cleanup — abandon match:', matchCleanupError.message);
+              return errorResponse('cleanup_failed', 'Could not abandon the active match.', 500);
+            }
           }
-        }
 
-        if (currentScreen?.active_matchplay_event_id) {
-          const { error: eventCleanupError } = await supabase
-            .from('matchplay_events')
-            .update({ status: 'completed', completed_at: new Date().toISOString() })
-            .eq('id', currentScreen.active_matchplay_event_id)
-            .in('status', ['setup', 'in_progress']);
+          if (currentScreen?.active_matchplay_event_id) {
+            const { error: eventCleanupError } = await supabase
+              .from('matchplay_events')
+              .update({ status: 'completed', completed_at: new Date().toISOString() })
+              .eq('id', currentScreen.active_matchplay_event_id)
+              .in('status', ['setup', 'in_progress']);
 
-          if (eventCleanupError) {
-            console.error('[screen] idle cleanup — end event:', eventCleanupError.message);
-            return errorResponse('cleanup_failed', 'Could not end the active event.', 500);
+            if (eventCleanupError) {
+              console.error('[screen] idle cleanup — end event:', eventCleanupError.message);
+              return errorResponse('cleanup_failed', 'Could not end the active event.', 500);
+            }
           }
         }
       }

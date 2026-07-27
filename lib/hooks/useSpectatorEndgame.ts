@@ -3,14 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
-import { resolveFinishedWinnerSide } from '@/components/shared/MatchFinishedPanel'
 import { supabase } from '@/lib/supabase'
 import { SPECTATOR_ENDGAME_DISPLAY_MS } from '@/lib/showcase-timing'
 import type { MatchState } from '@/lib/types/match'
 import { isMatchEndgame } from '@/lib/utils/match-status'
 
+/**
+ * Any terminal match holds — including one abandoned before any set was won, which has
+ * no resolvable winner. MatchFinishedPanel / PalaLiveShowcaseEndgameView already render
+ * that case (falls back to "MATCH COMPLETE", no winner avatars); this just has to reach it.
+ */
 function isShowableEndgame(row: MatchState): boolean {
-  return isMatchEndgame(row) && resolveFinishedWinnerSide(row) !== null
+  return isMatchEndgame(row)
 }
 
 export interface UseSpectatorEndgameOptions {
