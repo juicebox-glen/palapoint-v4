@@ -5,6 +5,7 @@ import { PalaLiveShowcaseAmbient } from '@/components/palalive/PalaLiveShowcaseA
 import { PalaLiveShell } from '@/components/palalive/PalaLiveShell'
 import { PalaLiveWeatherStub } from '@/components/palalive/PalaLiveWeatherStub'
 import { ShowcaseMatchCard } from '@/components/palalive/ShowcaseMatchCard'
+import { ShowcasePregameCard } from '@/components/palalive/ShowcasePregameCard'
 import { ShowcaseScoreboard } from '@/components/palalive/ShowcaseScoreboard'
 import type { MatchState } from '@/lib/types/match'
 import type { VenueBranding } from '@/lib/venue'
@@ -18,6 +19,8 @@ interface PalaLiveShowcaseViewProps {
 }
 
 export function PalaLiveShowcaseView({ match, branding, brandingStyles }: PalaLiveShowcaseViewProps) {
+  const isPregame = match.status === 'setup'
+
   return (
     <PalaLiveShell
       branding={branding}
@@ -32,7 +35,7 @@ export function PalaLiveShowcaseView({ match, branding, brandingStyles }: PalaLi
         <>
           <PalaLiveShowcaseAmbient />
           <div className="palalive-scoreboard-slot">
-            <ShowcaseScoreboard match={match} />
+            {isPregame ? <ShowcasePregameCard match={match} /> : <ShowcaseScoreboard match={match} />}
           </div>
           <ShowcaseMatchCard match={match} />
         </>

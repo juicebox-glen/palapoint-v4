@@ -301,6 +301,94 @@
   color: var(--mist);
 }
 
+/* ---------- Showcase pregame (left — build-up hold, before first point) ---------- */
+
+.palalive-showcase-pregame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+  height: 100%;
+  padding: 48px 40px;
+  border-radius: 28px;
+  background: var(--card);
+  border: var(--card-border);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.palalive-showcase-pregame .palalive-title-label {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(248 250 244 / 72%);
+}
+
+.palalive-showcase-pregame__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 56px;
+}
+
+.palalive-showcase-pregame__team {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.palalive-showcase-pregame__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.palalive-showcase-pregame__avatar.palalive-player-avatar {
+  width: 140px;
+  height: 140px;
+  font-size: 2.5rem;
+}
+
+.palalive-showcase-pregame__name {
+  font-family: var(--sans);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.palalive-showcase-pregame__vs {
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.palalive-showcase-pregame__badges {
+  display: flex;
+  gap: 16px;
+}
+
+.palalive-showcase-pregame__badge {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(248 250 244 / 80%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--card-edge);
+  background: var(--card-inner);
+}
+
 /* ---------- Match card (right) ---------- */
 
 .palalive-showcase-panel {

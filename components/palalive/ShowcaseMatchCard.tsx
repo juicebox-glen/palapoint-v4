@@ -37,11 +37,14 @@ function TeamRows({
 export function ShowcaseMatchCard({ match }: ShowcaseMatchCardProps) {
   const isLive = match.status === 'in_progress'
   const isCompleted = match.status === 'completed'
+  const isPregame = match.status === 'setup'
 
   return (
     <div className="palalive-showcase-panel">
       <div className="palalive-stack-header">
-        <span className="palalive-title-label">{isCompleted ? 'Final' : 'Now Playing'}</span>
+        <span className="palalive-title-label">
+          {isCompleted ? 'Final' : isPregame ? 'Starting Soon' : 'Now Playing'}
+        </span>
         {isLive ? (
           <span className="palalive-title-label palalive-live-badge">
             <span className="palalive-live-dot" aria-hidden />
