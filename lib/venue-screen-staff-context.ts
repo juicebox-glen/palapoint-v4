@@ -179,22 +179,27 @@ export async function linkVenueScreenToShowcaseGame(
   return { ok: true }
 }
 
-/** After showcase match ends — return venue screen to idle. */
-export async function resetVenueScreenAfterShowcaseEnd(matchId: string): Promise<void> {
+/** After showcase match ends (or a not-yet-started match is cancelled) — return venue screen to idle. */
+export async function resetVenueScreenAfterShowcaseEnd(matchId: string): Promise<{ ok: boolean; error?: string }> {
   const ctx = getVenueScreenStaffContext()
-  if (!ctx || ctx.linkedShowcaseMatchId !== matchId) return
+  if (!ctx || ctx.linkedShowcaseMatchId !== matchId) return { ok: true }
 
   cancelPendingScreenIdleReset(ctx.screenSlug)
 
-  await setVenueScreenMode({
+  const result = await setVenueScreenMode({
     screen_slug: ctx.screenSlug,
     active_mode: 'idle',
   })
+
+  if (!result.success) {
+    return { ok: false, error: result.message ?? result.error }
+  }
 
   saveVenueScreenStaffContext({
     ...ctx,
     linkedShowcaseMatchId: undefined,
   })
+  return { ok: true }
 }
 
 /** Cancel a scheduled TV idle reset (Reset to Idle / starting a new mode). */

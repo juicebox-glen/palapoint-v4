@@ -30,6 +30,20 @@ export const MOCK_SHOWCASE_MATCH: MatchState = {
   session_id: null,
 }
 
+/** 'setup'-status match for DS Showcase · Pregame preview (build-up hold, before first point). */
+export const MOCK_SHOWCASE_PREGAME: MatchState = {
+  ...MOCK_SHOWCASE_MATCH,
+  id: 'mock-showcase-pregame',
+  status: 'setup',
+  current_set: 1,
+  team_a_points: 0,
+  team_b_points: 0,
+  team_a_games: 0,
+  team_b_games: 0,
+  set_scores: [],
+  serving_team: null,
+}
+
 /** Completed match for DS Showcase · End preview (SpectatorEndgame hold). */
 export const MOCK_SHOWCASE_ENDGAME: MatchState = {
   ...MOCK_SHOWCASE_MATCH,

@@ -158,6 +158,10 @@ export default function StaffPage() {
     )
   }
 
+  /** Tapping Showcase Game only navigates to the setup flow (or resumes an already-live
+   *  match) — it must never switch the venue display itself. That happens later, when
+   *  the confirmation screen links a real match (fresh) or is already reflected in
+   *  active_mode (resume). */
   const startShowcaseGame = async () => {
     if (!selectedScreen) return
 
@@ -169,27 +173,6 @@ export default function StaffPage() {
 
     setModeBusy('showcase_game')
     setFeedback(null)
-
-    if (!resumeHints.showcaseLive) {
-      const result = await setVenueScreenMode({
-        screen_slug: selectedScreen.screen_slug,
-        active_mode: 'showcase_game',
-      })
-
-      if (!result.success) {
-        setModeBusy(null)
-        setFeedback({
-          kind: 'err',
-          text: result.message ?? result.error,
-        })
-        return
-      }
-
-      setScreens((prev) =>
-        prev.map((s) => (s.screen_slug === result.screen.screen_slug ? result.screen : s))
-      )
-    }
-
     setModeBusy(null)
     router.push(`/staff/${venueSlug}/showcase`)
   }

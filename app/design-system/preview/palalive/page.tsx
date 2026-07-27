@@ -9,7 +9,7 @@ import { PalaLiveShowcaseEndgameView } from '@/components/palalive/PalaLiveShowc
 import { PalaLiveShowcaseView } from '@/components/palalive/PalaLiveShowcaseView'
 import { PalaLiveSocialView } from '@/components/palalive/PalaLiveSocialView'
 import { MOCK_COURT_BOOKINGS } from '@/lib/palalive/mock-bookings'
-import { MOCK_SHOWCASE_ENDGAME, MOCK_SHOWCASE_MATCH } from '@/lib/palalive/mock-showcase'
+import { MOCK_SHOWCASE_ENDGAME, MOCK_SHOWCASE_MATCH, MOCK_SHOWCASE_PREGAME } from '@/lib/palalive/mock-showcase'
 import { MOCK_SOCIAL_INGAME, MOCK_SOCIAL_POSTGAME, MOCK_SOCIAL_PREGAME } from '@/lib/palalive/mock-social-night'
 import { palaLiveBrandingStylesFor } from '@/lib/venue'
 
@@ -61,6 +61,11 @@ function PalaLivePreviewContent() {
           brandingStyles={brandingStyles}
           subtitle="Waiting for staff to start a match."
         />
+      )
+      break
+    case 'showcase-pregame':
+      content = (
+        <PalaLiveShowcaseView branding={designSystemSquareOneBranding} brandingStyles={brandingStyles} match={MOCK_SHOWCASE_PREGAME} />
       )
       break
     case 'showcase':

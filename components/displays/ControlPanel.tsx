@@ -91,6 +91,8 @@ interface ControlPanelProps {
   preview?: ControlPanelPreviewConfig
   /** Hide SetupScreenHeader in live view; MatchSetupForm header when false. */
   showSetupHeader?: boolean
+  /** Called once a match exists and the confirmation screen is shown (before Start). */
+  onMatchReady?: (matchId: string) => void | Promise<void>
   /** Called when staff starts a match (after successful start action). */
   onMatchStarted?: (matchId: string) => void | Promise<void>
   /** Called when match completes or is abandoned. */
@@ -149,6 +151,7 @@ export default function ControlPanel({
   courtName,
   preview,
   showSetupHeader = true,
+  onMatchReady,
   onMatchStarted,
   onMatchEnded,
   embedded = false,
@@ -396,6 +399,9 @@ export default function ControlPanel({
       } else if (data.match) {
         setMatch(data.match as MatchState)
         setStage('preview')
+        if (onMatchReady) {
+          await onMatchReady(data.match.id)
+        }
       }
     } catch (err) {
       console.error('Error saving match:', err)
